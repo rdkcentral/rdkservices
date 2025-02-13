@@ -23,6 +23,8 @@
 #include <stdint.h>
 #include <thread>
 #include <map>
+#include <ctime>
+#include <csignal>
 
 #include "Module.h"
 #include "tracing/Logging.h"
@@ -64,6 +66,8 @@ typedef enum{
     UNSOLICITED_MAINTENANCE
 }Maintenance_Type_t;
 
+#define BASE_CLOCK CLOCK_BOOTTIME
+
 #define FOREGROUND_MODE "FOREGROUND"
 #define BACKGROUND_MODE "BACKGROUND"
 
@@ -72,17 +76,25 @@ typedef enum{
 #define MAINTENANCE_TASK_SKIPPED       0x200
 
 #define MAX_NETWORK_RETRIES             4
+#define INTERNET_CONNECTED_STATE        3
+#define NETWORK_RETRY_INTERVAL          30
+
 #define MAX_ACTIVATION_RETRIES          4
 
-#define NETWORK_RETRY_INTERVAL          30
 #define SECMGR_RETRY_INTERVAL           5
+
+#define TASK_RETRY_COUNT                1
+#define TASK_RETRY_DELAY                5
+#ifndef TASK_TIMEOUT
+#define TASK_TIMEOUT                    3600 /* Default Task Timeout (1 Hour i.e. 3600 seconds) */
+#endif
 
 #define RFC_SUCCESS                     0
 #define RFC_COMPLETE                    1
 #define LOGUPLOAD_SUCCESS               2
 #define LOGUPLOAD_COMPLETE              3
-#define DIFD_SUCCESS                    4
-#define DIFD_COMPLETE                   5
+#define SWUPDATE_SUCCESS                4
+#define SWUPDATE_COMPLETE               5
 #define REBOOT_REQUIRED                 6
 #define TASK_SKIPPED                    7
 #define TASKS_STARTED                   8
@@ -197,6 +209,19 @@ namespace WPEFramework {
                 static int runScript(const std::string& script,
                         const std::string& args, string *output = NULL,
                         string *error = NULL, int timeout = 30000);
+
+                /* Timer Implementation */
+                static void timer_handler(int signo);
+                static timer_t timerid;
+                static string currentTask;
+                static bool taskCompleted;
+
+                bool checkTaskTimerExists();
+                bool isTaskTimerRunning();
+                bool maintenance_createTimer();
+                bool task_startTimer();
+                bool task_stopTimer();
+                bool maintenance_deleteTimer();
 
                 BEGIN_INTERFACE_MAP(MaintenanceManager)
                 INTERFACE_ENTRY(PluginHost::IPlugin)

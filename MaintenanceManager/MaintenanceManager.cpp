@@ -65,11 +65,11 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 41
+#define API_VERSION_NUMBER_PATCH 42
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
-
 #define PROC_DIR "/proc"
+#define RDK_PATH "/lib/rdk/"
 #define MAINTENANCE_MANAGER_RFC_CALLER_ID "MaintenanceManager"
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 #define TR181_STOP_MAINTENANCE  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StopMaintenance.Enable"
@@ -81,7 +81,9 @@ using namespace std;
 #define TR181_XCONFURL "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl"
 #endif /* WhoAmI */
 
-#define INTERNET_CONNECTED_STATE 3
+#define RFC_TASK RDK_PATH "Start_RFC.sh"
+#define SWUPDATE_TASK RDK_PATH "swupdate_utility.sh"
+#define LOGUPLOAD_TASK RDK_PATH "Start_uploadSTBLogs.sh"
 
 string notifyStatusToString(Maint_notify_status_t &status)
 {
@@ -140,12 +142,6 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
         case MAINT_LOGUPLOAD_ERROR:
             ret_status="MAINTENANCE_LOGUPLOAD_ERROR";
             break;
-        case MAINT_PINGTELEMETRY_COMPLETE:
-            ret_status="MAINTENANCE_PINGTELEMETRY_COMPLETE";
-            break;
-        case MAINT_PINGTELEMETRY_ERROR:
-            ret_status="MAINTENANCE_PINGTELEMETRY_ERROR";
-            break;
         case MAINT_FWDOWNLOAD_COMPLETE:
             ret_status="MAINTENANCE_FWDOWNLOAD_COMPLETE";
             break;
@@ -166,6 +162,7 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
     }
     return ret_status;
 }
+
 /**
  * @brief WPEFramework class for Maintenance Manager
  */
@@ -186,10 +183,8 @@ namespace WPEFramework {
     }
 
     namespace Plugin {
-
         namespace {
             // MaintenanceManager should use interfaces
-
             uint32_t getServiceState(PluginHost::IShell* shell, const string& callsign, PluginHost::IShell::state& state)
             {
                 uint32_t result;
@@ -214,13 +209,30 @@ namespace WPEFramework {
 
         cSettings MaintenanceManager::m_setting(MAINTENANCE_MGR_RECORD_FILE);
 
+        /* Static Member Definitions */
+        timer_t MaintenanceManager::timerid;
+        string MaintenanceManager::currentTask;
+        bool MaintenanceManager::taskCompleted = false;
+
         string task_names_foreground[]={
-            "/lib/rdk/RFCbase.sh",
-            "/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log",
+            "/lib/rdk/Start_RFC.sh",
+            "/lib/rdk/swupdate_utility.sh",
             "/lib/rdk/Start_uploadSTBLogs.sh"
         };
 
         vector<string> tasks;
+
+        const int task_complete_status[] = {
+            RFC_COMPLETE,
+            SWUPDATE_COMPLETE,
+            LOGUPLOAD_COMPLETE
+        };
+
+        std::vector<std::pair<std::string, int>> task_status_vector = {
+            {RFC_TASK, RFC_COMPLETE},
+            {SWUPDATE_TASK, SWUPDATE_COMPLETE},
+            {LOGUPLOAD_TASK, LOGUPLOAD_COMPLETE}
+        };
 
         string script_names[]={
             "RFCbase.sh",
@@ -237,21 +249,20 @@ namespace WPEFramework {
         /**
          * Register MaintenanceManager module as wpeframework plugin
          */
-        MaintenanceManager::MaintenanceManager()
-            :PluginHost::JSONRPC()
+        MaintenanceManager::MaintenanceManager():PluginHost::JSONRPC()
         {
             MaintenanceManager::_instance = this;
-	    if (Utils::directoryExists(MAINTENANCE_MGR_RECORD_FILE))
+            if (Utils::directoryExists(MAINTENANCE_MGR_RECORD_FILE))
             {
-                std::cout << "File " << MAINTENANCE_MGR_RECORD_FILE << " detected as folder, deleting.." << std::endl;
+                LOGINFO("File %s detected as folder, deleting..", MAINTENANCE_MGR_RECORD_FILE);
                 if (rmdir(MAINTENANCE_MGR_RECORD_FILE) == 0)
                 {
-		    cSettings mtemp(MAINTENANCE_MGR_RECORD_FILE);
-		    MaintenanceManager::m_setting = mtemp;
+                    cSettings mtemp(MAINTENANCE_MGR_RECORD_FILE);
+                    MaintenanceManager::m_setting = mtemp;
                 }
                 else
                 {
-                     std::cout << "Unable to delete folder: " << MAINTENANCE_MGR_RECORD_FILE << std::endl;
+                     LOGINFO("Unable to delete folder: %s", MAINTENANCE_MGR_RECORD_FILE);
                 }
             }
 
@@ -282,46 +293,48 @@ namespace WPEFramework {
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[1].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[2].c_str()] = DATA_TYPE::WDMP_STRING;
 #endif /* WhoAmI */
-         }
+        }
 
         void MaintenanceManager::task_execution_thread(){
-            uint8_t i=0;
+            int i=0;
             string cmd="";
             bool internetConnectStatus=false;
-	    bool delayMaintenanceStarted = false;
+            bool delayMaintenanceStarted = false;
             bool exitOnNoNetwork = false;
+            int retry_count = TASK_RETRY_COUNT;
+            bool isTaskTimerStarted = false;
 
             std::unique_lock<std::mutex> wailck(m_waiMutex);
             LOGINFO("Executing Maintenance tasks");
 
 #if defined(ENABLE_WHOAMI)
-	    /* Purposefully delaying MAINTENANCE_STARTED status to honor POWER compliance */
-	    if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
-	    	delayMaintenanceStarted = true;
-	    }
+	        /* Purposefully delaying MAINTENANCE_STARTED status to honor POWER compliance */
+	        if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
+	    	    delayMaintenanceStarted = true;
+	        }
 #endif
-	    if (!delayMaintenanceStarted) {
-		m_statusMutex.lock();
+	        if (!delayMaintenanceStarted) {
+                m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
                 m_statusMutex.unlock();
-	    }
+	        }
 
             /* cleanup if not empty */
             if(!tasks.empty()){
                 tasks.erase (tasks.begin(),tasks.end());
             }
 
-            /* Controlled by CFLAGS */
+/* Controlled by CFLAGS */
 #if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
             bool activationStatus=false;
             bool skipFirmwareCheck=false;
             activationStatus = getActivatedStatus(skipFirmwareCheck); /* Activation Check */
 
             /* we proceed with network check only if activationStatus is
-             * "activation-connect", 
-	     * "activation-ready",
-             * "not-activated", 
-	     * "activated" */
+            * "activation-connect", 
+            * "activation-ready",
+            * "not-activated", 
+            * "activated" */
             if(activationStatus){
                 internetConnectStatus = isDeviceOnline(); /* Network Check */
             }
@@ -330,40 +343,37 @@ namespace WPEFramework {
 #endif
 
 #if defined(ENABLE_WHOAMI)
-	    if (UNSOLICITED_MAINTENANCE == g_maintenance_type) /* Unsolicited Maintenance in WHOAMI */
-	    {
-		string activation_status = checkActivatedStatus(); /* Device Activation Status Check */
-		bool whoAmIStatus = knowWhoAmI(activation_status); /* WhoAmI Response & Set Status Check */
-		LOGINFO("knowWhoAmI() returned %s", (whoAmIStatus) ? "successfully" : "false");
-	
-		if (!whoAmIStatus && activation_status != "activated")
-		{
-		    LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
-	            g_listen_to_deviceContextUpdate = true;
-	            LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
-	            task_thread.wait(wailck);
+	        if (UNSOLICITED_MAINTENANCE == g_maintenance_type) /* Unsolicited Maintenance in WHOAMI */
+	        {
+                string activation_status = checkActivatedStatus(); /* Device Activation Status Check */
+                bool whoAmIStatus = knowWhoAmI(activation_status); /* WhoAmI Response & Set Status Check */
+                LOGINFO("knowWhoAmI() returned %s", (whoAmIStatus) ? "successfully" : "false");
+            
+                if (!whoAmIStatus && activation_status != "activated")
+                {
+                    LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
+	                g_listen_to_deviceContextUpdate = true;
+	                LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
+	                task_thread.wait(wailck);
+	            }
+	            else if (!internetConnectStatus && activation_status == "activated")
+                {
+                    LOGINFO("Device is not connected to the Internet and Device is already Activated");
+                    exitOnNoNetwork = true;
+                }
 	        }
-	        else if (!internetConnectStatus && activation_status == "activated") 
-		{
-		    LOGINFO("Device is not connected to the Internet and Device is already Activated");
-		    exitOnNoNetwork = true;
-		}
-	    }
-	    else /* Solicited Maintenance in WHOAMI */
-	    {
-		if(!internetConnectStatus)
-		{
-		    exitOnNoNetwork = true;
-		}
-	    }
+	        else /* Solicited Maintenance in WHOAMI */
+	        {
+                if(!internetConnectStatus)
+                    exitOnNoNetwork = true;
+	        }
 #else
-	    if(!internetConnectStatus)
-	    {
-		    exitOnNoNetwork = true;
-	    }
+	        if(!internetConnectStatus){
+                exitOnNoNetwork = true;
+            }
 #endif
-	    if(exitOnNoNetwork) /* Exit Maintenance Cycle if no Internet */
-	    {
+	        if(exitOnNoNetwork) /* Exit Maintenance Cycle if no Internet */
+	        {
                 m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                 m_statusMutex.unlock();
@@ -375,52 +385,112 @@ namespace WPEFramework {
                 return;
             }
 
-	    if (delayMaintenanceStarted) {
-		m_statusMutex.lock();
+	        if (delayMaintenanceStarted) {
+                m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
                 m_statusMutex.unlock();
-	    }
-
+	        }
+        
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
-	    LOGINFO("%s", UNSOLICITED_MAINTENANCE == g_maintenance_type ? "---------------UNSOLICITED_MAINTENANCE--------------" : "=============SOLICITED_MAINTENANCE===============");
+	        LOGINFO("%s", UNSOLICITED_MAINTENANCE == g_maintenance_type ? "---------------UNSOLICITED_MAINTENANCE--------------" : "=============SOLICITED_MAINTENANCE===============");
 #if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
-                if(skipFirmwareCheck)
-		{
-                    /* set the task status of Firmware Download */
-                    SET_STATUS(g_task_status,DIFD_SUCCESS);
-                    SET_STATUS(g_task_status,DIFD_COMPLETE);
-                    /* Skip Firmware Download Task and add other tasks */
-                    tasks.push_back(task_names_foreground[0].c_str());
-                    tasks.push_back(task_names_foreground[2].c_str());
-		}
-		else
-		{
-		    tasks.push_back(task_names_foreground[0].c_str());
-		    tasks.push_back(task_names_foreground[1].c_str());
-		    tasks.push_back(task_names_foreground[2].c_str());
-		}
+            if(skipFirmwareCheck)
+		    {
+                /* set the task status of Firmware Download */
+                SET_STATUS(g_task_status,SWUPDATE_SUCCESS);
+                SET_STATUS(g_task_status,SWUPDATE_COMPLETE);
+                /* Skip Firmware Download Task and add other tasks */
+                tasks.push_back(task_names_foreground[0].c_str());
+                tasks.push_back(task_names_foreground[2].c_str());
+		    }
+		    else
+		    {
+		        tasks.push_back(task_names_foreground[0].c_str());
+		        tasks.push_back(task_names_foreground[1].c_str());
+		        tasks.push_back(task_names_foreground[2].c_str());
+		    }
 #else
             tasks.push_back(task_names_foreground[0].c_str());
             tasks.push_back(task_names_foreground[1].c_str());
             tasks.push_back(task_names_foreground[2].c_str());
 #endif
             std::unique_lock<std::mutex> lck(m_callMutex);
-            for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
+            for (i = 0; i < static_cast<int>(tasks.size()) && !m_abort_flag; i++)
+            {
+                int task_status = -1;
                 cmd = tasks[i];
                 cmd += " &";
                 cmd += "\0";
-                m_task_map[tasks[i]] = true;
 
-                if ( !m_abort_flag ){
-                    LOGINFO("Starting Script (SM) :  %s \n",cmd.c_str());
-                    system(cmd.c_str());
+                if (!m_abort_flag)
+                {
+                    LOGINFO("Starting Task :  %s \n", cmd.c_str());
+                    currentTask = cmd;
+                    if (retry_count == TASK_RETRY_COUNT){
+                        LOGINFO("Starting Timer for %s \n", cmd.c_str());
+                        isTaskTimerStarted = task_startTimer();
+                    }
+                    m_task_map[tasks[i]] = true;
+                    if(isTaskTimerRunning())
+                        task_status = system(cmd.c_str());
+                    }
 
-                    LOGINFO("Waiting to unlock.. [%d/%d]",i+1,(int)tasks.size());
-                    task_thread.wait(lck);
+                    if (task_status != 0) /* system() call fails */
+                    {
+                        LOGINFO("%s invocation failed with return status %d", cmd.c_str(), WEXITSTATUS(task_status));
+                        m_task_map[current_task] = false;
+                        if (retry_count > 0 && isTaskTimerStarted){
+                            LOGINFO("Retry %s after %d seconds (%d retries left)\n", cmd.c_str(), TASK_RETRY_DELAY, retry_count);
+                            sleep(TASK_RETRY_DELAY);
+                            i--; /* Decrement iterator to retry same task again */
+                            retry_count--;
+                            continue;
+                        }
+                        else{
+                            LOGINFO("Task Failed, setting task as Error");
+
+                            const char *current_task = nullptr;
+                            int complete_status = 0;
+
+                            currnt_task = task_status_vector[i].first;
+                            complete_status = task_status_vector[i].second;
+
+                            /**
+                            for (size_t j = 0; j < (sizeof(task_names_foreground)/sizeof(task_names_foreground[0])); j++){
+                                if (cmd.find(task_names_foreground[j]) != string::npos){
+                                    current_task = task_names_foreground[j].c_str();
+                                    complete_status = task_complete_status[j];
+                                    break;
+                                }
+                            }
+
+                            if (current_task && !m_task_map[current_task])
+                            {
+                                LOGINFO("Ignoring Error Event for Task: %s", current_task);
+                            }
+                            else if (current_task)
+                            {*/
+                                SET_STATUS(g_task_status, complete_status);
+                            //}
+                            // TBD: return validation?
+                            task_stopTimer();
+                        }
+                    } /* System() executes successfully */
+                    else
+                    {
+                        LOGINFO("Waiting to unlock.. [%d/%d]", i + 1, (int)tasks.size());
+                        task_thread.wait(lck);
+                        // TBD: return validation?
+                        task_stopTimer();
+                    }
                 }
+                retry_count = TASK_RETRY_COUNT; /* Reset Retry Count for next Task*/
             }
-
-	    m_abort_flag=false;
+            if (m_abort_flag){
+                m_abort_flag = false;
+                // TBD: return validation?
+                task_stopTimer();
+            }
             LOGINFO("Worker Thread Completed");
         }
 
@@ -457,7 +527,8 @@ namespace WPEFramework {
                         else {
                             LOGINFO("getDeviceInitializationContext failed");
                         }
-                    } else {
+                    } 
+                    else {
                         LOGINFO("Failed to get plugin handle");
                     }
                     if (!g_subscribed_for_deviceContextUpdate) {
@@ -473,7 +544,7 @@ namespace WPEFramework {
                         sleep(SECMGR_RETRY_INTERVAL);
                     }
                     else {
-			LOGINFO("%s is not active. Device is already Activated. Hence exiting from knoWhoAmI()", secMgr_callsign);
+                        LOGINFO("%s is not active. Device is already Activated. Hence exiting from knoWhoAmI()", secMgr_callsign);
                         return success;
                     }
                 }
@@ -495,19 +566,233 @@ namespace WPEFramework {
                         reinterpret_cast<const uint8_t*>(payload.c_str()),
                         token)
                     == Core::ERROR_NONE) {
-                    std::cout << "MaintenanceManager got security token" << std::endl;
+                    LOGINFO("[getThunderPluginHandle] MaintenanceManager got security token");
                 } else {
-                    std::cout << "MaintenanceManager failed to get security token" << std::endl;
+                    LOGINFO("[getThunderPluginHandle] MaintenanceManager failed to get security token");
                 }
                 security->Release();
             } else {
-                std::cout << "No security agent" << std::endl;
+                LOGINFO("[getThunderPluginHandle] No security agent");
             }
 
             string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
             thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(callsign, "", false, query);
             return thunder_client;
+        }
+
+        bool MaintenanceManager::checkTaskTimerExists() {
+            bool status = false;
+            struct itimerspec current;
+            int result = timer_gettime(timerid, &current);
+            if (result == 0)
+            {
+                LOGINFO("Timer Already Exists");
+                status = true; /* Timer Exist */
+            }
+            else if (errno == EINVAL)
+            {
+                LOGINFO("Timer does not exist (EINVAL)");
+            }
+            else
+            {
+                LOGERR("timer_gettime() failed with %s", strerror(errno));
+            }
+            return status;
+        }
+
+        bool MaintenanceManager::isTaskTimerRunning()
+        {
+            bool status = false;
+            if (!checkTaskTimerExists()) {
+                LOGINFO("[INFO] Timer does not exist.");
+                return status;
+            }
+        
+            struct itimerspec current;
+            if (timer_gettime(timerid, &current) == 0) {
+                if (current.it_value.tv_sec != 0 || current.it_value.tv_nsec != 0) {
+                    LOGINFO("Timer is currently running with timerid: %p", static_cast<void*>(&timerid));
+                    status = true; // Timer is running
+                } else {
+                    LOGINFO("Timer exists but is not currently running.");// Timer not running
+                }
+            } else {
+                LOGERR("timer_gettime failed with error: %s", strerror(errno));// timer_gettime failed
+            }
+            return status;
+        }
+
+        bool MaintenanceManager::maintenance_createTimer()
+        {
+            bool status = false;
+            if (checkTaskTimerExists() || isTaskTimerRunning())
+            {
+                LOGINFO("Timer is already created/ running. No need to create a new timer.");
+                return status; // Timer Already Exist/ Timer Already running
+            }
+
+            struct sigevent sev = {0};
+            sev.sigev_notify = SIGEV_SIGNAL;
+            sev.sigev_signo = SIGALRM;
+            sev.sigev_value.sival_ptr = &timerid;
+
+            if (timer_create(BASE_CLOCK, &sev, &timerid) == -1)
+            {
+                LOGERR("Failed to create timer");
+                return status; // Timer creation failed
+            }
+
+            LOGINFO("Timer created successfully.");
+            status = true;
+            return status; // Timer created successfully
+        }
+
+        bool MaintenanceManager::task_startTimer(){
+            bool status = false
+            if (checkTaskTimerExists())
+            {
+                if (isTaskTimerRunning())
+                {
+                    LOGINFO("Timer is already running. Not starting a new timer.");
+                    return status;
+                }
+                else{
+                    LOGINFO("Timer exists but is not running. Starting timer.");
+                }
+            }
+            else{
+                LOGINFO("Timer does not exist. Creating new timer.");
+                if(!maintenance_createTimer()){
+                    return status;
+                }
+            }
+
+            struct itimerspec its;
+
+            its.it_value.tv_sec = TASK_TIMEOUT;
+            its.it_value.tv_nsec = 0;
+            its.it_interval.tv_sec = 0;
+            its.it_interval.tv_nsec = 0;
+
+            if (timer_settime(timerid, 0, &its, NULL) == -1)
+            {
+                LOGERR("Failed to start timer");
+            }
+            else
+            {
+                LOGINFO("Timer started for %d seconds for %s", TASK_TIMEOUT, currentTask.c_str());
+                status = true;
+            }
+            return status;
+        }
+
+        // TBD: Handling stopTimer() API failure, how should this be cascaded to next task
+        bool MaintenanceManager::task_stopTimer()
+        {
+            bool status = false;
+            if (!checkTaskTimerExists() || !isTaskTimerRunning())
+            {
+                LOGERR("Timer does not exist/ Timer is not running. Unable to stop timer.");
+                return status;
+            }
+
+            struct itimerspec its = {0};
+            its.it_value.tv_sec = 0;
+            its.it_value.tv_nsec = 0;
+
+            if (timer_settime(timerid, 0, &its, NULL) == -1)
+            {
+                LOGERR("Failed to stop timer");
+            }
+            else
+            {
+                LOGINFO("Timer stopped for %s", currentTask.c_str());
+                status = true;
+            }
+            return status;
+        }
+
+        bool MaintenanceManager::maintenance_deleteTimer()
+        {
+            bool status = false;
+            if (!checkTaskTimerExists())
+            {
+                LOGERR("Timer does not exist. Unable to delete timer.");
+                return status;
+            }
+
+            if (isTaskTimerRunning())
+            {
+                LOGINFO("Timer is currently running. Attempting to stop it before deletion.");
+                if (task_stopTimer()){
+                    // Timer was successfully stopped
+                    if (timer_delete(timerid) == -1)
+                    {
+                        LOGERR("Failed to delete timer after stopping it.");
+                    }
+                    else
+                    {
+                        LOGINFO("Timer successfully deleted after stopping.");
+                        status = true;
+                    }
+                }
+                else{
+                    LOGINFO("Can't stop running Timer, hence deleting the timer forcefully...");
+                    if (timer_delete(timerid) == -1)
+                    {
+                        LOGERR("Failed to delete timer.");
+                    }
+                    else
+                    {
+                        LOGINFO("Timer successfully deleted");
+                        status = true;
+                    }
+                }
+            }
+            else
+            {
+                // Timer is not running, delete directly
+                if (timer_delete(timerid) == -1)
+                {
+                    LOGERR("Failed to delete timer.");
+                }
+                else
+                {
+                    LOGINFO("Timer successfully deleted.");
+                    status = true;
+                }
+            }
+            return status;
+        }
+
+        void MaintenanceManager::timer_handler(int signo)
+        {
+            if (signo == SIGALRM)
+            {
+                LOGERR("Timeout reached for %s. Setting task to Error...", currentTask.c_str());
+
+                const char* failedTask = nullptr;
+                int complete_status = 0;
+                // TBD: Need Review
+                for(size_t j = 0; j < (sizeof(task_names_foreground)/ sizeof(task_names_foreground[0])); j++){
+                    if(currentTask.find(task_names_foreground[j]) != string::npos){
+                        failedTask = task_names_foreground[j].c_str();
+                        complete_status = task_complete_status[j];
+                        break;
+                    }
+                }
+
+                if(failedTask && !MaintenanceManager::_instance->m_task_map[failedTask]){
+                    LOGINFO("Ignoring Error Event for Task: %s", failedTask);
+                }
+                else if (failedTask) {
+                    SET_STATUS(MaintenanceManager::_instance->g_task_status, complete_status);
+                    MaintenanceManager::_instance->task_thread.notify_one();
+                    LOGINFO("Abort %s Task", failedTask);
+                    MaintenanceManager::_instance->m_task_map[failedTask] = false;
+                }
+            }
         }
 
         bool MaintenanceManager::setRFC(const char* rfc, const char* value, DATA_TYPE dataType)
@@ -527,7 +812,7 @@ namespace WPEFramework {
 
         void MaintenanceManager::setPartnerId(string partnerid)
         {
-	    LOGINFO("Initiate setPartnerId...");
+            LOGINFO("Initiate setPartnerId...");
             const char* authservice_callsign = "org.rdk.AuthService.1";
             PluginHost::IShell::state state;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
@@ -537,19 +822,21 @@ namespace WPEFramework {
 
                 if (thunder_client == nullptr) {
                     LOGINFO("Failed to get plugin handle");
-                } else {
+                } 
+                else {
                     JsonObject joGetParams;
                     JsonObject joGetResult;
 
                     joGetParams["partnerId"] = partnerid;
 
                     thunder_client->Invoke<JsonObject, JsonObject>(5000, "setPartnerId", joGetParams, joGetResult);
-		    string responseJson;
-		    joGetResult.ToString(responseJson);
-	            LOGINFO("AuthService Response Data: %s", responseJson.c_str());
+                    string responseJson;
+                    joGetResult.ToString(responseJson);
+                    LOGINFO("AuthService Response Data: %s", responseJson.c_str());
                     if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) {
                         LOGINFO("Successfully set the partnerId via Authservice");
-                    } else {
+                    } 
+                    else {
                         LOGINFO("Failed to set the partnerId through Authservice");
                     }
                 }
@@ -567,7 +854,8 @@ namespace WPEFramework {
             thunder_client = getThunderPluginHandle(network_callsign);
             if (thunder_client == nullptr) {
                 LOGINFO("Failed to get plugin handle");
-            } else {
+            } 
+            else {
                 status = thunder_client->Subscribe<JsonObject>(5000, event, &MaintenanceManager::internetStatusChangeEventHandler, this);
                 if (status == Core::ERROR_NONE) {
                     result = true;
@@ -587,7 +875,6 @@ namespace WPEFramework {
 
                 LOGINFO("Received onInternetStatusChange event: [%s:%d]", value.c_str(), state);
                 if (g_listen_to_nwevents) {
-
                     if (state == INTERNET_CONNECTED_STATE) {
                         startCriticalTasks();
                         g_listen_to_nwevents = false;
@@ -626,11 +913,21 @@ namespace WPEFramework {
 
         void MaintenanceManager::startCriticalTasks()
         {
-	    LOGINFO("Starting Script /lib/rdk/RFCbase.sh");
-	    system("/lib/rdk/RFCbase.sh &");
+            LOGINFO("Starting Critical Tasks...");
+            int rfc_task_status = -1;
+            int xconf_imagecheck_status = -1;
+
+            LOGINFO("Starting Script /lib/rdk/Start_RFC.sh");
+            rfc_task_status = system("/lib/rdk/Start_RFC.sh &");
+            if (rfc_task_status != 0){
+                LOGINFO("Failed to run Start_RFC.sh with %d", WEXITSTATUS(rfc_task_status));
+            }
 
             LOGINFO("Starting Script /lib/rdk/xconfImageCheck.sh");
-            system("/lib/rdk/xconfImageCheck.sh >> /opt/logs/swupdate.log 2>&1 &");
+            xconf_imagecheck_status = system("/lib/rdk/xconfImageCheck.sh &");
+            if (xconf_imagecheck_status != 0){
+                LOGINFO("Failed to run xconfImageCheck.sh with %d", WEXITSTATUS(xconf_imagecheck_status));
+            }
         }
 
         const string MaintenanceManager::checkActivatedStatus()
@@ -680,13 +977,13 @@ namespace WPEFramework {
                         reinterpret_cast<const uint8_t*>(payload.c_str()),
                         token)
                     == Core::ERROR_NONE) {
-                    std::cout << "MaintenanceManager got security token" << std::endl;
+                    LOGINFO("[CheckActivationStatus] MaintenanceManager got security token");
                 } else {
-                    std::cout << "MaintenanceManager failed to get security token" << std::endl;
+                    LOGINFO("[CheckActivationStatus] MaintenanceManager failed to get security token");
                 }
                 security->Release();
             } else {
-                std::cout << "No security agent" << std::endl;
+                LOGINFO("[CheckActivationStatus] No security agent");
             }
 
             string query = "token=" + token;
@@ -759,8 +1056,7 @@ namespace WPEFramework {
                     ret_result = true;
             }
 
-            LOGINFO("ret_result: [%s] skipFirmwareCheck:[%s]"
-                    ,(ret_result)? "true":"false",(skipFirmwareCheck)?"true":"false");
+            LOGINFO("ret_result: [%s] skipFirmwareCheck:[%s]",(ret_result)? "true":"false",(skipFirmwareCheck)?"true":"false");
             return ret_result;
         }
 
@@ -800,13 +1096,13 @@ namespace WPEFramework {
                         reinterpret_cast<const uint8_t*>(payload.c_str()),
                         token)
                     == Core::ERROR_NONE) {
-                    std::cout << "MaintenanceManager got security token" << std::endl;
+                    LOGINFO("[checkNetwork] MaintenanceManager got security token");
                 } else {
-                    std::cout << "MaintenanceManager failed to get security token" << std::endl;
+                    LOGINFO("[checkNetwork] MaintenanceManager failed to get security token");
                 }
                 security->Release();
             } else {
-                std::cout << "No security agent" << std::endl;
+                LOGINFO("[checkNetwork] No security agent");
             }
 
             string query = "token=" + token;
@@ -833,23 +1129,22 @@ namespace WPEFramework {
         {
             bool network_available =  false;
             LOGINFO("Checking device has network connectivity\n");
-
-	    /* add 4 checks every 30 seconds */
+            /* add 4 checks every 30 seconds */
             network_available = checkNetwork();
-	    if (!network_available) {
+            if (!network_available) {
                 int retry_count = 0;
-		while (retry_count < MAX_NETWORK_RETRIES) {
+                while (retry_count < MAX_NETWORK_RETRIES) {
                     LOGINFO("Network not available. Sleeping for %d seconds", NETWORK_RETRY_INTERVAL);
                     sleep(NETWORK_RETRY_INTERVAL);
-		    LOGINFO("Network retries [%d/%d] \n", ++retry_count, MAX_NETWORK_RETRIES);
-		    network_available = checkNetwork();
+                    LOGINFO("Network retries [%d/%d] \n", ++retry_count, MAX_NETWORK_RETRIES);
+                    network_available = checkNetwork();
                     if (network_available) {
-	                break;
-		    }
-		}
-	    }
-	    return network_available;
-	}
+                        break;
+                    }
+                }
+            }
+            return network_available;
+        }
 
     bool MaintenanceManager::setDeviceInitializationContext(JsonObject response_data) {
         bool setDone = false;
@@ -876,7 +1171,7 @@ namespace WPEFramework {
 
                 // Set the RFC values for deviceInitializationContext parameters
                 setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
-		LOGINFO("deviceInitializationContext parameters set successfully via RFC");
+                LOGINFO("deviceInitializationContext parameters set successfully via RFC");
 
                 if (strcmp(key.c_str(), "partnerId") == 0)
                 {
@@ -942,12 +1237,27 @@ namespace WPEFramework {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
 #endif
+
+            // Register Signal Handler
+            if (signal(SIGALRM, timer_handler) == SIG_ERR)
+            {
+                LOGERR("Failed to register signal handler");
+                return string("Failed to register signal handler");
+            }
+
+            if (!maintenance_createTimer())
+            {
+                return string("Failed to create timer");
+            }
             /* On Success; return empty to indicate no error text. */
             return (string());
         }
 
         void MaintenanceManager::Deinitialize(PluginHost::IShell* service)
         {
+            if(!maintenance_deleteTimer()){
+                LOGINFO("Failed to delete timer");
+            }
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             stopMaintenanceTasks();
             DeinitializeIARM();
@@ -1062,8 +1372,8 @@ namespace WPEFramework {
                                  break;
                             }
                             else {
-                                SET_STATUS(g_task_status,DIFD_SUCCESS);
-                                SET_STATUS(g_task_status,DIFD_COMPLETE);
+                                SET_STATUS(g_task_status,SWUPDATE_SUCCESS);
+                                SET_STATUS(g_task_status,SWUPDATE_COMPLETE);
                                 task_thread.notify_one();
                                 m_task_map[task_names_foreground[1].c_str()]=false;
                             }
@@ -1079,7 +1389,6 @@ namespace WPEFramework {
                                 task_thread.notify_one();
                                 m_task_map[task_names_foreground[2].c_str()]=false;
                             }
-
                             break;
                         case MAINT_REBOOT_REQUIRED :
                             SET_STATUS(g_task_status,REBOOT_REQUIRED);
@@ -1088,10 +1397,10 @@ namespace WPEFramework {
                         case MAINT_CRITICAL_UPDATE:
                             g_is_critical_maintenance="true";
                             break;
-                        case MAINT_FWDOWNLOAD_ABORTED:
+			case MAINT_FWDOWNLOAD_ABORTED:
                             SET_STATUS(g_task_status,TASK_SKIPPED);
                             /* Set FWDOWNLOAD Task as completed */
-                            SET_STATUS(g_task_status,DIFD_COMPLETE);
+                            SET_STATUS(g_task_status,SWUPDATE_COMPLETE);
                             task_thread.notify_one();
                             m_task_map[task_names_foreground[1].c_str()]=false;
                             LOGINFO("FW Download task aborted \n");
@@ -1128,7 +1437,7 @@ namespace WPEFramework {
                                  break;
                             }
                             else {
-                                SET_STATUS(g_task_status,DIFD_COMPLETE);
+                                SET_STATUS(g_task_status,SWUPDATE_COMPLETE);
                                 task_thread.notify_one();
                                 LOGINFO("Error encountered in SWUPDATE script task \n");
                                 m_task_map[task_names_foreground[1].c_str()]=false;
@@ -1164,7 +1473,7 @@ namespace WPEFramework {
                  * Until that Maintenance is in started state */
                 if ( (g_task_status & TASKS_COMPLETED ) == TASKS_COMPLETED ){
                     if ( (g_task_status & ALL_TASKS_SUCCESS) == ALL_TASKS_SUCCESS ){ // all tasks success
-                        LOGINFO("DBG:Maintenance Successfully Completed!!");
+                        LOGINFO("Maintenance Successfully Completed!!");
                         notify_status=MAINTENANCE_COMPLETE;
                         /*  we store the time in persistent location */
                         successfulTime=time(nullptr);
@@ -1180,11 +1489,11 @@ namespace WPEFramework {
                     /* Check other than all success cases which means we have errors */
                     else if ((g_task_status & ALL_TASKS_SUCCESS)!= ALL_TASKS_SUCCESS) {
                         if ((g_task_status & MAINTENANCE_TASK_SKIPPED ) == MAINTENANCE_TASK_SKIPPED ){
-                            LOGINFO("DBG:There are Skipped Task. Maintenance Incomplete");
+                            LOGINFO("There are Skipped Task. Maintenance Incomplete");
                             notify_status=MAINTENANCE_INCOMPLETE;
                         }
                         else {
-                            LOGINFO("DBG:Maintenance Ended with Errors");
+                            LOGINFO("Maintenance Ended with Errors");
                             notify_status=MAINTENANCE_ERROR;
                         }
 
@@ -1252,7 +1561,7 @@ namespace WPEFramework {
         uint32_t MaintenanceManager::getMaintenanceActivityStatus(const JsonObject& parameters,
                 JsonObject& response)
                 {
-		    LOGINFO("Request for getMaintenanceActivityStatus()");
+                    LOGINFO("Request for getMaintenanceActivityStatus()");
                     bool result = false;
                     string isCriticalMaintenance = "false";
                     string isRebootPending = "false";
@@ -1444,9 +1753,9 @@ namespace WPEFramework {
             string old_mode = g_currentMode;
             string bg_flag = "false";
             string new_optout_state = "";
-	    bool rdkvfwrfc=false;
-	    // 1 = Foreground and 0 = background
-	    int mode = 1;
+            bool rdkvfwrfc=false;
+            // 1 = Foreground and 0 = background
+            int mode = 1;
 
             rdkvfwrfc = readRFC(TR181_RDKVFWUPGRADER);
             /* Label should have maintenance mode and softwareOptout field */
@@ -1578,7 +1887,7 @@ namespace WPEFramework {
                         * especially when device is in offline mode*/
                         if(m_thread.joinable()){
                             m_thread.join();
-                            LOGINFO("Thread joined successfully\n");
+                            LOGINFO("Thread joined successfully");
                         }
 
                         m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
@@ -1600,21 +1909,19 @@ namespace WPEFramework {
          * @return: Core::<StatusCode>
          */
 
-        uint32_t MaintenanceManager::stopMaintenance(const JsonObject& parameters,
-                JsonObject& response){
-
+        uint32_t MaintenanceManager::stopMaintenance(const JsonObject& parameters,JsonObject& response){
                 bool result=false;
                 if( readRFC(TR181_STOP_MAINTENANCE) ) {
                     result=stopMaintenanceTasks();
                 }
                 else {
-                    LOGINFO("Failed to initiate stopMaintenance, RFC is set as False\n");
+                    LOGINFO("Failed to initiate stopMaintenance, RFC is set as False");
                 }
                 returnResponse(result);
         }
 
         bool MaintenanceManager::stopMaintenanceTasks(){
-		LOGINFO("Request for stopMaintenance()");
+            LOGINFO("Request for stopMaintenance()");
 	        string codeDLtask;
             int k_ret=EINVAL;
             int i=0;
@@ -1655,24 +1962,27 @@ namespace WPEFramework {
                         LOGINFO("Task[%d] is false \n",i);
                     }
                 }
-
+                // TBD: return validation?
+                task_stopTimer();
                 result=true;
             }
             else {
-                LOGERR("Failed to stopMaintenance without starting maintenance \n");
+                LOGERR("Failed to stopMaintenance without starting maintenance");
+                // TBD: return validation?
+                task_stopTimer();
             }
             task_thread.notify_one();
 
             if(m_thread.joinable()){
                 m_thread.join();
-                LOGINFO("Thread joined successfully\n");
+                LOGINFO("Thread joined successfully");
             }
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete){
                 g_unsolicited_complete = true;
 	    }
             
-            LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR\n");
+            LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR");
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
             m_statusMutex.unlock();
 
@@ -1682,16 +1992,16 @@ namespace WPEFramework {
         bool MaintenanceManager::readRFC(const char *rfc){
             bool ret=false;
             RFC_ParamData_t param;
-	    if (rfc == NULL) {
+            if (rfc == NULL) {
                 return ret;
-	    }
+            }
             WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("MaintenanceManager"),rfc, &param);
             if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE){
-	        LOGINFO("rfc read success");
+                LOGINFO("rfc read success");
                 if( param.type == WDMP_BOOLEAN ){
-	            LOGINFO("rfc type is boolean");
+                    LOGINFO("rfc type is boolean");
                     if(strncasecmp(param.value,"true",4) == 0 ){
-	                LOGINFO("rfc value=%s", param.value);
+                        LOGINFO("rfc value=%s", param.value);
                         ret=true;
                     }
                 }
@@ -1703,10 +2013,9 @@ namespace WPEFramework {
 
         int MaintenanceManager::abortTask(const char* taskname, int sig_to_send){
             int k_ret=EINVAL;
-            pid_t pid_num;
-
-            pid_num=getTaskPID( taskname );
+            pid_t pid_num=getTaskPID( taskname );
             LOGINFO("PID of %s is %d \n", taskname , (int)pid_num);
+
             if( pid_num != -1){
                 /* send the signal to task to terminate */
                 k_ret = kill( pid_num, sig_to_send );
@@ -1726,8 +2035,12 @@ namespace WPEFramework {
 
         /* Helper function to find the Script/Task PID*/
         pid_t MaintenanceManager::getTaskPID(const char* taskname){
-
             DIR* dir=opendir(PROC_DIR);
+            if (!dir){
+                LOGINFO("Failed to open %s", PROC_DIR);
+                return -1;
+            }
+
             struct dirent* ent;
             char* endptr;
             char buf[512];
@@ -1737,6 +2050,7 @@ namespace WPEFramework {
                 if (*endptr != '\0') {
                     continue;
                 }
+
                 /* Get the PID */
                 snprintf(buf, sizeof(buf), "/proc/%ld/cmdline", lpid);
 
@@ -1746,7 +2060,7 @@ namespace WPEFramework {
                     char *arg = 0;
                     size_t size = 0;
                     while(getdelim(&arg, &size, 0,fp) != -1){
-                        printf("%s\n",arg);
+                        LOGINFO("%s\n",arg);
                         char* first = strstr(arg, taskname);
                         if (first != NULL){
                             free(arg);
