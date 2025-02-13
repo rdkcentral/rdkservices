@@ -2709,7 +2709,8 @@ namespace WPEFramework {
 	bool SystemServices::readTerritoryFromFile()
 	{
 		bool retValue = true;
-		if(Utils::fileExists(TERRITORYFILE)){
+        try{
+		    if(Utils::fileExists(TERRITORYFILE)){
 			ifstream inFile(TERRITORYFILE);
 			string str;
 			getline (inFile, str);
@@ -2742,9 +2743,16 @@ namespace WPEFramework {
 			}
 			inFile.close();
 
-		}else{
-			LOGERR("Territory is not set");
-		}
+		    }else{
+		    	LOGERR("Territory is not set");
+		    }
+        }
+        catch(...){
+            LOGERR("Exception caught while reading territory file");
+            retValue = false;
+            m_strTerritory = "";
+            m_strRegion = "";
+        }
 		return retValue;
 	}
 
