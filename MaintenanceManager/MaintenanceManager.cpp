@@ -431,7 +431,7 @@ namespace WPEFramework {
                         isTaskTimerStarted = task_startTimer();
                     }
                     m_task_map[tasks[i]] = true;
-                    if(isTaskTimerRunning)
+                    if(isTaskTimerRunning())
                         task_status = system(cmd.c_str());
                     }
 
