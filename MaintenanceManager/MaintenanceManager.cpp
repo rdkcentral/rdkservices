@@ -223,13 +223,13 @@ namespace WPEFramework {
 
         vector<string> tasks;
 
-        const int task_complete_status[] = {
-            RFC_COMPLETE,
-            SWUPDATE_COMPLETE,
-            LOGUPLOAD_COMPLETE
-        };
+        // const int task_complete_status[] = {
+        //     RFC_COMPLETE,
+        //     SWUPDATE_COMPLETE,
+        //     LOGUPLOAD_COMPLETE
+        // };
 
-        std::vector<std::pair<std::string, int>> task_status_vector = {
+        std::map<std::string, int> task_status_map = {
             {RFC_TASK, RFC_COMPLETE},
             {SWUPDATE_TASK, SWUPDATE_COMPLETE},
             {LOGUPLOAD_TASK, LOGUPLOAD_COMPLETE}
@@ -436,7 +436,8 @@ namespace WPEFramework {
                     if(isTaskTimerRunning()){
                         task_status = system(cmd.c_str());
                     }
-
+                    /* Set task_status purposefully to non-zero value to verify failure logic*/
+                    // task_status = -1;
                     if (task_status != 0) /* system() call fails */
                     {
                         LOGINFO("%s invocation failed with return status %d", cmd.c_str(), WEXITSTATUS(task_status));
@@ -450,8 +451,12 @@ namespace WPEFramework {
                         }
                         else{
                             LOGINFO("Task Failed, setting task as Error");
-                            int complete_status = task_status_vector[i].second;
-                            SET_STATUS(g_task_status, complete_status);
+
+                            auto it = task_status_map.find(tasks[i]);
+                            if(it != task_status_map.end()){
+                                int complete_status = it->second;
+                                SET_STATUS(g_task_status, complete_status);
+                            }
                             if(task_stopTimer()){
                                 LOGINFO("Stopped Timer Successfully..");
                             }
@@ -558,13 +563,13 @@ namespace WPEFramework {
                         reinterpret_cast<const uint8_t*>(payload.c_str()),
                         token)
                     == Core::ERROR_NONE) {
-                    LOGINFO("[getThunderPluginHandle] MaintenanceManager got security token");
+                    LOGINFO("MaintenanceManager got security token");
                 } else {
-                    LOGINFO("[getThunderPluginHandle] MaintenanceManager failed to get security token");
+                    LOGINFO("MaintenanceManager failed to get security token");
                 }
                 security->Release();
             } else {
-                LOGINFO("[getThunderPluginHandle] No security agent");
+                LOGINFO("No security agent");
             }
 
             string query = "token=" + token;
@@ -598,7 +603,7 @@ namespace WPEFramework {
         {
             bool status = false;
             if (!checkTaskTimerExists()) {
-                LOGINFO("[INFO] Timer does not exist.");
+                LOGINFO("Timer does not exist.");
                 return status;
             }
         
@@ -763,6 +768,22 @@ namespace WPEFramework {
             {
                 LOGERR("Timeout reached for %s. Setting task to Error...", currentTask.c_str());
 
+                auto it = MaintenanceManager::_instance->task_status_map.find(currentTask);
+                if(it != MaintenanceManager::_instance->task_status_map.end()){
+                    const char* failedTask = it->first.c_str();
+                    int complete_status = it->second;
+
+                    if (failedTask && !MaintenanceManager::_instance->m_task_map[failedTask]) {
+                        LOGINFO("Ignoring Error Event for Task: %s", failedTask);
+                    }
+                    else if (failedTask) {
+                        SET_STATUS(MaintenanceManager::_instance->g_task_status, complete_status);
+                        MaintenanceManager::_instance->task_thread.notify_one();
+                        LOGINFO("Set %s Task to ERROR", failedTask);
+                        MaintenanceManager::_instance->m_task_map[failedTask] = false;
+                    }
+                }
+                /*
                 const char* failedTask = nullptr;
                 int complete_status = 0;
                 // TBD: Need Review
@@ -782,7 +803,10 @@ namespace WPEFramework {
                     MaintenanceManager::_instance->task_thread.notify_one();
                     LOGINFO("Abort %s Task", failedTask);
                     MaintenanceManager::_instance->m_task_map[failedTask] = false;
-                }
+                }*/
+            }
+            else {
+                LOGERR("Did not received SIGARLM");
             }
         }
 
@@ -968,13 +992,13 @@ namespace WPEFramework {
                         reinterpret_cast<const uint8_t*>(payload.c_str()),
                         token)
                     == Core::ERROR_NONE) {
-                    LOGINFO("[CheckActivationStatus] MaintenanceManager got security token");
+                    LOGINFO("MaintenanceManager got security token");
                 } else {
-                    LOGINFO("[CheckActivationStatus] MaintenanceManager failed to get security token");
+                    LOGINFO("MaintenanceManager failed to get security token");
                 }
                 security->Release();
             } else {
-                LOGINFO("[CheckActivationStatus] No security agent");
+                LOGINFO("No security agent");
             }
 
             string query = "token=" + token;
@@ -1087,13 +1111,13 @@ namespace WPEFramework {
                         reinterpret_cast<const uint8_t*>(payload.c_str()),
                         token)
                     == Core::ERROR_NONE) {
-                    LOGINFO("[checkNetwork] MaintenanceManager got security token");
+                    LOGINFO("MaintenanceManager got security token");
                 } else {
-                    LOGINFO("[checkNetwork] MaintenanceManager failed to get security token");
+                    LOGINFO("MaintenanceManager failed to get security token");
                 }
                 security->Release();
             } else {
-                LOGINFO("[checkNetwork] No security agent");
+                LOGINFO("No security agent");
             }
 
             string query = "token=" + token;
