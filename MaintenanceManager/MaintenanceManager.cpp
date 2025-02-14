@@ -70,6 +70,7 @@ using namespace std;
 
 #define PROC_DIR "/proc"
 #define RDK_PATH "/lib/rdk/"
+
 #define MAINTENANCE_MANAGER_RFC_CALLER_ID "MaintenanceManager"
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 #define TR181_STOP_MAINTENANCE  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StopMaintenance.Enable"
@@ -79,7 +80,7 @@ using namespace std;
 #define TR181_PARTNER_ID "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName"
 #define TR181_TARGET_OS_CLASS "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.OsClass"
 #define TR181_XCONFURL "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl"
-#endif /* WhoAmI */
+#endif /* end of ENABLE_WHOAMI */
 
 #define RFC_TASK RDK_PATH "Start_RFC.sh"
 #define SWUPDATE_TASK RDK_PATH "swupdate_utility.sh"
@@ -180,7 +181,7 @@ namespace WPEFramework {
             // Controls
             {}
         );
-    }
+    } /* end of namespace */
 
     namespace Plugin {
         namespace {
@@ -199,8 +200,8 @@ namespace WPEFramework {
                     interface->Release();
                 }
                 return result;
-            }
-        }
+            } /* end of getServiceState */
+        } /* end of namespace*/
 
         //Prototypes
         SERVICE_REGISTRATION(MaintenanceManager, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
@@ -234,7 +235,7 @@ namespace WPEFramework {
             {LOGUPLOAD_TASK, LOGUPLOAD_COMPLETE}
         };
 
-        string script_names[]={
+        string task_names[]={
             "RFCbase.sh",
             "swupdate_utility.sh",
             "uploadSTBLogs.sh"
@@ -271,7 +272,7 @@ namespace WPEFramework {
              */
 #ifdef DEBUG
             Register("sampleMaintenanceManagerAPI", &MaintenanceManager::sampleAPI, this);
-#endif /* DEBUG */
+#endif /* end if DEBUG */
             Register("getMaintenanceActivityStatus", &MaintenanceManager::getMaintenanceActivityStatus,this);
             Register("getMaintenanceStartTime", &MaintenanceManager::getMaintenanceStartTime,this);
             Register("setMaintenanceMode", &MaintenanceManager::setMaintenanceMode,this);
@@ -292,7 +293,7 @@ namespace WPEFramework {
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[0].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[1].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[2].c_str()] = DATA_TYPE::WDMP_STRING;
-#endif /* WhoAmI */
+#endif /* end of ENABLE_WHOAMI */
         }
 
         void MaintenanceManager::task_execution_thread(){
@@ -367,7 +368,7 @@ namespace WPEFramework {
                 if(!internetConnectStatus)
                     exitOnNoNetwork = true;
 	        }
-#else
+#else 
 	        if(!internetConnectStatus){
                 exitOnNoNetwork = true;
             }
@@ -431,14 +432,15 @@ namespace WPEFramework {
                         isTaskTimerStarted = task_startTimer();
                     }
                     m_task_map[tasks[i]] = true;
-                    if(isTaskTimerRunning)
+
+                    if(isTaskTimerRunning()){
                         task_status = system(cmd.c_str());
                     }
 
                     if (task_status != 0) /* system() call fails */
                     {
                         LOGINFO("%s invocation failed with return status %d", cmd.c_str(), WEXITSTATUS(task_status));
-                        m_task_map[current_task] = false;
+                        m_task_map[tasks[i]] = false;
                         if (retry_count > 0 && isTaskTimerStarted){
                             LOGINFO("Retry %s after %d seconds (%d retries left)\n", cmd.c_str(), TASK_RETRY_DELAY, retry_count);
                             sleep(TASK_RETRY_DELAY);
@@ -452,31 +454,14 @@ namespace WPEFramework {
                             const char *current_task = nullptr;
                             int complete_status = 0;
 
-                            currnt_task = task_status_vector[i].first;
+                            current_task = task_status_vector[i].first;
                             complete_status = task_status_vector[i].second;
-
-                            /**
-                            for (size_t j = 0; j < (sizeof(task_names_foreground)/sizeof(task_names_foreground[0])); j++){
-                                if (cmd.find(task_names_foreground[j]) != string::npos){
-                                    current_task = task_names_foreground[j].c_str();
-                                    complete_status = task_complete_status[j];
-                                    break;
-                                }
-                            }
-
-                            if (current_task && !m_task_map[current_task])
-                            {
-                                LOGINFO("Ignoring Error Event for Task: %s", current_task);
-                            }
-                            else if (current_task)
-                            {*/
                                 SET_STATUS(g_task_status, complete_status);
-                            //}
                             // TBD: return validation?
                             task_stopTimer();
                         }
-                    } /* System() executes successfully */
-                    else
+                    }
+                    else /* System() executes successfully */
                     {
                         LOGINFO("Waiting to unlock.. [%d/%d]", i + 1, (int)tasks.size());
                         task_thread.wait(lck);
@@ -492,7 +477,7 @@ namespace WPEFramework {
                 task_stopTimer();
             }
             LOGINFO("Worker Thread Completed");
-        }
+        } /* end of task_execution_thread() */
 
 #if defined(ENABLE_WHOAMI)
         bool MaintenanceManager::knowWhoAmI(string &activation_status)
@@ -550,7 +535,7 @@ namespace WPEFramework {
                 }
             }while(true);
         }
-#endif
+#endif /* end of ENABLE_WHOAMI */
 
         // Thunder plugin communication
         WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* MaintenanceManager::getThunderPluginHandle(const char* callsign)
@@ -579,9 +564,10 @@ namespace WPEFramework {
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
             thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(callsign, "", false, query);
             return thunder_client;
-        }
+        } /* end of getThunderPluginHandle */
 
-        bool MaintenanceManager::checkTaskTimerExists() {
+        bool MaintenanceManager::checkTaskTimerExists() 
+        {
             bool status = false;
             struct itimerspec current;
             int result = timer_gettime(timerid, &current);
@@ -649,7 +635,7 @@ namespace WPEFramework {
         }
 
         bool MaintenanceManager::task_startTimer(){
-            bool status = false
+            bool status = false;
             if (checkTaskTimerExists())
             {
                 if (isTaskTimerRunning())
@@ -687,7 +673,7 @@ namespace WPEFramework {
             return status;
         }
 
-        // TBD: Handling stopTimer() API failure, how should this be cascaded to next task
+        // TBD: Handling stopTimer() API failure, how should this be cascaded to next task/ set the Maintenance Status to MAINTENANCE_ERROR
         bool MaintenanceManager::task_stopTimer()
         {
             bool status = false;
@@ -1219,333 +1205,367 @@ namespace WPEFramework {
         }
     }
 
-        MaintenanceManager::~MaintenanceManager()
-        {
-            MaintenanceManager::_instance = nullptr;
-        }
+    MaintenanceManager::~MaintenanceManager()
+    {
+        MaintenanceManager::_instance = nullptr;
+    }
 
-        const string MaintenanceManager::Initialize(PluginHost::IShell* service)
-        {
-            ASSERT(service != nullptr);
-            ASSERT(m_service == nullptr);
+    const string MaintenanceManager::Initialize(PluginHost::IShell *service)
+    {
+        ASSERT(service != nullptr);
+        ASSERT(m_service == nullptr);
 
-            m_service = service;
-            m_service->AddRef();
+        m_service = service;
+        m_service->AddRef();
+
 #if defined(ENABLE_WHOAMI)
-            subscribeToDeviceInitializationEvent();
-#endif
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-            InitializeIARM();
+        subscribeToDeviceInitializationEvent();
 #endif
 
-            // Register Signal Handler
-            if (signal(SIGALRM, timer_handler) == SIG_ERR)
-            {
-                LOGERR("Failed to register signal handler");
-                return string("Failed to register signal handler");
-            }
-
-            if (!maintenance_createTimer())
-            {
-                return string("Failed to create timer");
-            }
-            /* On Success; return empty to indicate no error text. */
-            return (string());
-        }
-
-        void MaintenanceManager::Deinitialize(PluginHost::IShell* service)
-        {
-            if(!maintenance_deleteTimer()){
-                LOGINFO("Failed to delete timer");
-            }
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-            stopMaintenanceTasks();
-            DeinitializeIARM();
+        InitializeIARM();
 #endif
 
-            ASSERT(service == m_service);
-
-            m_service->Release();
-            m_service = nullptr;
+        // Register Signal Handler
+        if (signal(SIGALRM, timer_handler) == SIG_ERR)
+        {
+            LOGERR("Failed to register signal handler");
+            return string("Failed to register signal handler");
         }
+
+        if (!maintenance_createTimer())
+        {
+            return string("Failed to create timer");
+        }
+        /* On Success; return empty to indicate no error text. */
+        return (string());
+    }
+
+    void MaintenanceManager::Deinitialize(PluginHost::IShell *service)
+    {
+        if (!maintenance_deleteTimer())
+        {
+            LOGINFO("Failed to delete timer");
+        }
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+        stopMaintenanceTasks();
+        DeinitializeIARM();
+#endif
+
+        ASSERT(service == m_service);
+
+        m_service->Release();
+        m_service = nullptr;
+    }
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-        void MaintenanceManager::InitializeIARM()
+    void MaintenanceManager::InitializeIARM()
+    {
+        if (Utils::IARM::init())
         {
-            if (Utils::IARM::init()) {
-                IARM_Result_t res;
-                // Register for the Maintenance Notification Events
-                IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, _MaintenanceMgrEventHandler));
+            IARM_Result_t res;
+            // Register for the Maintenance Notification Events
+            IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, _MaintenanceMgrEventHandler));
 
-                maintenanceManagerOnBootup();
-            }
+            maintenanceManagerOnBootup();
+        }
+    }
+
+    void MaintenanceManager::maintenanceManagerOnBootup()
+    {
+        /* on boot up we set these things */
+        MaintenanceManager::g_currentMode = FOREGROUND_MODE;
+
+        MaintenanceManager::m_notify_status = MAINTENANCE_IDLE;
+        MaintenanceManager::g_epoch_time = "";
+
+        /* to know whether the maintenance is solicited or unsolicited */
+        g_maintenance_type = UNSOLICITED_MAINTENANCE;
+        LOGINFO("Triggering Maintenance on bootup");
+
+        /* On bootup we check for opt-out value
+         * if empty set the value to none */
+        string OptOutmode = "NONE";
+        OptOutmode = m_setting.getValue("softwareoptout").String();
+        if (!checkValidOptOutModes(OptOutmode))
+        {
+            LOGINFO("OptOut Value is not Set. Setting to NONE \n");
+            m_setting.remove("softwareoptout");
+            OptOutmode = "NONE";
+            m_setting.setValue("softwareoptout", OptOutmode);
+        }
+        else
+        {
+            LOGINFO("OptOut Value Found as: %s \n", OptOutmode.c_str());
         }
 
-        void MaintenanceManager::maintenanceManagerOnBootup() {
-            /* on boot up we set these things */
-            MaintenanceManager::g_currentMode = FOREGROUND_MODE;
+        MaintenanceManager::g_is_critical_maintenance = "false";
+        MaintenanceManager::g_is_reboot_pending = "false";
+        MaintenanceManager::g_lastSuccessful_maint_time = "";
+        MaintenanceManager::g_task_status = 0;
+        MaintenanceManager::m_abort_flag = false;
+        MaintenanceManager::g_unsolicited_complete = false;
 
-            MaintenanceManager::m_notify_status=MAINTENANCE_IDLE;
-            MaintenanceManager::g_epoch_time="";
+        /* we post to tell that the maintenance is in idle state at this moment */
+        m_statusMutex.lock();
+        MaintenanceManager::_instance->onMaintenanceStatusChange(m_notify_status);
+        m_statusMutex.unlock();
 
-            /* to know whether the maintenance is solicited or unsolicited */
-            g_maintenance_type=UNSOLICITED_MAINTENANCE;
-            LOGINFO("Triggering Maintenance on bootup");
+        m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
+    }
 
-            /* On bootup we check for opt-out value
-             * if empty set the value to none */
-            string OptOutmode = "NONE";
-            OptOutmode = m_setting.getValue("softwareoptout").String();
-            if(!checkValidOptOutModes(OptOutmode)){
-                LOGINFO("OptOut Value is not Set. Setting to NONE \n");
-                m_setting.remove("softwareoptout");
-                OptOutmode = "NONE";
-                m_setting.setValue("softwareoptout",OptOutmode);
-            }
-            else {
-                LOGINFO("OptOut Value Found as: %s \n", OptOutmode.c_str());
-            }
-
-            MaintenanceManager::g_is_critical_maintenance="false";
-            MaintenanceManager::g_is_reboot_pending="false";
-            MaintenanceManager::g_lastSuccessful_maint_time="";
-            MaintenanceManager::g_task_status=0;
-            MaintenanceManager::m_abort_flag=false;
-            MaintenanceManager::g_unsolicited_complete = false;
-
-            /* we post to tell that the maintenance is in idle state at this moment */
-            m_statusMutex.lock();
-            MaintenanceManager::_instance->onMaintenanceStatusChange(m_notify_status);
-            m_statusMutex.unlock();
-
-            m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
-        }
-
-        void MaintenanceManager::_MaintenanceMgrEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    void MaintenanceManager::_MaintenanceMgrEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    {
+        if (MaintenanceManager::_instance)
         {
-            if (MaintenanceManager::_instance){
-                LOGWARN("IARM event Received with %d !", eventId);
-                MaintenanceManager::_instance->iarmEventHandler(owner, eventId, data, len);
-            }
-            else
-                LOGWARN("WARNING - cannot handle IARM events without MaintenanceManager plugin instance!");
+            LOGWARN("IARM event Received with %d !", eventId);
+            MaintenanceManager::_instance->iarmEventHandler(owner, eventId, data, len);
         }
+        else
+            LOGWARN("WARNING - cannot handle IARM events without MaintenanceManager plugin instance!");
+    }
 
-        void MaintenanceManager::iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    void MaintenanceManager::iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    {
+        m_statusMutex.lock();
+        if (!m_abort_flag)
         {
-          m_statusMutex.lock();
-          if ( !m_abort_flag ){
-            Maint_notify_status_t notify_status=MAINTENANCE_STARTED;
-            IARM_Bus_MaintMGR_EventData_t *module_event_data=(IARM_Bus_MaintMGR_EventData_t*)data;
+            Maint_notify_status_t notify_status = MAINTENANCE_STARTED;
+            IARM_Bus_MaintMGR_EventData_t *module_event_data = (IARM_Bus_MaintMGR_EventData_t *)data;
             IARM_Maint_module_status_t module_status;
             time_t successfulTime;
-            string str_successfulTime="";
-            auto task_status_RFC=m_task_map.find(task_names_foreground[0].c_str());
-            auto task_status_FWDLD=m_task_map.find(task_names_foreground[1].c_str());
-            auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[2].c_str());
+            string str_successfulTime = "";
+            auto task_status_RFC = m_task_map.find(task_names_foreground[0].c_str());
+            auto task_status_FWDLD = m_task_map.find(task_names_foreground[1].c_str());
+            auto task_status_LOGUPLD = m_task_map.find(task_names_foreground[2].c_str());
 
             IARM_Bus_MaintMGR_EventId_t event = (IARM_Bus_MaintMGR_EventId_t)eventId;
-            LOGINFO("Maintenance Event-ID = %d \n",event);
+            LOGINFO("Maintenance Event-ID = %d \n", event);
 
-            if (!strcmp(owner, IARM_BUS_MAINTENANCE_MGR_NAME)) {
-                if (( IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE == eventId ) && ( MAINTENANCE_STARTED == m_notify_status )) {
+            if (!strcmp(owner, IARM_BUS_MAINTENANCE_MGR_NAME))
+            {
+                if ((IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE == eventId) && (MAINTENANCE_STARTED == m_notify_status))
+                {
                     module_status = module_event_data->data.maintenance_module_status.status;
-                    LOGINFO("MaintMGR Status %d \n",module_status);
-                    string status_string=moduleStatusToString(module_status);
+                    LOGINFO("MaintMGR Status %d \n", module_status);
+                    string status_string = moduleStatusToString(module_status);
                     LOGINFO("MaintMGR Status %s \n", status_string.c_str());
-                    switch (module_status) {
-                        case MAINT_RFC_COMPLETE :
-                            if(task_status_RFC->second != true) {
-                                 LOGINFO("Ignoring Event RFC_COMPLETE");
-                                 break;
-                            }
-                            else {
-                                 SET_STATUS(g_task_status,RFC_SUCCESS);
-                                 SET_STATUS(g_task_status,RFC_COMPLETE);
-                                 task_thread.notify_one();
-                                 m_task_map[task_names_foreground[0].c_str()]=false;
-                            }
+                    switch (module_status)
+                    {
+                    case MAINT_RFC_COMPLETE:
+                        if (task_status_RFC->second != true)
+                        {
+                            LOGINFO("Ignoring Event RFC_COMPLETE");
                             break;
-                        case MAINT_FWDOWNLOAD_COMPLETE :
-                            if(task_status_FWDLD->second != true) {
-                                 LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_COMPLETE");
-                                 break;
-                            }
-                            else {
-                                SET_STATUS(g_task_status,SWUPDATE_SUCCESS);
-                                SET_STATUS(g_task_status,SWUPDATE_COMPLETE);
-                                task_thread.notify_one();
-                                m_task_map[task_names_foreground[1].c_str()]=false;
-                            }
-                            break;
-                       case MAINT_LOGUPLOAD_COMPLETE :
-                            if(task_status_LOGUPLD->second != true) {
-                                 LOGINFO("Ignoring Event MAINT_LOGUPLOAD_COMPLETE");
-                                 break;
-                            }
-                            else {
-                                SET_STATUS(g_task_status,LOGUPLOAD_SUCCESS);
-                                SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
-                                task_thread.notify_one();
-                                m_task_map[task_names_foreground[2].c_str()]=false;
-                            }
-                            break;
-                        case MAINT_REBOOT_REQUIRED :
-                            SET_STATUS(g_task_status,REBOOT_REQUIRED);
-                            g_is_reboot_pending="true";
-                            break;
-                        case MAINT_CRITICAL_UPDATE:
-                            g_is_critical_maintenance="true";
-                            break;
-			case MAINT_FWDOWNLOAD_ABORTED:
-                            SET_STATUS(g_task_status,TASK_SKIPPED);
-                            /* Set FWDOWNLOAD Task as completed */
-                            SET_STATUS(g_task_status,SWUPDATE_COMPLETE);
+                        }
+                        else
+                        {
+                            SET_STATUS(g_task_status, RFC_SUCCESS);
+                            SET_STATUS(g_task_status, RFC_COMPLETE);
                             task_thread.notify_one();
-                            m_task_map[task_names_foreground[1].c_str()]=false;
-                            LOGINFO("FW Download task aborted \n");
+                            m_task_map[task_names_foreground[0].c_str()] = false;
+                        }
+                        break;
+                    case MAINT_FWDOWNLOAD_COMPLETE:
+                        if (task_status_FWDLD->second != true)
+                        {
+                            LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_COMPLETE");
                             break;
-                        case MAINT_RFC_ERROR:
-                            if(task_status_RFC->second != true) {
-                                 LOGINFO("Ignoring Event RFC_ERROR");
-                                 break;
-                            }
-                            else {
-                                 SET_STATUS(g_task_status,RFC_COMPLETE);
-                                 task_thread.notify_one();
-                                 LOGINFO("Error encountered in RFC script task \n");
-                                 m_task_map[task_names_foreground[0].c_str()]=false;
-                            }
+                        }
+                        else
+                        {
+                            SET_STATUS(g_task_status, SWUPDATE_SUCCESS);
+                            SET_STATUS(g_task_status, SWUPDATE_COMPLETE);
+                            task_thread.notify_one();
+                            m_task_map[task_names_foreground[1].c_str()] = false;
+                        }
+                        break;
+                    case MAINT_LOGUPLOAD_COMPLETE:
+                        if (task_status_LOGUPLD->second != true)
+                        {
+                            LOGINFO("Ignoring Event MAINT_LOGUPLOAD_COMPLETE");
+                            break;
+                        }
+                        else
+                        {
+                            SET_STATUS(g_task_status, LOGUPLOAD_SUCCESS);
+                            SET_STATUS(g_task_status, LOGUPLOAD_COMPLETE);
+                            task_thread.notify_one();
+                            m_task_map[task_names_foreground[2].c_str()] = false;
+                        }
+                        break;
+                    case MAINT_REBOOT_REQUIRED:
+                        SET_STATUS(g_task_status, REBOOT_REQUIRED);
+                        g_is_reboot_pending = "true";
+                        break;
+                    case MAINT_CRITICAL_UPDATE:
+                        g_is_critical_maintenance = "true";
+                        break;
+                    case MAINT_FWDOWNLOAD_ABORTED:
+                        SET_STATUS(g_task_status, TASK_SKIPPED);
+                        /* Set FWDOWNLOAD Task as completed */
+                        SET_STATUS(g_task_status, SWUPDATE_COMPLETE);
+                        task_thread.notify_one();
+                        m_task_map[task_names_foreground[1].c_str()] = false;
+                        LOGINFO("FW Download task aborted \n");
+                        break;
+                    case MAINT_RFC_ERROR:
+                        if (task_status_RFC->second != true)
+                        {
+                            LOGINFO("Ignoring Event RFC_ERROR");
+                            break;
+                        }
+                        else
+                        {
+                            SET_STATUS(g_task_status, RFC_COMPLETE);
+                            task_thread.notify_one();
+                            LOGINFO("Error encountered in RFC Task \n");
+                            m_task_map[task_names_foreground[0].c_str()] = false;
+                        }
 
+                        break;
+                    case MAINT_LOGUPLOAD_ERROR:
+                        if (task_status_LOGUPLD->second != true)
+                        {
+                            LOGINFO("Ignoring Event MAINT_LOGUPLOAD_ERROR");
                             break;
-                        case MAINT_LOGUPLOAD_ERROR:
-                            if(task_status_LOGUPLD->second != true) {
-                                  LOGINFO("Ignoring Event MAINT_LOGUPLOAD_ERROR");
-                                  break;
-                            }
-                            else {
-                                SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
-                                task_thread.notify_one();
-                                LOGINFO("Error encountered in LOGUPLOAD script task \n");
-                                m_task_map[task_names_foreground[2].c_str()]=false;
-                            }
+                        }
+                        else
+                        {
+                            SET_STATUS(g_task_status, LOGUPLOAD_COMPLETE);
+                            task_thread.notify_one();
+                            LOGINFO("Error encountered in LOGUPLOAD Task \n");
+                            m_task_map[task_names_foreground[2].c_str()] = false;
+                        }
 
+                        break;
+                    case MAINT_FWDOWNLOAD_ERROR:
+                        if (task_status_FWDLD->second != true)
+                        {
+                            LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_ERROR");
                             break;
-                       case MAINT_FWDOWNLOAD_ERROR:
-                            if(task_status_FWDLD->second != true) {
-                                 LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_ERROR");
-                                 break;
-                            }
-                            else {
-                                SET_STATUS(g_task_status,SWUPDATE_COMPLETE);
-                                task_thread.notify_one();
-                                LOGINFO("Error encountered in SWUPDATE script task \n");
-                                m_task_map[task_names_foreground[1].c_str()]=false;
-                            }
-                            break;
-                       case MAINT_RFC_INPROGRESS:
-                            m_task_map[task_names_foreground[0].c_str()]=true;
-                            /* Set false once COMPLETE/ ERROR is received for RFC*/
-                            LOGINFO(" RFC already IN PROGRESS -> setting m_task_map of RFC to true \n");
-                            break;
-                       case MAINT_FWDOWNLOAD_INPROGRESS:
-                            m_task_map[task_names_foreground[1].c_str()]=true;
-                            /* Set false once COMPLETE/ ERROR is received for FWDOWNLOAD*/
-                            LOGINFO(" FWDOWNLOAD already IN PROGRESS -> setting m_task_map of FWDOWNLOAD to true \n");
-                            break;
-                       case MAINT_LOGUPLOAD_INPROGRESS:
-                            m_task_map[task_names_foreground[2].c_str()]=true;
-                            /* Set false once COMPLETE/ ERROR is received for LOGUPLOAD*/
-                            LOGINFO(" LOGUPLOAD already IN PROGRESS -> setting m_task_map of LOGUPLOAD to true \n");
-                            break;
-                        default:
-                            break;
+                        }
+                        else
+                        {
+                            SET_STATUS(g_task_status, SWUPDATE_COMPLETE);
+                            task_thread.notify_one();
+                            LOGINFO("Error encountered in SWUPDATE Task \n");
+                            m_task_map[task_names_foreground[1].c_str()] = false;
+                        }
+                        break;
+                    case MAINT_RFC_INPROGRESS:
+                        m_task_map[task_names_foreground[0].c_str()] = true;
+                        /* Set false once COMPLETE/ ERROR is received for RFC*/
+                        LOGINFO(" RFC already IN PROGRESS -> setting m_task_map of RFC to true \n");
+                        break;
+                    case MAINT_FWDOWNLOAD_INPROGRESS:
+                        m_task_map[task_names_foreground[1].c_str()] = true;
+                        /* Set false once COMPLETE/ ERROR is received for FWDOWNLOAD*/
+                        LOGINFO(" FWDOWNLOAD already IN PROGRESS -> setting m_task_map of FWDOWNLOAD to true \n");
+                        break;
+                    case MAINT_LOGUPLOAD_INPROGRESS:
+                        m_task_map[task_names_foreground[2].c_str()] = true;
+                        /* Set false once COMPLETE/ ERROR is received for LOGUPLOAD*/
+                        LOGINFO(" LOGUPLOAD already IN PROGRESS -> setting m_task_map of LOGUPLOAD to true \n");
+                        break;
+                    default:
+                        break;
                     }
                 }
-                else{
+                else
+                {
                     LOGINFO("Ignoring/Unknown Maintenance Status!!");
                     m_statusMutex.unlock();
                     return;
                 }
 
-                LOGINFO(" BITFIELD Status : %x",g_task_status);
+                LOGINFO(" BITFIELD Status : %x", g_task_status);
                 /* Send the updated status only if all tasks complete execution
                  * Until that Maintenance is in started state */
-                if ( (g_task_status & TASKS_COMPLETED ) == TASKS_COMPLETED ){
-                    if ( (g_task_status & ALL_TASKS_SUCCESS) == ALL_TASKS_SUCCESS ){ // all tasks success
+                if ((g_task_status & TASKS_COMPLETED) == TASKS_COMPLETED)
+                {
+                    if ((g_task_status & ALL_TASKS_SUCCESS) == ALL_TASKS_SUCCESS)
+                    { // all tasks success
                         LOGINFO("Maintenance Successfully Completed!!");
-                        notify_status=MAINTENANCE_COMPLETE;
+                        notify_status = MAINTENANCE_COMPLETE;
                         /*  we store the time in persistent location */
-                        successfulTime=time(nullptr);
-                        tm ltime=*localtime(&successfulTime);
-                        time_t epoch_time=mktime(&ltime);
-                        str_successfulTime=to_string(epoch_time);
+                        successfulTime = time(nullptr);
+                        tm ltime = *localtime(&successfulTime);
+                        time_t epoch_time = mktime(&ltime);
+                        str_successfulTime = to_string(epoch_time);
                         LOGINFO("last succesful time is :%s", str_successfulTime.c_str());
                         /* Remove any old completion time */
                         m_setting.remove("LastSuccessfulCompletionTime");
-                        m_setting.setValue("LastSuccessfulCompletionTime",str_successfulTime);
-
+                        m_setting.setValue("LastSuccessfulCompletionTime", str_successfulTime);
                     }
                     /* Check other than all success cases which means we have errors */
-                    else if ((g_task_status & ALL_TASKS_SUCCESS)!= ALL_TASKS_SUCCESS) {
-                        if ((g_task_status & MAINTENANCE_TASK_SKIPPED ) == MAINTENANCE_TASK_SKIPPED ){
+                    else if ((g_task_status & ALL_TASKS_SUCCESS) != ALL_TASKS_SUCCESS)
+                    {
+                        if ((g_task_status & MAINTENANCE_TASK_SKIPPED) == MAINTENANCE_TASK_SKIPPED)
+                        {
                             LOGINFO("There are Skipped Task. Maintenance Incomplete");
-                            notify_status=MAINTENANCE_INCOMPLETE;
+                            notify_status = MAINTENANCE_INCOMPLETE;
                         }
-                        else {
+                        else
+                        {
                             LOGINFO("Maintenance Ended with Errors");
-                            notify_status=MAINTENANCE_ERROR;
+                            notify_status = MAINTENANCE_ERROR;
                         }
-
                     }
 
                     LOGINFO("ENDING MAINTENANCE CYCLE");
-                    if(m_thread.joinable()){
+                    if (m_thread.joinable())
+                    {
                         m_thread.join();
                         LOGINFO("Thread joined successfully\n");
                     }
 
-                    if ( g_maintenance_type == UNSOLICITED_MAINTENANCE && !g_unsolicited_complete) {
+                    if (g_maintenance_type == UNSOLICITED_MAINTENANCE && !g_unsolicited_complete)
+                    {
                         g_unsolicited_complete = true;
                     }
                     MaintenanceManager::_instance->onMaintenanceStatusChange(notify_status);
                 }
-                else {
+                else
+                {
                     LOGINFO("Tasks are not completed!!!!");
-
                 }
             }
-            else {
+            else
+            {
                 LOGWARN("Ignoring unexpected event - owner: %s, eventId: %d!!", owner, eventId);
             }
-          }
-          else {
-              LOGINFO("Maintenance has been aborted. Hence ignoring the event");
-          }
-          m_statusMutex.unlock();
         }
-        void MaintenanceManager::DeinitializeIARM()
+        else
         {
-            if (Utils::IARM::isConnected()){
-                IARM_Result_t res;
-                IARM_CHECK(IARM_Bus_RemoveEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, _MaintenanceMgrEventHandler));
-                MaintenanceManager::_instance = nullptr;
-            }
+            LOGINFO("Maintenance has been aborted. Hence ignoring the event");
         }
-#endif
+        m_statusMutex.unlock();
+    } /* end of iarmEventHandler() */
+
+    void MaintenanceManager::DeinitializeIARM()
+    {
+        if (Utils::IARM::isConnected())
+        {
+            IARM_Result_t res;
+            IARM_CHECK(IARM_Bus_RemoveEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, _MaintenanceMgrEventHandler));
+            MaintenanceManager::_instance = nullptr;
+        }
+    }
+#endif /* end of USE_IARMBUS or USE_IARM_BUS */
 
 #ifdef DEBUG
-        /**
-         * @brief : sampleAPI
-         */
-        uint32_t MaintenanceManager::sampleAPI(const JsonObject& parameters,
-                JsonObject& response)
-        {
-            response["sampleAPI"] = "Success";
-            /* Kept for debug purpose/future reference. */
-            sendNotify(EVT_ONMAINTMGRSAMPLEEVENT, parameters);
-            returnResponse(true);
-        }
+    /**
+     * @brief : sampleAPI
+     */
+    uint32_t MaintenanceManager::sampleAPI(const JsonObject &parameters,
+                                           JsonObject &response)
+    {
+        response["sampleAPI"] = "Success";
+        /* Kept for debug purpose/future reference. */
+        sendNotify(EVT_ONMAINTMGRSAMPLEEVENT, parameters);
+        returnResponse(true);
+    }
 #endif
 
         /*
@@ -1558,9 +1578,8 @@ namespace WPEFramework {
          * @return: Core::<StatusCode>
          */
 
-        uint32_t MaintenanceManager::getMaintenanceActivityStatus(const JsonObject& parameters,
-                JsonObject& response)
-                {
+        uint32_t MaintenanceManager::getMaintenanceActivityStatus(const JsonObject& parameters, JsonObject& response)
+        {
                     LOGINFO("Request for getMaintenanceActivityStatus()");
                     bool result = false;
                     string isCriticalMaintenance = "false";
@@ -1622,8 +1641,7 @@ namespace WPEFramework {
          * @param2[out]: {"jsonrpc":"2.0","id":3,"result":{"maintenanceStartTime":12345678,"success":true}}
          * @return: Core::<StatusCode>
          */
-        uint32_t MaintenanceManager::getMaintenanceStartTime (const JsonObject& parameters,
-                JsonObject& response)
+        uint32_t MaintenanceManager::getMaintenanceStartTime (const JsonObject& parameters, JsonObject& response)
         {
             bool result = false;
             string starttime="";
@@ -1744,8 +1762,7 @@ namespace WPEFramework {
          * @return: Core::<StatusCode>
          */
 
-        uint32_t MaintenanceManager::setMaintenanceMode(const JsonObject& parameters,
-                JsonObject& response)
+        uint32_t MaintenanceManager::setMaintenanceMode(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFO("Request for setMaintenanceMode()");
             bool result = false;
@@ -1856,8 +1873,7 @@ namespace WPEFramework {
          * @return: Core::<StatusCode>
          */
 
-        uint32_t MaintenanceManager::startMaintenance(const JsonObject& parameters,
-                JsonObject& response)
+        uint32_t MaintenanceManager::startMaintenance(const JsonObject& parameters, JsonObject& response)
                 {
 		    LOGINFO("Request for startMaintenance()");
                     bool result = false;
@@ -1945,12 +1961,12 @@ namespace WPEFramework {
                 task_status[2] = task_status_LOGUPLD->second;
 
                 for (i=0;i<3;i++) {
-                    LOGINFO("task status [%d]  = %s ScriptName %s",i,(task_status[i])? "true":"false",script_names[i].c_str());
+                    LOGINFO("task status [%d]  = %s ScriptName %s",i,(task_status[i])? "true":"false",task_names[i].c_str());
                 }
                 for (i=0;i<3;i++){
                     if(task_status[i]){
 
-                        k_ret = abortTask( script_names[i].c_str() );        // default signal is SIGABRT
+                        k_ret = abortTask( task_names[i].c_str() );        // default signal is SIGABRT
 
                         if( k_ret == 0 ) {                                      // if task(s) was(were) killed successfully ...                    
                             m_task_map[task_names_foreground[i].c_str()]=false; // set it to false 

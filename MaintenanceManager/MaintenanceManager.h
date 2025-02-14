@@ -25,6 +25,7 @@
 #include <map>
 #include <ctime>
 #include <csignal>
+#include <dirent.h>
 
 #include "Module.h"
 #include "tracing/Logging.h"
