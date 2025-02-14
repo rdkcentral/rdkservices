@@ -223,13 +223,13 @@ namespace WPEFramework {
 
         vector<string> tasks;
 
-        // const int task_complete_status[] = {
-        //     RFC_COMPLETE,
-        //     SWUPDATE_COMPLETE,
-        //     LOGUPLOAD_COMPLETE
-        // };
+        const int task_complete_status[] = {
+            RFC_COMPLETE,
+            SWUPDATE_COMPLETE,
+            LOGUPLOAD_COMPLETE
+        };
 
-        task_status_map = {
+        std::map<string, int> task_status_map = {
             {RFC_TASK, RFC_COMPLETE},
             {SWUPDATE_TASK, SWUPDATE_COMPLETE},
             {LOGUPLOAD_TASK, LOGUPLOAD_COMPLETE}
@@ -767,26 +767,26 @@ namespace WPEFramework {
             if (signo == SIGALRM)
             {
                 LOGERR("Timeout reached for %s. Setting task to Error...", currentTask.c_str());
+                // TBD: Need Review
+                // auto it = MaintenanceManager::_instance->task_status_map.find(currentTask);
+                // if(it != MaintenanceManager::_instance->task_status_map.end()){
+                //     const char* failedTask = it->first.c_str();
+                //     int complete_status = it->second;
 
-                auto it = MaintenanceManager::_instance->task_status_map.find(currentTask);
-                if(it != MaintenanceManager::_instance->task_status_map.end()){
-                    const char* failedTask = it->first.c_str();
-                    int complete_status = it->second;
+                //     if (failedTask && !MaintenanceManager::_instance->m_task_map[failedTask]) {
+                //         LOGINFO("Ignoring Error Event for Task: %s", failedTask);
+                //     }
+                //     else if (failedTask) {
+                //         SET_STATUS(MaintenanceManager::_instance->g_task_status, complete_status);
+                //         MaintenanceManager::_instance->task_thread.notify_one();
+                //         LOGINFO("Set %s Task to ERROR", failedTask);
+                //         MaintenanceManager::_instance->m_task_map[failedTask] = false;
+                //     }
+                // }
 
-                    if (failedTask && !MaintenanceManager::_instance->m_task_map[failedTask]) {
-                        LOGINFO("Ignoring Error Event for Task: %s", failedTask);
-                    }
-                    else if (failedTask) {
-                        SET_STATUS(MaintenanceManager::_instance->g_task_status, complete_status);
-                        MaintenanceManager::_instance->task_thread.notify_one();
-                        LOGINFO("Set %s Task to ERROR", failedTask);
-                        MaintenanceManager::_instance->m_task_map[failedTask] = false;
-                    }
-                }
-                /*
                 const char* failedTask = nullptr;
                 int complete_status = 0;
-                // TBD: Need Review
+
                 for(size_t j = 0; j < (sizeof(task_names_foreground)/ sizeof(task_names_foreground[0])); j++){
                     if(currentTask.find(task_names_foreground[j]) != string::npos){
                         failedTask = task_names_foreground[j].c_str();
@@ -803,7 +803,7 @@ namespace WPEFramework {
                     MaintenanceManager::_instance->task_thread.notify_one();
                     LOGINFO("Abort %s Task", failedTask);
                     MaintenanceManager::_instance->m_task_map[failedTask] = false;
-                }*/
+                }
             }
             else {
                 LOGERR("Did not received SIGARLM");

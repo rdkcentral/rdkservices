@@ -158,7 +158,6 @@ namespace WPEFramework {
                 std::map<string, bool> m_task_map;
                 std::map<string, string> m_param_map;
                 std::map<string, DATA_TYPE> m_paramType_map;
-                std::map<std::string, int> task_status_map;
 
                 PluginHost::IShell* m_service;
 
