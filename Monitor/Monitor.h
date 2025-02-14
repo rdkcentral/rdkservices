@@ -432,7 +432,7 @@ namespace Plugin {
             Core::JSON::ArrayType<Entry> Observables;
         };
 
-        class MonitorObjects : public PluginHost::IPlugin::INotification {
+        class MonitorObjects : public PluginHost::IPlugin::INotification, public PluginHost::IPlugin::ILifeTime {
         public:
             using Job = Core::ThreadPool::JobType<MonitorObjects>;
 
@@ -764,7 +764,13 @@ POP_WARNING()
             }
             void Deactivated (const string& callsign, PluginHost::IShell* service) override
             {
-
+            }
+            void Initialize(const string& callsign, PluginHost::IShell* service) override
+            {
+            }
+            void Deinitialized(const string& callsign, PluginHost::IShell* service) override
+            {
+                /* See comment in the Dispatch method on why no locking is here to protect the _monitor member */
                 MonitorObjectContainer::iterator index(_monitor.find(callsign));
 
                 if (index != _monitor.end()) {
@@ -787,7 +793,7 @@ POP_WARNING()
                             _service->Notify(message);
                             _parent.event_action(callsign, "Activate", "Automatic");
                             TRACE(Trace::Error, (_T("Restarting %s again because we detected it misbehaved."), callsign.c_str()));
-                            Core::IWorkerPool::Instance().Schedule(Core::Time::Now().Add(5000), PluginHost::IShell::Job::Create(service, PluginHost::IShell::ACTIVATED, PluginHost::IShell::AUTOMATIC));
+                            Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(service, PluginHost::IShell::ACTIVATED, PluginHost::IShell::AUTOMATIC));
                         }
                     } 
                 }
@@ -900,6 +906,7 @@ POP_WARNING()
 
             BEGIN_INTERFACE_MAP(MonitorObjects)
             INTERFACE_ENTRY(PluginHost::IPlugin::INotification)
+            INTERFACE_ENTRY(PluginHost::IPlugin::ILifeTime)
             END_INTERFACE_MAP
 
         private:
