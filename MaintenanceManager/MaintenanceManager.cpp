@@ -437,7 +437,7 @@ namespace WPEFramework {
                         task_status = system(cmd.c_str());
                     }
                     /* Set task_status purposefully to non-zero value to verify failure logic*/
-                    // task_status = -1;
+                    task_status = -1;
                     if (task_status != 0) /* system() call fails */
                     {
                         LOGINFO("%s invocation failed with return status %d", cmd.c_str(), WEXITSTATUS(task_status));
