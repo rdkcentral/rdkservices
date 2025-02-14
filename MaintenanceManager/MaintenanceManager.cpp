@@ -451,12 +451,12 @@ namespace WPEFramework {
                         else{
                             LOGINFO("Task Failed, setting task as Error");
 
-                            const char *current_task = nullptr;
+                            //const char *current_task = nullptr;
                             int complete_status = 0;
 
-                            current_task = task_status_vector[i].first;
+                            //current_task = task_status_vector[i].first;
                             complete_status = task_status_vector[i].second;
-                                SET_STATUS(g_task_status, complete_status);
+                            SET_STATUS(g_task_status, complete_status);
                             // TBD: return validation?
                             task_stopTimer();
                         }
