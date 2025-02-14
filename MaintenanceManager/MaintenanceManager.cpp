@@ -420,13 +420,13 @@ namespace WPEFramework {
             {
                 int task_status = -1;
                 cmd = tasks[i];
+                currentTask = cmd;
                 cmd += " &";
                 cmd += "\0";
 
                 if (!m_abort_flag)
                 {
                     LOGINFO("Starting Task :  %s \n", cmd.c_str());
-                    currentTask = cmd;
                     if (retry_count == TASK_RETRY_COUNT){
                         LOGINFO("Starting Timer for %s \n", cmd.c_str());
                         isTaskTimerStarted = task_startTimer();
@@ -450,31 +450,38 @@ namespace WPEFramework {
                         }
                         else{
                             LOGINFO("Task Failed, setting task as Error");
-
-                            //const char *current_task = nullptr;
-                            int complete_status = 0;
-
-                            //current_task = task_status_vector[i].first;
-                            complete_status = task_status_vector[i].second;
+                            int complete_status = task_status_vector[i].second;
                             SET_STATUS(g_task_status, complete_status);
-                            // TBD: return validation?
-                            task_stopTimer();
+                            if(task_stopTimer()){
+                                LOGINFO("Stopped Timer Successfully..");
+                            }
+                            else{
+                                LOGERR("task_stopTimer() did not stop the Timer...");
+                            }
                         }
                     }
                     else /* System() executes successfully */
                     {
                         LOGINFO("Waiting to unlock.. [%d/%d]", i + 1, (int)tasks.size());
                         task_thread.wait(lck);
-                        // TBD: return validation?
-                        task_stopTimer();
+                        if(task_stopTimer()){
+                            LOGINFO("Stopped Timer Successfully..");
+                        }
+                        else{
+                            LOGERR("task_stopTimer() did not stop the Timer...");
+                        }
                     }
                 }
                 retry_count = TASK_RETRY_COUNT; /* Reset Retry Count for next Task*/
             }
             if (m_abort_flag){
                 m_abort_flag = false;
-                // TBD: return validation?
-                task_stopTimer();
+                if(task_stopTimer()){
+                    LOGINFO("Stopped Timer Successfully..");
+                }
+                else{
+                    LOGERR("task_stopTimer() did not stop the Timer...");
+                }
             }
             LOGINFO("Worker Thread Completed");
         } /* end of task_execution_thread() */
@@ -640,8 +647,7 @@ namespace WPEFramework {
             {
                 if (isTaskTimerRunning())
                 {
-                    LOGINFO("Timer is already running. Not starting a new timer.");
-                    return status;
+                    LOGINFO("Timer is already running. Restart the Timer...");
                 }
                 else{
                     LOGINFO("Timer exists but is not running. Starting timer.");
@@ -673,7 +679,6 @@ namespace WPEFramework {
             return status;
         }
 
-        // TBD: Handling stopTimer() API failure, how should this be cascaded to next task/ set the Maintenance Status to MAINTENANCE_ERROR
         bool MaintenanceManager::task_stopTimer()
         {
             bool status = false;
@@ -1978,14 +1983,22 @@ namespace WPEFramework {
                         LOGINFO("Task[%d] is false \n",i);
                     }
                 }
-                // TBD: return validation?
-                task_stopTimer();
+                if(task_stopTimer()){
+                    LOGINFO("Stopped Timer Successfully..");
+                }
+                else{
+                    LOGERR("task_stopTimer() did not stop the Timer...");
+                }
                 result=true;
             }
             else {
                 LOGERR("Failed to stopMaintenance without starting maintenance");
-                // TBD: return validation?
-                task_stopTimer();
+                if(task_stopTimer()){
+                    LOGINFO("Stopped Timer Successfully..");
+                }
+                else{
+                    LOGERR("task_stopTimer() did not stop the Timer...");
+                }
             }
             task_thread.notify_one();
 
