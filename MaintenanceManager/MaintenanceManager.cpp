@@ -229,7 +229,7 @@ namespace WPEFramework {
         //     LOGUPLOAD_COMPLETE
         // };
 
-        std::map<std::string, int> task_status_map = {
+        task_status_map = {
             {RFC_TASK, RFC_COMPLETE},
             {SWUPDATE_TASK, SWUPDATE_COMPLETE},
             {LOGUPLOAD_TASK, LOGUPLOAD_COMPLETE}
