@@ -421,6 +421,10 @@ if(PLUGIN_CONTENTPROTECTION)
     add_subdirectory(ContentProtection)
 endif()
 
+if(PLUGIN_APPMANAGER)
+	add_subdirectory(AppManager)
+endif()
+
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")
     set(CPACK_DEB_COMPONENT_INSTALL ON)

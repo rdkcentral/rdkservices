@@ -509,28 +509,6 @@
         }
       ]
     },
-    "brandname": {
-      "summary": "Device brand name",
-      "readonly": true,
-      "params": {
-        "type": "object",
-        "properties": {
-          "brandname": {
-            "type": "string",
-            "example": "Comcast"
-          }
-        },
-        "required": [
-          "brand"
-        ]
-      },
-      "errors": [
-        {
-          "description": "General error",
-          "$ref": "#/common/errors/general"
-        }
-      ]
-    },
     "make": {
       "summary": "Device manufacturer",
       "readonly": true,
