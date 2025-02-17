@@ -2512,7 +2512,7 @@ namespace WPEFramework
                     size_t size = 0;
                     while (getdelim(&arg, &size, 0, fp) != -1)
                     {
-                        LOGINFO("%s\n", arg);
+                        printf("%s\n",arg);
                         char *first = strstr(arg, taskname);
                         if (first != NULL)
                         {
