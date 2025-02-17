@@ -21,7 +21,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 4
+#define API_VERSION_NUMBER_PATCH 5
 
 namespace WPEFramework {
     
@@ -57,7 +57,7 @@ namespace {
         _service->Register(&_notification);
 
          string result;
-        _implementation = _service->Root<Exchange::IPackager>(_connectionId, 2000, _T("PackagerImplementation"));
+        _implementation = _service->Root<Exchange::IPackager>(_connectionId, 5000, _T("PackagerImplementation"));
         if (_implementation == nullptr) {
             result = _T("Couldn't create package instance");
             _service->Unregister(&_notification);
@@ -73,9 +73,12 @@ namespace {
     {
         ASSERT(_service == service);
 
-        _service->Unregister(&_notification);
+        if(_service != nullptr) 
+        {
+           _service->Unregister(&_notification);
+        }
 
-        if (_implementation->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
+        if (_implementation != nullptr && _implementation->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
 
             ASSERT(_connectionId != 0);
 
