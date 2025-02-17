@@ -947,7 +947,7 @@ namespace WPEFramework
             }
             else
             {
-                LOGERR("Received %d Signal instead of SIGARLM", signo);
+                LOGERR("Received %d Signal instead of SIGALRM", signo);
             }
         }
 
