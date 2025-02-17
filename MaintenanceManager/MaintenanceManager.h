@@ -87,7 +87,7 @@ typedef enum{
 #define TASK_RETRY_COUNT                1
 #define TASK_RETRY_DELAY                5
 #ifndef TASK_TIMEOUT
-#define TASK_TIMEOUT                    60 /* Default Task Timeout (1 Hour i.e. 3600 seconds, 1 min for debugging purpose)  */
+#define TASK_TIMEOUT                    3600 /* Default Task Timeout (1 Hour i.e. 3600 seconds)  */
 #endif
 
 #define RFC_SUCCESS                     0
@@ -106,19 +106,19 @@ typedef enum{
 
 namespace WPEFramework {
     namespace Plugin {
-
-        // This is a server for a JSONRPC communication channel.
-        // For a plugin to be capable to handle JSONRPC, inherit from PluginHost::JSONRPC.
-        // By inheriting from this class, the plugin realizes the interface PluginHost::IDispatcher.
-        // This realization of this interface implements, by default, the following methods on this plugin
-        // - exists
-        // - register
-        // - unregister
-        // Any other methood to be handled by this plugin  can be added can be added by using the
-        // templated methods Register on the PluginHost::JSONRPC class.
-        // As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
-        // this class exposes a public method called, Notify(), using this methods, all subscribed clients
-        // will receive a JSONRPC message as a notification, in case this method is called.
+        /* This is a server for a JSONRPC communication channel.
+        * For a plugin to be capable to handle JSONRPC, inherit from PluginHost::JSONRPC.
+        * By inheriting from this class, the plugin realizes the interface PluginHost::IDispatcher.
+        * This realization of this interface implements, by default, the following methods on this plugin
+        * - exists
+        * - register
+        * - unregister
+        * Any other methood to be handled by this plugin  can be added can be added by using the
+        * templated methods Register on the PluginHost::JSONRPC class.
+        * As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
+        * this class exposes a public method called, Notify(), using this methods, all subscribed clients
+        * will receive a JSONRPC message as a notification, in case this method is called.
+        */
 
         class MaintenanceManager : public PluginHost::IPlugin, public PluginHost::JSONRPC {
             private:
@@ -133,15 +133,10 @@ namespace WPEFramework {
                 string g_epoch_time;
 
                 IARM_Bus_MaintMGR_EventData_t *g_maintenance_data;
-
                 Maint_notify_status_t m_notify_status;
-
                 Maintenance_Type_t g_maintenance_type;
-
                 static cSettings m_setting;
-
                 bool m_abort_flag;
-
                 uint16_t g_task_status;
                 bool g_unsolicited_complete;
                 bool g_listen_to_nwevents = false;
@@ -183,11 +178,10 @@ namespace WPEFramework {
                 const string checkActivatedStatus(void);
                 int abortTask(const char*, int sig = SIGABRT);
                 pid_t getTaskPID(const char*);
-
                 string getLastRebootReason();
                 void iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
                 static void _MaintenanceMgrEventHandler(const char *owner,IARM_EventId_t eventId, void *data, size_t len);
-                // We do not allow this plugin to be copied !!
+                /* We do not allow this plugin to be copied !! */
                 MaintenanceManager(const MaintenanceManager&) = delete;
                 MaintenanceManager& operator=(const MaintenanceManager&) = delete;
 
@@ -199,6 +193,7 @@ namespace WPEFramework {
                     public:
                         void startTask();
                 };
+
             public:
                 MaintenanceManager();
                 virtual ~MaintenanceManager();
@@ -207,9 +202,7 @@ namespace WPEFramework {
                 virtual const string Initialize(PluginHost::IShell* service) override;
                 virtual void Deinitialize(PluginHost::IShell* service) override;
                 virtual string Information() const override { return {}; }
-                static int runScript(const std::string& script,
-                        const std::string& args, string *output = NULL,
-                        string *error = NULL, int timeout = 30000);
+                static int runScript(const std::string& script, const std::string& args, string *output = NULL, string *error = NULL, int timeout = 30000);
 
                 /* Timer Implementation */
                 static void timer_handler(int signo);
@@ -232,16 +225,14 @@ namespace WPEFramework {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
                 void InitializeIARM();
                 void DeinitializeIARM();
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
-
-                /* Events : Begin */
+#endif
+                /* Events */
                 void onMaintenanceStatusChange(Maint_notify_status_t status);
-                /* Events : End */
 
-                /* Methods : Begin */
+                /* Methods */
 #ifdef DEBUG
                 uint32_t sampleAPI(const JsonObject& parameters, JsonObject& response);
-#endif /* DEBUG */
+#endif
 
                 uint32_t getMaintenanceActivityStatus(const JsonObject& parameters, JsonObject& response);
                 uint32_t getMaintenanceStartTime(const JsonObject& parameters, JsonObject& response);
@@ -249,6 +240,7 @@ namespace WPEFramework {
                 uint32_t startMaintenance(const JsonObject& parameters, JsonObject& response);
                 uint32_t stopMaintenance(const JsonObject& parameters, JsonObject& response);
                 uint32_t getMaintenanceMode(const JsonObject& parameters, JsonObject& response);
+
         }; /* end of MaintenanceManager service class */
     } /* end of plugin */
 } /* end of wpeframework */
