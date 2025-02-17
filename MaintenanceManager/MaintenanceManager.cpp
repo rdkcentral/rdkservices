@@ -356,7 +356,7 @@ namespace WPEFramework
         void MaintenanceManager::task_execution_thread()
         {
             int i = 0;
-            string cmd = "";
+            string task = "";
             bool internetConnectStatus = false;
             bool delayMaintenanceStarted = false;
             bool exitOnNoNetwork = false;
@@ -485,31 +485,31 @@ namespace WPEFramework
             for (i = 0; i < static_cast<int>(tasks.size()) && !m_abort_flag; i++)
             {
                 int task_status = -1;
-                cmd = tasks[i];
-                currentTask = cmd;
-                cmd += " &";
-                cmd += "\0";
+                task = tasks[i];
+                currentTask = task;
+                task += " &";
+                task += "\0";
 
                 if (!m_abort_flag)
                 {
-                    LOGINFO("Starting Task :  %s \n", cmd.c_str());
                     if (retry_count == TASK_RETRY_COUNT)
                     {
-                        LOGINFO("Starting Timer for %s \n", cmd.c_str());
+                        LOGINFO("Starting Timer for %s \n", currentTask.c_str());
                         isTaskTimerStarted = task_startTimer();
                     }
                     m_task_map[tasks[i]] = true;
 
                     if (isTaskTimerRunning())
                     {
-                        task_status = system(cmd.c_str());
+                        LOGINFO("Starting Task :  %s \n", task.c_str());
+                        task_status = system(task.c_str());
                     }
                     /* Set task_status purposefully to non-zero value to verify failure logic*/
                     // task_status = -1;
                     if (task_status != 0) /* system() call fails */
                     {
-                        LOGINFO("%s invocation failed with return status %d", tasks[i].c_str(), WEXITSTATUS(task_status));
                         m_task_map[tasks[i]] = false;
+                        LOGINFO("%s invocation failed with return status %d", tasks[i].c_str(), WEXITSTATUS(task_status));
                         if (retry_count > 0 && isTaskTimerStarted)
                         {
                             LOGINFO("Retry %s after %d seconds (%d retry left)\n", tasks[i].c_str(), TASK_RETRY_DELAY, retry_count);
@@ -939,15 +939,15 @@ namespace WPEFramework
                 }
                 else if (failedTask)
                 {
+                    MaintenanceManager::_instance->m_task_map[failedTask] = false;
                     SET_STATUS(MaintenanceManager::_instance->g_task_status, complete_status);
                     MaintenanceManager::_instance->task_thread.notify_one();
                     LOGINFO("Set %s Task to ERROR", failedTask);
-                    MaintenanceManager::_instance->m_task_map[failedTask] = false;
                 }
             }
             else
             {
-                LOGERR("Did not received SIGARLM");
+                LOGERR("Received %d Signal instead of SIGARLM", signo);
             }
         }
 
