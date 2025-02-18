@@ -38,17 +38,14 @@ std::string RialtoAppsSessionManager::makeRialtoSocketPath(const std::string& ri
 }
 
 void RialtoAppsSessionManager::insertSession(const std::string& callsign) {
-    std::lock_guard<std::mutex> l(mSessionsMutex);
     mSessions.insert(callsign);
 }
 
 bool RialtoAppsSessionManager::hasSession(const std::string& callsign) {
-    std::lock_guard<std::mutex> l(mSessionsMutex);
     return mSessions.find(callsign) != mSessions.end();
 }
 
 bool RialtoAppsSessionManager::removeSession(const std::string& callsign) {
-    std::lock_guard<std::mutex> l(mSessionsMutex);
     return mSessions.erase(callsign) == 1;
 }
 
@@ -64,6 +61,7 @@ bool RialtoAppsSessionManager::createRialtoSessionAndWait(
 
     if (usesRialto(app) == false) return true;
 
+    std::lock_guard<std::mutex> l(mMutex);
     std::string rialtoSocketPath = makeRialtoSocketPath(rialtoSocketName);
 
     if (!mConnector->initialized()) {
@@ -92,6 +90,7 @@ bool RialtoAppsSessionManager::createRialtoSessionAndWait(
 }
 
 bool RialtoAppsSessionManager::destroyRialtoSession(const std::string& callsign) {
+    std::lock_guard<std::mutex> l(mMutex);
     if (removeSession(callsign) == false) return true;
 
     if (mConnector->deactivateSession(callsign) == false) {
@@ -104,6 +103,7 @@ bool RialtoAppsSessionManager::destroyRialtoSession(const std::string& callsign)
 }
 
 bool RialtoAppsSessionManager::suspendRialtoSessionAndWait(const std::string& callsign) {
+    std::lock_guard<std::mutex> l(mMutex);
     if (hasSession(callsign) == false) return true;
 
     if (mConnector->suspendSession(callsign) == false) {
@@ -121,6 +121,7 @@ bool RialtoAppsSessionManager::suspendRialtoSessionAndWait(const std::string& ca
 }
 
 bool RialtoAppsSessionManager::resumeRialtoSessionAndWait(const std::string& callsign) {
+    std::lock_guard<std::mutex> l(mMutex);
     if (hasSession(callsign) == false) return true;
 
     if (mConnector->resumeSession(callsign) == false) {

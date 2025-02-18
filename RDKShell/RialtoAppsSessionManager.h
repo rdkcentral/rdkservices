@@ -108,7 +108,7 @@ private:
     std::set<std::string> mRialtoApps;
     int mTimeoutMs;
     std::set<std::string> mSessions;
-    std::mutex mSessionsMutex;
+    std::mutex mMutex;
 
     std::string makeRialtoSocketPath(const std::string& rialtoSocketName);
     void insertSession(const std::string& callsign);
