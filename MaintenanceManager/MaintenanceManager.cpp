@@ -497,10 +497,9 @@ namespace WPEFramework
                         LOGINFO("Starting Timer for %s \n", currentTask.c_str());
                         isTaskTimerStarted = task_startTimer();
                     }
-                    m_task_map[tasks[i]] = true;
-
                     if (isTaskTimerRunning())
                     {
+                        m_task_map[tasks[i]] = true;
                         LOGINFO("Starting Task :  %s \n", task.c_str());
                         task_status = system(task.c_str());
                     }
@@ -520,20 +519,21 @@ namespace WPEFramework
                         }
                         else
                         {
-                            LOGINFO("Task Failed, setting task as Error");
+                            LOGINFO("Task Failed");
                             auto it = task_status_map.find(tasks[i]);
                             if (it != task_status_map.end())
                             {
+                                LOGINFO("Setting task as Error");
                                 int complete_status = it->second;
                                 SET_STATUS(g_task_status, complete_status);
                             }
                             if (task_stopTimer())
                             {
-                                LOGINFO("Stopped Timer Successfully..");
+                                LOGINFO("Stopped Timer Successfully");
                             }
                             else
                             {
-                                LOGERR("task_stopTimer() did not stop the Timer...");
+                                LOGERR("task_stopTimer() did not stop the Timer");
                             }
                         }
                     }
@@ -543,11 +543,11 @@ namespace WPEFramework
                         task_thread.wait(lck);
                         if (task_stopTimer())
                         {
-                            LOGINFO("Stopped Timer Successfully..");
+                            LOGINFO("Stopped Timer Successfully");
                         }
                         else
                         {
-                            LOGERR("task_stopTimer() did not stop the Timer...");
+                            LOGERR("task_stopTimer() did not stop the Timer");
                         }
                     }
                 }
@@ -558,11 +558,11 @@ namespace WPEFramework
                 m_abort_flag = false;
                 if (task_stopTimer())
                 {
-                    LOGINFO("Stopped Timer Successfully..");
+                    LOGINFO("Stopped Timer Successfully");
                 }
                 else
                 {
-                    LOGERR("task_stopTimer() did not stop the Timer...");
+                    LOGERR("task_stopTimer() did not stop the Timer");
                 }
             }
             LOGINFO("Worker Thread Completed");
@@ -2395,27 +2395,19 @@ namespace WPEFramework
                         LOGINFO("Task[%d] is false \n", i);
                     }
                 }
-                if (task_stopTimer())
-                {
-                    LOGINFO("Stopped Timer Successfully..");
-                }
-                else
-                {
-                    LOGERR("task_stopTimer() did not stop the Timer...");
-                }
                 result = true;
             }
             else
             {
                 LOGERR("Failed to stopMaintenance without starting maintenance");
-                if (task_stopTimer())
-                {
-                    LOGINFO("Stopped Timer Successfully..");
-                }
-                else
-                {
-                    LOGERR("task_stopTimer() did not stop the Timer...");
-                }
+            }
+            if (task_stopTimer())
+            {
+                LOGINFO("Stopped Timer Successfully..");
+            }
+            else
+            {
+                LOGERR("task_stopTimer() did not stop the Timer...");
             }
             task_thread.notify_one();
 
