@@ -68,8 +68,8 @@ typedef enum{
 #define FOREGROUND_MODE "FOREGROUND"
 #define BACKGROUND_MODE "BACKGROUND"
 
-#define TASKS_COMPLETED                0xAA
-#define ALL_TASKS_SUCCESS              0xFF
+#define TASKS_COMPLETED                0x2A
+#define ALL_TASKS_SUCCESS              0x3F
 #define MAINTENANCE_TASK_SKIPPED       0x200
 
 #define MAX_NETWORK_RETRIES             4
@@ -78,17 +78,15 @@ typedef enum{
 #define NETWORK_RETRY_INTERVAL          30
 #define SECMGR_RETRY_INTERVAL           5
 
-#define DCM_SUCCESS                     0
-#define DCM_COMPLETE                    1
-#define RFC_SUCCESS                     2
-#define RFC_COMPLETE                    3
-#define LOGUPLOAD_SUCCESS               4
-#define LOGUPLOAD_COMPLETE              5
-#define DIFD_SUCCESS                    6
-#define DIFD_COMPLETE                   7
-#define REBOOT_REQUIRED                 8
-#define TASK_SKIPPED                    9
-#define TASKS_STARTED                   10
+#define RFC_SUCCESS                     0
+#define RFC_COMPLETE                    1
+#define LOGUPLOAD_SUCCESS               2
+#define LOGUPLOAD_COMPLETE              3
+#define DIFD_SUCCESS                    4
+#define DIFD_COMPLETE                   5
+#define REBOOT_REQUIRED                 6
+#define TASK_SKIPPED                    7
+#define TASKS_STARTED                   8
 
 #define SET_STATUS(VALUE,N)     ((VALUE) |=  (1<<(N)))
 #define CLEAR_STATUS(VALUE,N)   ((VALUE) &= ~(1<<(N)))
