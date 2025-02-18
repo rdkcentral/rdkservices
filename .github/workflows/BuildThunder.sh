@@ -39,7 +39,7 @@ cmake --build build/Thunder --target install
 ############################
 # 4. Build ThunderInterfaces
 
-git clone -b RDKTV-31830 https://github.com/npoltorapavlo/ThunderInterfaces.git
+git clone https://github.com/rdkcentral/ThunderInterfaces.git
 
 cmake -G Ninja -S ThunderInterfaces -B build/ThunderInterfaces \
   -DCMAKE_INSTALL_PREFIX="install"
