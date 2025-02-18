@@ -527,14 +527,28 @@ namespace WPEFramework
                                 int complete_status = it->second;
                                 SET_STATUS(g_task_status, complete_status);
                             }
-                            task_stopTimer() ? LOGINFO("Stopped Timer Successfully..") : LOGERR("task_stopTimer() did not stop the Timer...");
+                            if (task_stopTimer())
+                            {
+                                LOGINFO("Stopped Timer Successfully..");
+                            }
+                            else
+                            {
+                                LOGERR("task_stopTimer() did not stop the Timer...");
+                            }
                         }
                     }
                     else /* System() executes successfully */
                     {
                         LOGINFO("Waiting to unlock.. [%d/%d]", i + 1, (int)tasks.size());
                         task_thread.wait(lck);
-                        task_stopTimer() ? LOGINFO("Stopped Timer Successfully..") : LOGERR("task_stopTimer() did not stop the Timer...");
+                        if (task_stopTimer())
+                        {
+                            LOGINFO("Stopped Timer Successfully..");
+                        }
+                        else
+                        {
+                            LOGERR("task_stopTimer() did not stop the Timer...");
+                        }
                     }
                 }
                 retry_count = TASK_RETRY_COUNT; /* Reset Retry Count for next Task*/
@@ -542,7 +556,14 @@ namespace WPEFramework
             if (m_abort_flag)
             {
                 m_abort_flag = false;
-                task_stopTimer() ? LOGINFO("Stopped Timer Successfully..") : LOGERR("task_stopTimer() did not stop the Timer...");
+                if (task_stopTimer())
+                {
+                    LOGINFO("Stopped Timer Successfully..");
+                }
+                else
+                {
+                    LOGERR("task_stopTimer() did not stop the Timer...");
+                }
             }
             LOGINFO("Worker Thread Completed");
         } /* end of task_execution_thread() */
@@ -2374,13 +2395,27 @@ namespace WPEFramework
                         LOGINFO("Task[%d] is false \n", i);
                     }
                 }
-                task_stopTimer() ? LOGINFO("Stopped Timer Successfully..") : LOGERR("task_stopTimer() did not stop the Timer...");
+                if (task_stopTimer())
+                {
+                    LOGINFO("Stopped Timer Successfully..");
+                }
+                else
+                {
+                    LOGERR("task_stopTimer() did not stop the Timer...");
+                }
                 result = true;
             }
             else
             {
                 LOGERR("Failed to stopMaintenance without starting maintenance");
-                task_stopTimer() ? LOGINFO("Stopped Timer Successfully..") : LOGERR("task_stopTimer() did not stop the Timer...");
+                if (task_stopTimer())
+                {
+                    LOGINFO("Stopped Timer Successfully..");
+                }
+                else
+                {
+                    LOGERR("task_stopTimer() did not stop the Timer...");
+                }
             }
             task_thread.notify_one();
 
