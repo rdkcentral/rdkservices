@@ -1373,7 +1373,7 @@ namespace WPEFramework
                     }
                     else
                     {
-                        MAINT_LOGUPLOAD_ERROR("Failed to subscribe for onInternetStatusChange event");
+                        LOGERR("Failed to subscribe for onInternetStatusChange event");
                     }
                 }
             }
