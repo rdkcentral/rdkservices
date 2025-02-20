@@ -46,7 +46,7 @@ namespace Plugin {
             explicit Notification(UserSettings* parent)
                 : _parent(*parent)
                 {
-                    if (_parent == nullptr)
+                    if (parent)
                     {
                        LOGERR("_parent is null");
                     }

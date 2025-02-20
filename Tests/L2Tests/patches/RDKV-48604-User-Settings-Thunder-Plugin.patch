@@ -9,7 +9,7 @@ new file mode 100755
 index 0000000..4adda17
 --- /dev/null
 +++ b/interfaces/IUserSettings.h
-@@ -0,0 +1,336 @@
+@@ -0,0 +1,353 @@
 +/*
 + * If not stated otherwise in this file or this component's LICENSE file the
 + * following copyright and licenses apply:
@@ -35,12 +35,15 @@ index 0000000..4adda17
 +
 +namespace WPEFramework {
 +namespace Exchange {
++
 +  // @json @text:keep
-+  struct EXTERNAL IUserSettings : virtual public Core::IUnknown {
++struct EXTERNAL IUserSettings : virtual public Core::IUnknown
++{
 +  enum { ID = ID_USER_SETTINGS };
 +
 +  // @event
-+  struct EXTERNAL INotification : virtual public Core::IUnknown {
++    struct EXTERNAL INotification : virtual public Core::IUnknown
++    {
 +    enum { ID = ID_USER_SETTINGS_NOTIFICATION };
 +
 +    // Constructor
@@ -78,8 +81,8 @@ index 0000000..4adda17
 +        virtual void OnPreferredCaptionsLanguagesChanged(const string& preferredLanguages /* @text preferredLanguages */) {};
 +
 +    // @text onPreferredClosedCaptionServiceChanged
-+    // @brief The PreferredClosedCaptionService setting has changed.
-+    // @param service: "CC[1-4]", "TEXT[1-4]", "SERVICE[1-64]".
++        // @brief The PreferredClosedCaptionService setting has changed.Eg: "CC[1-4]", "TEXT[1-4]", "SERVICE[1-64]".
++        // @param service: the changed preferredClosedCaptionService.
 +    virtual void OnPreferredClosedCaptionServiceChanged(const string& service) {};
 +
 +    // @text onPrivacyModeChanged
