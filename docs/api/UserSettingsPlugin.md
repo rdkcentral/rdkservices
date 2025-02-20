@@ -2,7 +2,7 @@
 <a name="head.UserSettings_Plugin"></a>
 # UserSettings Plugin
 
-**Version: [1.2.0](https://github.com/rdkcentral/rdkservices/blob/main/UserSettings/CHANGELOG.md)**
+**Version: [2.1.0](https://github.com/rdkcentral/entservices-infra/blob/develop/UserSettings/CHANGELOG.md)**
 
 A org.rdk.UserSettings plugin for Thunder framework.
 
@@ -60,6 +60,10 @@ org.rdk.UserSettings interface methods:
 | [setPlaybackWatershed](#method.setPlaybackWatershed) | Setting PlaybackWatershed |
 | [setBlockNotRatedContent](#method.setBlockNotRatedContent) | Setting BlockNotRatedContent |
 | [setPinOnPurchase](#method.setPinOnPurchase) | Setting setPinOnPurchase |
+| [setHighContrast](#method.setHighContrast) | Sets highContrast |
+| [setVoiceGuidance](#method.setVoiceGuidance) | Sets voiceGuidance |
+| [setVoiceGuidanceRate](#method.setVoiceGuidanceRate) | Sets voiceGuidanceRate |
+| [setVoiceGuidanceHints](#method.setVoiceGuidanceHints) | Sets voiceGuidanceHints ON/OFF |
 | [getAudioDescription](#method.getAudioDescription) | Returns Audio Description |
 | [getPreferredAudioLanguages](#method.getPreferredAudioLanguages) | Returns Preferred Audio Languages |
 | [getPresentationLanguage](#method.getPresentationLanguage) | Getting Presentation Languages |
@@ -73,6 +77,10 @@ org.rdk.UserSettings interface methods:
 | [getPlaybackWatershed](#method.getPlaybackWatershed) | Returns Playback Watershed |
 | [getBlockNotRatedContent](#method.getBlockNotRatedContent) | Returns BlockNotRatedContent |
 | [getPinOnPurchase](#method.getPinOnPurchase) | Returns PinOnPurchase |
+| [getHighContrast](#method.getHighContrast) | Gets the current highContrast setting |
+| [getVoiceGuidance](#method.getVoiceGuidance) | Gets the current voiceGuidance setting |
+| [getVoiceGuidanceRate](#method.getVoiceGuidanceRate) | Gets the current voiceGuidanceRate setting |
+| [getVoiceGuidanceHints](#method.getVoiceGuidanceHints) | Gets the current voiceGuidanceHints setting |
 
 
 <a name="method.setAudioDescription"></a>
@@ -444,7 +452,7 @@ Setting ViewingRestrictions.
     "id": 42,
     "method": "org.rdk.UserSettings.setViewingRestrictions",
     "params": {
-        "viewingRestrictions": "ALWAYS"
+        "viewingRestrictions": "{\"restrictions\": [{\"scheme\": \"US_TV\", \"restrict\": [\"TV-Y7/FV\"]}, {\"scheme\": \"MPAA\", \"restrict\": []}]}"
     }
 }
 ```
@@ -685,6 +693,198 @@ Setting setPinOnPurchase.
     "method": "org.rdk.UserSettings.setPinOnPurchase",
     "params": {
         "pinOnPurchase": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "null"
+}
+```
+
+<a name="method.setHighContrast"></a>
+## *setHighContrast [<sup>method</sup>](#head.Methods)*
+
+Sets highContrast. Whether the app should display with high contrast or not.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onHighContrastChanged](#event.onHighContrastChanged) | Triggers when the highContrast changes. |
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.enabled | boolean | high contrast enabled(true) or disabled(false) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | string | On success null will be returned |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.setHighContrast",
+    "params": {
+        "enabled": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "null"
+}
+```
+
+<a name="method.setVoiceGuidance"></a>
+## *setVoiceGuidance [<sup>method</sup>](#head.Methods)*
+
+Sets voiceGuidance. Whether Voice Guidance is enabled or not.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onVoiceGuidanceChanged](#event.onVoiceGuidanceChanged) | Triggers after the voice guidance enabled settings changes. |
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.enabled | boolean | voice guidance enabled(true) or disabled(false) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | string | On success null will be returned |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.setVoiceGuidance",
+    "params": {
+        "enabled": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "null"
+}
+```
+
+<a name="method.setVoiceGuidanceRate"></a>
+## *setVoiceGuidanceRate [<sup>method</sup>](#head.Methods)*
+
+Sets voiceGuidanceRate. Setting voice guidance rate value. from 0.1 to 10 inclusive.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onVoiceGuidanceRateChanged](#event.onVoiceGuidanceRateChanged) | Triggered after the voice guidance rate changed. |
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.rate | number | voice guidance rate value |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | string | On success null will be returned |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.setVoiceGuidanceRate",
+    "params": {
+        "rate": 0.1
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "null"
+}
+```
+
+<a name="method.setVoiceGuidanceHints"></a>
+## *setVoiceGuidanceHints [<sup>method</sup>](#head.Methods)*
+
+Sets voiceGuidanceHints ON/OFF. Whether Voice Guidance hints setting is switched on or not.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onVoiceGuidanceHintsChanged](#event.onVoiceGuidanceHintsChanged) | Triggered after the voice guidance hints changes. |
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.hints | boolean | voiceGuidanceHints enabled(true) or disabled(false) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | string | On success null will be returned |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.setVoiceGuidanceHints",
+    "params": {
+        "hints": true
     }
 }
 ```
@@ -1023,7 +1223,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "ALWAYS"
+    "result": "{\"restrictions\": [{\"scheme\": \"US_TV\", \"restrict\": [\"TV-Y7/FV\"]}, {\"scheme\": \"MPAA\", \"restrict\": []}]}"
 }
 ```
 
@@ -1232,6 +1432,170 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.getHighContrast"></a>
+## *getHighContrast [<sup>method</sup>](#head.Methods)*
+
+Gets the current highContrast setting.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | boolean | HighContrast Enabled: true/false |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.getHighContrast"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": true
+}
+```
+
+<a name="method.getVoiceGuidance"></a>
+## *getVoiceGuidance [<sup>method</sup>](#head.Methods)*
+
+Gets the current voiceGuidance setting.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | boolean | voiceGuidance Enabled: true/false |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.getVoiceGuidance"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": true
+}
+```
+
+<a name="method.getVoiceGuidanceRate"></a>
+## *getVoiceGuidanceRate [<sup>method</sup>](#head.Methods)*
+
+Gets the current voiceGuidanceRate setting.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | number | voice guidance rate value |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.getVoiceGuidanceRate"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": 0.1
+}
+```
+
+<a name="method.getVoiceGuidanceHints"></a>
+## *getVoiceGuidanceHints [<sup>method</sup>](#head.Methods)*
+
+Gets the current voiceGuidanceHints setting.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | boolean | voiceGuidanceHints Enabled: true/false |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.getVoiceGuidanceHints"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": true
+}
+```
+
 <a name="head.Notifications"></a>
 # Notifications
 
@@ -1256,6 +1620,10 @@ org.rdk.UserSettings interface events:
 | [onPlaybackWatershedChanged](#event.onPlaybackWatershedChanged) | Triggered after the playbackWatershed changes (see `setPlaybackWatershed`) |
 | [onBlockNotRatedContentChanged](#event.onBlockNotRatedContentChanged) | Triggered after the blockNotRatedContent changes (see `setBlockNotRatedContent`) |
 | [onPinOnPurchaseChanged](#event.onPinOnPurchaseChanged) | Triggered after the pinOnPurchase changes (see `setPinOnPurchase`) |
+| [onHighContrastChanged](#event.onHighContrastChanged) | Triggered after the high contrast settings changes(see `SetHighContrast`) |
+| [onVoiceGuidanceChanged](#event.onVoiceGuidanceChanged) | Triggered after the voice guidance enabled settings changes |
+| [onVoiceGuidanceRateChanged](#event.onVoiceGuidanceRateChanged) | Triggered after the voice guidance rate changed |
+| [onVoiceGuidanceHintsChanged](#event.onVoiceGuidanceHintsChanged) | Triggered after the voice guidance hints changes |
 
 
 <a name="event.onAudioDescriptionChanged"></a>
@@ -1445,7 +1813,7 @@ Triggered after the viewingRestrictions changes (see `setViewingRestrictions`).
     "jsonrpc": "2.0",
     "method": "client.events.onViewingRestrictionsChanged",
     "params": {
-        "viewingRestrictions": "..."
+        "viewingRestrictions": "{\"restrictions\": [{\"scheme\": \"US_TV\", \"restrict\": [\"TV-Y7/FV\"]}, {\"scheme\": \"MPAA\", \"restrict\": []}]}"
     }
 }
 ```
@@ -1566,6 +1934,102 @@ Triggered after the pinOnPurchase changes (see `setPinOnPurchase`).
     "method": "client.events.onPinOnPurchaseChanged",
     "params": {
         "pinOnPurchase": true
+    }
+}
+```
+
+<a name="event.onHighContrastChanged"></a>
+## *onHighContrastChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered after the high contrast settings changes(see `SetHighContrast`).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.enabled | boolean | Receive high contrast enabled or not |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onHighContrastChanged",
+    "params": {
+        "enabled": true
+    }
+}
+```
+
+<a name="event.onVoiceGuidanceChanged"></a>
+## *onVoiceGuidanceChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered after the voice guidance enabled settings changes.(see `SetVoiceGuidance`).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.enabled | boolean | Receive voice guidance enabled or not |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onVoiceGuidanceChanged",
+    "params": {
+        "enabled": true
+    }
+}
+```
+
+<a name="event.onVoiceGuidanceRateChanged"></a>
+## *onVoiceGuidanceRateChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered after the voice guidance rate changed.(see `SetVoiceGuidanceRate`).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.rate | number | voice guidance rate value |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onVoiceGuidanceRateChanged",
+    "params": {
+        "rate": 0.1
+    }
+}
+```
+
+<a name="event.onVoiceGuidanceHintsChanged"></a>
+## *onVoiceGuidanceHintsChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered after the voice guidance hints changes.(see `SetVoiceGuidanceHints`).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.hints | boolean | Receive voice guidance hints enabled or not |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onVoiceGuidanceHintsChanged",
+    "params": {
+        "hints": true
     }
 }
 ```
