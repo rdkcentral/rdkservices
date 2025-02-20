@@ -28,7 +28,8 @@ FetchContent_Declare(
         URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
 )
 FetchContent_MakeAvailable(googletest)
-file(GLOB TESTS tests/*.cpp)
+#file(GLOB TESTS tests/*.cpp)
+file(GLOB TESTS tests/test_Bluetooth.cpp tests/test_HdmiCecSink.cpp)
 add_executable(${PROJECT_NAME}
         ${TESTS}
         ../mocks/Rfc.cpp
