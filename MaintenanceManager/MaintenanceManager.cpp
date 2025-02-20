@@ -504,7 +504,7 @@ namespace WPEFramework
                         task_status = system(task.c_str());
                     }
                     /* Set task_status purposefully to non-zero value to verify failure logic*/
-                    // task_status = -1;
+                    task_status = -1;
                     if (task_status != 0) /* system() call fails */
                     {
                         m_task_map[tasks[i]] = false;
