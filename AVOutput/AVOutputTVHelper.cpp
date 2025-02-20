@@ -23,7 +23,6 @@
 #include "rfcapi.h"
 
 #define CAPABLITY_FILE_NAME    "pq_capabilities.ini"
-#define CAPABLITY_FILE_NAMEV2    "pq_capabilities.json"
 
 static std::map<std::string, int> supportedSourcemap;
 static std::map<std::string, int> supportedPictureModemap;
@@ -2340,74 +2339,108 @@ namespace Plugin {
         }
         return 0;
     }
-    void GetBacklightCaps(int *max_backlight, tvContextCaps_t **caps)
-    {
-        // Open the JSON file safely
-        std::ifstream file(CAPABLITY_FILE_NAMEV2);
-        if (!file.is_open())
-        {
-            std::cerr << "Error: Unable to open JSON file." << std::endl;
-            return;
-        }
+#define HAL_NOT_READY 1
+#if HAL_NOT_READY
+#define CAPABLITY_FILE_NAMEV2    "/opt/panel/pq_capabilities.json"
+// Ensure maps are defined
+typedef std::map<tvPQModeIndex_t, std::string> PqModeMap;
+typedef std::map<tvVideoFormatType_t, std::string> VideoFormatMap;
+typedef std::map<tvVideoSrcType_t, int> VideoSrcMap;
 
-        json j;
-        try
-        {
-            file >> j;
-        }
-        catch (const std::exception &e)
-        {
-            std::cerr << "Error: Invalid JSON format - " << e.what() << std::endl;
-            return;
-        }
-        file.close();
+PqModeMap pqModeMap = {
+	{PQ_MODE_STANDARD, "Standard"},
+	{PQ_MODE_VIVID, "Vivid"},
+	{PQ_MODE_ENERGY_SAVING, "EnergySaving"},
+	{PQ_MODE_CUSTOM, "Custom"},
+	{PQ_MODE_THEATER, "Theater"}
+};
 
-        // Ensure required JSON fields exist
-        if (!j.contains("backlight") || !j["backlight"].contains("context") || !j["backlight"].contains("range_to"))
-        {
-            std::cerr << "Error: Missing required JSON fields." << std::endl;
-            return;
-        }
+VideoFormatMap videoFormatMap = {
+	{VIDEO_FORMAT_NONE, "None"},
+	{VIDEO_FORMAT_HDR10, "HDR10"},
+	{VIDEO_FORMAT_HDR10PLUS, "HDR10Plus"},
+	{VIDEO_FORMAT_DV, "DolbyVision"},
+	{VIDEO_FORMAT_HLG, "HLG"}
+};
 
-        // Extract max backlight value
-        *max_backlight = j["backlight"]["range_to"].get<int>();
+VideoSrcMap videoSrcMap = {
+	{VIDEO_SOURCE_ANALOGUE, 0},
+	{VIDEO_SOURCE_HDMI1, 1},
+	{VIDEO_SOURCE_HDMI2, 2},
+	{VIDEO_SOURCE_TUNER, 3},
+	{VIDEO_SOURCE_IP, 4}
+};
 
-        // Allocate memory for caps
-        *caps = new tvContextCaps_t;
+tvError_t GetBacklightCaps(int *max_backlight, tvContextCaps_t **context_caps) {
+	if (!max_backlight || !context_caps) {
+		return tvERROR_INVALID_PARAM;
+	}
+	// Open the JSON config file
+	std::ifstream file(CAPABLITY_FILE_NAMEV2);
+	if (!file.is_open()) {
+		return tvERROR_GENERAL;  // Could not open file
+	}
+	std::string jsonStr((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	file.close();
+	// Parse JSON
+	JsonObject root;
+	if (!root.FromString(jsonStr)) {
+		return tvERROR_GENERAL;  // JSON parsing failed
+	}
+	// Validate JSON structure
+	if (!root.HasLabel("backlight")) {
+		return tvERROR_GENERAL;
+	}
+	JsonObject backlight = root["backlight"].Object();
+	if (!backlight.HasLabel("context") || !backlight.HasLabel("range_to")) {
+		return tvERROR_GENERAL;
+	}
+	// Read max backlight value
+	*max_backlight = backlight["range_to"].Number();
+	JsonObject context = backlight["context"].Object();
+	if (!context.IsSet()) {  // Fix for Size() being protected
+		return tvERROR_GENERAL;
+	}
+	// Parse context_caps
+	std::vector<tvConfigContext_t> contexts;
+	for (const auto& mode : pqModeMap) {
+		if (context.HasLabel(mode.second.c_str())) {
+			JsonObject modeVariant = context[mode.second.c_str()].Object();
+		for (const auto& format : videoFormatMap) {
+			if (modeVariant.HasLabel(format.second.c_str())) {
+				JsonArray sources = modeVariant[format.second.c_str()].Array();
+				// Iterate using WPEFramework::Core::JSON::ArrayType<T>::Iterator
+				WPEFramework::Core::JSON::ArrayType<WPEFramework::Core::JSON::Variant>::Iterator sourceIterator(sources.Elements());
+				while (sourceIterator.Next()) { // Move to the next element
+					int sourceValue = sourceIterator.Current().Number(); // Get the number value
+					// Iterate over videoSrcMap and check if it matches
+					for (const auto& src : videoSrcMap) {
+						if (sourceValue == src.second) { // Compare values correctly
+							tvConfigContext_t ctx;
+							ctx.pq_mode = mode.first;
+							ctx.videoFormatType = format.first;
+							ctx.videoSrcType = src.first;
+							contexts.push_back(ctx);
+							break; // No need to check further once a match is found
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	// Allocate and populate context_caps
+	*context_caps = new tvContextCaps_t;
+	(*context_caps)->num_contexts = contexts.size();
+	(*context_caps)->contexts = contexts.empty() ? nullptr : new tvConfigContext_t[contexts.size()];
+	if (!contexts.empty()) {
+	std::copy(contexts.begin(), contexts.end(), (*context_caps)->contexts);
+	}
+	return tvERROR_NONE;
+	}
+#endif
 
-        json context = j["backlight"]["context"];
-
-        // Iterate through modes, formats, and sources
-        for (const auto &mode : pqModeMap)
-        {
-            if (context.contains(mode.second))
-            {
-                tvPQModeIndex_t pq_mode = mode.first;
-
-                for (const auto &format : videoFormatMap)
-                {
-                    if (context[mode.second].contains(format.second))
-                    {
-                        tvVideoFormatType_t video_format = format.first;
-
-                        for (const auto &src : context[mode.second][format.second])
-                        {
-                            for (const auto &[key, value] : videoSrcMap)
-                            {
-                                if (src == value)
-                                {
-                                    (*caps)->contexts.push_back({pq_mode, video_format, key});
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        (*caps)->num_contexts = (*caps)->contexts.size();
-    }
-    int AVOutputTV::ReadCapablitiesFromConf(std::string param, capDetails_t& info)
+	int AVOutputTV::ReadCapablitiesFromConf(std::string param, capDetails_t& info)
     {
         int ret = 0;
 
