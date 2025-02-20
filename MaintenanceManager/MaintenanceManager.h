@@ -87,7 +87,7 @@ typedef enum{
 #define TASK_RETRY_COUNT                1
 #define TASK_RETRY_DELAY                5
 #ifndef TASK_TIMEOUT
-#define TASK_TIMEOUT                    3600 /* Default Task Timeout (1 Hour i.e. 3600 seconds)  */
+#define TASK_TIMEOUT                    45 /* Default Task Timeout (1 Hour i.e. 3600 seconds)  */
 #endif
 
 #define RFC_SUCCESS                     0
