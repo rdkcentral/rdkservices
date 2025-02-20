@@ -2360,7 +2360,6 @@ namespace WPEFramework
             m_statusMutex.lock();
             if (MAINTENANCE_STARTED == m_notify_status)
             {
-
                 // Set the condition flag m_abort_flag to true
                 m_abort_flag = true;
 
@@ -2380,14 +2379,12 @@ namespace WPEFramework
                 {
                     if (task_status[i])
                     {
-
                         k_ret = abortTask(task_names[i].c_str()); // default signal is SIGABRT
 
                         if (k_ret == 0)
                         {                                                         // if task(s) was(were) killed successfully ...
                             m_task_map[task_names_foreground[i].c_str()] = false; // set it to false
                         }
-                        /* No need to loop again */
                         break;
                     }
                     else
@@ -2396,36 +2393,32 @@ namespace WPEFramework
                     }
                 }
                 result = true;
+                if (task_stopTimer())
+                {
+                    LOGINFO("Stopped Timer Successfully..");
+                }
+                else
+                {
+                    LOGERR("task_stopTimer() did not stop the Timer...");
+                }
+                task_thread.notify_one();
+                if (m_thread.joinable()) 
+                {
+                    m_thread.join();
+                    LOGINFO("Thread joined successfully");
+                }
+                if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete) 
+                {
+                    g_unsolicited_complete = true;
+                }
+                LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR");
+                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
             }
             else
             {
                 LOGERR("Failed to stopMaintenance without starting maintenance");
             }
-            if (task_stopTimer())
-            {
-                LOGINFO("Stopped Timer Successfully..");
-            }
-            else
-            {
-                LOGERR("task_stopTimer() did not stop the Timer...");
-            }
-            task_thread.notify_one();
-
-            if (m_thread.joinable())
-            {
-                m_thread.join();
-                LOGINFO("Thread joined successfully");
-            }
-
-            if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete)
-            {
-                g_unsolicited_complete = true;
-            }
-
-            LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR");
-            MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
             m_statusMutex.unlock();
-
             return result;
         }
 
