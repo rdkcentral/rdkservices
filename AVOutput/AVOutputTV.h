@@ -228,6 +228,16 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(get2PointWBCaps)
 		DECLARE_JSON_RPC_METHOD(getHDRModeCaps)
 		DECLARE_JSON_RPC_METHOD(getAutoBacklightModeCaps)
+		DECLARE_JSON_RPC_METHOD(getBacklightCapsV2)
+		DECLARE_JSON_RPC_METHOD(getBrightnessCapsV2)
+		DECLARE_JSON_RPC_METHOD(getContrastCapsV2)
+		DECLARE_JSON_RPC_METHOD(getSharpnessCapsV2)
+		DECLARE_JSON_RPC_METHOD(getSaturationCapsV2)
+		DECLARE_JSON_RPC_METHOD(getHueCapsV2)
+		DECLARE_JSON_RPC_METHOD(getColorTemperatureCapsV2)
+		DECLARE_JSON_RPC_METHOD(getPrecisionDetailCapsV2)
+		DECLARE_JSON_RPC_METHOD(getSdrGammaCapsV2)
+		DECLARE_JSON_RPC_METHOD(getDVCalibrationCapsV2)
 
 		/*Set API's*/
 		DECLARE_JSON_RPC_METHOD(setBacklight)

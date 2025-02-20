@@ -358,6 +358,17 @@ namespace Plugin {
         registerMethod("resetAutoBacklightMode", &AVOutputTV::resetAutoBacklightMode, this);
         registerMethod("getAutoBacklightModeCaps", &AVOutputTV::getAutoBacklightModeCaps, this);
 
+        registerMethod("getBacklightCapsV2", &AVOutputTV::getBacklightCapsV2, this);
+        registerMethod("getBrightnessCapsV2", &AVOutputTV::getBrightnessCapsV2, this);
+        registerMethod("getContrastCapsV2", &AVOutputTV::getContrastCapsV2, this);
+        registerMethod("getSharpnessCapsV2", &AVOutputTV::getSharpnessCapsV2, this);
+        registerMethod("getSaturationCapsV2", &AVOutputTV::getSaturationCapsV2, this);
+        registerMethod("getHueCapsV2", &AVOutputTV::getHueCapsV2, this);
+        registerMethod("getColorTemperatureCapsV2", &AVOutputTV::getColorTemperatureCapsV2, this);
+        registerMethod("getPrecisionDetailCapsV2", &AVOutputTV::getPrecisionDetailCapsV2, this);
+        registerMethod("getSdrGammaCapsV2", &AVOutputTV::getSdrGammaCapsV2, this);
+        registerMethod("getDVCalibrationCapsV2", &AVOutputTV::getDVCalibrationCapsV2, this);
+
         LOGINFO("Exit\n");
     }
     
@@ -458,7 +469,37 @@ namespace Plugin {
 
        LOGINFO("Exit\n");
     }
-
+	uint32_t AVOutputTV::getBacklightCapsV2(const JsonObject& parameters,JsonObject& response)
+	{
+		int max_backlight = 0;
+		tvContextCaps_t* context_caps = nullptr;
+		// Call the HAL function to get the backlight capabilities
+		tvError_t result = GetBacklightCaps(&max_backlight, &context_caps);
+		// Handle error conditions
+		if (result == tvERROR_INVALID_PARAM) {
+			returnResponse(false);
+		} else if (result == tvERROR_INVALID_STATE) {
+			returnResponse(false);
+		} else if (result == tvERROR_OPERATION_NOT_SUPPORTED) {
+			returnResponse(false);
+		} else if (result != tvERROR_NONE) {
+			returnResponse(false);
+		}
+		// Populate the response JSON
+		response["max_backlight"] = max_backlight;
+		JsonArray contextsArray;
+		if (context_caps && context_caps->num_contexts > 0) {
+			for (size_t i = 0; i < context_caps->num_contexts; ++i) {
+				JsonObject contextObj;
+				contextObj["pq_mode"] = static_cast<int>(context_caps->contexts[i].pq_mode);
+				contextObj["video_format"] = static_cast<int>(context_caps->contexts[i].videoFormatType);
+				contextObj["video_source"] = static_cast<int>(context_caps->contexts[i].videoSrcType);
+				contextsArray.Add(contextObj);
+			}
+		}
+		response["contexts"] = contextsArray;
+		returnResponse(true);
+	}
     uint32_t AVOutputTV::getZoomModeCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
