@@ -1,3 +1,4 @@
+
 ###
 # If not stated otherwise in this file or this component's LICENSE
 # file the following copyright and licenses apply:
@@ -18,8 +19,9 @@
 ###
 
 cmake_minimum_required(VERSION 3.3)
+project (rdkservices VERSION 1.0 LANGUAGES C CXX)
 
-find_package(WPEFramework)
+find_package(WPEFramework NAMES WPEFramework Thunder)
 
 # All packages that did not deliver a CMake Find script (and some deprecated scripts that need to be removed)
 # are located in the cmake directory. Include it in the search.
@@ -36,7 +38,7 @@ endif()
 
 option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
 
-if(RDK_SERVICES_L1_TEST)
+if(RDK_SERVICES_L1_TEST OR RDK_SERVICES_COVERITY)
     include(l1tests.cmake)
 endif()
 
@@ -416,6 +418,7 @@ endif()
 if(PLUGIN_CONTENTPROTECTION)
     add_subdirectory(ContentProtection)
 endif()
+
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")
