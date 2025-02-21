@@ -48,6 +48,7 @@ protected:
 	if (p_iarmBusImplMock != nullptr) {
 	    delete p_iarmBusImplMock;
 	    p_iarmBusImplMock = nullptr;
+	    IarmBus::setImpl(nullptr);
 	}
 
 	if(mockBluetoothManagerInstance != nullptr) {
