@@ -207,7 +207,6 @@ namespace WPEFramework {
             static const string STATUS_DISCOVERY_COMPLETED;
             static const string STATUS_PAIRING_FAILED;
             static const string STATUS_CONNECTION_FAILED;
-	    static const string STATUS_UNSUPPORTED_DEVICE;
 
             static const string CMD_AUDIO_CTRL_PLAY;
             static const string CMD_AUDIO_CTRL_STOP;
