@@ -48,6 +48,7 @@ TTSConfiguration::TTSConfiguration() :
     m_primVolDuck(25),
     m_preemptiveSpeaking(true),
     m_enabled(false),
+    m_ttsRFCEnabled(false),
     m_fallbackenabled(false),
     m_validLocalEndpoint(false) { }
 
@@ -69,6 +70,7 @@ TTSConfiguration::TTSConfiguration(TTSConfiguration &config)
     m_rate = config.m_rate;
     m_primVolDuck = config.m_primVolDuck;
     m_enabled = config.m_enabled;
+    m_ttsRFCEnabled = config.m_ttsRFCEnabled;
     m_validLocalEndpoint = config.m_validLocalEndpoint;
     m_preemptiveSpeaking = config.m_preemptiveSpeaking;
     m_data.scenario = config.m_data.scenario;
@@ -92,6 +94,7 @@ TTSConfiguration& TTSConfiguration::operator = (const TTSConfiguration &config)
     m_rate = config.m_rate;
     m_primVolDuck = config.m_primVolDuck;
     m_enabled = config.m_enabled;
+    m_ttsRFCEnabled =  config.m_ttsRFCEnabled;
     m_validLocalEndpoint = config.m_validLocalEndpoint;
     m_preemptiveSpeaking = config.m_preemptiveSpeaking;
     m_data.scenario = config.m_data.scenario;
@@ -119,6 +122,22 @@ bool TTSConfiguration::setSecureEndPoint(const std::string endpoint) {
     else
         TTSLOG_VERBOSE("Invalid Secured TTSEndPoint input \"%s\"", endpoint.c_str());
     return false;
+}
+
+bool TTSConfiguration::setRFCEndPoint(const std::string endpoint) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if(!endpoint.empty() && endpoint.find_first_not_of(' ') != std::string::npos) {
+        m_ttsRFCEnabled = true;
+        UPDATE_AND_RETURN(m_ttsRFCEndpoint, endpoint);
+    } else {
+        m_ttsRFCEnabled = false;
+        TTSLOG_VERBOSE("Invalid RFC TTSEndPoint input \"%s\"", endpoint.c_str());
+    }
+    return false;
+}
+
+bool TTSConfiguration::isRFCEnabled() {
+    return m_ttsRFCEnabled;
 }
 
 bool TTSConfiguration::setLocalEndPoint(const std::string endpoint) {
