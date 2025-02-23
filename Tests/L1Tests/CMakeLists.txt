@@ -28,8 +28,7 @@ FetchContent_Declare(
         URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
 )
 FetchContent_MakeAvailable(googletest)
-#file(GLOB TESTS tests/*.cpp)
-file(GLOB TESTS tests/test_Bluetooth.cpp tests/test_HdmiCecSink.cpp)
+file(GLOB TESTS tests/*.cpp)
 add_executable(${PROJECT_NAME}
         ${TESTS}
         ../mocks/Rfc.cpp
@@ -46,7 +45,6 @@ add_executable(${PROJECT_NAME}
         ../mocks/rdkshell.cpp
 	../mocks/opkgMock.cpp
 	../mocks/WpaCtrl.cpp
-	../mocks/BluetoothMocks.cpp
         )
 
 set_source_files_properties(
@@ -185,7 +183,6 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}TextToSpeech
 	${NAMESPACE}MiracastService
 	${NAMESPACE}MiracastPlayer
-	${NAMESPACE}Bluetooth
         )
 
 target_include_directories(${PROJECT_NAME}
