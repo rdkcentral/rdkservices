@@ -2345,99 +2345,163 @@ namespace Plugin {
 // Ensure maps are defined
 typedef std::map<tvPQModeIndex_t, std::string> PqModeMap;
 typedef std::map<tvVideoFormatType_t, std::string> VideoFormatMap;
-typedef std::map<tvVideoSrcType_t, int> VideoSrcMap;
+typedef std::map<tvVideoSrcType_t, std::string> VideoSrcMap;
 
-PqModeMap pqModeMap = {
-	{PQ_MODE_STANDARD, "Standard"},
-	{PQ_MODE_VIVID, "Vivid"},
-	{PQ_MODE_ENERGY_SAVING, "EnergySaving"},
-	{PQ_MODE_CUSTOM, "Custom"},
-	{PQ_MODE_THEATER, "Theater"}
+const std::map<int, std::string> AVOutputTV::pqModeMap = {
+    {PQ_MODE_SPORTS, "Sports"},
+    {PQ_MODE_GAME, "Game"},
+    {PQ_MODE_DVIQ, "DV IQ"},
+    {PQ_MODE_DARK, "DV Dark"},
+    {PQ_MODE_AIPQ, "AI PQ"},
+    {PQ_MODE_STANDARD, "Standard"},
+    {PQ_MODE_VIVID, "Vivid"},
+    {PQ_MODE_ENERGY_SAVING, "EnergySaving"},
+    {PQ_MODE_CUSTOM, "Custom"},
+    {PQ_MODE_THEATER, "Movie"}
 };
 
-VideoFormatMap videoFormatMap = {
-	{VIDEO_FORMAT_NONE, "None"},
-	{VIDEO_FORMAT_HDR10, "HDR10"},
-	{VIDEO_FORMAT_HDR10PLUS, "HDR10Plus"},
-	{VIDEO_FORMAT_DV, "DolbyVision"},
-	{VIDEO_FORMAT_HLG, "HLG"}
+const std::map<int, std::string> AVOutputTV::videoFormatMap = {
+    {VIDEO_FORMAT_NONE, "None"},
+    {VIDEO_FORMAT_SDR, "SDR"},
+    {VIDEO_FORMAT_HDR10, "HDR10"},
+    {VIDEO_FORMAT_HDR10PLUS, "HDR10Plus"},
+    {VIDEO_FORMAT_DV, "DV"},
+    {VIDEO_FORMAT_HLG, "HLG"}
 };
 
-VideoSrcMap videoSrcMap = {
-	{VIDEO_SOURCE_ANALOGUE, 0},
-	{VIDEO_SOURCE_HDMI1, 1},
-	{VIDEO_SOURCE_HDMI2, 2},
-	{VIDEO_SOURCE_TUNER, 3},
-	{VIDEO_SOURCE_IP, 4}
+const std::map<int, std::string> AVOutputTV::videoSrcMap = {
+    {VIDEO_SOURCE_COMPOSITE1, "Composite"},
+    {VIDEO_SOURCE_HDMI1, "HDMI1"},
+    {VIDEO_SOURCE_HDMI2, "HDMI2"},
+    {VIDEO_SOURCE_HDMI3, "HDMI3"},
+    {VIDEO_SOURCE_IP, "IP"},
+    {VIDEO_SOURCE_TUNER, "Tuner"}
 };
 
-tvError_t GetBacklightCaps(int *max_backlight, tvContextCaps_t **context_caps) {
-	if (!max_backlight || !context_caps) {
-		return tvERROR_INVALID_PARAM;
-	}
-	// Open the JSON config file
-	std::ifstream file(CAPABLITY_FILE_NAMEV2);
-	if (!file.is_open()) {
-		return tvERROR_GENERAL;  // Could not open file
-	}
-	std::string jsonStr((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-	file.close();
-	// Parse JSON
-	JsonObject root;
-	if (!root.FromString(jsonStr)) {
-		return tvERROR_GENERAL;  // JSON parsing failed
-	}
-	// Validate JSON structure
-	if (!root.HasLabel("backlight")) {
-		return tvERROR_GENERAL;
-	}
-	JsonObject backlight = root["backlight"].Object();
-	if (!backlight.HasLabel("context") || !backlight.HasLabel("range_to")) {
-		return tvERROR_GENERAL;
-	}
-	// Read max backlight value
-	*max_backlight = backlight["range_to"].Number();
-	JsonObject context = backlight["context"].Object();
-	if (!context.IsSet()) {  // Fix for Size() being protected
-		return tvERROR_GENERAL;
-	}
-	// Parse context_caps
-	std::vector<tvConfigContext_t> contexts;
-	for (const auto& mode : pqModeMap) {
-		if (context.HasLabel(mode.second.c_str())) {
-			JsonObject modeVariant = context[mode.second.c_str()].Object();
-		for (const auto& format : videoFormatMap) {
-			if (modeVariant.HasLabel(format.second.c_str())) {
-				JsonArray sources = modeVariant[format.second.c_str()].Array();
-				// Iterate using WPEFramework::Core::JSON::ArrayType<T>::Iterator
-				WPEFramework::Core::JSON::ArrayType<WPEFramework::Core::JSON::Variant>::Iterator sourceIterator(sources.Elements());
-				while (sourceIterator.Next()) { // Move to the next element
-					int sourceValue = sourceIterator.Current().Number(); // Get the number value
-					// Iterate over videoSrcMap and check if it matches
-					for (const auto& src : videoSrcMap) {
-						if (sourceValue == src.second) { // Compare values correctly
-							tvConfigContext_t ctx;
-							ctx.pq_mode = mode.first;
-							ctx.videoFormatType = format.first;
-							ctx.videoSrcType = src.first;
-							contexts.push_back(ctx);
-							break; // No need to check further once a match is found
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	// Allocate and populate context_caps
-	*context_caps = new tvContextCaps_t;
-	(*context_caps)->num_contexts = contexts.size();
-	(*context_caps)->contexts = contexts.empty() ? nullptr : new tvConfigContext_t[contexts.size()];
-	if (!contexts.empty()) {
-	std::copy(contexts.begin(), contexts.end(), (*context_caps)->contexts);
-	}
-	return tvERROR_NONE;
-	}
+
+tvError_t AVOutputTV::GetBacklightCaps(int *max_backlight, tvContextCaps_t **context_caps) {
+    LOGINFO("Entry\n");
+    LOGINFO("AVOutputPlugins: %s: %d", __FUNCTION__, __LINE__);
+
+    // Open the JSON config file
+    std::ifstream file(CAPABLITY_FILE_NAMEV2);
+    if (!file.is_open()) {
+        LOGWARN("AVOutputPlugins: %s: %d - Unable to open file", __FUNCTION__, __LINE__);
+        return tvERROR_GENERAL;
+    }
+
+    std::string jsonStr((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    file.close();
+
+    if (!max_backlight || !context_caps) {
+        LOGWARN("AVOutputPlugins: %s: %d - NULL input param", __FUNCTION__, __LINE__);
+        return tvERROR_INVALID_PARAM;
+    }
+
+    // Parse JSON
+    JsonObject root;
+    if (!root.FromString(jsonStr)) {
+        LOGWARN("AVOutputPlugins: %s: %d - JSON parsing failed", __FUNCTION__, __LINE__);
+        return tvERROR_GENERAL;
+    }
+
+    if (!root.HasLabel("backlight")) {
+        LOGWARN("AVOutputPlugins: %s: %d - Missing 'backlight' label", __FUNCTION__, __LINE__);
+        return tvERROR_GENERAL;
+    }
+
+    JsonObject backlight = root["backlight"].Object();
+    if (!backlight.HasLabel("context") || !backlight.HasLabel("rangeInfo")) {
+        LOGWARN("AVOutputPlugins: %s: %d - Missing required labels", __FUNCTION__, __LINE__);
+        return tvERROR_GENERAL;
+    }
+
+    // Read max backlight value safely
+    JsonObject rangeInfo = backlight["rangeInfo"].Object();
+    if (rangeInfo.HasLabel("to")) {
+        *max_backlight = rangeInfo["to"].Number();
+    } else {
+        LOGWARN("AVOutputPlugins: %s: %d - 'to' field missing in rangeInfo", __FUNCTION__, __LINE__);
+        return tvERROR_GENERAL;
+    }
+
+    JsonObject context = backlight["context"].Object();
+    if (!context.IsSet()) {
+        LOGWARN("AVOutputPlugins: %s: %d - Context is not set", __FUNCTION__, __LINE__);
+        return tvERROR_GENERAL;
+    }
+
+    // Debugging log
+    std::string contextStr;
+    context.ToString(contextStr);
+    LOGINFO("Context JSON: %s", contextStr.c_str());
+
+    // Parse context_caps
+    std::vector<tvConfigContext_t> contexts;
+
+    for (const auto& mode : AVOutputTV::pqModeMap) {
+        if (context.HasLabel(mode.second.c_str())) {
+            JsonObject modeVariant = context[mode.second.c_str()].Object();
+            for (const auto& format : AVOutputTV::videoFormatMap) {
+                if (modeVariant.HasLabel(format.second.c_str())) {
+                    JsonArray sources = modeVariant[format.second.c_str()].Array();
+                    // Iterate over JSON array elements
+                    WPEFramework::Core::JSON::ArrayType<WPEFramework::Core::JSON::Variant>::Iterator sourceIterator(sources.Elements());
+                    while (sourceIterator.Next()) {
+                        std::string sourceStr = sourceIterator.Current().String();
+                        // Check for matching source type
+                        auto srcIt = std::find_if(
+                            AVOutputTV::videoSrcMap.begin(), AVOutputTV::videoSrcMap.end(),
+                            [&sourceStr](const std::pair<const int, std::string>& src) { return sourceStr == src.second; });
+                        if (srcIt != AVOutputTV::videoSrcMap.end()) {
+                            tvConfigContext_t ctx;
+                            ctx.pq_mode = static_cast<tvPQModeIndex_t>(mode.first);
+                            ctx.videoFormatType = static_cast<tvVideoFormatType_t>(format.first);
+                            ctx.videoSrcType = static_cast<tvVideoSrcType_t>(srcIt->first);
+
+                            contexts.push_back(ctx);
+                            LOGINFO("Added context: pq_mode=%d, videoFormatType=%d, videoSrcType=%d",
+                                    ctx.pq_mode, ctx.videoFormatType, ctx.videoSrcType);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    LOGINFO("Total contexts found: %zu", contexts.size());
+
+    // Allocate and populate context_caps
+    *context_caps = new (std::nothrow) tvContextCaps_t;
+    if (!*context_caps) {
+        LOGWARN("AVOutputPlugins: %s: %d - Memory allocation failed", __FUNCTION__, __LINE__);
+        return tvERROR_GENERAL;
+    }
+
+    (*context_caps)->num_contexts = contexts.size();
+    (*context_caps)->contexts = contexts.empty() ? nullptr : new (std::nothrow) tvConfigContext_t[contexts.size()];
+
+    if (!contexts.empty() && !(*context_caps)->contexts) {
+        delete *context_caps;
+        *context_caps = nullptr;
+        LOGWARN("AVOutputPlugins: %s: %d - Contexts memory allocation failed", __FUNCTION__, __LINE__);
+        return tvERROR_GENERAL;
+    }
+
+    if (!contexts.empty()) {
+        std::copy(contexts.begin(), contexts.end(), (*context_caps)->contexts);
+    }
+
+    // Debugging - Print final allocated contexts
+    for (size_t i = 0; i < (*context_caps)->num_contexts; i++) {
+        LOGINFO("Final context[%zu]: pq_mode=%d, videoFormatType=%d, videoSrcType=%d",
+                i, (*context_caps)->contexts[i].pq_mode,
+                (*context_caps)->contexts[i].videoFormatType,
+                (*context_caps)->contexts[i].videoSrcType);
+    }
+
+    return tvERROR_NONE;
+}
 #endif
 
 	int AVOutputTV::ReadCapablitiesFromConf(std::string param, capDetails_t& info)

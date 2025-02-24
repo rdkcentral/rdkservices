@@ -229,7 +229,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getHDRModeCaps)
 		DECLARE_JSON_RPC_METHOD(getAutoBacklightModeCaps)
 		DECLARE_JSON_RPC_METHOD(getBacklightCapsV2)
-		DECLARE_JSON_RPC_METHOD(getBrightnessCapsV2)
+		/* DECLARE_JSON_RPC_METHOD(getBrightnessCapsV2)
 		DECLARE_JSON_RPC_METHOD(getContrastCapsV2)
 		DECLARE_JSON_RPC_METHOD(getSharpnessCapsV2)
 		DECLARE_JSON_RPC_METHOD(getSaturationCapsV2)
@@ -237,7 +237,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getColorTemperatureCapsV2)
 		DECLARE_JSON_RPC_METHOD(getPrecisionDetailCapsV2)
 		DECLARE_JSON_RPC_METHOD(getSdrGammaCapsV2)
-		DECLARE_JSON_RPC_METHOD(getDVCalibrationCapsV2)
+		DECLARE_JSON_RPC_METHOD(getDVCalibrationCapsV2)*/
 
 		/*Set API's*/
 		DECLARE_JSON_RPC_METHOD(setBacklight)
@@ -355,6 +355,7 @@ class AVOutputTV : public AVOutputBase {
 		int GetPanelID(char *panelid);
 		int ConvertHDRFormatToContentFormat(tvhdr_type_t hdrFormat);
 		int ReadCapablitiesFromConf(std::string param, capDetails_t& info);
+
 		void getDimmingModeStringFromEnum(int value, std::string &toStore);
 		void getColorTempStringFromEnum(int value, std::string &toStore);
 		int getCurrentPictureMode(char *picMode);
@@ -395,6 +396,10 @@ class AVOutputTV : public AVOutputBase {
 		char rfc_caller_id[RFC_BUFF_MAX];
 		bool appUsesGlobalBackLightFactor;
 		int pic_mode_index[PIC_MODES_SUPPORTED_MAX];
+
+		static const std::map<int, std::string> pqModeMap;
+		static const std::map<int, std::string> videoFormatMap;
+		static const std::map<int, std::string> videoSrcMap;
 		
 		AVOutputTV();
 		~AVOutputTV();
@@ -406,6 +411,8 @@ class AVOutputTV : public AVOutputBase {
 		void NotifyFilmMakerModeChange(tvContentType_t mode);
 		void NotifyVideoResolutionChange(tvResolutionParam_t resolution);
 		void NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate);
+		tvError_t GetBacklightCaps(int *max_backlight, tvContextCaps_t **context_caps);
+
 		
 		//override API
 		static void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);

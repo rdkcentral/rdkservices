@@ -359,7 +359,7 @@ namespace Plugin {
         registerMethod("getAutoBacklightModeCaps", &AVOutputTV::getAutoBacklightModeCaps, this);
 
         registerMethod("getBacklightCapsV2", &AVOutputTV::getBacklightCapsV2, this);
-        registerMethod("getBrightnessCapsV2", &AVOutputTV::getBrightnessCapsV2, this);
+       /* registerMethod("getBrightnessCapsV2", &AVOutputTV::getBrightnessCapsV2, this);
         registerMethod("getContrastCapsV2", &AVOutputTV::getContrastCapsV2, this);
         registerMethod("getSharpnessCapsV2", &AVOutputTV::getSharpnessCapsV2, this);
         registerMethod("getSaturationCapsV2", &AVOutputTV::getSaturationCapsV2, this);
@@ -367,7 +367,7 @@ namespace Plugin {
         registerMethod("getColorTemperatureCapsV2", &AVOutputTV::getColorTemperatureCapsV2, this);
         registerMethod("getPrecisionDetailCapsV2", &AVOutputTV::getPrecisionDetailCapsV2, this);
         registerMethod("getSdrGammaCapsV2", &AVOutputTV::getSdrGammaCapsV2, this);
-        registerMethod("getDVCalibrationCapsV2", &AVOutputTV::getDVCalibrationCapsV2, this);
+        registerMethod("getDVCalibrationCapsV2", &AVOutputTV::getDVCalibrationCapsV2, this); */
 
         LOGINFO("Exit\n");
     }
@@ -469,37 +469,74 @@ namespace Plugin {
 
        LOGINFO("Exit\n");
     }
-	uint32_t AVOutputTV::getBacklightCapsV2(const JsonObject& parameters,JsonObject& response)
-	{
-		int max_backlight = 0;
-		tvContextCaps_t* context_caps = nullptr;
-		// Call the HAL function to get the backlight capabilities
-		tvError_t result = GetBacklightCaps(&max_backlight, &context_caps);
-		// Handle error conditions
-		if (result == tvERROR_INVALID_PARAM) {
-			returnResponse(false);
-		} else if (result == tvERROR_INVALID_STATE) {
-			returnResponse(false);
-		} else if (result == tvERROR_OPERATION_NOT_SUPPORTED) {
-			returnResponse(false);
-		} else if (result != tvERROR_NONE) {
-			returnResponse(false);
-		}
-		// Populate the response JSON
-		response["max_backlight"] = max_backlight;
-		JsonArray contextsArray;
-		if (context_caps && context_caps->num_contexts > 0) {
-			for (size_t i = 0; i < context_caps->num_contexts; ++i) {
-				JsonObject contextObj;
-				contextObj["pq_mode"] = static_cast<int>(context_caps->contexts[i].pq_mode);
-				contextObj["video_format"] = static_cast<int>(context_caps->contexts[i].videoFormatType);
-				contextObj["video_source"] = static_cast<int>(context_caps->contexts[i].videoSrcType);
-				contextsArray.Add(contextObj);
-			}
-		}
-		response["contexts"] = contextsArray;
-		returnResponse(true);
-	}
+
+    uint32_t AVOutputTV::getBacklightCapsV2(const JsonObject& parameters, JsonObject& response)
+    {
+        int max_backlight = 0;
+        tvContextCaps_t* context_caps = nullptr;
+        // Call the HAL function to get the backlight capabilities
+        tvError_t result = GetBacklightCaps(&max_backlight, &context_caps);
+        LOGWARN("AVOutputPlugins: %s: result: %d", __FUNCTION__, result);
+        // Handle error conditions
+        if (result != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        // Initialize response structure properly
+        JsonObject backlightInfo;
+        JsonObject rangeInfo;
+        rangeInfo["from"] = 0;
+        rangeInfo["to"] = max_backlight;
+        backlightInfo["rangeInfo"] = rangeInfo;
+        backlightInfo["platformsupport"] = true;
+        JsonObject contextObj;
+        if (context_caps && context_caps->num_contexts > 0) {
+            for (size_t i = 0; i < context_caps->num_contexts; ++i) {
+                int pqMode = context_caps->contexts[i].pq_mode;
+                int videoFormat = context_caps->contexts[i].videoFormatType;
+                int videoSource = context_caps->contexts[i].videoSrcType;
+                // Lookup mappings
+                auto pqModeIt = AVOutputTV::pqModeMap.find(pqMode);
+                auto videoFormatIt = AVOutputTV::videoFormatMap.find(videoFormat);
+                auto videoSrcIt = AVOutputTV::videoSrcMap.find(videoSource);
+                if (pqModeIt != AVOutputTV::pqModeMap.end() &&
+                    videoFormatIt != AVOutputTV::videoFormatMap.end() &&
+                    videoSrcIt != AVOutputTV::videoSrcMap.end()) {
+                    const char* pqModeStr = pqModeIt->second.c_str();
+                    const char* videoFormatStr = videoFormatIt->second.c_str();
+                    const char* videoSrcStr = videoSrcIt->second.c_str();
+                    // Ensure pqModeStr key exists in contextObj
+                    if (!contextObj.HasLabel(pqModeStr)) {
+                        contextObj[pqModeStr] = JsonObject();
+                    }
+                    JsonObject pqModeObj = contextObj[pqModeStr].Object();
+                    // Ensure videoFormatStr key exists in pqModeObj
+                    if (!pqModeObj.HasLabel(videoFormatStr)) {
+                        pqModeObj[videoFormatStr] = JsonArray();
+                    }
+                    // Get or create the array
+                    JsonArray formatArray = pqModeObj[videoFormatStr].Array();
+                    // Avoid duplicates before adding
+                    bool found = false;
+                    for (size_t j = 0; j < formatArray.Length(); ++j) {
+                        if (strcmp(formatArray[j].String().c_str(), videoSrcStr) == 0) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        formatArray.Add(videoSrcStr);
+                    }
+                    // Update the pqModeObj and contextObj
+                    pqModeObj[videoFormatStr] = formatArray;
+                    contextObj[pqModeStr] = pqModeObj;
+                }
+            }
+        }
+        backlightInfo["context"] = contextObj;
+        response["backlight"] = backlightInfo;
+        returnResponse(true);
+    }
+
     uint32_t AVOutputTV::getZoomModeCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
