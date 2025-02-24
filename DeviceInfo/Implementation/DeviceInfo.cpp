@@ -75,6 +75,15 @@ namespace Plugin {
         Utils::IARM::init();
     }
 
+    uint32_t DeviceInfoImplementation::Configure(PluginHost::IShell* shell)
+    {
+        LOGINFO("Configuring DeviceInfoImplementation");
+        uint32_t result = Core::ERROR_NONE;
+        ASSERT(shell != nullptr);
+        mShell = shell;
+        return result;
+    }
+
     uint32_t DeviceInfoImplementation::SerialNumber(string& serialNumber) const
     {
         return (GetMFRData(mfrSERIALIZED_TYPE_SERIALNUMBER, serialNumber)
@@ -155,5 +164,21 @@ namespace Plugin {
             ? Core::ERROR_NONE
             : GetRFCData(_T("Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId"), distributorId);
     }
+
+    uint32_t DeviceInfoImplementation::Chipset(string& chipset) const
+    {
+        chipset = "";
+        if (mShell->SubSystems()->IsActive(PluginHost::ISubSystem::IDENTIFIER) == true) {
+
+            const PluginHost::ISubSystem::IIdentifier* identifier(mShell->SubSystems()->Get<PluginHost::ISubSystem::IIdentifier>());
+
+            if (identifier != nullptr) {
+                chipset =  identifier->Chipset();
+                identifier->Release();
+            }
+        }
+        return Core::ERROR_NONE ;
+    }
+
 }
 }
