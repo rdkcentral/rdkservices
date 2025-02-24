@@ -358,6 +358,15 @@ namespace Plugin {
         registerMethod("resetAutoBacklightMode", &AVOutputTV::resetAutoBacklightMode, this);
         registerMethod("getAutoBacklightModeCaps", &AVOutputTV::getAutoBacklightModeCaps, this);
 
+	registerMethod("getSDRGamma", &AVOutputTV::getSDRGamma, this);
+	registerMethod("setSDRGamma", &AVOutputTV::setSDRGamma, this);
+	registerMethod("resetSDRGamma", &AVOutputTV::resetSDRGamma, this);
+	registerMethod("getSDRGammaCaps", &AVOutputTV::getSDRGammaCaps, this);
+
+	registerMethod("getMEMC", &AVOutputTV::getMEMC, this);
+	registerMethod("setMEMC", &AVOutputTV::setMEMC, this);
+	registerMethod("resetMEMC", &AVOutputTV::resetMEMC, this);
+	registerMethod("getMEMCCaps", &AVOutputTV::getMEMCCaps, this);
         LOGINFO("Exit\n");
     }
     
@@ -2602,6 +2611,7 @@ namespace Plugin {
         char prevmode[PIC_MODE_NAME_MAX]={0};
         std::string value;
         GetTVPictureMode(prevmode);
+	bool isDolbyPQmode = false;
 
         tvError_t ret = tvERROR_NONE;
         value = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -2622,9 +2632,23 @@ namespace Plugin {
             returnResponse(false);
         }
 
+        // DV modes
+        std::vector<std::string> extraModes = {"DVIQ", "Dark", "AIPQ", "Bright"};
+        // Check if value is in the list of four
+        auto iter = std::find(extraModes.begin(), extraModes.end(), value);
+        if (iter != extraModes.end()) {
+            // If present, set isDolbyPQmode flag
+            isDolbyPQmode = true;
+        }
+
         if( isSetRequired("Current",inputInfo.source,inputInfo.format) ) {
             LOGINFO("Proceed with SetTVPictureMode\n");
-            ret = SetTVPictureMode(value.c_str());
+            if (isDolbyPQmode) {
+                ret = SetTVPictureMode("EnergySaving");
+            }
+            else {
+                ret = SetTVPictureMode(value.c_str());
+            }
          }
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -2651,8 +2675,13 @@ namespace Plugin {
                     }
                     else {
                         LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM, value.c_str());
-                        int pqmodeindex = (int)getPictureModeIndex(value);
-                        SaveSourcePictureMode(source, format, pqmodeindex);
+
+                        if (!isDolbyPQmode) {
+				int pqmodeindex = (int)getPictureModeIndex(value);
+				std::cout << "DEBUG_LOG: Retrieved pqmodeindex: " << pqmodeindex << std::endl;
+				SaveSourcePictureMode(source, format, pqmodeindex);
+                        }
+
                     }
                 }
             }
@@ -3925,6 +3954,299 @@ namespace Plugin {
             returnResponse(true);
         }
     }    
+
+    uint32_t AVOutputTV::getSDRGamma(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int sdrGamma = 0;
+
+        if (parsingGetInputArgumentAdvanced(parameters, "SDRGamma",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if (getParamIndex("SDRGamma", inputInfo,indexInfo) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int err = getLocalparam("SDRGamma",indexInfo,sdrGamma, PQ_PARAM_LDIM);
+        if( err == 0 ) {
+            response["sdrGamma"] = getSDRGammaStringFromEnum((SDRGammaType)sdrGamma);
+            LOGINFO("Exit : %s successful, Value: %s ",__FUNCTION__,getSDRGammaStringFromEnum((SDRGammaType)sdrGamma));
+            returnResponse(true);
+        }
+        else {
+            returnResponse(false);
+        }
+    }
+
+    uint32_t AVOutputTV::setSDRGamma(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        std::string value;
+        capDetails_t inputInfo;
+        int sdrGamma = 0;
+
+        value = parameters.HasLabel("setSDRGamma") ? parameters["setSDRGamma"].String() : "";
+        returnIfParamNotFound(parameters,"setSDRGamma");
+        sdrGamma=getSDRGammaEnumFromString(value.c_str());
+
+
+        if (!validateInputSDRGammaParameter(value)) {
+            LOGERR("Failed in setSDRGamma range validation:%s", __FUNCTION__);
+            returnResponse(false);
+        }
+        LOGINFO("%s value %d is in range", __FUNCTION__, sdrGamma);
+
+        if (parsingSetInputArgumentAdvanced(parameters, "SDRGamma",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+             LOGINFO("Proceed with %s \n",__FUNCTION__);
+        }
+
+        int retval= updateAVoutputTVParam("set","SDRGamma",inputInfo,PQ_PARAM_LDIM,sdrGamma);
+            if(retval != 0 ) {
+                LOGERR("Failed to Save setSDRGamma to ssm_data\n");
+                returnResponse(false);
+            }
+        //response["success"] = true;
+        LOGINFO("Exit : %s successful, Value: %s ",__FUNCTION__,getSDRGammaStringFromEnum((SDRGammaType)sdrGamma));
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::resetSDRGamma(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        std::string value;
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int sdrGamma=0;
+        tvError_t ret = tvERROR_NONE;
+
+        if (parsingSetInputArgumentAdvanced(parameters, "SDRGamma",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int retval= updateAVoutputTVParam("reset","SDRGamma",inputInfo,PQ_PARAM_LDIM,sdrGamma);
+        if(retval != 0 ) {
+            LOGWARN("Failed to reset SDRGamma\n");
+            returnResponse(false);
+        }
+        else {
+            if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
+                inputInfo.pqmode = "Current";
+                inputInfo.source = "Current";
+                inputInfo.format = "Current";
+                getParamIndex("SDRGamma", inputInfo,indexInfo);
+                int err = getLocalparam("SDRGamma",indexInfo,sdrGamma, PQ_PARAM_LDIM);
+                if( err == 0 ) {
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %s\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,getSDRGammaStringFromEnum((SDRGammaType)sdrGamma));
+                }
+                else {
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    ret = tvERROR_GENERAL;
+                }
+            }
+        }
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else {
+            LOGINFO("Exit : %s successful, Value: %s ",__FUNCTION__,getSDRGammaStringFromEnum((SDRGammaType)sdrGamma));
+            returnResponse(true);
+        }
+    }
+
+    uint32_t AVOutputTV::getSDRGammaCaps(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        response["jsonrpc"] = "2.0";
+        response["id"] = 3;
+
+        JsonObject result = JsonObject();
+        result["platformSupport"] = true;
+        JsonArray options;
+        options.Add("2.0");
+        options.Add("2.2");
+        options.Add("2.4");
+        options.Add("BT.1886");
+        result["options"] = options;
+        // Creating context object
+        JsonObject context;
+        JsonArray values;
+        values.Add("IP");
+        values.Add("Tuner");
+        values.Add("HDMI1");
+        values.Add("HDMI2");
+        values.Add("HDMI3");
+
+        context["Bright"] = values;
+        context["Dark"] = values;
+        context["Game"] = values;
+        context["Dolby Vision IQ"] = values;
+
+        result["context"] = context;
+
+        response["result"] = result;
+
+        LOGINFO("Exit : getSDRGammaCaps successful");
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getMEMC(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int memc = 0;
+
+        if (parsingGetInputArgumentAdvanced(parameters, "MEMC",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if (getParamIndex("MEMC", inputInfo,indexInfo) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int err = getLocalparam("MEMC",indexInfo,memc, PQ_PARAM_LDIM);
+        if( err == 0 ) {
+            response["memc"] = memc;
+            LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,memc);
+            returnResponse(true);
+        }
+        else {
+            returnResponse(false);
+        }
+    }
+
+    uint32_t AVOutputTV::setMEMC(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        std::string value;
+        capDetails_t inputInfo;
+        int memc = 0;
+
+        //Hardcoded value ranges
+        int from = 0, to = 3;
+
+        value = parameters.HasLabel("memc") ? parameters["memc"].String() : "";
+        returnIfParamNotFound(parameters,"memc");
+        memc = stoi(value);
+
+        if (!validateIntegerInputParameterAdvanced(memc, from, to)) {
+            LOGERR("Failed in MEMC range validation:%s", __FUNCTION__);
+            returnResponse(false);
+        }
+        LOGINFO("%s value %d is in range", __FUNCTION__,  memc);
+
+        if (parsingSetInputArgumentAdvanced(parameters, "MEMC",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+             LOGINFO("Proceed with %s \n",__FUNCTION__);
+        }
+
+        int retval= updateAVoutputTVParam("set","MEMC",inputInfo,PQ_PARAM_LDIM,memc);
+            if(retval != 0 ) {
+                LOGERR("Failed to Save MEMC to ssm_data\n");
+                returnResponse(false);
+            }
+        //response["success"] = true;
+        LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,memc);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::resetMEMC(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        std::string value;
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int memc=0;
+        tvError_t ret = tvERROR_NONE;
+
+        if (parsingSetInputArgumentAdvanced(parameters, "MEMC",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int retval= updateAVoutputTVParam("reset","MEMC",inputInfo,PQ_PARAM_LDIM,memc);
+        if(retval != 0 ) {
+            LOGWARN("Failed to reset MEMC\n");
+            returnResponse(false);
+        }
+        else {
+            if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
+                inputInfo.pqmode = "Current";
+                inputInfo.source = "Current";
+                inputInfo.format = "Current";
+                getParamIndex("MEMC", inputInfo,indexInfo);
+                int err = getLocalparam("MEMC",indexInfo,memc, PQ_PARAM_LDIM);
+                if( err == 0 ) {
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,memc);
+                }
+                else {
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    ret = tvERROR_GENERAL;
+                }
+            }
+        }
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else {
+            LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,memc);
+            returnResponse(true);
+        }
+
+    }
+
+    uint32_t AVOutputTV::getMEMCCaps(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        response["jsonrpc"] = "2.0";
+        response["id"] = 3;
+
+        JsonObject result = JsonObject();
+        result["platformSupport"] = true;
+        JsonObject rangeInfo;
+	    rangeInfo["from"] = 0;
+	    rangeInfo["to"] = 3;
+        result["rangeInfo"] = rangeInfo;
+        // Creating context object
+        JsonObject context;
+        JsonArray values;
+        values.Add("IP");
+        values.Add("Tuner");
+        values.Add("HDMI1");
+        values.Add("HDMI2");
+        values.Add("HDMI3");
+
+        context["Bright"] = values;
+        context["Dark"] = values;
+        context["Game"] = values;
+        context["Dolby Vision IQ"] = values;
+
+        result["context"] = context;
+
+        response["result"] = result;
+
+        LOGINFO("Exit : getMEMCCaps successful");
+        returnResponse(true);
+    }
 
     uint32_t AVOutputTV::getVideoSource(const JsonObject& parameters,JsonObject& response)
     {
