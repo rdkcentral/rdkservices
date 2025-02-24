@@ -218,8 +218,8 @@ std::condition_variable gHibernateBlockedCondVariable;
 #ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
 std::set<std::string> gLaunchedToSuspended;
 std::mutex gLaunchedToSuspendedMutex;
-#define HIBERNATION_DELAY_FOR_LAUNCHED_TO_SUSPENDED_MS  15000
-#define HIBERNATION_DELAY_FOR_RESUMED_TO_SUSPENDED_MS   5000
+#define HIBERNATION_DELAY_FOR_LAUNCHED_TO_SUSPENDED_MS  30000
+#define HIBERNATION_DELAY_FOR_RESUMED_TO_SUSPENDED_MS   30000
 #endif
 
 #define ANY_KEY 65536
