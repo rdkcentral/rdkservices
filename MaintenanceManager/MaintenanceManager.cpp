@@ -2355,11 +2355,11 @@ namespace WPEFramework
             bool task_status[3] = {false};
             bool result = false;
 
-            LOGINFO("Stopping maintenance activities");
             /* run only when the maintenance status is MAINTENANCE_STARTED */
             m_statusMutex.lock();
             if (MAINTENANCE_STARTED == m_notify_status)
             {
+                LOGINFO("Stopping maintenance activities");
                 // Set the condition flag m_abort_flag to true
                 m_abort_flag = true;
 
