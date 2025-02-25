@@ -71,7 +71,7 @@ jobs:
         run: >
           sudo apt update
           &&
-          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang libsystemd-dev libboost-all-dev libwebsocketpp-dev meson libcunit1 libcunit1-dev
+          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang libsystemd-dev libboost-all-dev libwebsocketpp-dev meson libcunit1 libcunit1-dev gdb
 
       - name: Install GStreamer
         run: |
@@ -296,7 +296,6 @@ jobs:
           -DDS_FOUND=ON
           -DPLUGIN_TEXTTOSPEECH=ON
           -DPLUGIN_MIRACAST=ON
-          -DPLUGIN_BLUETOOTH=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
