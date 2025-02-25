@@ -205,7 +205,7 @@ namespace WPEFramework {
                 static int runScript(const std::string& script, const std::string& args, string *output = NULL, string *error = NULL, int timeout = 30000);
 
                 /* Timer Implementation */
-                static void timer_handler(int signo);
+                // static void timer_handler(int signo);
                 static timer_t timerid;
                 static string currentTask;
                 static bool taskCompleted;
