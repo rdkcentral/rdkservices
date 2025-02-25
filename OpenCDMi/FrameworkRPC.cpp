@@ -769,7 +769,7 @@ namespace Plugin {
                         if (systemExt)
                         {
                             std::vector<uint8_t> drmStoreHash(32);
-                            Exchange::OCDM_RESULT hashResult = (Exchange::OCDM_RESULT) systemExt->GetSecureStoreHash(&drmStoreHash[0], drmStoreHash.size());
+                            Exchange::OCDM_RESULT hashResult = (Exchange::OCDM_RESULT) systemExt->GetSecureStoreHash(_keySystem, &drmStoreHash[0], drmStoreHash.size());
                             if (hashResult == Exchange::OCDM_SUCCESS)
                             {
                                 ReportSecureStoreHash("StoreLicenseData", _keySystem, &drmStoreHash[0], drmStoreHash.size());
@@ -1110,7 +1110,7 @@ namespace Plugin {
                 CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
                 if (systemExt) {
                     ODH_ERROR_REPORT_CTX_ERROR(0, "DeleteSecureStore", keySystem);
-                    return (Exchange::OCDM_RESULT)systemExt->DeleteSecureStore();
+                    return (Exchange::OCDM_RESULT)systemExt->DeleteSecureStore(keySystem);
                 }
                 return Exchange::OCDM_RESULT::OCDM_S_FALSE;
             }
@@ -1122,7 +1122,7 @@ namespace Plugin {
             {
                 CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
                 if (systemExt) {
-                    return (Exchange::OCDM_RESULT)systemExt->GetSecureStoreHash(keyStoreHash, keyStoreHashLength);
+                    return (Exchange::OCDM_RESULT)systemExt->GetSecureStoreHash(keySystem, keyStoreHash, keyStoreHashLength);
                 }
                 return Exchange::OCDM_RESULT::OCDM_S_FALSE;
             }
@@ -1134,7 +1134,7 @@ namespace Plugin {
             {
                 CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
                 if (systemExt) {
-                    Exchange::OCDM_RESULT result = (Exchange::OCDM_RESULT)systemExt->GetSecureStoreHash(secureStoreHash, secureStoreHashLength);
+                    Exchange::OCDM_RESULT result = (Exchange::OCDM_RESULT)systemExt->GetSecureStoreHash(keySystem, secureStoreHash, secureStoreHashLength);
                     if (result == Exchange::OCDM_SUCCESS)
                     {
                         ReportSecureStoreHash("GetSecureStoreHash", keySystem, secureStoreHash, secureStoreHashLength);
