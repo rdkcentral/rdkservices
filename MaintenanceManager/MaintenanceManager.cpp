@@ -700,6 +700,7 @@ namespace WPEFramework
         {
             bool status = false;
             struct itimerspec current;
+            errno = 0; // set to 0 
             int result = timer_gettime(timerid, &current);
             if (result == 0)
             {
@@ -734,6 +735,7 @@ namespace WPEFramework
             }
 
             struct itimerspec current;
+            errno = 0; // set to 0
             if (timer_gettime(timerid, &current) == 0)
             {
                 if (current.it_value.tv_sec != 0 || current.it_value.tv_nsec != 0)
@@ -774,6 +776,7 @@ namespace WPEFramework
             sev.sigev_signo = SIGALRM;
             sev.sigev_value.sival_ptr = &timerid;
 
+            errno = 0; // set to 0
             if (timer_create(BASE_CLOCK, &sev, &timerid) == -1)
             {
                 LOGERR("Failed to create timer");
@@ -822,6 +825,7 @@ namespace WPEFramework
             its.it_interval.tv_sec = 0;
             its.it_interval.tv_nsec = 0;
 
+            errno = 0; // set to 0
             if (timer_settime(timerid, 0, &its, NULL) == -1)
             {
                 LOGERR("Failed to start timer");
@@ -854,6 +858,7 @@ namespace WPEFramework
             its.it_value.tv_sec = 0;
             its.it_value.tv_nsec = 0;
 
+            errno = 0; // set to 0
             if (timer_settime(timerid, 0, &its, NULL) == -1)
             {
                 LOGERR("Failed to stop timer");
@@ -887,6 +892,7 @@ namespace WPEFramework
                 LOGINFO("Timer is currently running. Attempting to stop it before deletion.");
                 if (task_stopTimer())
                 {
+                    errno = 0; // set to 0
                     // Timer was successfully stopped
                     if (timer_delete(timerid) == -1)
                     {
@@ -901,6 +907,7 @@ namespace WPEFramework
                 else
                 {
                     LOGINFO("Can't stop running Timer, hence deleting the timer forcefully...");
+                    errno = 0; // set to 0
                     if (timer_delete(timerid) == -1)
                     {
                         LOGERR("Failed to delete timer.");
@@ -914,6 +921,7 @@ namespace WPEFramework
             }
             else
             {
+                errno = 0; // set to 0
                 // Timer is not running, delete directly
                 if (timer_delete(timerid) == -1)
                 {
@@ -935,7 +943,6 @@ namespace WPEFramework
          *
          * @param signo The signal number received.
          */
-/*
         void MaintenanceManager::timer_handler(int signo)
         {
             if (signo == SIGALRM)
@@ -972,7 +979,6 @@ namespace WPEFramework
                 LOGERR("Received %d Signal instead of SIGALRM", signo);
             }
         }
-*/
 
         /**
          * @brief Sets an RFC parameter.
@@ -1570,6 +1576,8 @@ namespace WPEFramework
             ASSERT(service != nullptr);
             ASSERT(m_service == nullptr);
 
+            ASSERT(timer_id == nullptr);
+            
             m_service = service;
             m_service->AddRef();
 
@@ -1582,7 +1590,6 @@ namespace WPEFramework
 #endif
 
             // Register Signal Handler
-            /*
             if (signal(SIGALRM, timer_handler) == SIG_ERR)
             {
                 LOGERR("Failed to register signal handler");
@@ -1593,7 +1600,6 @@ namespace WPEFramework
             {
                 return string("Failed to create timer");
             }
-            */
             /* On Success; return empty to indicate no error text. */
             return (string());
         }
