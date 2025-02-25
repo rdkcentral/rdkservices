@@ -935,6 +935,7 @@ namespace WPEFramework
          *
          * @param signo The signal number received.
          */
+/*
         void MaintenanceManager::timer_handler(int signo)
         {
             if (signo == SIGALRM)
@@ -971,6 +972,7 @@ namespace WPEFramework
                 LOGERR("Received %d Signal instead of SIGALRM", signo);
             }
         }
+*/
 
         /**
          * @brief Sets an RFC parameter.
@@ -1580,6 +1582,7 @@ namespace WPEFramework
 #endif
 
             // Register Signal Handler
+            /*
             if (signal(SIGALRM, timer_handler) == SIG_ERR)
             {
                 LOGERR("Failed to register signal handler");
@@ -1590,6 +1593,7 @@ namespace WPEFramework
             {
                 return string("Failed to create timer");
             }
+            */
             /* On Success; return empty to indicate no error text. */
             return (string());
         }
