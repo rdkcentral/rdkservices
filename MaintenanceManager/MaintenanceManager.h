@@ -208,7 +208,7 @@ namespace WPEFramework {
                 static void timer_handler(int signo);
                 static timer_t timerid = nullptr;
                 static string currentTask;
-                static bool taskCompleted = false;
+                static bool g_task_timerCreated;
 
                 bool checkTaskTimerExists();
                 bool isTaskTimerRunning();
