@@ -16,19 +16,6 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [2.0.2] - 2024-11-19
-### Fixed
-- Delete file if not a database, or corrupted
-- Fix namespace limits when namespace has no items
-
-## [2.0.1] - 2024-09-17
-### Fixed
-- Decouple notification, add timeouts
-
-## [2.0.0] - 2024-08-06
-### Removed
-- Move secure store into a separate plugin
-
 ## [1.0.15] - 2024-07-15
 ### Fixed
 - Update secure store endpoints, no default.

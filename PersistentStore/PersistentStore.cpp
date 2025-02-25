@@ -20,9 +20,9 @@
 #include "PersistentStore.h"
 #include <fstream>
 
-#define API_VERSION_NUMBER_MAJOR 2
+#define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_PATCH 15
 
 namespace WPEFramework {
 
