@@ -1464,7 +1464,7 @@ namespace WPEFramework
         {
             ASSERT(service != nullptr);
             ASSERT(m_service == nullptr);
-            ASSERT(timer_id != nullptr);
+            ASSERT(timerid != nullptr);
             
             m_service = service;
             m_service->AddRef();
