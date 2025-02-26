@@ -2379,9 +2379,14 @@ const std::map<int, std::string> AVOutputTV::videoSrcMap = {
 };
 
 
-tvError_t AVOutputTV::GetBacklightCaps(int *max_backlight, tvContextCaps_t **context_caps) {
+tvError_t AVOutputTV::GetCaps(const std::string& key, int* max_value, tvContextCaps_t** context_caps) {
     LOGINFO("Entry\n");
     LOGINFO("AVOutputPlugins: %s: %d", __FUNCTION__, __LINE__);
+
+    if (!max_value || !context_caps) {
+        LOGWARN("AVOutputPlugins: %s: %d - NULL input param", __FUNCTION__, __LINE__);
+        return tvERROR_INVALID_PARAM;
+    }
 
     // Open the JSON config file
     std::ifstream file(CAPABLITY_FILE_NAMEV2);
@@ -2393,11 +2398,6 @@ tvError_t AVOutputTV::GetBacklightCaps(int *max_backlight, tvContextCaps_t **con
     std::string jsonStr((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     file.close();
 
-    if (!max_backlight || !context_caps) {
-        LOGWARN("AVOutputPlugins: %s: %d - NULL input param", __FUNCTION__, __LINE__);
-        return tvERROR_INVALID_PARAM;
-    }
-
     // Parse JSON
     JsonObject root;
     if (!root.FromString(jsonStr)) {
@@ -2405,51 +2405,60 @@ tvError_t AVOutputTV::GetBacklightCaps(int *max_backlight, tvContextCaps_t **con
         return tvERROR_GENERAL;
     }
 
-    if (!root.HasLabel("backlight")) {
-        LOGWARN("AVOutputPlugins: %s: %d - Missing 'backlight' label", __FUNCTION__, __LINE__);
+    if (!root.HasLabel(key.c_str())) {
+        LOGWARN("AVOutputPlugins: %s: %d - Missing '%s' label", __FUNCTION__, __LINE__, key.c_str());
         return tvERROR_GENERAL;
     }
 
-    JsonObject backlight = root["backlight"].Object();
-    if (!backlight.HasLabel("context") || !backlight.HasLabel("rangeInfo")) {
+    JsonObject data = root[key.c_str()].Object();
+    if (!data.HasLabel("context") || !data.HasLabel("rangeInfo") || !data.HasLabel("platformSupport")) {
         LOGWARN("AVOutputPlugins: %s: %d - Missing required labels", __FUNCTION__, __LINE__);
         return tvERROR_GENERAL;
     }
 
-    // Read max backlight value safely
-    JsonObject rangeInfo = backlight["rangeInfo"].Object();
+    if (!data["platformSupport"].Boolean()) {
+        LOGWARN("AVOutputPlugins: %s: Platform support is false", __FUNCTION__);
+        return tvERROR_OPERATION_NOT_SUPPORTED;
+    }
+
+    JsonObject rangeInfo = data["rangeInfo"].Object();
     if (rangeInfo.HasLabel("to")) {
-        *max_backlight = rangeInfo["to"].Number();
+        *max_value = rangeInfo["to"].Number();
     } else {
         LOGWARN("AVOutputPlugins: %s: %d - 'to' field missing in rangeInfo", __FUNCTION__, __LINE__);
         return tvERROR_GENERAL;
     }
 
-    JsonObject context = backlight["context"].Object();
+    JsonObject context = data["context"].Object();
     if (!context.IsSet()) {
         LOGWARN("AVOutputPlugins: %s: %d - Context is not set", __FUNCTION__, __LINE__);
         return tvERROR_GENERAL;
     }
 
-    // Debugging log
     std::string contextStr;
     context.ToString(contextStr);
     LOGINFO("Context JSON: %s", contextStr.c_str());
 
-    // Parse context_caps
-    std::vector<tvConfigContext_t> contexts;
+    std::vector<tvConfigContext_t> contexts = ParseContextCaps(context);
+    *context_caps = AllocateContextCaps(contexts);
+    if (!*context_caps) {
+        LOGWARN("AVOutputPlugins: %s: %d - Memory allocation failed", __FUNCTION__, __LINE__);
+        return tvERROR_GENERAL;
+    }
+    return tvERROR_NONE;
+}
 
+std::vector<tvConfigContext_t> AVOutputTV::ParseContextCaps(const JsonObject& context) {
+    std::vector<tvConfigContext_t> contexts;
     for (const auto& mode : AVOutputTV::pqModeMap) {
         if (context.HasLabel(mode.second.c_str())) {
             JsonObject modeVariant = context[mode.second.c_str()].Object();
             for (const auto& format : AVOutputTV::videoFormatMap) {
                 if (modeVariant.HasLabel(format.second.c_str())) {
                     JsonArray sources = modeVariant[format.second.c_str()].Array();
-                    // Iterate over JSON array elements
                     WPEFramework::Core::JSON::ArrayType<WPEFramework::Core::JSON::Variant>::Iterator sourceIterator(sources.Elements());
                     while (sourceIterator.Next()) {
                         std::string sourceStr = sourceIterator.Current().String();
-                        // Check for matching source type
                         auto srcIt = std::find_if(
                             AVOutputTV::videoSrcMap.begin(), AVOutputTV::videoSrcMap.end(),
                             [&sourceStr](const std::pair<const int, std::string>& src) { return sourceStr == src.second; });
@@ -2458,50 +2467,64 @@ tvError_t AVOutputTV::GetBacklightCaps(int *max_backlight, tvContextCaps_t **con
                             ctx.pq_mode = static_cast<tvPQModeIndex_t>(mode.first);
                             ctx.videoFormatType = static_cast<tvVideoFormatType_t>(format.first);
                             ctx.videoSrcType = static_cast<tvVideoSrcType_t>(srcIt->first);
-
                             contexts.push_back(ctx);
-                            LOGINFO("Added context: pq_mode=%d, videoFormatType=%d, videoSrcType=%d",
-                                    ctx.pq_mode, ctx.videoFormatType, ctx.videoSrcType);
                         }
                     }
                 }
             }
         }
     }
+    return contexts;
+}
 
-    LOGINFO("Total contexts found: %zu", contexts.size());
-
-    // Allocate and populate context_caps
-    *context_caps = new (std::nothrow) tvContextCaps_t;
-    if (!*context_caps) {
-        LOGWARN("AVOutputPlugins: %s: %d - Memory allocation failed", __FUNCTION__, __LINE__);
-        return tvERROR_GENERAL;
+tvContextCaps_t* AVOutputTV::AllocateContextCaps(const std::vector<tvConfigContext_t>& contexts) {
+    tvContextCaps_t* context_caps = new (std::nothrow) tvContextCaps_t;
+    if (!context_caps) {
+        return nullptr;
     }
 
-    (*context_caps)->num_contexts = contexts.size();
-    (*context_caps)->contexts = contexts.empty() ? nullptr : new (std::nothrow) tvConfigContext_t[contexts.size()];
+    context_caps->num_contexts = contexts.size();
+    context_caps->contexts = contexts.empty() ? nullptr : new (std::nothrow) tvConfigContext_t[contexts.size()];
 
-    if (!contexts.empty() && !(*context_caps)->contexts) {
-        delete *context_caps;
-        *context_caps = nullptr;
-        LOGWARN("AVOutputPlugins: %s: %d - Contexts memory allocation failed", __FUNCTION__, __LINE__);
-        return tvERROR_GENERAL;
+    if (!contexts.empty() && !context_caps->contexts) {
+        delete context_caps;
+        return nullptr;
     }
 
     if (!contexts.empty()) {
-        std::copy(contexts.begin(), contexts.end(), (*context_caps)->contexts);
+        std::copy(contexts.begin(), contexts.end(), context_caps->contexts);
     }
-
-    // Debugging - Print final allocated contexts
-    for (size_t i = 0; i < (*context_caps)->num_contexts; i++) {
-        LOGINFO("Final context[%zu]: pq_mode=%d, videoFormatType=%d, videoSrcType=%d",
-                i, (*context_caps)->contexts[i].pq_mode,
-                (*context_caps)->contexts[i].videoFormatType,
-                (*context_caps)->contexts[i].videoSrcType);
-    }
-
-    return tvERROR_NONE;
+    return context_caps;
 }
+
+tvError_t AVOutputTV::GetBacklightCaps(int* max_backlight, tvContextCaps_t** context_caps) {
+    return GetCaps("Backlight", max_backlight, context_caps);
+}
+
+tvError_t AVOutputTV::GetBrightnessCaps(int* max_brightness, tvContextCaps_t** context_caps) {
+    return GetCaps("Brightness", max_brightness, context_caps);
+}
+
+tvError_t AVOutputTV::GetContrastCaps(int* max_contrast, tvContextCaps_t** context_caps) {
+    return GetCaps("Contrast", max_contrast, context_caps);
+}
+
+tvError_t AVOutputTV::GetSharpnessCaps(int* max_sharpness, tvContextCaps_t** context_caps) {
+    return GetCaps("Sharpness", max_sharpness, context_caps);
+}
+
+tvError_t AVOutputTV::GetSaturationCaps(int* max_saturation, tvContextCaps_t** context_caps) {
+    return GetCaps("Saturation", max_saturation, context_caps);
+}
+
+tvError_t AVOutputTV::GetHueCaps(int* max_hue, tvContextCaps_t** context_caps) {
+    return GetCaps("Hue", max_hue, context_caps);
+}
+
+tvError_t AVOutputTV::GetPrecisionDetailCaps(int* max_precision, tvContextCaps_t** context_caps) {
+    return GetCaps("PrecisionDetails", max_precision, context_caps);
+}
+
 #endif
 
 	int AVOutputTV::ReadCapablitiesFromConf(std::string param, capDetails_t& info)
