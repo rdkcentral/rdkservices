@@ -701,7 +701,7 @@ namespace WPEFramework
             if (g_task_timerCreated)
             {
                 LOGINFO("Timer has already been created, no need to create a Timer.");
-                return g_task_timerCreated; // true: timer already created
+                return g_task_timerCreated;
             }
 
             struct sigevent sev = {0};
@@ -717,7 +717,7 @@ namespace WPEFramework
                 g_task_timerCreated = true; // Timer Created
                 LOGINFO("Timer created successfully.");
             }
-            return g_task_timerCreated; // false/ true: timer creation failed/ timer creation done
+            return g_task_timerCreated;
         }
 
         /**
@@ -739,7 +739,7 @@ namespace WPEFramework
                 LOGINFO("Timer has not been created already, create a new Timer.");
                 if (!maintenance_initTimer())
                 {
-                    return status; // false: timer not already created, and re-creating too failed
+                    return status;
                 }
             }
 
@@ -758,7 +758,7 @@ namespace WPEFramework
                 LOGINFO("Timer started for %d seconds for %s", TASK_TIMEOUT, currentTask.c_str());
                 status = true;
             }
-            return status; // false/ true: timer start failed/ timer start done
+            return status;
         }
 
         /**
@@ -774,7 +774,7 @@ namespace WPEFramework
             if (!g_task_timerCreated)
             {
                 LOGINFO("Timer has not been created already, cannot stop the Timer");
-                return status; // false: no timer to stop
+                return status;
             }
 
             struct itimerspec its = {0};
@@ -790,7 +790,7 @@ namespace WPEFramework
                 LOGINFO("Timer stopped for %s", currentTask.c_str());
                 status = true;
             }
-            return status; // false/ true: timer stop failed/ timer stop done
+            return status;
         }
 
         /**
@@ -806,7 +806,7 @@ namespace WPEFramework
             if (!g_task_timerCreated)
             {
                 LOGINFO("Timer has not been created already, cannot delete the Timer.");
-                return status; // false: no timer to delete
+                return status;
             }
 
             LOGINFO("Timer has already been created, delete the Timer.");
@@ -821,7 +821,7 @@ namespace WPEFramework
                 LOGINFO("Timer successfully deleted.");
                 status = true;
             }
-            return status; // false/ true: timer delete failed/ timer delete done
+            return status;
         }
 
         /**
