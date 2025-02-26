@@ -18,7 +18,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 ## [1.0.43] - 2025-02-26
 ### Fixed
-- Fixed timer API used for Maintenance Manager Task
+- Fixed crash in timer API used for Maintenance Manager Task
 
 ## [1.0.42] - 2025-02-10
 ### Added
