@@ -210,9 +210,7 @@ namespace WPEFramework {
                 static string currentTask;
                 static bool g_task_timerCreated;
 
-                bool checkTaskTimerExists();
-                bool isTaskTimerRunning();
-                bool maintenance_createTimer();
+                bool maintenance_initTimer();
                 bool task_startTimer();
                 bool task_stopTimer();
                 bool maintenance_deleteTimer();
