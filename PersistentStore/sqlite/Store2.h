@@ -37,35 +37,6 @@ namespace Plugin {
                        public Exchange::IStoreInspector,
                        public Exchange::IStoreLimit {
         private:
-            class Job : public Core::IDispatch {
-            public:
-                Job(Store2* parent, const IStore2::ScopeType scope, const string& ns, const string& key, const string& value)
-                    : _parent(parent)
-                    , _scope(scope)
-                    , _ns(ns)
-                    , _key(key)
-                    , _value(value)
-                {
-                    _parent->AddRef();
-                }
-                ~Job() override
-                {
-                    _parent->Release();
-                }
-                void Dispatch() override
-                {
-                    _parent->OnValueChanged(_scope, _ns, _key, _value);
-                }
-
-            private:
-                Store2* _parent;
-                const IStore2::ScopeType _scope;
-                const string _ns;
-                const string _key;
-                const string _value;
-            };
-
-        private:
             Store2(const Store2&) = delete;
             Store2& operator=(const Store2&) = delete;
 
@@ -88,7 +59,6 @@ namespace Plugin {
                 , _maxValue(maxValue)
                 , _limit(limit)
             {
-                IntegrityCheck();
                 Open();
             }
             ~Store2() override
@@ -97,28 +67,6 @@ namespace Plugin {
             }
 
         private:
-            void IntegrityCheck()
-            {
-                Core::File file(_path);
-                Core::Directory(file.PathName().c_str()).CreatePath();
-                auto rc = sqlite3_open(_path.c_str(), &_data);
-                sqlite3_stmt* stmt;
-                sqlite3_prepare_v2(_data, "pragma integrity_check;",
-                    -1, &stmt, nullptr);
-                while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-                    TRACE(Trace::Information,
-                        (_T("%s %s"), __FUNCTION__,
-                            (const char*)sqlite3_column_text(stmt, 0)));
-                }
-                sqlite3_finalize(stmt);
-                sqlite3_close_v2(_data);
-                if (rc != SQLITE_DONE) {
-                    OnError(__FUNCTION__, rc);
-                    if ((rc == SQLITE_MISUSE) || (rc == SQLITE_CORRUPT)) {
-                        ASSERT(file.Destroy());
-                    }
-                }
-            }
             void Open()
             {
                 Core::File file(_path);
@@ -127,60 +75,22 @@ namespace Plugin {
                 if (rc != SQLITE_OK) {
                     OnError(__FUNCTION__, rc);
                 }
-                rc = sqlite3_busy_timeout(_data, SQLITE_TIMEOUT); // Timeout
-                if (rc != SQLITE_OK) {
-                    OnError(__FUNCTION__, rc);
-                }
                 const std::vector<string> statements = {
                     "pragma foreign_keys = on;",
-                    "create table if not exists namespace"
-                    " (id integer primary key,name text unique);",
-                    "create table if not exists item"
-                    " (ns integer,key text,value text,"
-                    "foreign key(ns) references namespace(id) on delete cascade on update no action,"
-                    "unique(ns,key) on conflict replace);",
-                    "create table if not exists limits"
-                    " (n integer,size integer,"
-                    "foreign key(n) references namespace(id) on delete cascade on update no action,"
-                    "unique(n) on conflict replace);",
+                    "pragma busy_timeout = 1000000;",
+                    "create table if not exists namespace (id integer primary key,name text unique);",
+                    "create table if not exists item (ns integer,key text,value text,foreign key(ns) references namespace(id) on delete cascade on update no action,unique(ns,key) on conflict replace);",
+                    "create table if not exists limits (n integer,size integer,foreign key(n) references namespace(id) on delete cascade on update no action,unique(n) on conflict replace);",
                     "alter table item add column ttl integer;",
-                    "create temporary trigger if not exists ns_empty insert on namespace"
-                    " begin select case when length(new.name) = 0"
-                    " then raise (fail, 'empty') end; end;",
-                    "create temporary trigger if not exists key_empty insert on item"
-                    " begin select case when length(new.key) = 0"
-                    " then raise (fail, 'empty') end; end;",
-                    "create temporary trigger if not exists ns_maxvalue insert on namespace"
-                    " begin select case when length(new.name) > "
-                        + std::to_string(_maxValue) + " then raise (fail, 'max value') end; end;",
-                    "create temporary trigger if not exists key_maxvalue insert on item"
-                    " begin select case when length(new.key) > "
-                        + std::to_string(_maxValue) + " then raise (fail, 'max value') end; end;",
-                    "create temporary trigger if not exists value_maxvalue insert on item"
-                    " begin select case when length(new.value) > "
-                        + std::to_string(_maxValue) + " then raise (fail, 'max value') end; end;",
-                    "create temporary trigger if not exists ns_maxsize insert on namespace"
-                    " begin select case when"
-                    " (select sum(s) from (select sum(length(key)+length(value)) s from item"
-                    " union all select sum(length(name)) s from namespace"
-                    " union all select length(new.name) s)) > "
-                        + std::to_string(_maxSize) + " then raise (fail, 'max size') end; end;",
-                    "create temporary trigger if not exists item_maxsize insert on item"
-                    " begin select case when"
-                    " (select sum(s) from (select sum(length(key)+length(value)) s from item"
-                    " union all select sum(length(name)) s from namespace"
-                    " union all select length(new.key)+length(new.value) s)) > "
-                        + std::to_string(_maxSize) + " then raise (fail, 'max size') end; end;",
-                    "create temporary trigger if not exists item_limit_default insert on item"
-                    " begin select case when"
-                    " (select sum(s) from (select sum(length(key)+length(value)) s from item where ns = new.ns"
-                    " union all select length(new.key)+length(new.value) s)) > "
-                        + std::to_string(_limit) + " then raise (fail, 'limit') end; end;",
-                    "create temporary trigger if not exists item_limit insert on item"
-                    " begin select case when"
-                    " (select size-length(new.key)-length(new.value)-ifnull(sum(length(key)+length(value)), 0) from limits"
-                    " left join item on limits.n = item.ns where n = new.ns) < 0"
-                    " then raise (fail, 'limit') end; end;"
+                    "create temporary trigger if not exists ns_empty insert on namespace begin select case when length(new.name) = 0 then raise (fail, 'empty') end; end;",
+                    "create temporary trigger if not exists key_empty insert on item begin select case when length(new.key) = 0 then raise (fail, 'empty') end; end;",
+                    "create temporary trigger if not exists ns_maxvalue insert on namespace begin select case when length(new.name) > " + std::to_string(_maxValue) + " then raise (fail, 'max value') end; end;",
+                    "create temporary trigger if not exists key_maxvalue insert on item begin select case when length(new.key) > " + std::to_string(_maxValue) + " then raise (fail, 'max value') end; end;",
+                    "create temporary trigger if not exists value_maxvalue insert on item begin select case when length(new.value) > " + std::to_string(_maxValue) + " then raise (fail, 'max value') end; end;",
+                    "create temporary trigger if not exists ns_maxsize insert on namespace begin select case when (select sum(s) from (select sum(length(key)+length(value)) s from item union all select sum(length(name)) s from namespace union all select length(new.name) s)) > " + std::to_string(_maxSize) + " then raise (fail, 'max size') end; end;",
+                    "create temporary trigger if not exists item_maxsize insert on item begin select case when (select sum(s) from (select sum(length(key)+length(value)) s from item union all select sum(length(name)) s from namespace union all select length(new.key)+length(new.value) s)) > " + std::to_string(_maxSize) + " then raise (fail, 'max size') end; end;",
+                    "create temporary trigger if not exists item_limit_default insert on item begin select case when (select length(new.key)+length(new.value)+sum(length(key)+length(value)) from item where ns = new.ns) > " + std::to_string(_limit) + " then raise (fail, 'limit') end; end;",
+                    "create temporary trigger if not exists item_limit insert on item begin select case when (select size-length(new.key)-length(new.value)-sum(length(key)+length(value)) from limits inner join item on limits.n = item.ns where n = new.ns) < 0 then raise (fail, 'limit') end; end;"
                 };
                 for (auto& sql : statements) {
                     auto rc = sqlite3_exec(_data, sql.c_str(), nullptr, nullptr, nullptr);
@@ -196,22 +106,13 @@ namespace Plugin {
                     OnError(__FUNCTION__, rc);
                 }
             }
-
-        private:
-            bool IsTimeSynced() const
+            static bool IsTimeSynced()
             {
 #ifdef WITH_SYSMGR
-                // Get actual state, as it may change at any time...
                 IARM_Bus_Init(IARM_INIT_NAME);
                 IARM_Bus_Connect();
                 IARM_Bus_SYSMgr_GetSystemStates_Param_t param;
-                if ((IARM_Bus_Call_with_IPCTimeout(
-                         IARM_BUS_SYSMGR_NAME,
-                         IARM_BUS_SYSMGR_API_GetSystemStates,
-                         &param,
-                         sizeof(param),
-                         IARM_TIMEOUT) // Timeout
-                        != IARM_RESULT_SUCCESS)
+                if ((IARM_Bus_Call(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_API_GetSystemStates, &param, sizeof(param)) != IARM_RESULT_SUCCESS)
                     || !param.time_source.state) {
                     return false;
                 }
@@ -284,9 +185,7 @@ namespace Plugin {
                 }
 
                 if (rc == SQLITE_DONE) {
-                    Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(
-                        Core::ProxyType<Job>::Create(this, scope, ns, key, value))); // Decouple notification
-
+                    OnValueChanged(ns, key, value);
                     result = Core::ERROR_NONE;
                 } else {
                     OnError(__FUNCTION__, rc);
@@ -590,7 +489,7 @@ namespace Plugin {
             END_INTERFACE_MAP
 
         private:
-            void OnValueChanged(const IStore2::ScopeType scope, const string& ns, const string& key, const string& value)
+            void OnValueChanged(const string& ns, const string& key, const string& value)
             {
                 Core::SafeSyncType<Core::CriticalSection> lock(_clientLock);
 
@@ -598,8 +497,7 @@ namespace Plugin {
                     index(_clients.begin());
 
                 while (index != _clients.end()) {
-                    // If main process is out of threads, this can time out, and IPC will mess up...
-                    (*index)->ValueChanged(scope, ns, key, value);
+                    (*index)->ValueChanged(IStore2::ScopeType::DEVICE, ns, key, value);
                     index++;
                 }
             }
