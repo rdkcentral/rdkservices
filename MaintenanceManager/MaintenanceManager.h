@@ -206,7 +206,7 @@ namespace WPEFramework {
 
                 /* Timer Implementation */
                 static void timer_handler(int signo);
-                static timer_t timerid = nullptr;
+                static timer_t timerid;
                 static string currentTask;
                 static bool g_task_timerCreated;
 
