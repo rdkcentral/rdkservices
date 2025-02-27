@@ -1236,36 +1236,6 @@ namespace Plugin {
             Config& operator=(const Config&);
 
         public:
-            class Libs : public Core::JSON::Container {
-            private:
-                Libs& operator=(const Libs&);
-
-            public:
-                Libs()
-                    : Core::JSON::Container()
-                    , SystemName()
-                    , LibFile()
-                {
-                    Add("system_name", &SystemName);
-                    Add("lib_file", &LibFile);
-                }
-                Libs(const Libs& copy)
-                    : Core::JSON::Container()
-                    , SystemName(copy.SystemName)
-                    , LibFile(copy.LibFile)
-                {
-                    Add("system_name", &SystemName);
-                    Add("lib_file", &LibFile);
-                }
-
-                virtual ~Libs() = default;
-
-            public:
-                Core::JSON::String SystemName;
-                Core::JSON::String LibFile;
-            };
-
-        public:
             class Systems : public Core::JSON::Container {
             private:
                 Systems& operator=(const Systems&);
@@ -1311,14 +1281,12 @@ namespace Plugin {
                 , Connector(_T("/tmp/ocdm"))
                 , SharePath(_T("/tmp/OCDM"))
                 , ShareSize(8 * 1024)
-                , DrmLibs()
                 , KeySystems()
             {
                 Add(_T("location"), &Location);
                 Add(_T("connector"), &Connector);
                 Add(_T("sharepath"), &SharePath);
                 Add(_T("sharesize"), &ShareSize);
-                Add(_T("drm_libs"), &DrmLibs);
                 Add(_T("systems"), &KeySystems);
             }
             ~Config()
@@ -1330,7 +1298,6 @@ namespace Plugin {
             Core::JSON::String Connector;
             Core::JSON::String SharePath;
             Core::JSON::DecUInt32 ShareSize;
-            Core::JSON::ArrayType<Libs> DrmLibs;
             Core::JSON::ArrayType<Systems> KeySystems;
         };
 
@@ -1416,12 +1383,11 @@ namespace Plugin {
             const string locator(_shell->DataPath() + config.Location.Value());
 
             // Before we start loading the mapping of the Keys to the factories, load the factories :-)
+            Core::Directory entry(locator.c_str(), _T("*.drm"));
             std::map<const string, SystemFactory> factories;
 
-            Core::JSON::ArrayType<Config::Libs>::ConstIterator libs(static_cast<const Config&>(config).DrmLibs.Elements());
-            while (libs.Next() == true) {
-                const std::string libFullPath = locator + libs.Current().LibFile.Value();
-                Core::Library library(libFullPath.c_str());
+            while (entry.Next() == true) {
+                Core::Library library(entry.Current().c_str());
 
                 if (library.IsLoaded() == true) {
                     GetDRMSystemFunction handle = reinterpret_cast<GetDRMSystemFunction>(library.LoadFunction(_T("GetSystemFactory")));
@@ -1431,7 +1397,7 @@ namespace Plugin {
 
                         if (entry != nullptr) {
                             SystemFactory element;
-                            element.Name = libs.Current().SystemName.Value().c_str();
+                            element.Name = Core::ClassNameOnly(entry->KeySystem()).Text();
                             element.Factory = entry;
                             _keySystems.push_back(element.Name);
                             factories.insert(std::pair<const string, SystemFactory>(element.Name, element));
@@ -1439,7 +1405,7 @@ namespace Plugin {
                         }
                     }
                 } else {
-                    SYSLOG(Logging::Startup, (_T("Could not load factory [%s], error [%s]"), Core::File::FileNameExtended(libFullPath).c_str(), library.Error().c_str()));
+                    SYSLOG(Logging::Startup, (_T("Could not load factory [%s], error [%s]"), Core::File::FileNameExtended(entry.Current()).c_str(), library.Error().c_str()));
                     result = Core::ERROR_OPENING_FAILED;
                 }
             }
