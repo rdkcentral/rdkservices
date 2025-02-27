@@ -2593,6 +2593,51 @@ if (status == tvERROR_NONE) {
 }
 */
 
+tvError_t AVOutputTV::GetDVCalibrationCaps(tvDVCalibrationSettings_t **min_values, tvDVCalibrationSettings_t **max_values, tvContextCaps_t **context_caps) {
+    JsonObject root;
+    if (ReadJsonFile(root) != tvERROR_NONE) {
+        return tvERROR_GENERAL;
+    }
+    if (!root.HasLabel("DolbyVisionCalibration")) {
+        LOGWARN("AVOutputPlugins: %s: Missing 'DolbyVisionCalibration' label", __FUNCTION__);
+        return tvERROR_GENERAL;
+    }
+
+    JsonObject data = root["DolbyVisionCalibration"].Object();
+    *min_values = new tvDVCalibrationSettings_t();
+    *max_values = new tvDVCalibrationSettings_t();
+
+    std::map<std::string, double tvDVCalibrationSettings_t::*> keyMap = {
+        {"Tmax", &tvDVCalibrationSettings_t::Tmax},
+        {"Tmin", &tvDVCalibrationSettings_t::Tmin},
+        {"Tgamma", &tvDVCalibrationSettings_t::Tgamma},
+        {"Rx", &tvDVCalibrationSettings_t::Rx},
+        {"Ry", &tvDVCalibrationSettings_t::Ry},
+        {"Gx", &tvDVCalibrationSettings_t::Gx},
+        {"Gy", &tvDVCalibrationSettings_t::Gy},
+        {"Bx", &tvDVCalibrationSettings_t::Bx},
+        {"By", &tvDVCalibrationSettings_t::By},
+        {"Wx", &tvDVCalibrationSettings_t::Wx},
+        {"Wy", &tvDVCalibrationSettings_t::Wy}
+    };
+
+    for (auto it = keyMap.begin(); it != keyMap.end(); ++it) {
+        const std::string& key = it->first;
+        double tvDVCalibrationSettings_t::*member = it->second;
+        std::string minKey = "range" + key;
+        if (data.HasLabel(minKey.c_str())) {
+            JsonObject range = data[minKey.c_str()].Object();
+            (*min_values)->*member = range["from"].Number();
+            (*max_values)->*member = range["to"].Number();
+        }
+    }
+
+    if (ExtractContextCaps(data, context_caps) != tvERROR_NONE) {
+        return tvERROR_GENERAL;
+    }
+    return tvERROR_NONE;
+}
+
 #endif
 
 	int AVOutputTV::ReadCapablitiesFromConf(std::string param, capDetails_t& info)

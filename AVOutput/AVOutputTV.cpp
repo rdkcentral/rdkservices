@@ -367,7 +367,7 @@ namespace Plugin {
         registerMethod("getPrecisionDetailCapsV2", &AVOutputTV::getPrecisionDetailCapsV2, this);
         registerMethod("getColorTemperatureCapsV2", &AVOutputTV::getColorTemperatureCapsV2, this);
         registerMethod("getSdrGammaCapsV2", &AVOutputTV::getSdrGammaCapsV2, this);
-        /*registerMethod("getDVCalibrationCapsV2", &AVOutputTV::getDVCalibrationCapsV2, this); */
+        registerMethod("getDVCalibrationCapsV2", &AVOutputTV::getDVCalibrationCapsV2, this);
 
         LOGINFO("Exit\n");
     }
@@ -613,6 +613,41 @@ namespace Plugin {
             return this->GetSdrGammaCaps(options_count, context_caps, options);
         },
         "SDRGamma", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getDVCalibrationCapsV2(const JsonObject& parameters, JsonObject& response) {
+        tvDVCalibrationSettings_t *min_values = nullptr;
+        tvDVCalibrationSettings_t *max_values = nullptr;
+        tvContextCaps_t *context_caps = nullptr;
+
+        if (GetDVCalibrationCaps(&min_values, &max_values, &context_caps) != tvERROR_NONE) {
+            returnResponse(false);
+        }
+
+        JsonObject capsInfo;
+        JsonObject rangeInfo;
+
+        rangeInfo["Tmax"] = JsonObject({{"from", min_values->Tmax}, {"to", max_values->Tmax}});
+        rangeInfo["Tmin"] = JsonObject({{"from", min_values->Tmin}, {"to", max_values->Tmin}});
+        rangeInfo["Tgamma"] = JsonObject({{"from", min_values->Tgamma}, {"to", max_values->Tgamma}});
+        rangeInfo["Rx"] = JsonObject({{"from", min_values->Rx}, {"to", max_values->Rx}});
+        rangeInfo["Ry"] = JsonObject({{"from", min_values->Ry}, {"to", max_values->Ry}});
+        rangeInfo["Gx"] = JsonObject({{"from", min_values->Gx}, {"to", max_values->Gx}});
+        rangeInfo["Gy"] = JsonObject({{"from", min_values->Gy}, {"to", max_values->Gy}});
+        rangeInfo["Bx"] = JsonObject({{"from", min_values->Bx}, {"to", max_values->Bx}});
+        rangeInfo["By"] = JsonObject({{"from", min_values->By}, {"to", max_values->By}});
+        rangeInfo["Wx"] = JsonObject({{"from", min_values->Wx}, {"to", max_values->Wx}});
+        rangeInfo["Wy"] = JsonObject({{"from", min_values->Wy}, {"to", max_values->Wy}});
+
+        capsInfo["rangeInfo"] = rangeInfo;
+        capsInfo["platformSupport"] = true;
+        capsInfo["context"] = parseContextCaps(context_caps);
+
+        response["DolbyVisionCalibration"] = capsInfo;
+
+        delete min_values;
+        delete max_values;
+        returnResponse(true);
     }
 
     uint32_t AVOutputTV::getZoomModeCaps(const JsonObject& parameters, JsonObject& response)

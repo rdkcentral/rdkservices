@@ -237,7 +237,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getPrecisionDetailCapsV2)
 		DECLARE_JSON_RPC_METHOD(getColorTemperatureCapsV2)
 		DECLARE_JSON_RPC_METHOD(getSdrGammaCapsV2)
-		/* DECLARE_JSON_RPC_METHOD(getDVCalibrationCapsV2) */
+		DECLARE_JSON_RPC_METHOD(getDVCalibrationCapsV2)
 
 		/*Set API's*/
 		DECLARE_JSON_RPC_METHOD(setBacklight)
@@ -404,7 +404,7 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t GetPrecisionDetailCaps(int* max_precision, tvContextCaps_t** context_caps);
 		tvError_t GetColorTemperatureCaps(int* options_count, tvContextCaps_t** context_caps, std::vector<std::string>& options);
 		tvError_t GetSdrGammaCaps(int* options_count, tvContextCaps_t** context_caps, std::vector<std::string>& options);
-
+		tvError_t GetDVCalibrationCaps(tvDVCalibrationSettings_t **min_values, tvDVCalibrationSettings_t **max_values, tvContextCaps_t **context_caps);
 		uint32_t getCapsV2(
 			const std::function<tvError_t(int*, tvContextCaps_t**, std::vector<std::string>&)>& getCapsFunc,
 			const char* key,
