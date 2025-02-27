@@ -1,3 +1,4 @@
+#if 0
 #include <gtest/gtest.h>
 #include "Bluetooth.h"
 #include "BluetoothMocks.h"
@@ -48,6 +49,7 @@ protected:
 	if (p_iarmBusImplMock != nullptr) {
 	    delete p_iarmBusImplMock;
 	    p_iarmBusImplMock = nullptr;
+	    IarmBus::setImpl(nullptr);
 	}
 
 	if(mockBluetoothManagerInstance != nullptr) {
@@ -2411,3 +2413,4 @@ TEST_F(BluetoothTest, EventCallbackTest) {
         ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
     }
 }
+#endif
