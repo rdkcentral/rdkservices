@@ -62,7 +62,6 @@ UserSettingsImplementation::UserSettingsImplementation()
 #endif
 {
     LOGINFO("Create UserSettingsImplementation Instance");
-
     UserSettingsImplementation::instance(this);
 }
 
@@ -90,15 +89,12 @@ uint32_t UserSettingsImplementation::Configure(PluginHost::IShell* service)
     {
         LOGERR("service is null \n");
     }
-
     return result;
 }
 
 UserSettingsImplementation* UserSettingsImplementation::instance(UserSettingsImplementation *UserSettingsImpl)
 {
    static UserSettingsImplementation *UserSettingsImpl_instance = nullptr;
-
-
    if (UserSettingsImpl != nullptr)
    {
       UserSettingsImpl_instance = UserSettingsImpl;
@@ -112,11 +108,11 @@ UserSettingsImplementation* UserSettingsImplementation::instance(UserSettingsImp
 
 UserSettingsImplementation::~UserSettingsImplementation()
 {
-
-
+    LOGINFO("UserSettingsImplementation Destructor");    
     if(_remotStoreObject)
     {
         _remotStoreObject->Release();
+        _remotStoreObject = nullptr;
     }
     if (_service != nullptr)
     {
