@@ -184,6 +184,8 @@ Activates the specified composite input as the primary video source.
 | :-------- | :-------- |
 | [onInputStatusChanged](#onInputStatusChanged) | Triggers this event when activates composite input source and input status changes to started |
 | [onSignalChanged](#onSignalChanged) | Triggers this event when composite input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal) |
+| [videoStreamInfoUpdate](#videoStreamInfoUpdate) | Triggered whenever there is an update in Composite Input video stream info |
+
 ### Parameters
 
 | Name | Type | Description |
@@ -380,6 +382,41 @@ Triggered when the status of the composite input signal changes.
         "id": 0,
         "locator": "cvbsin://localhost/deviceid/0",
         "signalStatus": "noSignal"
+    }
+}
+```
+<a name="videoStreamInfoUpdate"></a>
+## *videoStreamInfoUpdate*
+
+Triggered whenever there is an update in Composite Input video stream info.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.id | number | The port identifier for the Composite Input |
+| params.locator | string | A URL corresponding to the Composite Input port |
+| params.width | integer | Width of the Video Stream |
+| params.height | integer | Height of the Video Stream |
+| params.progressive | boolean | Whether the streaming video is progressive or not? |
+| params.frameRateN | integer | FrameRate Numerator |
+| params.frameRateD | integer | FrameRate Denomirator |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.videoStreamInfoUpdate",
+    "params": {
+        "id": 0,
+        "locator": "cvbsin://localhost/deviceid/0",
+        "width": 3840,
+        "height": 2160,
+        "progressive": false,
+        "frameRateN": 60000,
+        "frameRateD": 1001
     }
 }
 ```
