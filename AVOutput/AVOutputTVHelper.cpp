@@ -2379,72 +2379,79 @@ const std::map<int, std::string> AVOutputTV::videoSrcMap = {
 };
 
 
-tvError_t AVOutputTV::GetCaps(const std::string& key, int* max_value, tvContextCaps_t** context_caps) {
-    LOGINFO("Entry\n");
-    LOGINFO("AVOutputPlugins: %s: %d", __FUNCTION__, __LINE__);
-
-    if (!max_value || !context_caps) {
-        LOGWARN("AVOutputPlugins: %s: %d - NULL input param", __FUNCTION__, __LINE__);
-        return tvERROR_INVALID_PARAM;
-    }
-
-    // Open the JSON config file
+tvError_t AVOutputTV::ReadJsonFile(JsonObject& root) {
     std::ifstream file(CAPABLITY_FILE_NAMEV2);
     if (!file.is_open()) {
-        LOGWARN("AVOutputPlugins: %s: %d - Unable to open file", __FUNCTION__, __LINE__);
+        LOGWARN("AVOutputPlugins: %s: Unable to open file", __FUNCTION__);
         return tvERROR_GENERAL;
     }
 
     std::string jsonStr((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     file.close();
 
-    // Parse JSON
-    JsonObject root;
     if (!root.FromString(jsonStr)) {
-        LOGWARN("AVOutputPlugins: %s: %d - JSON parsing failed", __FUNCTION__, __LINE__);
+        LOGWARN("AVOutputPlugins: %s: JSON parsing failed", __FUNCTION__);
         return tvERROR_GENERAL;
     }
 
-    if (!root.HasLabel(key.c_str())) {
-        LOGWARN("AVOutputPlugins: %s: %d - Missing '%s' label", __FUNCTION__, __LINE__, key.c_str());
-        return tvERROR_GENERAL;
-    }
+    return tvERROR_NONE;
+}
 
-    JsonObject data = root[key.c_str()].Object();
-    if (!data.HasLabel("context") || !data.HasLabel("rangeInfo") || !data.HasLabel("platformSupport")) {
-        LOGWARN("AVOutputPlugins: %s: %d - Missing required labels", __FUNCTION__, __LINE__);
+tvError_t AVOutputTV::ExtractRangeInfo(const JsonObject& data, int* max_value, std::vector<std::string>& options) {
+    if (!data.HasLabel("rangeInfo")) {
+        LOGWARN("AVOutputPlugins: %s: 'rangeInfo' missing", __FUNCTION__);
         return tvERROR_GENERAL;
-    }
-
-    if (!data["platformSupport"].Boolean()) {
-        LOGWARN("AVOutputPlugins: %s: Platform support is false", __FUNCTION__);
-        return tvERROR_OPERATION_NOT_SUPPORTED;
     }
 
     JsonObject rangeInfo = data["rangeInfo"].Object();
     if (rangeInfo.HasLabel("to")) {
+        if (!max_value) {
+            LOGWARN("AVOutputPlugins: %s: NULL input param max_value", __FUNCTION__);
+            return tvERROR_INVALID_PARAM;
+        }
         *max_value = rangeInfo["to"].Number();
-    } else {
-        LOGWARN("AVOutputPlugins: %s: %d - 'to' field missing in rangeInfo", __FUNCTION__, __LINE__);
+        return tvERROR_NONE;
+    } else if (rangeInfo.HasLabel("options")) {
+        JsonArray optionsArray = rangeInfo["options"].Array();
+        *max_value = optionsArray.Length();
+        if (!optionsArray.IsSet() || optionsArray.Length() == 0) {
+            LOGWARN("AVOutputPlugins: %s: 'options' field is missing or empty", __FUNCTION__);
+            return tvERROR_GENERAL;
+        }
+        for (size_t i = 0; i < optionsArray.Length(); ++i) {
+            options.push_back(optionsArray[i].String());
+        }
+        return tvERROR_NONE;
+    }
+
+    LOGWARN("AVOutputPlugins: %s: Invalid 'rangeInfo' format", __FUNCTION__);
+    return tvERROR_GENERAL;
+}
+
+tvError_t AVOutputTV::ExtractContextCaps(const JsonObject& data, tvContextCaps_t** context_caps) {
+    if (!context_caps) {
+        LOGWARN("AVOutputPlugins: %s: NULL input param", __FUNCTION__);
+        return tvERROR_INVALID_PARAM;
+    }
+
+    if (!data.HasLabel("context")) {
+        LOGWARN("AVOutputPlugins: %s: 'context' missing", __FUNCTION__);
         return tvERROR_GENERAL;
     }
 
     JsonObject context = data["context"].Object();
     if (!context.IsSet()) {
-        LOGWARN("AVOutputPlugins: %s: %d - Context is not set", __FUNCTION__, __LINE__);
+        LOGWARN("AVOutputPlugins: %s: Context is not set", __FUNCTION__);
         return tvERROR_GENERAL;
     }
-
-    std::string contextStr;
-    context.ToString(contextStr);
-    LOGINFO("Context JSON: %s", contextStr.c_str());
 
     std::vector<tvConfigContext_t> contexts = ParseContextCaps(context);
     *context_caps = AllocateContextCaps(contexts);
     if (!*context_caps) {
-        LOGWARN("AVOutputPlugins: %s: %d - Memory allocation failed", __FUNCTION__, __LINE__);
+        LOGWARN("AVOutputPlugins: %s: Memory allocation failed", __FUNCTION__);
         return tvERROR_GENERAL;
     }
+
     return tvERROR_NONE;
 }
 
@@ -2497,33 +2504,94 @@ tvContextCaps_t* AVOutputTV::AllocateContextCaps(const std::vector<tvConfigConte
     return context_caps;
 }
 
+tvError_t AVOutputTV::GetCaps(const std::string& key, int* max_value, tvContextCaps_t** context_caps, std::vector<std::string>& options) {
+    LOGINFO("Entry\n");
+    JsonObject root;
+    if (ReadJsonFile(root) != tvERROR_NONE) {
+        return tvERROR_GENERAL;
+    }
+
+    if (!root.HasLabel(key.c_str())) {
+        LOGWARN("AVOutputPlugins: %s: Missing '%s' label", __FUNCTION__, key.c_str());
+        return tvERROR_GENERAL;
+    }
+
+    JsonObject data = root[key.c_str()].Object();
+    if (!data.HasLabel("platformSupport") || !data["platformSupport"].Boolean()) {
+        LOGWARN("AVOutputPlugins: %s: Platform support is false", __FUNCTION__);
+        return tvERROR_OPERATION_NOT_SUPPORTED;
+    }
+
+    if (ExtractRangeInfo(data, max_value, options) != tvERROR_NONE) {
+        return tvERROR_GENERAL;
+    }
+
+    if (ExtractContextCaps(data, context_caps) != tvERROR_NONE) {
+        return tvERROR_GENERAL;
+    }
+
+    return tvERROR_NONE;
+}
+
 tvError_t AVOutputTV::GetBacklightCaps(int* max_backlight, tvContextCaps_t** context_caps) {
-    return GetCaps("Backlight", max_backlight, context_caps);
+    std::vector<std::string> emptyOptions;
+    return GetCaps("Backlight", max_backlight, context_caps, emptyOptions);
 }
 
 tvError_t AVOutputTV::GetBrightnessCaps(int* max_brightness, tvContextCaps_t** context_caps) {
-    return GetCaps("Brightness", max_brightness, context_caps);
+    std::vector<std::string> emptyOptions;
+    return GetCaps("Brightness", max_brightness, context_caps, emptyOptions);
 }
 
 tvError_t AVOutputTV::GetContrastCaps(int* max_contrast, tvContextCaps_t** context_caps) {
-    return GetCaps("Contrast", max_contrast, context_caps);
+    std::vector<std::string> emptyOptions;
+    return GetCaps("Contrast", max_contrast, context_caps, emptyOptions);
 }
 
 tvError_t AVOutputTV::GetSharpnessCaps(int* max_sharpness, tvContextCaps_t** context_caps) {
-    return GetCaps("Sharpness", max_sharpness, context_caps);
+    std::vector<std::string> emptyOptions;
+    return GetCaps("Sharpness", max_sharpness, context_caps, emptyOptions);
 }
 
 tvError_t AVOutputTV::GetSaturationCaps(int* max_saturation, tvContextCaps_t** context_caps) {
-    return GetCaps("Saturation", max_saturation, context_caps);
+    std::vector<std::string> emptyOptions;
+    return GetCaps("Saturation", max_saturation, context_caps, emptyOptions);
 }
 
 tvError_t AVOutputTV::GetHueCaps(int* max_hue, tvContextCaps_t** context_caps) {
-    return GetCaps("Hue", max_hue, context_caps);
+    std::vector<std::string> emptyOptions;
+    return GetCaps("Hue", max_hue, context_caps, emptyOptions);
 }
 
 tvError_t AVOutputTV::GetPrecisionDetailCaps(int* max_precision, tvContextCaps_t** context_caps) {
-    return GetCaps("PrecisionDetails", max_precision, context_caps);
+    std::vector<std::string> emptyOptions;
+    return GetCaps("PrecisionDetails", max_precision, context_caps, emptyOptions);
 }
+
+tvError_t AVOutputTV::GetColorTemperatureCaps(int* options_count, tvContextCaps_t** context_caps, std::vector<std::string>& options) {
+    return GetCaps("ColorTemperature", options_count, context_caps, options);
+}
+
+tvError_t AVOutputTV::GetSdrGammaCaps(int* options_count, tvContextCaps_t** context_caps, std::vector<std::string>& options) {
+    return GetCaps("SDRGamma", options_count, context_caps, options);
+}
+
+/*
+tvError_t GetColorTemperatureCaps(char*** options, size_t* options_count, tvContextCaps_t** context_caps);
+Since C does not have std::vector, we use char*** options (a pointer to an array of strings).
+size_t* options_count is used to store the number of elements in the array.
+
+char** options = NULL;
+size_t options_count = 0;
+tvContextCaps_t* context_caps = NULL;
+
+tvError_t status = GetColorTemperatureCaps(&options, &options_count, &context_caps);
+if (status == tvERROR_NONE) {
+    for (size_t i = 0; i < options_count; i++) {
+        printf("Option: %s\n", options[i]);
+    }
+}
+*/
 
 #endif
 
