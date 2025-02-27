@@ -392,7 +392,7 @@ void UserSettingsImplementation::ValueChanged(const Exchange::IStore2::ScopeType
     {
         dispatchEvent(PREFERRED_CLOSED_CAPTIONS_SERVICE_CHANGED, JsonValue((string)value));
     }
-    else if((ns.compare(USERSETTINGS_NAMESPACE) == 0) && (key.compare(USERSETTINGS_PRIVACY_MODE_KEY) == 0))
+    else if(0 == (ns.compare(USERSETTINGS_NAMESPACE)) && (0 == key.compare(USERSETTINGS_PRIVACY_MODE_KEY)))
     {
         dispatchEvent(PRIVACY_MODE_CHANGED, JsonValue((string)value));
     }
