@@ -215,6 +215,7 @@ namespace WPEFramework {
 	    void audioFormatToString(dsAudioFormat_t audioFormat, JsonObject &response);
             const char *getVideoFormatTypeToString(dsHDRStandard_t format);
             dsHDRStandard_t getVideoFormatTypeFromString(const char *mode);
+            bool isHDRModeForcible(const char *mode);
             JsonArray getSupportedVideoFormats();
             bool checkPortName(std::string& name) const;
             IARM_Bus_PWRMgr_PowerState_t getSystemPowerState();

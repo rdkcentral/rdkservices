@@ -3970,10 +3970,16 @@ namespace WPEFramework {
             returnIfParamNotFound(parameters, "hdr_mode");
 
             string sMode = parameters["hdr_mode"].String();
-            dsHDRStandard_t mode = getVideoFormatTypeFromString(sMode.c_str());
-            LOGINFO("setForceHDRMode entry hdr_mode :%s mode:%d  !\n",sMode.c_str(),mode);
-
             bool success = false;
+	    if(isHDRModeForcible(sMode.c_str()))
+	    {
+                dsHDRStandard_t mode = getVideoFormatTypeFromString(sMode.c_str());
+                LOGINFO("setForceHDRMode entry hdr_mode :%s mode:%d  !\n",sMode.c_str(),mode);
+	    }else{
+                LOGINFO("setForceHDRMode not allowed for hdr_mode: %s\n",sMode.c_str());
+		returnResponse(success); //success false
+	    }
+
             try
             {
 		std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
@@ -6090,7 +6096,7 @@ void DisplaySettings::sendMsgThread()
             else if(strcmp(strFormat,"DV")== 0)
                     mode = dsHDRSTANDARD_DolbyVision;
             else if(strcmp(strFormat,"HLG")== 0)
-                    mode = dsHDRSTANDARD_TechnicolorPrime;
+                    mode = dsHDRSTANDARD_HLG;
             else if(strcmp(strFormat,"TechnicolorPrime")== 0)
                     mode = dsHDRSTANDARD_NONE;
 	    else
@@ -6098,6 +6104,17 @@ void DisplaySettings::sendMsgThread()
 
 	    return mode;
         }
+
+	bool isHDRModeForcible(const char *mode)
+	{
+            /* dsSetForceHDRMode specced for forcing below HDR modes only */
+            std::vector<string> allowedForceHDRModes = {"DV","HDR10","SDR","NONE"};
+
+	    if(find(allowedForceHDRModes.begin(), allowedForceHDRModes.end(), mode)!= allowedForceHDRModes.end())
+		    return true;
+	    else
+		    return false;
+	}
 
 	void DisplaySettings::Request(const string& newState)
 	{
