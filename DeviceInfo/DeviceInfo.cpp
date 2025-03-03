@@ -18,6 +18,17 @@
  */
 
 #include "DeviceInfo.h"
+#include "IdentityProvider.h"
+#include <interfaces/IConfiguration.h>
+#include <interfaces/IDeviceIdentification2.h>
+#include "tracing/Logging.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsController.h"
+#ifdef USE_THUNDER_R4
+#include <interfaces/IDeviceInfo.h>
+#else
+#include <interfaces/IDeviceInfo2.h>
+#endif /* USE_THUNDER_R4 */
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 1
@@ -29,11 +40,19 @@ namespace {
         // Version (Major, Minor, Patch)
         API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
         // Preconditions
+#ifdef DISABLE_DEVICEID_CONTROL
+        { PluginHost::ISubSystem::IDENTIFIER },
+#else
         {},
+#endif
         // Terminations
         {},
         // Controls
+#ifdef DISABLE_DEVICEID_CONTROL
         {}
+#else
+        { PluginHost::ISubSystem::IDENTIFIER }
+#endif
     );
 }
 
@@ -47,7 +66,7 @@ namespace Plugin {
     {
         ASSERT(_service == nullptr);
         ASSERT(service != nullptr);
-
+        ASSERT(_identifier == nullptr);
         ASSERT(_subSystem == nullptr);
 
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
@@ -57,14 +76,71 @@ namespace Plugin {
         ASSERT(_subSystem != nullptr);
 
         _deviceInfo = service->Root<Exchange::IDeviceInfo>(_connectionId, 2000, _T("DeviceInfoImplementation"));
+        if(nullptr != _deviceInfo)
+        {
+            auto configConnection = _deviceInfo->QueryInterface<Exchange::IConfiguration>();
+            if (configConnection != nullptr) {
+                configConnection->Configure(service);
+                configConnection->Release();
+            }
+        }
+        
         _deviceAudioCapabilities = service->Root<Exchange::IDeviceAudioCapabilities>(_connectionId, 2000, _T("DeviceAudioCapabilities"));
         _deviceVideoCapabilities = service->Root<Exchange::IDeviceVideoCapabilities>(_connectionId, 2000, _T("DeviceVideoCapabilities"));
         _firmwareVersion = service->Root<Exchange::IFirmwareVersion>(_connectionId, 2000, _T("FirmwareVersion"));
+        
+        _device = service->Root<Exchange::IDeviceIdentification2>(_connectionId, 2000, _T("DeviceImplementation"));
+        if (_device != nullptr) {
 
+            Exchange::IConfiguration* configure = _device->QueryInterface<Exchange::IConfiguration>();
+            if (configure != nullptr) {
+                configure->Configure(service);
+                configure->Release();
+            }
+
+            _identifier = _device->QueryInterface<PluginHost::ISubSystem::IIdentifier>();
+            if (_identifier == nullptr) {
+
+                _device->Release();
+                _device = nullptr;
+            } else {
+                _deviceId = GetDeviceId();
+                if (_deviceId.empty() != true) {
+                    //                    service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _device);
+#ifndef DISABLE_DEVICEID_CONTROL
+                    service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _identifier);
+#endif
+                }
+            }
+        }
+#if 0
+            _identifier = service->Root<PluginHost::ISubSystem::IIdentifier>(_connectionId, RPC::CommunicationTimeOut, _T("DeviceImplementation"));
+
+            if (_identifier != nullptr) {
+
+                Exchange::IConfiguration* configure = _identifier->QueryInterface<Exchange::IConfiguration>();
+                if (configure != nullptr) {
+                    configure->Configure(service);
+                    configure->Release();
+                }
+
+                std::cout<<"RamTesting Init chipset"<<_identifier->Chipset()<<std::endl;
+                std::cout<<"RamTesting Init firmwareVersion"<<_identifier->FirmwareVersion()<<std::endl;
+                service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _identifier);
+                std::cout<<"ramtest _deviceId : "<<_deviceId<<std::endl;
+                _deviceId = GetDeviceId();
+
+                if (_deviceId.empty() != true) {
+#ifndef DISABLE_DEVICEID_CONTROL
+                    //                service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _identifier);
+#endif
+                }
+#endif
         ASSERT(_deviceInfo != nullptr);
         ASSERT(_deviceAudioCapabilities != nullptr);
         ASSERT(_deviceVideoCapabilities != nullptr);
         ASSERT(_firmwareVersion != nullptr);
+        ASSERT(_device != nullptr);
 
         // On success return empty, to indicate there is no error text.
 
@@ -72,6 +148,7 @@ namespace Plugin {
                    && (_deviceInfo != nullptr)
                    && (_deviceAudioCapabilities != nullptr)
                    && (_deviceVideoCapabilities != nullptr)
+                   && (_device != nullptr)
                    && (_firmwareVersion != nullptr))
             ? EMPTY_STRING
             : _T("Could not retrieve System Information.");
@@ -81,10 +158,18 @@ namespace Plugin {
     {
         ASSERT(_service == service);
 
+        if (_deviceId.empty() != true) {
+#ifndef DISABLE_DEVICEID_CONTROL
+            service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, nullptr);
+#endif
+            _deviceId.clear();
+        }
+
         _deviceInfo->Release();
         _deviceAudioCapabilities->Release();
         _deviceVideoCapabilities->Release();
         _firmwareVersion->Release();
+        _identifier->Release();
 
         if (_subSystem != nullptr) {
             _subSystem->Release();
@@ -217,5 +302,86 @@ namespace Plugin {
         socketPortInfo.Runs = Core::ResourceMonitor::Instance().Runs();
     }
 
+    string DeviceInfo::RetrieveSerialNumberThroughCOMRPC() const
+    {
+        std::string Number;
+        if (_service)
+        {
+            PluginHost::IShell::state state;
+
+            if ((Utils::getServiceState(_service, "DeviceInfo", state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+            {
+                Utils::activatePlugin(_service, "DeviceInfo");
+            }
+            if ((Utils::getServiceState(_service, "DeviceInfo", state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+            {
+                auto _remoteDeviceInfoObject = _service->QueryInterfaceByCallsign<Exchange::IDeviceInfo>("DeviceInfo");
+
+                if(_remoteDeviceInfoObject)
+                {
+                    _remoteDeviceInfoObject->SerialNumber(Number);
+                    _remoteDeviceInfoObject->Release();
+                }
+            }
+            else
+            {
+                LOGERR("Failed to create DeviceInfo object\n");
+            }
+        }
+        return Number;
+    }
+    string DeviceInfo::GetDeviceId() const
+    {
+        string result;
+        string serial;
+#ifndef DISABLE_DEVICEID_CONTROL
+        ASSERT(_identifier != nullptr);
+
+        if (_identifier != nullptr) {
+            uint8_t myBuffer[64];
+
+            myBuffer[0] = _identifier->Identifier(sizeof(myBuffer) - 1, &(myBuffer[1]));
+
+            if (myBuffer[0] != 0) {
+                result = Core::SystemInfo::Instance().Id(myBuffer, ~0);
+            }
+            else
+            {
+                serial = RetrieveSerialNumberThroughCOMRPC();
+
+                if (!serial.empty()) {
+                    uint8_t ret = serial.length();
+
+                    if (ret > (sizeof(myBuffer) - 1)){
+                        ret = sizeof(myBuffer) - 1;
+                    }
+                    myBuffer[0] = ret;
+                    ::memcpy(&(myBuffer[1]), serial.c_str(), ret);
+
+                    if(myBuffer[0] != 0){
+                        result = Core::SystemInfo::Instance().Id(myBuffer, ~0);
+                    }
+                }
+            }
+
+        }
+#else
+        // extract DeviceId set by Thunder
+        if (_service->SubSystems()->IsActive(PluginHost::ISubSystem::IDENTIFIER) == true) {
+
+            const PluginHost::ISubSystem::IIdentifier* identifier(_service->SubSystems()->Get<PluginHost::ISubSystem::IIdentifier>());
+
+            if (identifier != nullptr) {
+                uint8_t myBuffer[64];
+
+                if ((myBuffer[0] = identifier->Identifier(sizeof(myBuffer) - 1, &(myBuffer[1]))) != 0) {
+                    result = Core::SystemInfo::Instance().Id(myBuffer, ~0);
+                }
+                identifier->Release();
+            }
+        }
+#endif
+        return result;
+    }
 } // namespace Plugin
 } // namespace WPEFramework
