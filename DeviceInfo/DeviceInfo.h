@@ -73,6 +73,8 @@ namespace Plugin {
             , _deviceAudioCapabilities(nullptr)
             , _deviceVideoCapabilities(nullptr)
             , _firmwareVersion(nullptr)
+            , _deviceId()
+            , _identifier(nullptr)
         {
             RegisterAll();
         }
@@ -123,6 +125,7 @@ namespace Plugin {
         uint32_t get_supportedaudioports(JsonData::DeviceInfo::SupportedaudioportsData& response) const;
         uint32_t get_supportedvideodisplays(JsonData::DeviceInfo::SupportedvideodisplaysData& response) const;
         uint32_t get_hostedid(JsonData::DeviceInfo::HostedidData& response) const;
+        uint32_t get_chipset(JsonData::DeviceInfo::ChipsetData& response) const;
         uint32_t endpoint_defaultresolution(const JsonData::DeviceInfo::SupportedresolutionsParamsInfo& params, JsonData::DeviceInfo::DefaultresolutionResultData& response) const;
         uint32_t endpoint_supportedresolutions(const JsonData::DeviceInfo::SupportedresolutionsParamsInfo& params, JsonData::DeviceInfo::SupportedresolutionsResultData& response) const;
         uint32_t endpoint_supportedhdcp(const JsonData::DeviceInfo::SupportedresolutionsParamsInfo& params, JsonData::DeviceInfo::SupportedhdcpResultData& response) const;
@@ -133,6 +136,8 @@ namespace Plugin {
         void SysInfo(JsonData::DeviceInfo::SysteminfoData& systemInfo) const;
         void AddressInfo(Core::JSON::ArrayType<JsonData::DeviceInfo::AddressesData>& addressInfo) const;
         void SocketPortInfo(JsonData::DeviceInfo::SocketinfoData& socketPortInfo) const;
+        string GetDeviceId() const;
+        string RetrieveSerialNumberThroughCOMRPC() const;
 
     private:
         uint8_t _skipURL;
@@ -143,6 +148,9 @@ namespace Plugin {
         Exchange::IDeviceAudioCapabilities* _deviceAudioCapabilities;
         Exchange::IDeviceVideoCapabilities* _deviceVideoCapabilities;
         Exchange::IFirmwareVersion* _firmwareVersion;
+        string _deviceId;
+        PluginHost::ISubSystem::IIdentifier* _identifier;
+
     };
 
 } // namespace Plugin
