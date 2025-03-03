@@ -24,6 +24,3 @@ curl -H "Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '"' -f 4`" 
 {"jsonrpc":"2.0","id":3,"result":{"success":true}}
 
 ```
-
-## Full Reference
-https://etwiki.sys.comcast.net/display/RDKV/MigrationPreparer+Plugin+Design+Document
