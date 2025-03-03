@@ -83,7 +83,7 @@ namespace WPEFramework
 
             if (mIsSystemTimeAvailable)
             {
-                std::pair<SystemTime::TimeZoneAccuracy, int32_t> tzParsed = ParseTimeZone(mTimeZone, mTimeZoneAccuracyString);
+                std::pair<SystemTime::TimeZoneAccuracy, int32_t> tzParsed = ParseTimeZone();
                 offsetSec = tzParsed.second;
                 return tzParsed.first;
             }
@@ -211,18 +211,27 @@ namespace WPEFramework
                 std::string accuracy = response["accuracy"].String();
 
                 std::lock_guard<std::mutex> guard(mLock);
-                if (mTimeZone != tz || mTimeZoneAccuracyString != accuracy)
+                mTimeZoneAccuracyString = accuracy;
+                if (accuracy == "FINAL")
                 {
-                    mTimeZone = tz;
-                    mTimeZoneAccuracyString = accuracy;
+                    if (mTimeZone != tz)
+                    {
+                        mTransitionMap.clear();
+                        mTimeZone = tz;
+                    }
+                }
+                else
+                {
+                    mTimeZone.clear();
+                    mTransitionMap.clear();
                 }
             }
         }
 
-        std::pair<SystemTime::TimeZoneAccuracy, int32_t> SystemTime::ParseTimeZone(const string &timeZone, const std::string &accuracy)
+        std::pair<SystemTime::TimeZoneAccuracy, int32_t> SystemTime::ParseTimeZone()
         {
             std::pair<SystemTime::TimeZoneAccuracy, int32_t> result = {ACC_UNDEFINED, 0};
-            if (timeZone.empty())
+            if (mTimeZone.empty())
             {
                 return result;
             }
@@ -232,7 +241,7 @@ namespace WPEFramework
                 {"INTERIM", INTERIM},
                 {"FINAL", FINAL}};
 
-            auto accuracyItr = accuracyMap.find(accuracy);
+            auto accuracyItr = accuracyMap.find(mTimeZoneAccuracyString);
             if (accuracyItr == accuracyMap.end())
             {
                 result.first = ACC_UNDEFINED;
@@ -240,13 +249,13 @@ namespace WPEFramework
                 result.first = accuracyItr->second;
             }
 
-            if (timeZone == "Universal")
+            if (mTimeZone == "Universal")
             {
                 result.second = 0;
                 return result;
             }
 
-            PopulateTimeZoneTransitionMap(timeZone, accuracy);
+            PopulateTimeZoneTransitionMap();
 
             if (mTransitionMap.empty())
             {
@@ -255,6 +264,7 @@ namespace WPEFramework
             }
 
             time_t currentTime = time(NULL);
+
             auto currentTimeEndItr = mTransitionMap.lower_bound(currentTime);
 
             if (currentTimeEndItr != mTransitionMap.end())
@@ -276,60 +286,56 @@ namespace WPEFramework
             return result;
         }
 
-        void SystemTime::PopulateTimeZoneTransitionMap(const std::string &newTimeZone, const std::string &accuracy)
+        void SystemTime::PopulateTimeZoneTransitionMap()
         {
-            if (accuracy == "FINAL")
-            {
-                if (mTimeZone != newTimeZone)
-                {
-                    mTransitionMap.clear();
-                    mTimeZone = newTimeZone;
-                }
-            }
-            else
-            {
-                mTimeZone.clear();
-                mTransitionMap.clear();
-            }
-
             if (mTransitionMap.empty() && !mTimeZone.empty())
             {
-                FILE *fp = v_secure_popen("r", "zdump -v %s", mTimeZone.c_str());
+                std::string cmd = "zdump -v " + mTimeZone;
+                FILE *fp = popen(cmd.c_str(), "r");
                 if (fp != NULL)
                 {
-                    LOGINFO("v_secure_popen of zdump -v %s succeeded", mTimeZone.c_str());
+                    LOGINFO("popen of '%s' succeeded", cmd.c_str());
 
-                    // <timezone>  Tue Jan 19 03:14:07 2038 UT = Tue Jan 19 04:14:07 2038 CET isdst=0 gmtoff=3600
-                    char buf[256] = {0};
-
+                    // Read entire output of zdump
+                    char buf[4096] = {0};
+                    std::string output;
                     while (fgets(buf, sizeof(buf), fp) != NULL)
                     {
+                        output += buf;
+                    }
+
+                    pclose(fp);
+
+                    // Convert output to read line by line
+                    std::istringstream iss(output);
+                    std::string line;
+                    while (std::getline(iss, line))
+                    {
                         // "<timezone>  Tue Jan 19 03:14:07 2038 UT = Tue Jan 19 04:14:07 2038 CET isdst=0 gmtoff=3600"
-                        std::string temp(buf);
                         struct tm utcTime = {0};
 
-                        temp.erase(0, temp.find(" ") + 2); // Remove "<timezone>  " -> 2 spaces
+                        line.erase(0, line.find(" ") + 2); // Remove "<timezone>  " -> 2 spaces
 
-                        auto utOff = temp.find(" UT = ");
-                        std::string date = temp.substr(0, utOff); // Capture UTC date "Tue Jan 19 03:14:07 2038"
+                        auto utOff = line.find(" UT = ");
+                        std::string date = line.substr(0, utOff); // Capture UTC date "Tue Jan 19 03:14:07 2038"
 
                         // Remove everything to " UT = ", "Tue Jan 19 04:14:07 2038 CET isdst=0 gmtoff=3600" is left
-                        temp.erase(0, utOff + sizeof(" UT = ") - 1);
+                        line.erase(0, utOff + sizeof(" UT = ") - 1);
 
                         // Remove until next 5 spaces, "CET isdst=0 gmtoff=3600" will be left
                         auto spaceCount = 5;
                         while (spaceCount > 0)
                         {
-                            auto spOff = temp.find(" ");
+                            auto spOff = line.find(" ");
                             // In case of one-digit day of month there are two spaces before that
                             if (spaceCount == 4)
                             {
                                 // thus + 2 to remove it (it applies also to two-digits but it's ok because it's removed anyway)
-                                temp.erase(0, spOff + 2);
+                                line.erase(0, spOff + 2);
                             }
                             else
                             {
-                                temp.erase(0, spOff + 1);
+                                line.erase(0, spOff + 1);
                             }
                             spaceCount--;
                         }
@@ -337,7 +343,7 @@ namespace WPEFramework
                         char timeZone[5] = {0};
                         int32_t isDst = 0;
                         int32_t gmtOff = 0;
-                        sscanf(temp.c_str(), "%s isdst=%d gmtoff=%d", timeZone, &isDst, &gmtOff);
+                        sscanf(line.c_str(), "%s isdst=%d gmtoff=%d", timeZone, &isDst, &gmtOff);
                         strptime(date.c_str(), "%A %B %d %H:%M:%S %Y", &utcTime);
 
                         // Years below 70 are not supported by epoch
@@ -366,12 +372,10 @@ namespace WPEFramework
                             }
                         }
                     }
-
-                    v_secure_pclose(fp);
                 }
                 else
                 {
-                    LOGERR("v_secure_popen of zdump -v %s failed", mTimeZone.c_str());
+                    LOGERR("popen of zdump -v %s failed", mTimeZone.c_str());
                 }
             }
         }
@@ -401,7 +405,7 @@ namespace WPEFramework
                         {
                             SubscribeForEvents();
                             UpdateTimeStatus();
-                            UpdateTimeZone();                            
+                            UpdateTimeZone();
                         }
                         else
                         {
@@ -437,10 +441,19 @@ namespace WPEFramework
                         std::string accuracy = response["newAccuracy"].String();
 
                         std::lock_guard<std::mutex> guard(mLock);
-                        if (mTimeZone != tz || mTimeZoneAccuracyString != accuracy)
+                        mTimeZoneAccuracyString = accuracy;
+                        if (accuracy == "FINAL")
                         {
-                            mTimeZone = tz;
-                            mTimeZoneAccuracyString = accuracy;
+                            if (mTimeZone != tz)
+                            {
+                                mTransitionMap.clear();
+                                mTimeZone = tz;
+                            }
+                        }
+                        else
+                        {
+                            mTimeZone.clear();
+                            mTransitionMap.clear();
                         }
                     }
                 }

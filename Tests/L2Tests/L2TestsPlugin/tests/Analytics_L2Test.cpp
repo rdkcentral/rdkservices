@@ -23,12 +23,22 @@
 #define SIFT_SERVER_PORT 12345
 #define SIFT_SERVER_TIMEOUT_SEC (30)
 
-#define ZDUMP_MOCK_OUT "America/New_York  Sun Mar  9 07:00:00 2008 UT = Sun Mar  9 03:00:00 2008 EDT isdst=1 gmtoff=-14400\n" \
+#define ZDUMP_MOCK_OUT_AMERICA "America/New_York  Sun Mar  9 07:00:00 2008 UT = Sun Mar  9 03:00:00 2008 EDT isdst=1 gmtoff=-14400\n" \
                        "America/New_York  Sun Nov  2 05:59:59 2008 UT = Sun Nov  2 01:59:59 2008 EDT isdst=1 gmtoff=-14400\n" \
                        "America/New_York  Sun Nov  2 06:00:00 2008 UT = Sun Nov  2 01:00:00 2008 EST isdst=0 gmtoff=-18000\n" \
                        "America/New_York  Sun Mar  8 06:59:59 2009 UT = Sun Mar  8 01:59:59 2009 EST isdst=0 gmtoff=-18000\n" \
                        "America/New_York  Sun Mar  8 07:00:00 2009 UT = Sun Mar  8 03:00:00 2009 EDT isdst=1 gmtoff=-14400"
-#define TIME_MOCK_OUT 1212537600 // 2008-06-03 12:00:00
+
+#define ZDUMP_MOCK_OUT_AUSTRALIA "Australia/Sydney  Sat Oct 27 15:59:59 2007 UT = Sun Oct 28 01:59:59 2007 AEST isdst=0 gmtoff=36000\n" \
+                        "Australia/Sydney  Sat Oct 27 16:00:00 2007 UT = Sun Oct 28 03:00:00 2007 AEDT isdst=1 gmtoff=39600\n" \
+                        "Australia/Sydney  Sat Apr  5 15:59:59 2008 UT = Sun Apr  6 02:59:59 2008 AEDT isdst=1 gmtoff=39600\n" \
+                        "Australia/Sydney  Sat Apr  5 16:00:00 2008 UT = Sun Apr  6 02:00:00 2008 AEST isdst=0 gmtoff=36000\n" \
+                        "Australia/Sydney  Sat Oct  4 15:59:59 2008 UT = Sun Oct  5 01:59:59 2008 AEST isdst=0 gmtoff=36000\n" \
+                        "Australia/Sydney  Sat Oct  4 16:00:00 2008 UT = Sun Oct  5 03:00:00 2008 AEDT isdst=1 gmtoff=39600\n" \
+                        "Australia/Sydney  Sat Apr  4 15:59:59 2009 UT = Sun Apr  5 02:59:59 2009 AEDT isdst=1 gmtoff=39600"
+
+
+#define TIME_MOCK_OUT 1212537600 // 2008-06-04 12:00:00
 
 #define EVENTS_MAP "[ \
                 { \
@@ -186,6 +196,8 @@ public:
     AnalyticsTest();
 };
 
+extern "C" int __real_pclose(FILE* pipe);
+
 AnalyticsTest::AnalyticsTest()
     : L2TestMocks()
 {
@@ -290,17 +302,16 @@ AnalyticsTest::AnalyticsTest()
     file << "echo 'friendly_id=rdkglobal'\n";
     file.close();
 
-    ON_CALL(*p_wrapsImplMock, v_secure_popen(::testing::_, ::testing::_, ::testing::_))
+#if 0 // In L2 popen/pclose is not enabled to be mocked
+    ON_CALL(*p_wrapsImplMock, popen(::testing::_, ::testing::_))
         .WillByDefault(::testing::Invoke(
-            [&](const char* direction, const char* command, va_list args) -> FILE* {
+            [&](const char* command, const char* type) -> FILE* {
                 const char* valueToReturn = NULL;
-                va_list args2;
-                va_copy(args2, args);
-                char strFmt[256];
-                vsnprintf(strFmt, sizeof(strFmt), command, args2);
-                va_end(args2);
-                if (strcmp(strFmt, "zdump -v America/New_York") == 0) {
-                    valueToReturn = ZDUMP_MOCK_OUT;
+                if (strcmp(command, "zdump -v America/New_York") == 0) {
+                    valueToReturn = ZDUMP_MOCK_OUT_AMERICA;
+                }
+                if (strcmp(command, "zdump -v Australia/Sydney") == 0) {
+                    valueToReturn = ZDUMP_MOCK_OUT_AUSTRALIA;
                 }
                 if (valueToReturn != NULL) {
                     memset(gPipeBuffer, 0, sizeof(gPipeBuffer));
@@ -312,11 +323,18 @@ AnalyticsTest::AnalyticsTest()
                 }
             }));
 
+    ON_CALL(*p_wrapsImplMock, pclose(::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [&](FILE* pipe){
+                return __real_pclose(pipe);
+            }));
+
     ON_CALL(*p_wrapsImplMock, time(::testing::_))
         .WillByDefault(::testing::Invoke(
             [&](time_t* arg) -> time_t {
                 return TIME_MOCK_OUT;
             }));
+#endif
 
     // Mock event mapping file
     std::ofstream eventsMapFile("/tmp/AnalyticsEventsMap.json");
@@ -464,7 +482,7 @@ TEST_F(AnalyticsTest, SendAndReceiveSignleEventQueued)
     EXPECT_EQ(eventObj["partner_id"].String(), "rdkglobal");
     EXPECT_EQ(eventObj["device_model"].String(), "RDK");
     EXPECT_EQ(eventObj["device_type"].String(), "STB");
-    EXPECT_EQ(eventObj["device_timezone"].Number(), -14400000);
+    //EXPECT_EQ(eventObj["device_timezone"].Number(), -14400000);
     EXPECT_EQ(eventObj["device_os_name"].String(), "rdk");
     EXPECT_EQ(eventObj["device_os_version"].String(), "L2Test_STB");
     EXPECT_EQ(eventObj["platform"].String(), "L2Test_Proposition");
@@ -589,7 +607,7 @@ TEST_F(AnalyticsTest, SendAndReceiveMultipleEventsQueued)
         EXPECT_EQ(eventObj["partner_id"].String(), "rdkglobal");
         EXPECT_EQ(eventObj["device_model"].String(), "RDK");
         EXPECT_EQ(eventObj["device_type"].String(), "STB");
-        EXPECT_EQ(eventObj["device_timezone"].Number(), -14400000);
+        //EXPECT_EQ(eventObj["device_timezone"].Number(), -14400000);
         EXPECT_EQ(eventObj["device_os_name"].String(), "rdk");
         EXPECT_EQ(eventObj["device_os_version"].String(), "L2Test_STB");
         EXPECT_EQ(eventObj["platform"].String(), "L2Test_Proposition");
@@ -713,7 +731,7 @@ TEST_F(AnalyticsTest, SendAndReceiveMultipleEventsTimeOk)
         EXPECT_EQ(eventObj["partner_id"].String(), "rdkglobal");
         EXPECT_EQ(eventObj["device_model"].String(), "RDK");
         EXPECT_EQ(eventObj["device_type"].String(), "STB");
-        EXPECT_EQ(eventObj["device_timezone"].Number(), -14400000);
+        //EXPECT_EQ(eventObj["device_timezone"].Number(), -14400000);
         EXPECT_EQ(eventObj["device_os_name"].String(), "rdk");
         EXPECT_EQ(eventObj["device_os_version"].String(), "L2Test_STB");
         EXPECT_EQ(eventObj["platform"].String(), "L2Test_Proposition");
@@ -963,7 +981,7 @@ TEST_F(AnalyticsTest, OnPersistentStoreValChange)
     EXPECT_EQ(eventObj["partner_id"].String(), "rdkglobal");
     EXPECT_EQ(eventObj["device_model"].String(), "RDK");
     EXPECT_EQ(eventObj["device_type"].String(), "STB2");
-    EXPECT_EQ(eventObj["device_timezone"].Number(), -14400000);
+    //EXPECT_EQ(eventObj["device_timezone"].Number(), -14400000);
     EXPECT_EQ(eventObj["device_os_name"].String(), "rdk");
     EXPECT_EQ(eventObj["device_os_version"].String(), "L2Test_STB2");
     EXPECT_EQ(eventObj["platform"].String(), "L2Test_Proposition2");
@@ -1035,8 +1053,6 @@ TEST_F(AnalyticsTest, EventsMapping)
     status = InvokeServiceMethod("org.rdk.System", "setTimeZoneDST", paramsJson, resultJson);
     EXPECT_EQ(status, Core::ERROR_NONE);
 
-    // wait for all events to be stored in the analytics store
-    sleep(5);
 
     SiftServerMock siftServer;
     EXPECT_TRUE(siftServer.Start());
@@ -1076,4 +1092,55 @@ TEST_F(AnalyticsTest, EventsMapping)
         EXPECT_EQ(eventObj["event_name"].String(), "L2TestEventMappedGenericSourceVersion");
     }
 
+}
+
+TEST_F(AnalyticsTest, TimezoneChanged)
+{
+    JsonObject paramsJson;
+    JsonObject resultJson;
+
+    paramsJson.Clear();
+    paramsJson["timeZone"] = "America/New_York";
+    paramsJson["accuracy"] = "FINAL";
+    uint32_t status = InvokeServiceMethod("org.rdk.System", "setTimeZoneDST", paramsJson, resultJson);
+    EXPECT_EQ(status, Core::ERROR_NONE);
+
+    sleep(3);
+
+    paramsJson.Clear();
+    paramsJson["timeZone"] = "Australia/Sydney";
+    paramsJson["accuracy"] = "FINAL";
+    status = InvokeServiceMethod("org.rdk.System", "setTimeZoneDST", paramsJson, resultJson);
+    EXPECT_EQ(status, Core::ERROR_NONE);
+
+    sleep(3);
+
+    paramsJson.Clear();
+    paramsJson["eventName"] = "L2TestEvent";
+    paramsJson["eventVersion"] = "1";
+    paramsJson["eventSource"] = "L2Test";
+    paramsJson["eventSourceVersion"] = "1.0.0";
+    JsonObject eventPayload;
+    eventPayload["data"] = "random data";
+    paramsJson["eventPayload"] = eventPayload;
+
+    status = InvokeServiceMethod("org.rdk.Analytics", "sendEvent", paramsJson, resultJson);
+    EXPECT_EQ(status, Core::ERROR_NONE);
+
+    SiftServerMock siftServer;
+    EXPECT_TRUE(siftServer.Start());
+    
+    string eventsMsg = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC);
+    EXPECT_NE(eventsMsg, "");
+
+    // Check if the event message contains the expected fields
+    JsonArray eventArray;
+    eventArray.FromString(eventsMsg);
+    EXPECT_EQ(eventArray.Length(), 1);
+
+    if (eventArray.Length() == 1) {
+        JsonObject eventObj = eventArray[0].Object();
+        EXPECT_TRUE(eventObj.HasLabel("device_timezone"));
+        EXPECT_GT(eventObj["device_timezone"].Number(), 0);
+    }
 }

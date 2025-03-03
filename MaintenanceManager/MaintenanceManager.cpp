@@ -46,9 +46,6 @@
 #include "UtilscRunScript.h"
 #include "UtilsfileExists.h"
 
-enum eRetval { E_NOK = -1,
-    E_OK };
-
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
 
@@ -68,7 +65,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 39
+#define API_VERSION_NUMBER_PATCH 40
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -82,7 +79,7 @@ using namespace std;
 #define TR181_PARTNER_ID "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName"
 #define TR181_TARGET_OS_CLASS "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.OsClass"
 #define TR181_XCONFURL "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl"
-#endif /* WhoAmI */
+#endif
 
 #define INTERNET_CONNECTED_STATE 3
 
@@ -142,12 +139,6 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
             break;
         case MAINT_LOGUPLOAD_ERROR:
             ret_status="MAINTENANCE_LOGUPLOAD_ERROR";
-            break;
-        case MAINT_PINGTELEMETRY_COMPLETE:
-            ret_status="MAINTENANCE_PINGTELEMETRY_COMPLETE";
-            break;
-        case MAINT_PINGTELEMETRY_ERROR:
-            ret_status="MAINTENANCE_PINGTELEMETRY_ERROR";
             break;
         case MAINT_FWDOWNLOAD_COMPLETE:
             ret_status="MAINTENANCE_FWDOWNLOAD_COMPLETE";
@@ -263,7 +254,7 @@ namespace WPEFramework {
              */
 #ifdef DEBUG
             Register("sampleMaintenanceManagerAPI", &MaintenanceManager::sampleAPI, this);
-#endif /* DEBUG */
+#endif
             Register("getMaintenanceActivityStatus", &MaintenanceManager::getMaintenanceActivityStatus,this);
             Register("getMaintenanceStartTime", &MaintenanceManager::getMaintenanceStartTime,this);
             Register("setMaintenanceMode", &MaintenanceManager::setMaintenanceMode,this);
@@ -284,7 +275,7 @@ namespace WPEFramework {
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[0].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[1].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[2].c_str()] = DATA_TYPE::WDMP_STRING;
-#endif /* WhoAmI */
+#endif
          }
 
         void MaintenanceManager::task_execution_thread(){
@@ -292,6 +283,7 @@ namespace WPEFramework {
             string cmd="";
             bool internetConnectStatus=false;
 	    bool delayMaintenanceStarted = false;
+            bool exitOnNoNetwork = false;
 
             std::unique_lock<std::mutex> wailck(m_waiMutex);
             LOGINFO("Executing Maintenance tasks");
@@ -317,46 +309,54 @@ namespace WPEFramework {
 #if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
             bool activationStatus=false;
             bool skipFirmwareCheck=false;
-
-            /* Activation check */
-            activationStatus = getActivatedStatus(skipFirmwareCheck);
-
+            activationStatus = getActivatedStatus(skipFirmwareCheck); /* Activation check */
             /* we proceed with network check only if
-             * "activation-connect", "activation-ready"
-             * "not-activated", "activated" */
+             * "activation-connect", 
+	     * "activation-ready"
+             * "not-activated", 
+	     * "activated" */
             if(activationStatus){
-                /* Network check */
-                internetConnectStatus = isDeviceOnline();
+                internetConnectStatus = isDeviceOnline(); /* Network Check */
             }
-#else /* WhoAmI */
-            internetConnectStatus = isDeviceOnline();
+#else
+            internetConnectStatus = isDeviceOnline(); /* Network Check */
 #endif
 
 #if defined(ENABLE_WHOAMI)
-    string activation_status = checkActivatedStatus();
-    bool whoAmIStatus = false;
-    if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
-        /* WhoAmI check*/
-        whoAmIStatus = knowWhoAmI(activation_status);
-        if (whoAmIStatus) {
-            LOGINFO("knowWhoAmI() returned successfully");
-        }
-        else {
-            LOGINFO("knowWhoAmI() returned false");
-        }
-    }
+            if (UNSOLICITED_MAINTENANCE == g_maintenance_type) /* Unsolicited Maintenance in WHOAMI */
+	    {
+		string activation_status = checkActivatedStatus(); /* Device Activation Status Check */
+		bool whoAmIStatus = knowWhoAmI(activation_status); /* WhoAmI Response & Set Status Check */
+		LOGINFO("knowWhoAmI() returned %s", (whoAmIStatus) ? "successfully" : "false");
 
-    if (false == whoAmIStatus && activation_status != "activated") {
-        LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
-        g_listen_to_deviceContextUpdate = true;
-        LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
-        task_thread.wait(wailck);
-    }
-    else if ( false == internetConnectStatus && activation_status == "activated" ) {
-        LOGINFO("Device is not connected to the Internet and Device is already Activated");
-#else /* WhoAmI */
-            if ( false == internetConnectStatus ) {
+		if (!whoAmIStatus && activation_status != "activated")
+		{
+		    LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
+	            g_listen_to_deviceContextUpdate = true;
+	            LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
+	            task_thread.wait(wailck);
+	        }
+	        else if (!internetConnectStatus && activation_status == "activated") 
+		{
+		    LOGINFO("Device is not connected to the Internet and Device is already Activated");
+		    exitOnNoNetwork = true;
+		}
+	    }
+	    else /* Solicited Maintenance in WHOAMI */
+	    {
+		if(!internetConnectStatus)
+		{
+		    exitOnNoNetwork = true;
+		}
+	    }
+#else
+            if(!internetConnectStatus)
+	    {
+		    exitOnNoNetwork = true;
+	    }
 #endif
+            if(exitOnNoNetwork) /* Exit Maintenance Cycle if no Internet */
+	    {
                 m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                 m_statusMutex.unlock();
@@ -375,22 +375,13 @@ namespace WPEFramework {
 	    }
 
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
-
-            if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
-                LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
-            }
-            else if( SOLICITED_MAINTENANCE == g_maintenance_type){
-                LOGINFO("=============SOLICITED_MAINTENANCE===============");
-            }
+            LOGINFO("%s", UNSOLICITED_MAINTENANCE == g_maintenance_type ? "---------------UNSOLICITED_MAINTENANCE--------------" : "=============SOLICITED_MAINTENANCE===============");
 #if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
-            /* decide which all tasks are needed based on the activation status */
-            if (activationStatus){
                 if(skipFirmwareCheck){
                     /* set the task status of swupdate */
                     SET_STATUS(g_task_status,DIFD_SUCCESS);
                     SET_STATUS(g_task_status,DIFD_COMPLETE);
-
-                    /* Add tasks */
+                    /* Skip Firmware Download Task and add other tasks */
                     tasks.push_back(task_names_foreground[0].c_str());
                     tasks.push_back(task_names_foreground[2].c_str());
 		}
@@ -400,7 +391,6 @@ namespace WPEFramework {
 		    tasks.push_back(task_names_foreground[1].c_str());
 		    tasks.push_back(task_names_foreground[2].c_str());
 		}
-	    }
 #else
             tasks.push_back(task_names_foreground[0].c_str());
             tasks.push_back(task_names_foreground[1].c_str());
@@ -481,7 +471,7 @@ namespace WPEFramework {
                 }
             }while(true);
         }
-#endif /* WhoAmI */
+#endif
 
         // Thunder plugin communication
         WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* MaintenanceManager::getThunderPluginHandle(const char* callsign)
@@ -940,10 +930,10 @@ namespace WPEFramework {
             m_service->AddRef();
 #if defined(ENABLE_WHOAMI)
             subscribeToDeviceInitializationEvent();
-#endif /* WhoAmI */
+#endif
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+#endif
 
             /* On Success; return empty to indicate no error text. */
             return (string());
@@ -954,7 +944,7 @@ namespace WPEFramework {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             stopMaintenanceTasks();
             DeinitializeIARM();
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+#endif
 
             ASSERT(service == m_service);
 
@@ -981,7 +971,7 @@ namespace WPEFramework {
             MaintenanceManager::m_notify_status=MAINTENANCE_IDLE;
             MaintenanceManager::g_epoch_time="";
 
-            /* to know the maintenance is solicited or unsolicited */
+            /* to know whether the maintenance is solicited or unsolicited */
             g_maintenance_type=UNSOLICITED_MAINTENANCE;
             LOGINFO("Triggering Maintenance on bootup");
 
@@ -1006,7 +996,7 @@ namespace WPEFramework {
             MaintenanceManager::m_abort_flag=false;
             MaintenanceManager::g_unsolicited_complete = false;
 
-            /* we post just to tell that we are in idle at this moment */
+            /* Post to tell that the maintenance is in idle state at this moment */
             m_statusMutex.lock();
             MaintenanceManager::_instance->onMaintenanceStatusChange(m_notify_status);
             m_statusMutex.unlock();
@@ -1093,7 +1083,7 @@ namespace WPEFramework {
                             break;
                         case MAINT_FWDOWNLOAD_ABORTED:
                             SET_STATUS(g_task_status,TASK_SKIPPED);
-                            /* we say FW update task complete */
+                            /* Set FWDOWNLOAD Task as completed */
                             SET_STATUS(g_task_status,DIFD_COMPLETE);
                             task_thread.notify_one();
                             m_task_map[task_names_foreground[1].c_str()]=false;
@@ -1139,17 +1129,17 @@ namespace WPEFramework {
                             break;
                        case MAINT_RFC_INPROGRESS:
                             m_task_map[task_names_foreground[0].c_str()]=true;
-                            /*will be set to false once COMEPLETE/ERROR received for RFC*/
+                            /* Set false once COMPLETE/ ERROR is received for RFC */
                             LOGINFO(" RFC already IN PROGRESS -> setting m_task_map of RFC to true \n");
                             break;
                        case MAINT_FWDOWNLOAD_INPROGRESS:
                             m_task_map[task_names_foreground[1].c_str()]=true;
-                            /*will be set to false once COMEPLETE/ERROR received for FWDOWNLOAD*/
+                            /* Set false once COMPLETE/ ERROR is received for FWDOWNLOAD */
                             LOGINFO(" FWDOWNLOAD already IN PROGRESS -> setting m_task_map of FWDOWNLOAD to true \n");
                             break;
                        case MAINT_LOGUPLOAD_INPROGRESS:
                             m_task_map[task_names_foreground[2].c_str()]=true;
-                            /*will be set to false once COMEPLETE/ERROR received for LOGUPLOAD*/
+                            /* Set false once COMPLETE/ ERROR is received for LOGUPLOAD */
                             LOGINFO(" LOGUPLOAD already IN PROGRESS -> setting m_task_map of LOGUPLOAD to true \n");
                             break;
                         default:
@@ -1163,13 +1153,13 @@ namespace WPEFramework {
                 }
 
                 LOGINFO(" BITFIELD Status : %x",g_task_status);
-                /* Send the updated status only if all task completes execution
-                 * until that we say maintenance started */
+                /* Send the updated status only if all tasks complete execution
+                 * Until that Maintenance is in started state */
                 if ( (g_task_status & TASKS_COMPLETED ) == TASKS_COMPLETED ){
                     if ( (g_task_status & ALL_TASKS_SUCCESS) == ALL_TASKS_SUCCESS ){ // all tasks success
                         LOGINFO("DBG:Maintenance Successfully Completed!!");
                         notify_status=MAINTENANCE_COMPLETE;
-                        /*  we store the time in persistant location */
+                        /* we store the time in persistent location */
                         successfulTime=time(nullptr);
                         tm ltime=*localtime(&successfulTime);
                         time_t epoch_time=mktime(&ltime);
@@ -1180,7 +1170,7 @@ namespace WPEFramework {
                         m_setting.setValue("LastSuccessfulCompletionTime",str_successfulTime);
 
                     }
-                    /* Check other than all success case which means we have errors */
+                    /* Check other than all success cases which means we have errors */
                     else if ((g_task_status & ALL_TASKS_SUCCESS)!= ALL_TASKS_SUCCESS) {
                         if ((g_task_status & MAINTENANCE_TASK_SKIPPED ) == MAINTENANCE_TASK_SKIPPED ){
                             LOGINFO("DBG:There are Skipped Task. Maintenance Incomplete");
@@ -1240,7 +1230,7 @@ namespace WPEFramework {
             sendNotify(EVT_ONMAINTMGRSAMPLEEVENT, parameters);
             returnResponse(true);
         }
-#endif /* DEBUG */
+#endif
 
         /*
          * @brief This function returns the status of the current
