@@ -137,7 +137,7 @@ jobs:
           path: ThunderInterfaces
           ref: ${{env.INTERFACES_REF}}
 
-      - name: Apply patches ThunderInterfaces
+      - name: Apply patches  ThunderInterfaces
         run: |
           cd ThunderInterfaces
           patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-DELIA-66976-SystemAudioPlayer-interface.patch 
