@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.6.6] - 2025-03-05
+### Added
+- Get Hibernation delays from RFC
+
 ## [1.6.5] - 2025-02-27
 ### Fixed
 - Increase Hibernation delay to 30sec
