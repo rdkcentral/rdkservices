@@ -1,4 +1,3 @@
-#if 0
 #include <gtest/gtest.h>
 #include "Bluetooth.h"
 #include "BluetoothMocks.h"
@@ -46,16 +45,17 @@ protected:
         // Called once after all test cases have run
         std::cout << "Tearing down after all tests are run." << std::endl;
         // Clean up tasks such as releasing resources or resetting state
-	if (p_iarmBusImplMock != nullptr) {
-	    delete p_iarmBusImplMock;
-	    p_iarmBusImplMock = nullptr;
-	    IarmBus::setImpl(nullptr);
-	}
-
 	if(mockBluetoothManagerInstance != nullptr) {
 	    delete mockBluetoothManagerInstance;
 	    mockBluetoothManagerInstance = nullptr;
 	}
+
+	IarmBus::setImpl(nullptr);
+        if (p_iarmBusImplMock != nullptr) {
+            delete p_iarmBusImplMock;
+            p_iarmBusImplMock = nullptr;
+        }
+
     }
 
     void SetUp() override {
@@ -2413,4 +2413,3 @@ TEST_F(BluetoothTest, EventCallbackTest) {
         ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
     }
 }
-#endif
