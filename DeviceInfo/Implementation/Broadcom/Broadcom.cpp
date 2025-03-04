@@ -98,9 +98,6 @@ private:
         identifier.assign(extractSerialNumber());
         chipset.assign(extractChipId());
         firmwareVersion.assign(extractFirmwareVersion());
-        std::cout<<"RamTesting identifier"<<identifier<<std::endl;
-        std::cout<<"RamTesting chipset"<<chipset<<std::endl;
-        std::cout<<"RamTesting firmwareVersion"<<firmwareVersion<<std::endl;
     }
 
     inline std::string extractSerialNumber() const

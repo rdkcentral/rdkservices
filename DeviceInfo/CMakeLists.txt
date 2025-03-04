@@ -18,8 +18,12 @@
 set(PLUGIN_NAME DeviceInfo)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+
 set(PLUGIN_DEVICEINFO_MODE "Off" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
 set(PLUGIN_DEVICEINFO_STARTUPORDER "" CACHE STRING "Start-up order for DeviceInfo plugin")
+set(PLUGIN_DEVICEIDENTIFICATION_INTERFACE_NAME "eth0" CACHE STRING "Ethernet Card name which has to be associated for the Raw Device Id creation")
+option(PLUGIN_DEVICEIDENTIFICATION_USE_MFR "Get device identification details using MFR library" OFF)
 
 if (DEVICE_IDENTIFICATION_CHIPSET_INFO)
   add_definitions (-DDEVICE_IDENTIFICATION_CHIPSET_INFO=\"${DEVICE_IDENTIFICATION_CHIPSET_INFO}\")
@@ -108,6 +112,10 @@ endif()
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
+
+target_include_directories(${MODULE_NAME} 
+    PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR})
 
 target_include_directories(${MODULE_NAME} PRIVATE
         ${RFC_INCLUDE_DIRS}

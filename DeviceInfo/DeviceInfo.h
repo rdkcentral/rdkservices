@@ -76,6 +76,7 @@ namespace Plugin {
             , _firmwareVersion(nullptr)
             , _deviceId()
             , _identifier(nullptr)
+            , _device(nullptr)
         {
             RegisterAll();
         }
@@ -93,6 +94,7 @@ namespace Plugin {
         INTERFACE_AGGREGATE(Exchange::IDeviceAudioCapabilities, _deviceAudioCapabilities)
         INTERFACE_AGGREGATE(Exchange::IDeviceVideoCapabilities, _deviceVideoCapabilities)
         INTERFACE_AGGREGATE(Exchange::IFirmwareVersion, _firmwareVersion)
+        INTERFACE_AGGREGATE(Exchange::IDeviceIdentification2, _device)
         END_INTERFACE_MAP
 
     public:

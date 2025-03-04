@@ -18,17 +18,11 @@
  */
 
 #include "DeviceInfo.h"
-#include "IdentityProvider.h"
 #include <interfaces/IConfiguration.h>
 #include <interfaces/IDeviceIdentification2.h>
 #include "tracing/Logging.h"
 #include "UtilsJsonRpc.h"
 #include "UtilsController.h"
-#ifdef USE_THUNDER_R4
-#include <interfaces/IDeviceInfo.h>
-#else
-#include <interfaces/IDeviceInfo2.h>
-#endif /* USE_THUNDER_R4 */
 #include <time.h>
 
 
@@ -78,19 +72,9 @@ namespace Plugin {
         ASSERT(_subSystem != nullptr);
 
         _deviceInfo = service->Root<Exchange::IDeviceInfo>(_connectionId, 2000, _T("DeviceInfoImplementation"));
-        if(nullptr != _deviceInfo)
-        {
-            auto configConnection = _deviceInfo->QueryInterface<Exchange::IConfiguration>();
-            if (configConnection != nullptr) {
-                configConnection->Configure(service);
-                configConnection->Release();
-            }
-        }
-        
         _deviceAudioCapabilities = service->Root<Exchange::IDeviceAudioCapabilities>(_connectionId, 2000, _T("DeviceAudioCapabilities"));
         _deviceVideoCapabilities = service->Root<Exchange::IDeviceVideoCapabilities>(_connectionId, 2000, _T("DeviceVideoCapabilities"));
         _firmwareVersion = service->Root<Exchange::IFirmwareVersion>(_connectionId, 2000, _T("FirmwareVersion"));
-        
         _device = service->Root<Exchange::IDeviceIdentification2>(_connectionId, 2000, _T("DeviceImplementation"));
         if (_device != nullptr) {
 
@@ -108,36 +92,12 @@ namespace Plugin {
             } else {
                 _deviceId = GetDeviceId();
                 if (_deviceId.empty() != true) {
-                    //                    service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _device);
 #ifndef DISABLE_DEVICEID_CONTROL
                     service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _identifier);
 #endif
                 }
             }
         }
-#if 0
-            _identifier = service->Root<PluginHost::ISubSystem::IIdentifier>(_connectionId, RPC::CommunicationTimeOut, _T("DeviceImplementation"));
-
-            if (_identifier != nullptr) {
-
-                Exchange::IConfiguration* configure = _identifier->QueryInterface<Exchange::IConfiguration>();
-                if (configure != nullptr) {
-                    configure->Configure(service);
-                    configure->Release();
-                }
-
-                std::cout<<"RamTesting Init chipset"<<_identifier->Chipset()<<std::endl;
-                std::cout<<"RamTesting Init firmwareVersion"<<_identifier->FirmwareVersion()<<std::endl;
-                service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _identifier);
-                std::cout<<"ramtest _deviceId : "<<_deviceId<<std::endl;
-                _deviceId = GetDeviceId();
-
-                if (_deviceId.empty() != true) {
-#ifndef DISABLE_DEVICEID_CONTROL
-                    //                service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _identifier);
-#endif
-                }
-#endif
         ASSERT(_deviceInfo != nullptr);
         ASSERT(_deviceAudioCapabilities != nullptr);
         ASSERT(_deviceVideoCapabilities != nullptr);
@@ -160,18 +120,22 @@ namespace Plugin {
     {
         ASSERT(_service == service);
 
-        if (_deviceId.empty() != true) {
+        if (_identifier != nullptr) {           
+            if (_deviceId.empty() != true) {
 #ifndef DISABLE_DEVICEID_CONTROL
-            service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, nullptr);
+                service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, nullptr);
 #endif
-            _deviceId.clear();
+                _deviceId.clear();
+            }
+            _identifier->Release();
+            _identifier = nullptr;
         }
 
         _deviceInfo->Release();
         _deviceAudioCapabilities->Release();
         _deviceVideoCapabilities->Release();
         _firmwareVersion->Release();
-        _identifier->Release();
+        _device->Release();
 
         if (_subSystem != nullptr) {
             _subSystem->Release();
@@ -312,21 +276,9 @@ namespace Plugin {
         std::string Number;
         if (_service)
         {
-            PluginHost::IShell::state state;
-
-            if ((Utils::getServiceState(_service, "DeviceInfo", state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+            if(_deviceInfo)
             {
-                Utils::activatePlugin(_service, "DeviceInfo");
-            }
-            if ((Utils::getServiceState(_service, "DeviceInfo", state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
-            {
-                auto _remoteDeviceInfoObject = _service->QueryInterfaceByCallsign<Exchange::IDeviceInfo>("DeviceInfo");
-
-                if(_remoteDeviceInfoObject)
-                {
-                    _remoteDeviceInfoObject->SerialNumber(Number);
-                    _remoteDeviceInfoObject->Release();
-                }
+                _deviceInfo->SerialNumber(Number);
             }
             else
             {
