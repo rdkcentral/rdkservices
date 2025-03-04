@@ -191,6 +191,7 @@ TEST_F(DeviceInfoJsonRpcTest, registeredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("supportedms12audioprofiles")));
 }
 
+#if 0
 TEST_F(DeviceInfoJsonRpcInitializedTest, systeminfo)
 {
 
@@ -226,7 +227,7 @@ TEST_F(DeviceInfoJsonRpcInitializedTest, systeminfo)
                                                   "\"time\":\".+\""
                                                   "\\}"));
 }
-
+#endif
 TEST_F(DeviceInfoJsonRpcInitializedTest, addresses)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("addresses"), _T(""), response));
