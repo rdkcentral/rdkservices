@@ -16,9 +16,9 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.4.0] - 2025-02-07
+## [1.3.10] - 2025-03-04
 ### Added
-- Optimization of Audio Status Request on Volume Key Press - Added audioStatusTimerFunction.
+- Optimization of Audio Status Request on Volume Key Press.
 
 ## [1.3.9] - 2024-09-03
 ### Fixed
