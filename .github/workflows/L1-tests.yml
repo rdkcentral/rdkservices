@@ -13,7 +13,7 @@ env:
 
 jobs:
   l1-tests:
-    name: Build and run unit tests
+    name: Build and run unit  tests
     runs-on: ubuntu-22.04
     strategy:
       matrix:
