@@ -105,7 +105,12 @@ namespace Plugin {
 
         // The expectation is that the JavaScript service opens up a connection to us, so we can forward the 
         // incomming requests, to be handled by the Service.
+#ifdef USE_THUNDER_R4
+	Web::ProtocolsArray protocols = channel.Protocols();
+	if (std::find(protocols.begin(), protocols.end(), string(_T("json"))) != protocols.end()) {
+#else
         if ((channel.Protocol() == _T("json")) && (_javascriptService == 0)) {
+#endif 
             _javascriptService = channel.Id();
             assigned = true;
         }
@@ -121,10 +126,17 @@ namespace Plugin {
     // -------------------------------------------------------------------------------------------------------
     //   IDispatcher methods
     // -------------------------------------------------------------------------------------------------------
+#ifdef USE_THUNDER_R4
+    Core::ProxyType<Core::JSONRPC::Message> WebBridge::Invoke(const Core::JSONRPC::Context& context, const Core::JSONRPC::Message& inbound) /* override */
+#else
     Core::ProxyType<Core::JSONRPC::Message> WebBridge::Invoke(const string& token, const uint32_t channelId, const Core::JSONRPC::Message& inbound) /* override */
+#endif
     {
         string method;
         Registration info;
+#ifdef USE_THUNDER_R4
+uint32_t channelId =  context.ChannelId();
+#endif
 
         Core::ProxyType<Core::JSONRPC::Message> message(PluginHost::IFactories::Instance().JSONRPC());
         string designator(inbound.Designator.Value());
@@ -182,7 +194,11 @@ namespace Plugin {
             message.Release();
 
             if (_timeOut != 0) {
+#ifndef USE_THUNDER_R4
                 _cleaner.Schedule(waitTill);
+#else
+		_cleaner.Reschedule(waitTill);
+#endif
             }
 
             break;
@@ -198,6 +214,10 @@ namespace Plugin {
     void WebBridge::Deactivate() /* override */ {
         // We did what we needed to do in the Deintialize.
     }
+#ifdef USE_THUNDER_R4
+     void WebBridge::Close(const uint32_t channelId) /* override */ {
+      }
+#endif
 
     // -------------------------------------------------------------------------------------------------------
     //   IWebSocket methods
@@ -304,7 +324,11 @@ namespace Plugin {
         _adminLock.Unlock();
 
         if (nextSlot.IsValid()) {
+#ifndef USE_THUNDER_R4
             _cleaner.Schedule(nextSlot);
+#else
+	    _cleaner.Reschedule(nextSlot);
+#endif
         }
     }
 
