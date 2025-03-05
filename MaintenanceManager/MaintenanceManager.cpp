@@ -644,6 +644,7 @@ namespace WPEFramework
                     }
                 }
             } while (!m_abort_flag);
+            return success;
         }
 #endif /* end of ENABLE_WHOAMI */
 
