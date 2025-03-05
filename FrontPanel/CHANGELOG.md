@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.10] - 2025-03-17
+### Added
+- Fixed frontpanel helper to not set fpState during init 
+
 ## [1.0.9] - 2024-11-29
 ### Added
 - Fixed sharp FP issue
