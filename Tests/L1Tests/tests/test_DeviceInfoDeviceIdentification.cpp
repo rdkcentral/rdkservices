@@ -1,8 +1,13 @@
 #include <gtest/gtest.h>
 
-#include <fstream>
+#include "DeviceInfo.h"
+#include "COMLinkMock.h"
+#include "ServiceMock.h"
+#include "SystemInfo.h"
 
 using namespace WPEFramework;
+
+using ::testing::NiceMock;
 
 namespace {
 const string testArchitecture = _T("testArchitecture");
