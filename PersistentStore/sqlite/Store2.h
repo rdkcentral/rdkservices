@@ -88,6 +88,7 @@ namespace Plugin {
                 , _maxValue(maxValue)
                 , _limit(limit)
             {
+                TempDirectoryCheck();
                 IntegrityCheck();
                 Open();
             }
@@ -97,6 +98,17 @@ namespace Plugin {
             }
 
         private:
+            void TempDirectoryCheck()
+            {
+                auto journalPath = _path + "-journal";
+                Core::Directory journal(journalPath.c_str());
+                if (journal.Exists()) {
+                    if (Core::File(_path).Size() == 0) { // No db
+                        journal.Destroy(); // Clear
+                    }
+                    Core::File(journalPath).Destroy(); // Destroy if empty
+                }
+            }
             void IntegrityCheck()
             {
                 Core::File file(_path);
