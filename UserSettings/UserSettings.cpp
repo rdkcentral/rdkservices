@@ -132,13 +132,13 @@ namespace WPEFramework
         {
             _userSetting->Unregister(&_usersettingsNotification);
             Exchange::JUserSettings::Unregister(*this);
-            Exchange::JUserSettingsInspector::UnRegister(*this);
+            Exchange::JUserSettingsInspector::Unregister(*this);
 
             configure->Release();
             _userSettingsInspector->Release();
 
-	    configure = nullptr;
-	    _userSettingsInspector = nullptr;
+            configure = nullptr;
+            _userSettingsInspector = nullptr;
 
             // Stop processing:
             RPC::IRemoteConnection* connection = service->RemoteConnection(_connectionId);
