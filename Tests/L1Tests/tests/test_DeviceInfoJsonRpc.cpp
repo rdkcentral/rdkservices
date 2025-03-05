@@ -50,6 +50,7 @@ protected:
     DeviceInfoJsonRpcInitializedTest()
         : DeviceInfoJsonRpcTest()
     {
+        std::cout<< "RamTest addresses DeviceInfoJsonRpcInitializedTest start" <<std::endl;
         p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
         IarmBus::setImpl(p_iarmBusImplMock);
 
@@ -69,9 +70,11 @@ protected:
                 }));
 
         EXPECT_EQ(string(""), plugin->Initialize(&service));
+        std::cout<< "RamTest addresses DeviceInfoJsonRpcInitializedTest end" <<std::endl;
     }
     virtual ~DeviceInfoJsonRpcInitializedTest() override
     {
+        std::cout<< "RamTest addresses ~DeviceInfoJsonRpcInitializedTest start" <<std::endl;
         plugin->Deinitialize(&service);
 
         IarmBus::setImpl(nullptr);
@@ -86,6 +89,7 @@ protected:
             delete p_managerImplMock;
             p_managerImplMock = nullptr;
         }
+        std::cout<< "RamTest addresses ~DeviceInfoJsonRpcInitializedTest end" <<std::endl;
     }
 };
 
@@ -99,6 +103,7 @@ protected:
     DeviceInfoJsonRpcInitializedDsTest()
         : DeviceInfoJsonRpcInitializedTest()
     {
+        std::cout<< "RamTest addresses from DeviceInfoJsonRpcInitializedDsTest start" <<std::endl;
         p_hostImplMock  = new NiceMock <HostImplMock>;
         device::Host::setImpl(p_hostImplMock);
         p_audioOutputPortMock  = new NiceMock <AudioOutputPortMock>;
@@ -108,9 +113,11 @@ protected:
         device::VideoResolution::setImpl(p_videoResolutionMock);
         p_videoOutputPortMock  = new NiceMock <VideoOutputPortMock>;
         device::VideoOutputPort::setImpl(p_videoOutputPortMock);
+        std::cout<< "RamTest addresses from DeviceInfoJsonRpcInitializedDsTest end " <<std::endl;
     }
     virtual ~DeviceInfoJsonRpcInitializedDsTest() override
     {
+        std::cout<< "RamTest addresses from ~DeviceInfoJsonRpcInitializedDsTest start" <<std::endl;
         device::AudioOutputPort::setImpl(nullptr);
         if (p_audioOutputPortMock != nullptr)
         {
@@ -135,6 +142,7 @@ protected:
             delete p_hostImplMock;
             p_hostImplMock = nullptr;
         }
+        std::cout<< "RamTest addresses from ~DeviceInfoJsonRpcInitializedDsTest end" <<std::endl;
     }
 };
 
@@ -146,13 +154,16 @@ protected:
     DeviceInfoJsonRpcInitializedDsVideoOutputTest()
         : DeviceInfoJsonRpcInitializedDsTest()
     {
+        std::cout<< "RamTest addresses from DeviceInfoJsonRpcInitializedDsVideoOutputTest start" <<std::endl;
         p_videoOutputPortConfigImplMock  = new NiceMock <VideoOutputPortConfigImplMock>;
         device::VideoOutputPortConfig::setImpl(p_videoOutputPortConfigImplMock);
         p_videoOutputPortTypeMock  = new NiceMock <VideoOutputPortTypeMock>;
         device::VideoOutputPortType::setImpl(p_videoOutputPortTypeMock);
+        std::cout<< "RamTest addresses from DeviceInfoJsonRpcInitializedDsVideoOutputTest end " <<std::endl;
     }
     virtual ~DeviceInfoJsonRpcInitializedDsVideoOutputTest() override
     {
+        std::cout<< "RamTest addresses from ~DeviceInfoJsonRpcInitializedDsVideoOutputTest start" <<std::endl;
         device::VideoOutputPortType::setImpl(nullptr);
         if (p_videoOutputPortTypeMock != nullptr)
         {
@@ -165,6 +176,7 @@ protected:
             delete p_videoOutputPortConfigImplMock;
             p_videoOutputPortConfigImplMock = nullptr;
         }
+        std::cout<< "RamTest addresses from ~DeviceInfoJsonRpcInitializedDsVideoOutputTest end" <<std::endl;
     }
 };
 
@@ -227,10 +239,12 @@ TEST_F(DeviceInfoJsonRpcInitializedTest, systeminfo)
                                                   "\"time\":\".+\""
                                                   "\\}"));
 }
-
+#endif
 TEST_F(DeviceInfoJsonRpcInitializedTest, addresses)
 {
+    std::cout<< "RamTest addresses entered " <<std::endl;
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("addresses"), _T(""), response));
+    std::cout<< "RamTest addresses after invoke" <<std::endl;
     EXPECT_THAT(response, ::testing::MatchesRegex("\\["
                                                   "(\\{"
                                                   "\"name\":\"[^\"]+\","
@@ -450,4 +464,4 @@ TEST_F(DeviceInfoJsonRpcInitializedDsTest, supportedms12audioprofiles)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("supportedms12audioprofiles"), _T(""), response));
     EXPECT_EQ(response, _T("{\"supportedMS12AudioProfiles\":[\"Movie\"]}"));
 }
-#endif
+
