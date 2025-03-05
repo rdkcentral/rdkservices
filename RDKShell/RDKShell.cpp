@@ -19,6 +19,7 @@
 
 
 #include "RDKShell.h"
+#include "RDKShellConfig.h"
 #include <string>
 #include <memory>
 #include <iostream>
@@ -1236,6 +1237,7 @@ namespace WPEFramework {
             if (service)
             {
                 std::string configLine = service->ConfigLine();
+                mShell.handleDeinitialized(service->Callsign());
                 if (configLine.empty())
                 {
                     return;
@@ -1813,6 +1815,8 @@ namespace WPEFramework {
         const string RDKShell::Initialize(PluginHost::IShell* service )
         {
             std::cout << "initializing\n";
+            RDKShellConfig config;
+            config.FromString(service->ConfigLine());
             char* waylandDisplay = getenv("WAYLAND_DISPLAY");
             if (NULL != waylandDisplay)
             {
@@ -2171,6 +2175,25 @@ namespace WPEFramework {
         LOGWARN("Creating rialto connector");
         RialtoConnector *rialtoBridge = new RialtoConnector();
         rialtoConnector = std::shared_ptr<RialtoConnector>(rialtoBridge);
+
+        string xdgDir;
+        Core::SystemInfo::GetEnvironment(_T("XDG_RUNTIME_DIR"), xdgDir);
+
+        set<string> rialtoApps;
+        if (config.RialtoApps.IsSet())
+        {
+            Core::JSON::ArrayType<Core::JSON::String>::Iterator iter(config.RialtoApps.Elements());
+
+            while (iter.Next() == true) {
+                rialtoApps.insert(iter.Current().Value());
+            }
+        }
+
+        mRialtoAppsSessionManager = unique_ptr<RialtoAppsSessionManager>(new RialtoAppsSessionManager(
+            rialtoConnector,
+            std::move(xdgDir),
+            std::move(rialtoApps),
+            RIALTO_TIMEOUT_MILLIS));
 #endif //  ENABLE_RIALTO_FEATURE
             sem_wait(&gInitializeSemaphore);
             return "";
@@ -4186,9 +4209,11 @@ namespace WPEFramework {
                 // Ensure cloned plugin displays are in a sub-dir based on
                 // plugin classname
                 string displayName;
+                string rialtoSocketName;
                 if (type.empty())
                 {
                     displayName = "wst-" + callsign;
+                    rialtoSocketName = "rialto-" + callsign;
                 }
                 else
                 {
@@ -4199,6 +4224,7 @@ namespace WPEFramework {
 
                     // don't add XDG_RUNTIME_DIR to display name
                     displayName = type + "/" + "wst-" + callsign;
+                    rialtoSocketName = type + "/rialto-" + callsign;
                 }
 
                 if (gRdkShellSurfaceModeEnabled)
@@ -4422,6 +4448,13 @@ namespace WPEFramework {
                     }
                 }
                 configSet["clientidentifier"] = displayName;
+#ifdef ENABLE_RIALTO_FEATURE
+                if (mRialtoAppsSessionManager->usesRialto(type))
+                {
+                    configSet["rialtosocketname"] = rialtoSocketName;
+                }
+#endif // ENABLE_RIALTO_FEATURE
+
                 if (!type.empty() && type == "Netflix")
                 {
                     std::cout << "setting launchtosuspend for Netflix: " << suspend << std::endl;
@@ -4618,10 +4651,28 @@ namespace WPEFramework {
 
                     if (status == 0)
                     {
+#ifdef ENABLE_RIALTO_FEATURE
+                        bool tryActivate = false;
+#endif // ENABLE_RIALTO_FEATURE
+
                         if (state == PluginHost::IShell::state::DEACTIVATED ||
                             state == PluginHost::IShell::state::DEACTIVATION ||
                             state == PluginHost::IShell::state::PRECONDITION)
                         {
+#ifdef ENABLE_RIALTO_FEATURE
+                            if (mRialtoAppsSessionManager->createRialtoSessionAndWait(type, callsign, rialtoSocketName, displayName))
+                            {
+                                tryActivate = true;
+                            }
+                            else
+                            {
+                                status = Core::ERROR_PLAYER_UNAVAILABLE;
+                            }
+                        }
+
+                        if (tryActivate)
+                        {
+#endif // ENABLE_RIALTO_FEATURE
                             launchType = RDKShellLaunchType::ACTIVATE;
                             status = activate(mCurrentService, callsign);
 
@@ -4632,6 +4683,12 @@ namespace WPEFramework {
                                 status = activate(mCurrentService, callsign);
                                 std::cout << "activate 1 status: " << status << std::endl;
                             }
+#ifdef ENABLE_RIALTO_FEATURE
+                            if (status > 0)
+                            {
+                                mRialtoAppsSessionManager->destroyRialtoSession(callsign);
+                            }
+#endif // ENABLE_RIALTO_FEATURE
                         }
                     }
                     else
@@ -4792,6 +4849,9 @@ namespace WPEFramework {
                                 }
                                 gPluginDataMutex.unlock();
                                 launchType = RDKShellLaunchType::SUSPEND;
+#ifdef ENABLE_RIALTO_FEATURE
+                                mRialtoAppsSessionManager->suspendRialtoSessionAndWait(callsign);
+#endif // ENABLE_RIALTO_FEATURE
                             }
 
                             WPEFramework::Core::JSON::String stateString;
@@ -4815,6 +4875,9 @@ namespace WPEFramework {
                                 }
                                 gPluginDataMutex.unlock();
                                 launchType = RDKShellLaunchType::RESUME;
+#ifdef ENABLE_RIALTO_FEATURE
+                                mRialtoAppsSessionManager->resumeRialtoSessionAndWait(callsign);
+#endif // ENABLE_RIALTO_FEATURE
                             }
                             
                             WPEFramework::Core::JSON::String stateString;
@@ -4972,6 +5035,9 @@ namespace WPEFramework {
                 }
                 else
                 {
+#ifdef ENABLE_RIALTO_FEATURE
+                    mRialtoAppsSessionManager->suspendRialtoSessionAndWait(callsign);
+#endif // ENABLE_RIALTO_FEATURE
                     setVisibility(callsign, false);
                     onSuspended(callsign);
                 }
@@ -6838,6 +6904,14 @@ namespace WPEFramework {
             sendNotify(event.c_str(), parameters);
         }
         // Events end
+
+        void RDKShell::handleDeinitialized(const string& callsign)
+        {
+            LOGINFO("%s", callsign.c_str());
+#ifdef ENABLE_RIALTO_FEATURE
+            mRialtoAppsSessionManager->destroyRialtoSession(callsign);
+#endif // ENABLE_RIALTO_FEATURE
+        }
 
         bool RDKShell::checkForBootupFactoryAppLaunch()
         {

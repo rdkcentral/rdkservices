@@ -35,7 +35,7 @@ list(APPEND RDKSHELL_SOURCES Module.cpp)
 
 if (RIALTO_FEATURE)
   add_definitions("-DENABLE_RIALTO_FEATURE")
-  list(APPEND RDKSHELL_SOURCES RialtoConnector.cpp)
+  list(APPEND RDKSHELL_SOURCES RialtoConnector.cpp RialtoAppsSessionManager.cpp)
 endif(RIALTO_FEATURE)
 
 add_library(${MODULE_NAME} SHARED ${RDKSHELL_SOURCES})

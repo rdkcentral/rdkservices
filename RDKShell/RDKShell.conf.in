@@ -2,3 +2,13 @@ precondition = ["Platform"]
 callsign = "org.rdk.RDKShell"
 autostart = "@PLUGIN_RDKSHELL_AUTOSTART@"
 startuporder = "@PLUGIN_RDKSHELL_STARTUPORDER@"
+
+configuration = JSON()
+
+if boolean("@RIALTO_FEATURE@"):
+    rialtoapps = []
+
+    if boolean("@RIALTO_COBALT_FEATURE@"):
+        rialtoapps.append("Cobalt")
+
+    configuration.add("rialtoapps", rialtoapps)
