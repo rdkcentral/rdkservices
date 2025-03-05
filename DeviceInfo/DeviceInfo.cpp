@@ -147,7 +147,7 @@ namespace Plugin {
         _deviceAudioCapabilities->Release();
         _deviceVideoCapabilities->Release();
         _firmwareVersion->Release();
-        _device->Release();
+        //_device->Release();
 
         if (_subSystem != nullptr) {
             _subSystem->Release();
