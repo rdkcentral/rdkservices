@@ -55,20 +55,18 @@ index 0000000..c33d8e0
 +}
 +}
 diff --git a/interfaces/Ids.h b/interfaces/Ids.h
-index 7d53320..0296d66 100644
+index 5128382..350d806 100644
 --- a/interfaces/Ids.h
 +++ b/interfaces/Ids.h
-@@ -368,7 +368,9 @@ namespace Exchange {
-         ID_DEVICE_OPTIMIZE_STATE_ACTIVATOR           = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x510,
+@@ -370,9 +370,9 @@ namespace Exchange {
  
+ 	ID_DEVICE_OPTIMIZE_STATE_ACTIVATOR           = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x510,
          ID_SYSTEM_MODE                               = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x520,
 -        ID_SYSTEM_MODE_NOTIFICATION                  = ID_SYSTEM_MODE + 1
+-
 +        ID_SYSTEM_MODE_NOTIFICATION                  = ID_SYSTEM_MODE + 1,
-+
-+        ID_ANALYTICS                                 = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x530,
+ 
++        ID_ANALYTICS                                 = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x530
+ 
      };
  }
- }
--- 
-2.25.1
-

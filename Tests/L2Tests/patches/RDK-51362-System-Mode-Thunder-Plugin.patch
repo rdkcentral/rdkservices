@@ -122,20 +122,19 @@ index 0000000..2c33b6d
 +} // namespace Exchange
 +} // namespace WPEFramework
 diff --git a/interfaces/Ids.h b/interfaces/Ids.h
-index e66cb22..7d53320 100644
+index 9f28fe0..5128382 100644
 --- a/interfaces/Ids.h
 +++ b/interfaces/Ids.h
-@@ -363,7 +363,12 @@ namespace Exchange {
-         ID_TEXT_TO_SPEECH_NOTIFICATION               = ID_TEXT_TO_SPEECH + 1,
+@@ -368,6 +368,12 @@ namespace Exchange {
+ 	ID_USER_SETTINGS_MIGRATION_STATE_ITERATOR    = ID_USER_SETTINGS + 3,
  
- 	ID_USER_SETTINGS                             = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x4D0,
--        ID_USER_SETTINGS_NOTIFICATION                = ID_USER_SETTINGS + 1
-+        ID_USER_SETTINGS_NOTIFICATION                = ID_USER_SETTINGS + 1,
-+
+ 
 +        ID_DEVICE_OPTIMIZE_STATE_ACTIVATOR           = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x510,
-+
 +        ID_SYSTEM_MODE                               = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x520,
 +        ID_SYSTEM_MODE_NOTIFICATION                  = ID_SYSTEM_MODE + 1
++
++
++
      };
  }
  }
