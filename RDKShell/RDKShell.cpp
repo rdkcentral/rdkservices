@@ -3415,6 +3415,33 @@ namespace WPEFramework {
                 if (false == result) {
                   response["message"] = "failed to create display";
                 }
+                else
+                {
+#ifdef ENABLE_RIALTO_FEATURE
+                    if (parameters.HasLabel("rialtoSocket"))
+                    {
+                        string rialtoSocket = parameters["rialtoSocket"].String();
+
+                        if (rialtoConnector->initialized() == false)
+                        {
+                            LOGWARN("Initializing rialto connector....");
+                            rialtoConnector->initialize();
+                        }
+
+                        LOGWARN("Creating app session ....");
+                        if (rialtoConnector->createAppSession(client, displayName, rialtoSocket) == false)
+                        {
+                            response["message"] = "Rialto app session initialisation failed";
+                            result = false;
+                        }
+                        else if (rialtoConnector->waitForStateChange(client, RialtoServerStates::ACTIVE, RIALTO_TIMEOUT_MILLIS) == false)
+                        {
+                            response["message"] = "Rialto app session not ready.";
+                            result = false;
+                        }
+                    }
+#endif //ENABLE_RIALTO_FEATURE
+                }
             }
             returnResponse(result);
         }
