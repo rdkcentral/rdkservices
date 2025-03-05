@@ -22,6 +22,47 @@ using ::testing::NiceMock;
 
 namespace {
 const string webPrefix = _T("/Service/DeviceInfo");
+const string testArchitecture = _T("testArchitecture");
+const string testChipset = _T("testChipset");
+const string testFirmwareVersion = _T("testFirmwareVersion");
+const string testId = _T("testIdentity");
+const string deviceId = _T("WPEdGVzdElkZW50aXR5");
+}
+
+namespace WPEFramework {
+namespace Plugin {
+    class DeviceImplementation : public Exchange::IDeviceIdentification2, public PluginHost::ISubSystem::IIdentifier {
+    public:
+        virtual ~DeviceImplementation() = default;
+
+        string Architecture() const override { return testArchitecture; }
+        string Chipset() const override { return testChipset; }
+        string FirmwareVersion() const override { return testFirmwareVersion; }
+        uint8_t Identifier(const uint8_t length, uint8_t buffer[]) const override
+        {
+            ::memcpy(buffer, testId.c_str(), testId.length());
+
+            return testId.length();
+        }
+		
+	   Core::hresult Identification(DeviceInfo& info) const override
+		{
+			info.deviceID = deviceId;
+			info.firmwareVersion = FirmwareVersion();
+			info.chipset = Chipset();
+
+			return Core::ERROR_NONE;
+		}
+
+
+        BEGIN_INTERFACE_MAP(DeviceImplementation)
+		INTERFACE_ENTRY(Exchange::IDeviceIdentification2)
+        INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)		
+        END_INTERFACE_MAP
+    };
+
+    SERVICE_REGISTRATION(DeviceImplementation, 1, 0);
+}
 }
 
 class DeviceInfoJsonRpcTest : public ::testing::Test {
