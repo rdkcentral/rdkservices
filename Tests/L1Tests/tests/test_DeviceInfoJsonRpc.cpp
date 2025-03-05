@@ -227,7 +227,7 @@ TEST_F(DeviceInfoJsonRpcInitializedTest, systeminfo)
                                                   "\"time\":\".+\""
                                                   "\\}"));
 }
-#endif
+
 TEST_F(DeviceInfoJsonRpcInitializedTest, addresses)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("addresses"), _T(""), response));
@@ -450,3 +450,4 @@ TEST_F(DeviceInfoJsonRpcInitializedDsTest, supportedms12audioprofiles)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("supportedms12audioprofiles"), _T(""), response));
     EXPECT_EQ(response, _T("{\"supportedMS12AudioProfiles\":[\"Movie\"]}"));
 }
+#endif
