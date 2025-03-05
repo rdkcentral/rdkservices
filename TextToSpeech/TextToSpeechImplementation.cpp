@@ -23,6 +23,7 @@
 #include <mutex>
 
 #include "TextToSpeechValidator.h"
+#include "impl/RFCURLObserver.h"
 
 #define TTS_MAJOR_VERSION 1
 #define TTS_MINOR_VERSION 0
@@ -38,6 +39,7 @@
 
 namespace WPEFramework {
 namespace Plugin {
+
 
     SERVICE_REGISTRATION(TextToSpeechImplementation, TTS_MAJOR_VERSION, TTS_MINOR_VERSION);
 
@@ -77,6 +79,7 @@ namespace Plugin {
         config.FromString(service->ConfigLine());
 
         TTS::TTSConfiguration *ttsConfig = _ttsManager->configuration();
+        TTS::RFCURLObserver::getInstance()->triggerRFC(ttsConfig);
         ttsConfig->setEndPoint(GET_STR(config, "endpoint", ""));
         ttsConfig->setSecureEndPoint(GET_STR(config, "secureendpoint", ""));
         ttsConfig->setLocalEndPoint(GET_STR(config, "localendpoint", ""));
@@ -128,6 +131,7 @@ namespace Plugin {
         ttsConfig->loadFromConfigStore();
         TTSLOG_INFO("TTSEndPoint : %s", ttsConfig->endPoint().c_str());
         TTSLOG_INFO("SecureTTSEndPoint : %s", ttsConfig->secureEndPoint().c_str());
+        TTSLOG_INFO("RFCEndPoint : %s", ttsConfig->rfcEndPoint().c_str());
         TTSLOG_INFO("LocalTTSEndPoint : %s", ttsConfig->localEndPoint().c_str());
         TTSLOG_INFO("Language : %s", ttsConfig->language().c_str());
         TTSLOG_INFO("Voice : %s", ttsConfig->voice().c_str());
@@ -141,6 +145,16 @@ namespace Plugin {
         while( it != ttsConfig->m_others.end()) {
             TTSLOG_INFO("%s : %s", it->first.c_str(), it->second.c_str());
             ++it;
+        }
+        
+        if(ttsConfig->isRFCEnabled())
+        {
+            ttsConfig->setEndpointType("TTS2");
+            TTSLOG_INFO("TTS 2.0 Endpoint determined. URL:%s",ttsConfig->rfcEndPoint().c_str());
+        }
+        else
+        {
+            TTSLOG_INFO("TTS Endpoint URL is not determinable at boot time\n");
         }
 
         if(ttsConfig->hasValidLocalEndpoint()) {
