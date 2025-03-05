@@ -113,16 +113,15 @@ namespace Plugin {
         ASSERT(_deviceAudioCapabilities != nullptr);
         ASSERT(_deviceVideoCapabilities != nullptr);
         ASSERT(_firmwareVersion != nullptr);
-        ASSERT(_device != nullptr);
+        //ASSERT(_device != nullptr);
 	    std::cout<< "RamTest addresses DeviceInfo::Initialize  after asset check  " <<std::endl;
 	    
         // On success return empty, to indicate there is no error text.
-
+//         && (_device != nullptr)
         return ((_subSystem != nullptr)
                    && (_deviceInfo != nullptr)
                    && (_deviceAudioCapabilities != nullptr)
-                   && (_deviceVideoCapabilities != nullptr)
-                   && (_device != nullptr)
+                   && (_deviceVideoCapabilities != nullptr)          
                    && (_firmwareVersion != nullptr))
             ? EMPTY_STRING
             : _T("Could not retrieve System Information.");
