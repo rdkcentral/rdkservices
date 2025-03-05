@@ -60,6 +60,7 @@ namespace Plugin {
 
     /* virtual */ const string DeviceInfo::Initialize(PluginHost::IShell* service)
     {
+	std::cout<< "RamTest addresses DeviceInfo::Initialize start" <<std::endl;
         ASSERT(_service == nullptr);
         ASSERT(service != nullptr);
         ASSERT(_identifier == nullptr);
@@ -71,28 +72,37 @@ namespace Plugin {
 
         ASSERT(_subSystem != nullptr);
 
+	 std::cout<< "RamTest addresses DeviceInfo::Initialize before _deviceInfo" <<std::endl;
         _deviceInfo = service->Root<Exchange::IDeviceInfo>(_connectionId, 2000, _T("DeviceInfoImplementation"));
         _deviceAudioCapabilities = service->Root<Exchange::IDeviceAudioCapabilities>(_connectionId, 2000, _T("DeviceAudioCapabilities"));
         _deviceVideoCapabilities = service->Root<Exchange::IDeviceVideoCapabilities>(_connectionId, 2000, _T("DeviceVideoCapabilities"));
         _firmwareVersion = service->Root<Exchange::IFirmwareVersion>(_connectionId, 2000, _T("FirmwareVersion"));
+	    std::cout<< "RamTest addresses DeviceInfo::Initialize before _device" <<std::endl;
         _device = service->Root<Exchange::IDeviceIdentification2>(_connectionId, 2000, _T("DeviceImplementation"));
+	    std::cout<< "RamTest addresses DeviceInfo::Initialize after _device" <<std::endl;
         if (_device != nullptr) {
-
+		std::cout<< "RamTest addresses DeviceInfo::Initialize inside  _device is not nullptr " <<std::endl;
             Exchange::IConfiguration* configure = _device->QueryInterface<Exchange::IConfiguration>();
             if (configure != nullptr) {
+		std::cout<< "RamTest addresses DeviceInfo::Initialize inside  configure is not nullptr " <<std::endl;    
                 configure->Configure(service);
                 configure->Release();
             }
-
+	    std::cout<< "RamTest addresses DeviceInfo::Initialize before _identifier" <<std::endl;
             _identifier = _device->QueryInterface<PluginHost::ISubSystem::IIdentifier>();
+		std::cout<< "RamTest addresses DeviceInfo::Initialize after _identifier" <<std::endl;
             if (_identifier == nullptr) {
-
+		std::cout<< "RamTest addresses DeviceInfo::Initialize  _identifier == nullptr " <<std::endl;
                 _device->Release();
                 _device = nullptr;
             } else {
+		    std::cout<< "RamTest addresses DeviceInfo::Initialize  _identifier != nullptr " <<std::endl;
                 _deviceId = GetDeviceId();
+		    std::cout<< "RamTest addresses DeviceInfo::Initialize  after  GetDeviceId " <<std::endl;
                 if (_deviceId.empty() != true) {
+			std::cout<< "RamTest addresses DeviceInfo::Initialize  not _deviceId.empt  " <<std::endl;
 #ifndef DISABLE_DEVICEID_CONTROL
+			std::cout<< "RamTest addresses DeviceInfo::Initialize  DISABLE_DEVICEID_CONTROL  GetDeviceId " <<std::endl;
                     service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _identifier);
 #endif
                 }
@@ -103,7 +113,8 @@ namespace Plugin {
         ASSERT(_deviceVideoCapabilities != nullptr);
         ASSERT(_firmwareVersion != nullptr);
         ASSERT(_device != nullptr);
-
+	    std::cout<< "RamTest addresses DeviceInfo::Initialize  after asset check  " <<std::endl;
+	    
         // On success return empty, to indicate there is no error text.
 
         return ((_subSystem != nullptr)
@@ -114,6 +125,7 @@ namespace Plugin {
                    && (_firmwareVersion != nullptr))
             ? EMPTY_STRING
             : _T("Could not retrieve System Information.");
+	    std::cout<< "RamTest addresses DeviceInfo::Initialize  end " <<std::endl;
     }
 
     /* virtual */ void DeviceInfo::Deinitialize(PluginHost::IShell* service)
