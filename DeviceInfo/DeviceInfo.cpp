@@ -78,7 +78,8 @@ namespace Plugin {
         _deviceVideoCapabilities = service->Root<Exchange::IDeviceVideoCapabilities>(_connectionId, 2000, _T("DeviceVideoCapabilities"));
         _firmwareVersion = service->Root<Exchange::IFirmwareVersion>(_connectionId, 2000, _T("FirmwareVersion"));
 	    std::cout<< "RamTest addresses DeviceInfo::Initialize before _device" <<std::endl;
-        _device = service->Root<Exchange::IDeviceIdentification2>(_connectionId, 100, _T("DeviceImplementation"));
+        //_device = service->Root<Exchange::IDeviceIdentification2>(_connectionId, 100, _T("DeviceImplementation"));
+	    _device = nullptr ;
 	    std::cout<< "RamTest addresses DeviceInfo::Initialize after _device" <<std::endl;
         if (_device != nullptr) {
 		std::cout<< "RamTest addresses DeviceInfo::Initialize inside  _device is not nullptr " <<std::endl;
