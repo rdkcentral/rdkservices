@@ -55,11 +55,11 @@ namespace Plugin {
 
 class DeviceInfoDeviceIdentificationTest : public ::testing::Test {
 protected:
-    Core::ProxyType<Plugin::DeviceIdentification2> deviceInfoDeviceIdentification;
+    Core::ProxyType<Plugin::DeviceImplementation> deviceInfoDeviceIdentification;
     Exchange::IDeviceIdentification2* interface;
 
     DeviceInfoDeviceIdentificationTest()
-        : deviceInfoDeviceIdentification(Core::ProxyType<Plugin::DeviceIdentification2>::Create())
+        : deviceInfoDeviceIdentification(Core::ProxyType<Plugin::DeviceImplementation>::Create())
     {
         interface = static_cast<Exchange::IDeviceIdentification2*>(
             deviceInfoDeviceIdentification->QueryInterface(Exchange::IDeviceIdentification2::ID));
