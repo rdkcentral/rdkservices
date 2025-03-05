@@ -20,7 +20,7 @@
 #include "UserSettings.h"
 
 #define API_VERSION_NUMBER_MAJOR 2
-#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_MINOR 1
 #define API_VERSION_NUMBER_PATCH 0
 
 namespace WPEFramework
@@ -165,6 +165,7 @@ namespace WPEFramework
     {
         if (connection->Id() == _connectionId) {
             ASSERT(nullptr != _service);
+            LOGINFO("UserSettings Notification Deactivated");
             Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(_service, PluginHost::IShell::DEACTIVATED, PluginHost::IShell::FAILURE));
         }
     }

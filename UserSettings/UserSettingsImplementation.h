@@ -51,11 +51,15 @@
 #define USERSETTINGS_PLAYBACK_WATERSHED_KEY                   "playbackWaterShed"
 #define USERSETTINGS_BLOCK_NOT_RATED_CONTENT_KEY              "blockNotRatedContent"
 #define USERSETTINGS_PIN_ON_PURCHASE_KEY                      "pinOnPurchase"
+#define USERSETTINGS_HIGH_CONTRAST_KEY                        "highContrast"
+#define USERSETTINGS_VOICE_GUIDANCE_KEY                       "voiceGuidance"
+#define USERSETTINGS_VOICE_GUIDANCE_RATE_KEY                  "voiceGuidanceRate"
+#define USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY                 "voiceGuidanceHints"
 
 namespace WPEFramework {
 namespace Plugin {
     class UserSettingsImplementation : public Exchange::IUserSettings,
-	                               public Exchange::IConfiguration {
+                                       public Exchange::IConfiguration {
 
     public:
         static const std::map<string, string> usersettingsDefaultMap;
@@ -118,7 +122,11 @@ namespace Plugin {
                 LIVE_WATERSHED_CHANGED,
                 PLAYBACK_WATERSHED_CHANGED,
                 BLOCK_NOT_RATED_CONTENT_CHANGED,
-                PIN_ON_PURCHASE_CHANGED
+                PIN_ON_PURCHASE_CHANGED,
+                HIGH_CONTRAST_CHANGED,
+                VOICE_GUIDANCE_CHANGED,
+                VOICE_GUIDANCE_RATE_CHANGED,
+                VOICE_GUIDANCE_HINTS_CHANGED
             };
 
         class EXTERNAL Job : public Core::IDispatch {
@@ -191,8 +199,16 @@ namespace Plugin {
         uint32_t GetBlockNotRatedContent(bool &blockNotRatedContent) const override;
         uint32_t SetPinOnPurchase(const bool pinOnPurchase) override;
         uint32_t GetPinOnPurchase(bool &pinOnPurchase) const override;
+        uint32_t SetHighContrast(const bool enabled) override;
+        uint32_t GetHighContrast(bool &enabled) const override;
+        uint32_t SetVoiceGuidance(const bool enabled) override;
+        uint32_t GetVoiceGuidance(bool &enabled) const override;
+        uint32_t SetVoiceGuidanceRate(const double rate) override;
+        uint32_t GetVoiceGuidanceRate(double &rate) const override;
+        uint32_t SetVoiceGuidanceHints(const bool hints) override;
+        uint32_t GetVoiceGuidanceHints(bool &hints) const override;
 
-	// IConfiguration methods
+        // IConfiguration methods
         uint32_t Configure(PluginHost::IShell* service) override;
 
         void registerEventHandlers();

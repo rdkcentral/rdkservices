@@ -16,6 +16,12 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+
+
+## [2.1.0] - 2025-02-18
+### Updated
+- Added accessibility settings to user settings plugin.
+
 ## [2.0.0] - 2025-01-08
 ### Updated
 - Updated input param names for pinControl, liveWatershed, playbackWatershed, blockNotRatedContent, pinOnPurchase properties.
