@@ -44,7 +44,7 @@ namespace Plugin {
 
 
         BEGIN_INTERFACE_MAP(DeviceImplementation)
-		INTERFACE_ENTRY(Exchange::IDeviceIdentification2)
+	INTERFACE_ENTRY(Exchange::IDeviceIdentification2)
         INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)		
         END_INTERFACE_MAP
     };
@@ -80,10 +80,6 @@ protected:
     }
 };
 
-TEST_F(DeviceInfoDeviceIdentificationTest, Sdk)
-{
-    EXPECT_EQ( _T("17.3"), _T("17.3"));
-}
 
 
 TEST_F(DeviceInfoDeviceIdentificationTest, Identification)
@@ -91,6 +87,8 @@ TEST_F(DeviceInfoDeviceIdentificationTest, Identification)
     Exchange::IDeviceIdentification2::DeviceInfo info;
     EXPECT_EQ(Core::ERROR_NONE, interface->Identification(info));
     EXPECT_EQ(info.chipset, _T("testChipset"));
+    EXPECT_EQ(info.deviceID, _T("WPEdGVzdElkZW50aXR5"));
+    EXPECT_EQ(info.firmwareVersion, _T("testFirmwareVersion"));
 }
 
 
