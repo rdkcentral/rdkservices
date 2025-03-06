@@ -39,6 +39,10 @@
 #include "rfcapi.h"
 #include "cSettings.h"
 
+//#ifdef USER_JOURNAL_LOGGING
+#include <systemd/sd-journal.h>
+#define JOURNAL_IDENTIFIER "MaintenanceManager"
+
 /* MaintenanceManager Services Triggered Events. */
 #define EVT_ONMAINTMGRSAMPLEEVENT           "onSampleEvent"
 #define EVT_ONMAINTENANCSTATUSCHANGE        "onMaintenanceStatusChange" /* Maintenance Status change */
