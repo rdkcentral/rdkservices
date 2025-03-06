@@ -700,6 +700,11 @@ namespace Plugin {
             LOGERR("Failed to fetch the range capability[%s] \n", param.c_str());
             return -1;
         }
+    if (param == "PictureMode") {
+        // Add extra accepted parameters
+        std::vector<std::string> extraModes = {"DVIQ", "Dark", "AIPQ", "Bright"};
+        info.rangeVector.insert(info.rangeVector.end(), extraModes.begin(), extraModes.end());
+    }
 
         if ( (param == "ColorTemperature") ||
              (param == "DimmingMode") || (param == "AutoBacklightMode") ||
@@ -1026,6 +1031,8 @@ namespace Plugin {
                             case PQ_PARAM_DIMMINGMODE:
                             case PQ_PARAM_LOWLATENCY_STATE:
                             case PQ_PARAM_DOLBY_MODE:
+                            case PQ_PARAM_CMS:
+                            case PQ_PARAM_LDIM:
                                 if(reset) {
                                     ret |= updateAVoutputTVParamToHAL(tr181ParamName,paramIndex,0,false);
                                 }
@@ -1040,6 +1047,16 @@ namespace Plugin {
                                     ret |= updateAVoutputTVParamToHAL(tr181ParamName,paramIndex,level,true);
                                 }
                                 break;
+				/*
+                            case PQ_PARAM_PRECISION_DETAIL:
+                            case PQ_PARAM_SDR_GAMMA:
+                            case PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT:
+                            case PQ_PARAM_MPEG_NOISE_REDUCTION:
+                            case PQ_PARAM_DIGITAL_NOISE_REDUCTION:
+                            case PQ_PARAM_AI_SUPER_RESOLUTION:
+                            case PQ_PARAM_MEMC:
+                            case PQ_PARAM_MULTI_POINT_WB:
+                            case PQ_PARAM_DOLBY_VISION_CALIBRATION:*/
                             default:
                                 break;
                         }
@@ -1175,6 +1192,16 @@ namespace Plugin {
                             }
                             case PQ_PARAM_CMS:
                             case PQ_PARAM_LDIM:
+			    /*
+                            case PQ_PARAM_PRECISION_DETAIL:
+                            case PQ_PARAM_SDR_GAMMA:
+                            case PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT:
+                            case PQ_PARAM_MPEG_NOISE_REDUCTION:
+                            case PQ_PARAM_DIGITAL_NOISE_REDUCTION:
+                            case PQ_PARAM_AI_SUPER_RESOLUTION:
+                            case PQ_PARAM_MEMC:
+                            case PQ_PARAM_MULTI_POINT_WB:
+                            case PQ_PARAM_DOLBY_VISION_CALIBRATION:*/
                             default:
                                 break;
                         }
@@ -2465,6 +2492,178 @@ namespace Plugin {
             }
         }
         return true;
+    }
+
+    bool AVOutputTV::validateIntegerInputParameterAdvanced(int inputValue, int fromValue, int toValue) {
+	    return (inputValue >= fromValue && inputValue <= toValue);
+    }
+
+std::string trim(const std::string& str) {
+    size_t first = str.find_first_not_of(" \t\n\r\f\v");
+    size_t last = str.find_last_not_of(" \t\n\r\f\v");
+    if (first == std::string::npos || last == std::string::npos) {
+        return "";  // Return an empty string if no non-whitespace characters found
+    }
+    return str.substr(first, (last - first + 1));
+}
+
+bool AVOutputTV::paramsInRangeCheck(const JsonObject& parameters) {
+    static const std::unordered_map<std::string, std::unordered_set<std::string>> validStringValues = {
+        {"pictureMode", {"Global", "Current", "Standard", "Sports", "EnergySaving"}},
+        {"videoSource", {"Global", "Current", "Composite1", "HDMI1", "HDMI2", "HDMI3", "IP", "Tuner"}},
+        {"videoFormat", {"Global", "Current", "SDR", "HDR10", "HLG", "DV"}}
+    };
+
+    for (const auto& param : validStringValues) {
+        if (parameters.HasLabel(param.first.c_str())) {
+            std::string value = parameters[param.first.c_str()].String(); // FIX: Use .c_str()
+
+            // Remove square brackets if present (i.e., trim [" and "] around the value)
+            if (value.front() == '[' && value.back() == ']') {
+                value = value.substr(1, value.length() - 2); // Remove first and last character (i.e., '[' and ']')
+            }
+
+            // Remove double quotes if present (i.e., trim " around the value)
+            if (value.front() == '"' && value.back() == '"') {
+                value = value.substr(1, value.length() - 2); // Remove first and last character (i.e., '"' and '"')
+            }
+
+            // Trim any whitespace from the value
+            value = trim(value);
+
+            // Debug print: check what value is being compared after trimming
+            LOGINFO("Checking parameter: %s with value: '%s' (trimmed)", param.first.c_str(), value.c_str());
+
+            // Check if the value is in the valid set
+            if (param.second.find(value) == param.second.end()) {
+                LOGERR("Invalid %s: %s", param.first.c_str(), value.c_str());
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+    int AVOutputTV::parsingGetInputArgumentAdvanced(const JsonObject& parameters, std::string pqparam, capDetails_t& info) {
+
+        info.pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+
+        info.source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
+
+        info.format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
+
+        if ( (info.source.compare("Global") == 0) || (info.pqmode.compare("Global") == 0) || (info.format.compare("Global") == 0) ) {
+            LOGERR("%s: get cannot fetch the Global inputs \n", __FUNCTION__);
+            return -1;
+        }
+
+        if (info.source.empty()) {
+	       info.source = "Current";
+        }
+        if (info.pqmode.empty()) {
+	        info.pqmode = "Current";
+	    }
+        if (info.format.empty()) {
+	        info.format = "Current";
+        }
+
+        if (!paramsInRangeCheck(parameters)) {
+            LOGERR("Input values are out of range");
+            return -1;
+        }
+
+        return 0;
+    }
+
+    int AVOutputTV::parsingSetInputArgumentAdvanced(const JsonObject& parameters, std::string pqparam,capDetails_t& paramInfo) {
+
+        JsonArray sourceArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+
+
+        pqmodeArray = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].Array() : JsonArray();
+        for (int i = 0; i < pqmodeArray.Length(); ++i) {
+            paramInfo.pqmode += pqmodeArray[i].String();
+            if (i != (pqmodeArray.Length() - 1) ) {
+                paramInfo.pqmode += ",";
+            }
+        }
+
+        sourceArray = parameters.HasLabel("videoSource") ? parameters["videoSource"].Array() : JsonArray();
+        for (int i = 0; i < sourceArray.Length(); ++i) {
+            paramInfo.source += sourceArray[i].String();
+            if (i != (sourceArray.Length() - 1) ) {
+                paramInfo.source += ",";
+	        }
+        }
+
+        formatArray = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].Array() : JsonArray();
+        for (int i = 0; i < formatArray.Length(); ++i) {
+            paramInfo.format += formatArray[i].String();
+            if (i != (formatArray.Length() - 1) ) {
+                paramInfo.format += ",";
+            }
+        }
+
+	    if (paramInfo.source.empty()) {
+            paramInfo.source = "Global";
+	    }
+        if (paramInfo.pqmode.empty()) {
+            paramInfo.pqmode = "Global";
+	    }
+        if (paramInfo.format.empty()) {
+            paramInfo.format = "Global";
+	    }
+
+        if (!paramsInRangeCheck(parameters)) {
+            LOGERR("Input values are out of range");
+            return -1;
+        }
+
+        return 0;
+    }
+
+    SDRGammaType AVOutputTV::getSDRGammaEnumFromString(const char* gammaOption) {
+        if (strcmp(gammaOption, "2.0") == 0) return SDR_GAMMA_2_0;
+        if (strcmp(gammaOption, "2.2") == 0) return SDR_GAMMA_2_2;
+        if (strcmp(gammaOption, "2.4") == 0) return SDR_GAMMA_2_4;
+        if (strcmp(gammaOption, "BT.1886") == 0) return SDR_GAMMA_BT1886;
+        return SDR_GAMMA_UNKNOWN;
+    }
+
+    const char* AVOutputTV::getSDRGammaStringFromEnum(SDRGammaType gammaType) {
+        switch (gammaType) {
+            case SDR_GAMMA_2_0:
+                return "2.0";
+            case SDR_GAMMA_2_2:
+                return "2.2";
+            case SDR_GAMMA_2_4:
+                return "2.4";
+            case SDR_GAMMA_BT1886:
+                return "BT.1886";
+            default:
+                return "UNKNOWN";
+        }
+    }
+    int AVOutputTV::validateInputSDRGammaParameter(std::string inputValue)
+    {
+        std::vector<std::string> range;
+        range = {"2.0", "2.2", "2.4", "BT.1886"};
+        // Debug log to print range contents and input value
+        std::cout << "Range values: ";
+        for (const auto& val : range) {
+            std::cout << val << " ";
+        }
+        std::cout << "\nInput value: " << inputValue << std::endl;
+
+        auto iter = find(range.begin(), range.end(), inputValue);
+
+        if (iter == range.end()) {
+            LOGERR("Not a valid input value[%s].\n", inputValue.c_str());
+            return -1;
+        }
+        return 0;
     }
 
 } //namespace Plugin
