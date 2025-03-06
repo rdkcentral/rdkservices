@@ -6112,7 +6112,7 @@ void DisplaySettings::sendMsgThread()
 				if (isDisplayConnected(strVideoPort))
 				{
 					bool enable = (newState == "GAME") ? true : false;
-					vPort.setAllmEnabled(enable);
+					vPort.getDisplay().setAllmEnabled(enable);
 				}
 				else
 				{
