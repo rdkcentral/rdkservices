@@ -6,6 +6,7 @@ on:
   pull_request:
     branches: [ main, 'sprint/**', 'release/**' ]
 
+
 env:
   BUILD_TYPE: Debug
   THUNDER_REF: "5e7c0b1ed3c3dd0fc31c86518a364388dc24273b"
