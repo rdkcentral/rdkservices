@@ -13,6 +13,7 @@ using namespace WPEFramework;
 
 using ::testing::NiceMock;
 
+
 class BluetoothTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::Bluetooth> bluetooth;
