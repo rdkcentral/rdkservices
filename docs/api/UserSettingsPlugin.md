@@ -81,7 +81,8 @@ org.rdk.UserSettings interface methods:
 | [getVoiceGuidance](#method.getVoiceGuidance) | Gets the current voiceGuidance setting |
 | [getVoiceGuidanceRate](#method.getVoiceGuidanceRate) | Gets the current voiceGuidanceRate setting |
 | [getVoiceGuidanceHints](#method.getVoiceGuidanceHints) | Gets the current voiceGuidanceHints setting |
-
+| [getMigrationState](#method.getMigrationState) | Gets the migration state of the respective key |
+| [getMigrationStates](#method.getMigrationStates) | Gets the migration state of all the defined keys |
 
 <a name="method.setAudioDescription"></a>
 ## *setAudioDescription [<sup>method</sup>](#head.Methods)*
@@ -1596,6 +1597,87 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.getMigrationState"></a>
+## *getMigrationState [<sup>method</sup>](#head.Methods)*
+
+Gets the migration state of the respective key.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | boolean | migration state of the respective key true/false |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.getMigrationState"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": true
+}
+```
+
+<a name="method.getMigrationStates"></a>
+## *getMigrationStates [<sup>method</sup>](#head.Methods)*
+
+Gets the migration state of all the defined keys.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | array | migration state of all the defined keys |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.getMigrationStates"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": [{"key" : "PREFERRED_AUDIO_LANGUAGES", "requiresMigration": false}, {"key" : "AUDIO_DESCRIPTION", "requiresMigration": false}, {"key" : "CAPTIONS", "requiresMigration": false}, {"key" : "PREFERRED_CAPTIONS_LANGUAGES", "requiresMigration": false}, {"key" : "PREFERRED_CLOSED_CAPTION_SERVICE", "requiresMigration": false}, {"key" : "PRESENTATION_LANGUAGE", "requiresMigration": false}, {"key" : "HIGH_CONTRAST", "requiresMigration": true}, {"key" : "PIN_CONTROL", "requiresMigration": false}, {"key" : "VIEWING_RESTRICTIONS", "requiresMigration": false}, {"key" : "VIEWING_RESTRICTIONS_WINDOW", "requiresMigration": false}, {"key" : "LIVE_WATERSHED", "requiresMigration": false}, {"key" : "PLAYBACK_WATERSHED", "requiresMigration": false}, {"key" : "BLOCK_NOT_RATED_CONTENT", "requiresMigration": false}, {"key" : "PIN_ON_PURCHASE", "requiresMigration": false}, {"key" : "VOICE_GUIDANCE", "requiresMigration": true}, {"key" : "VOICE_GUIDANCE_RATE", "requiresMigration": true}, {"key" : "VOICE_GUIDANCE_HINTS", "requiresMigration": true}]
+
+```
 <a name="head.Notifications"></a>
 # Notifications
 
