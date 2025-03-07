@@ -1,4 +1,3 @@
-#if 0
 #include <gtest/gtest.h>
 #include "HdmiCecSink.h"
 #include "FactoriesImplementation.h"
@@ -396,4 +395,4 @@ TEST_F(HdmiCecSinkTest, DISABLED_getCecVersion)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCecVersion"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"CECVersion\":\"1.4\",\"success\":true}"));
 }
-#endif
+
