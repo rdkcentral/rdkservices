@@ -20,9 +20,9 @@ const string deviceId = _T("WPEdGVzdElkZW50aXR5");
 
 namespace WPEFramework {
 namespace Plugin {
-    class DeviceImplementation : public PluginHost::ISubSystem::IIdentifier {
+    class DeviceImplementation_testing : public PluginHost::ISubSystem::IIdentifier {
     public:
-        virtual ~DeviceImplementation() = default;
+        virtual ~DeviceImplementation_testing() = default;
 
         string Architecture() const override { return testArchitecture; }
         string Chipset() const override { return testChipset; }
@@ -34,12 +34,12 @@ namespace Plugin {
             return testId.length();
         }
 
-        BEGIN_INTERFACE_MAP(DeviceImplementation)
+        BEGIN_INTERFACE_MAP(DeviceImplementation_testing)
         INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
         END_INTERFACE_MAP
     };
 
-    SERVICE_REGISTRATION(DeviceImplementation, 1, 0);
+    SERVICE_REGISTRATION(DeviceImplementation_testing, 1, 0);
 }
 }
 
