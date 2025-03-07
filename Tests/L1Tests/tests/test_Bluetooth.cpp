@@ -50,18 +50,18 @@ protected:
         // Clean up tasks such as releasing resources or resetting state
 	if (p_iarmBusImplMock != nullptr) {
 	    delete p_iarmBusImplMock;
-	#if 0
+	
 	    p_iarmBusImplMock = nullptr;
 	
 	    IarmBus::setImpl(nullptr);
-	#endif
+	
 	}
 
 	if(mockBluetoothManagerInstance != nullptr) {
 	    delete mockBluetoothManagerInstance;
-	#if 0
+	
 	    mockBluetoothManagerInstance = nullptr;
-	#endif
+	
 	}
     }
 
