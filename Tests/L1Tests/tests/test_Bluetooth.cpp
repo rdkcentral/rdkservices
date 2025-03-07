@@ -43,14 +43,16 @@ protected:
 	}
     }
 
-    #if 0
+ 
     static void TearDownTestCase() {
         // Called once after all test cases have run
         std::cout << "Tearing down after all tests are run." << std::endl;
         // Clean up tasks such as releasing resources or resetting state
 	if (p_iarmBusImplMock != nullptr) {
 	    delete p_iarmBusImplMock;
+	#if 0
 	    p_iarmBusImplMock = nullptr;
+	#endif
 	    IarmBus::setImpl(nullptr);
 	}
 
@@ -59,7 +61,7 @@ protected:
 	    mockBluetoothManagerInstance = nullptr;
 	}
     }
-    #endif
+
     void SetUp() override {
     }
 
