@@ -531,7 +531,7 @@
             "summary": "Gets the migration state of all the defined keys.",
             "result": {
                 "summary": "migration state of all the defined keys",
-                "type": "string",
+                "type": "Array",
                 "example": "[{"key" : "PREFERRED_AUDIO_LANGUAGES", "requiresMigration": false}, {"key" : "AUDIO_DESCRIPTION", "requiresMigration": false}, {"key" : "CAPTIONS", "requiresMigration": false}, {"key" : "PREFERRED_CAPTIONS_LANGUAGES", "requiresMigration": false}, {"key" : "PREFERRED_CLOSED_CAPTION_SERVICE", "requiresMigration": false}, {"key" : "PRESENTATION_LANGUAGE", "requiresMigration": false}, {"key" : "HIGH_CONTRAST", "requiresMigration": true}, {"key" : "PIN_CONTROL", "requiresMigration": false}, {"key" : "VIEWING_RESTRICTIONS", "requiresMigration": false}, {"key" : "VIEWING_RESTRICTIONS_WINDOW", "requiresMigration": false}, {"key" : "LIVE_WATERSHED", "requiresMigration": false}, {"key" : "PLAYBACK_WATERSHED", "requiresMigration": false}, {"key" : "BLOCK_NOT_RATED_CONTENT", "requiresMigration": false}, {"key" : "PIN_ON_PURCHASE", "requiresMigration": false}, {"key" : "VOICE_GUIDANCE", "requiresMigration": true}, {"key" : "VOICE_GUIDANCE_RATE", "requiresMigration": true}, {"key" : "VOICE_GUIDANCE_HINTS", "requiresMigration": true}"
 }]"
             }
