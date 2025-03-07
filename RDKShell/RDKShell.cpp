@@ -787,10 +787,34 @@ namespace WPEFramework {
                     gLaunchedToSuspendedMutex.lock();
                     bool l2s = (gLaunchedToSuspended.find(mCallSign) != gLaunchedToSuspended.end());
                     gLaunchedToSuspendedMutex.unlock();
+                    // Override default delay with values from RFC
                     uint32_t delay = HIBERNATION_DELAY_FOR_RESUMED_TO_SUSPENDED_MS;
                     if (l2s)
                     {
                         delay = HIBERNATION_DELAY_FOR_LAUNCHED_TO_SUSPENDED_MS;
+
+                        if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AppHibernate.DelayInSecLaunchedToSuspended", param))
+                        {
+                            try
+                            {
+                                delay = std::stoi(param.value) * 1000;
+                            }
+                            catch (...)
+                            {
+                                std::cout << "RDKShell unable to get AppHibernate.DelayInSecLaunchedToSuspended value " << std::endl;
+                            }
+                        }
+                    }
+                    else if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AppHibernate.DelayInSecResumedToSuspended", param))
+                    {
+                        try
+                        {
+                            delay = std::stoi(param.value) * 1000;
+                        }
+                        catch (...)
+                        {
+                            std::cout << "RDKShell unable to get AppHibernate.DelayInSecResumedToSuspended value " << std::endl;
+                        }
                     }
 
                     if (mCallSign.find("Netflix") != std::string::npos || mCallSign.find("Cobalt") != std::string::npos)
