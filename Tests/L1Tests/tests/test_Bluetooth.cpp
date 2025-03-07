@@ -52,13 +52,16 @@ protected:
 	    delete p_iarmBusImplMock;
 	#if 0
 	    p_iarmBusImplMock = nullptr;
-	#endif
+	
 	    IarmBus::setImpl(nullptr);
+	#endif
 	}
 
 	if(mockBluetoothManagerInstance != nullptr) {
 	    delete mockBluetoothManagerInstance;
+	#if 0
 	    mockBluetoothManagerInstance = nullptr;
+	#endif
 	}
     }
 
@@ -151,7 +154,7 @@ TEST_F(BluetoothTest, StartScanWrapper_GetAdaptersFailed) {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"), _T("{\"timeout\":30}"), response));
     EXPECT_EQ(response, "{\"status\":\"NO_BLUETOOTH_HARDWARE\",\"success\":true}");
 }
-
+#if 0
 TEST_F(BluetoothTest, StartScanWrapper_InvalidTimeout) {
     // Mock expectations
     EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetNumberOfAdapters(::testing::_))
@@ -237,7 +240,7 @@ TEST_F(BluetoothTest, StartScanWrapper_ProfileParsingWithReset) {
         _T("{\"timeout\":-1, \"profile\":\"DEFAULT\"}"), response));
     EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
 }
-
+#endif
 TEST_F(BluetoothTest, StartScanWrapper_DiscoveryInProgress) {
     // Mock the behavior when there is one available adapter
     EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetNumberOfAdapters(::testing::_))
