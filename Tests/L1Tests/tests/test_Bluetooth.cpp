@@ -1,4 +1,4 @@
-#if 0
+
 #include <gtest/gtest.h>
 #include "Bluetooth.h"
 #include "BluetoothMocks.h"
@@ -14,7 +14,7 @@ using namespace WPEFramework;
 
 using ::testing::NiceMock;
 
-
+#if 0
 class BluetoothTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::Bluetooth> bluetooth;
