@@ -32,6 +32,7 @@ add_library(${MODULE_NAME} SHARED
         impl/TTSURLConstructer.cpp
         impl/NetworkStatusObserver.cpp
         impl/SatToken.cpp
+        impl/RFCURLObserver.cpp
         )
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
