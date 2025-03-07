@@ -1655,7 +1655,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | migration state of all the defined keys |
+| result | Array | migration state of all the defined keys |
 
 ### Example
 
