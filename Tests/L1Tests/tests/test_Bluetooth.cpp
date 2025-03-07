@@ -1,4 +1,3 @@
-#if 0
 #include <gtest/gtest.h>
 #include "Bluetooth.h"
 #include "BluetoothMocks.h"
@@ -2413,4 +2412,4 @@ TEST_F(BluetoothTest, EventCallbackTest) {
         ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
     }
 }
-#endif
+
