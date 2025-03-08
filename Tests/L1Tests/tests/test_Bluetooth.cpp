@@ -102,7 +102,7 @@ TEST_F(BluetoothTest, RegisteredMethods) {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getDeviceVolumeMuteInfo")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setDeviceVolumeMuteInfo")));
 }
-#if 0
+
 TEST_F(BluetoothTest, GetApiVersionNumber_Response) {
     // API_VERSION_NUMBER_MAJOR is not defined in header file. So, this test case will be failed if API_VERSION_NUMBER_MAJOR is changed in future.
     const int expectedVersion = 1;
@@ -130,7 +130,7 @@ TEST_F(BluetoothTest, StartScanWrapper_SuccessWithAdapters) {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"), _T("{\"timeout\":30}"), response));
     EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
 }
-
+#if 0
 // Test Case: StartScanWrapper when no adapters are available
 TEST_F(BluetoothTest, StartScanWrapper_NoAdapters) {
     // Mock the behavior when there are no adapters available
