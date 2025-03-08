@@ -130,30 +130,9 @@ TEST_F(BluetoothTest, StartScanWrapper_SuccessWithAdapters) {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"), _T("{\"timeout\":30}"), response));
     EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
 }
-#endif
-// Test Case: StartScanWrapper when no adapters are available
-TEST_F(BluetoothTest, StartScanWrapper_NoAdapters) {
-    // Mock the behavior when there are no adapters available
-    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetNumberOfAdapters(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::DoAll(::testing::SetArgPointee<0>(0), ::testing::Return(BTRMGR_RESULT_SUCCESS)));
 
-    // Invoke the startScan method and check the response
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"), _T("{\"timeout\":30}"), response));
-    EXPECT_EQ(response, "{\"status\":\"NO_BLUETOOTH_HARDWARE\",\"success\":true}");
-}
 
-// Test Case: StartScanWrapper when getting the number of adapters fails
-TEST_F(BluetoothTest, StartScanWrapper_GetAdaptersFailed) {
-    // Mock the behavior when fetching the number of adapters fails
-    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetNumberOfAdapters(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Return(BTRMGR_RESULT_GENERIC_FAILURE));
 
-    // Invoke the startScan method and check the response
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"), _T("{\"timeout\":30}"), response));
-    EXPECT_EQ(response, "{\"status\":\"NO_BLUETOOTH_HARDWARE\",\"success\":true}");
-}
 
 TEST_F(BluetoothTest, StartScanWrapper_InvalidTimeout) {
     // Mock expectations
@@ -262,7 +241,29 @@ TEST_F(BluetoothTest, StartScanWrapper_DiscoveryInProgress) {
         _T("{\"timeout\":30, \"profile\":\"HEADPHONES\"}"), response));
     EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
 }
+#endif
+// Test Case: StartScanWrapper when getting the number of adapters fails
+TEST_F(BluetoothTest, StartScanWrapper_GetAdaptersFailed) {
+    // Mock the behavior when fetching the number of adapters fails
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetNumberOfAdapters(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Return(BTRMGR_RESULT_GENERIC_FAILURE));
 
+    // Invoke the startScan method and check the response
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"), _T("{\"timeout\":30}"), response));
+    EXPECT_EQ(response, "{\"status\":\"NO_BLUETOOTH_HARDWARE\",\"success\":true}");
+}
+// Test Case: StartScanWrapper when no adapters are available
+TEST_F(BluetoothTest, StartScanWrapper_NoAdapters) {
+    // Mock the behavior when there are no adapters available
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetNumberOfAdapters(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::DoAll(::testing::SetArgPointee<0>(0), ::testing::Return(BTRMGR_RESULT_SUCCESS)));
+
+    // Invoke the startScan method and check the response
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"), _T("{\"timeout\":30}"), response));
+    EXPECT_EQ(response, "{\"status\":\"NO_BLUETOOTH_HARDWARE\",\"success\":true}");
+}
 TEST_F(BluetoothTest, StartScanWrapper_MissingParameters) {
     // No mocks are needed since the parameters are missing, and the logic fails early.
 
