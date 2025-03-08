@@ -130,7 +130,7 @@ TEST_F(BluetoothTest, StartScanWrapper_SuccessWithAdapters) {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"), _T("{\"timeout\":30}"), response));
     EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
 }
-
+#endif
 // Test Case: StartScanWrapper when no adapters are available
 TEST_F(BluetoothTest, StartScanWrapper_NoAdapters) {
     // Mock the behavior when there are no adapters available
@@ -272,7 +272,7 @@ TEST_F(BluetoothTest, StartScanWrapper_MissingParameters) {
     // Verify that the response indicates failure
     EXPECT_EQ(response.empty(), true);    
 }
-#endif
+
 // Test Case: Adapters Available, Adapter is Discoverable
 TEST_F(BluetoothTest, IsDiscoverableWrapper_Success) {
     EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetNumberOfAdapters(::testing::_))
