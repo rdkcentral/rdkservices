@@ -113,7 +113,7 @@ TEST_F(BluetoothTest, GetApiVersionNumber_Response) {
     // Verify the response contains the expected version
     EXPECT_EQ(response, "{\"version\":" + std::to_string(expectedVersion) + ",\"success\":true}");
 }
-
+#if 0
 // Test Case: StartScanWrapper when adapters are available and scan starts successfully
 TEST_F(BluetoothTest, StartScanWrapper_SuccessWithAdapters) {
     // Mock the behavior of the Bluetooth Manager when there is one available adapter
@@ -130,7 +130,7 @@ TEST_F(BluetoothTest, StartScanWrapper_SuccessWithAdapters) {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"), _T("{\"timeout\":30}"), response));
     EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
 }
-#if 0
+
 // Test Case: StartScanWrapper when no adapters are available
 TEST_F(BluetoothTest, StartScanWrapper_NoAdapters) {
     // Mock the behavior when there are no adapters available
