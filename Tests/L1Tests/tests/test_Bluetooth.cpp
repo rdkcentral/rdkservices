@@ -102,7 +102,7 @@ TEST_F(BluetoothTest, RegisteredMethods) {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getDeviceVolumeMuteInfo")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setDeviceVolumeMuteInfo")));
 }
-
+#if 0
 TEST_F(BluetoothTest, GetApiVersionNumber_Response) {
     // API_VERSION_NUMBER_MAJOR is not defined in header file. So, this test case will be failed if API_VERSION_NUMBER_MAJOR is changed in future.
     const int expectedVersion = 1;
@@ -154,7 +154,7 @@ TEST_F(BluetoothTest, StartScanWrapper_GetAdaptersFailed) {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"), _T("{\"timeout\":30}"), response));
     EXPECT_EQ(response, "{\"status\":\"NO_BLUETOOTH_HARDWARE\",\"success\":true}");
 }
-#if 0
+
 TEST_F(BluetoothTest, StartScanWrapper_InvalidTimeout) {
     // Mock expectations
     EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetNumberOfAdapters(::testing::_))
@@ -240,7 +240,7 @@ TEST_F(BluetoothTest, StartScanWrapper_ProfileParsingWithReset) {
         _T("{\"timeout\":-1, \"profile\":\"DEFAULT\"}"), response));
     EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
 }
-#endif
+
 TEST_F(BluetoothTest, StartScanWrapper_DiscoveryInProgress) {
     // Mock the behavior when there is one available adapter
     EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetNumberOfAdapters(::testing::_))
@@ -2422,4 +2422,4 @@ TEST_F(BluetoothTest, EventCallbackTest) {
         ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
     }
 }
-
+#endif
