@@ -272,7 +272,7 @@ TEST_F(BluetoothTest, StartScanWrapper_MissingParameters) {
     // Verify that the response indicates failure
     EXPECT_EQ(response.empty(), true);    
 }
-
+#endif
 // Test Case: Adapters Available, Adapter is Discoverable
 TEST_F(BluetoothTest, IsDiscoverableWrapper_Success) {
     EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetNumberOfAdapters(::testing::_))
@@ -2422,4 +2422,4 @@ TEST_F(BluetoothTest, EventCallbackTest) {
         ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
     }
 }
-#endif
+
