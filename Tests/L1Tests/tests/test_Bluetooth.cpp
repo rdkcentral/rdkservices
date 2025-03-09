@@ -219,7 +219,7 @@ TEST_F(BluetoothTest, StartScanWrapper_ProfileParsingWithReset) {
         _T("{\"timeout\":-1, \"profile\":\"DEFAULT\"}"), response));
     EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
 }
-
+#endif
 TEST_F(BluetoothTest, StartScanWrapper_DiscoveryInProgress) {
     // Mock the behavior when there is one available adapter
     EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetNumberOfAdapters(::testing::_))
@@ -241,7 +241,7 @@ TEST_F(BluetoothTest, StartScanWrapper_DiscoveryInProgress) {
         _T("{\"timeout\":30, \"profile\":\"HEADPHONES\"}"), response));
     EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
 }
-#endif
+
 // Test Case: StartScanWrapper when getting the number of adapters fails
 TEST_F(BluetoothTest, StartScanWrapper_GetAdaptersFailed) {
     // Mock the behavior when fetching the number of adapters fails
