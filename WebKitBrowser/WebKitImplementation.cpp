@@ -233,7 +233,6 @@ namespace Plugin {
                 , IndexedDBPath()
                 , IndexedDBSize()
                 , Secure(false)
-                , InjectedBundle()
                 , Transparent(false)
                 , Compositor()
                 , Inspector()
@@ -300,7 +299,6 @@ namespace Plugin {
                 Add(_T("indexeddbpath"), &IndexedDBPath);
                 Add(_T("indexeddbsize"), &IndexedDBSize);
                 Add(_T("secure"), &Secure);
-                Add(_T("injectedbundle"), &InjectedBundle);
                 Add(_T("transparent"), &Transparent);
                 Add(_T("compositor"), &Compositor);
                 Add(_T("inspector"), &Inspector);
@@ -332,7 +330,6 @@ namespace Plugin {
                 Add(_T("ptsoffset"), &PTSOffset);
                 Add(_T("scalefactor"), &ScaleFactor);
                 Add(_T("maxfps"), &MaxFPS);
-                Add(_T("bundle"), &Bundle);
                 Add(_T("execpath"), &ExecPath);
                 Add(_T("extensiondir"), &ExtensionDir);
                 Add(_T("proxy"), &HTTPProxy);
@@ -374,7 +371,6 @@ namespace Plugin {
             Core::JSON::String IndexedDBPath;
             Core::JSON::DecUInt16 IndexedDBSize; // [KB]
             Core::JSON::Boolean Secure;
-            Core::JSON::String InjectedBundle;
             Core::JSON::Boolean Transparent;
             Core::JSON::String Compositor;
             Core::JSON::String Inspector;
@@ -1861,12 +1857,6 @@ namespace Plugin {
             }
         }
 
-        string GetConfig(const string& key) const
-        {
-            string value;
-            _config.Bundle.Config(key,value);
-            return (value);
-        }
         BEGIN_INTERFACE_MAP(WebKitImplementation)
         INTERFACE_ENTRY(Exchange::IWebBrowser)
         INTERFACE_ENTRY(Exchange::IBrowser)
