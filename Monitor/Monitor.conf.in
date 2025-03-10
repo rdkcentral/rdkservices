@@ -163,7 +163,7 @@ if boolean("@PLUGIN_MONITOR_NETWORKMANAGER@"):
     observable_config.add("operational", "1")
     restart_config = JSON()
     restart_config.add("window", "60")
-    restart_config.add("limit", "3")
+    restart_config.add("limit", "60")
     observable_config.add("restart", restart_config)
     observable_list.append(observable_config)
 
