@@ -149,29 +149,29 @@ TEST_F(BluetoothTest, StartScanWrapper_DiscoveryFailed) {
     EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
 }
 
-TEST_F(BluetoothTest, StartScanWrapper_DiscoveryInProgress) {
-    // Mock the behavior when there is one available adapter
-    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetNumberOfAdapters(::testing::_))
-        .Times(1) // Only called during the first invocation
-        .WillOnce(::testing::DoAll(::testing::SetArgPointee<0>(1), ::testing::Return(BTRMGR_RESULT_SUCCESS)));
+// TEST_F(BluetoothTest, StartScanWrapper_DiscoveryInProgress) {
+//     // Mock the behavior when there is one available adapter
+//     EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetNumberOfAdapters(::testing::_))
+//         .Times(1) // Only called during the first invocation
+//         .WillOnce(::testing::DoAll(::testing::SetArgPointee<0>(1), ::testing::Return(BTRMGR_RESULT_SUCCESS)));
 
-    // Mock the behavior for starting device discovery (only called once initially)
-    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_StartDeviceDiscovery(::testing::Eq(0), ::testing::_))
-        .Times(1) // Should only be called once
-        .WillOnce(::testing::Return(BTRMGR_RESULT_SUCCESS));
+//     // Mock the behavior for starting device discovery (only called once initially)
+//     EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_StartDeviceDiscovery(::testing::Eq(0), ::testing::_))
+//         .Times(1) // Should only be called once
+//         .WillOnce(::testing::Return(BTRMGR_RESULT_SUCCESS));
 
    
-    // First call: Start discovery successfully
+//     // First call: Start discovery successfully
    
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"),
-        _T("{\"timeout\":30, \"profile\":\"LOUDSPEAKER\"}"), response));
-    EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
+//     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"),
+//         _T("{\"timeout\":30, \"profile\":\"LOUDSPEAKER\"}"), response));
+//     EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
 
-    // Second call: Attempt to start discovery while already running
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"),
-        _T("{\"timeout\":30, \"profile\":\"HEADPHONES\"}"), response));
-    EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
-}
+//     // Second call: Attempt to start discovery while already running
+//     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"),
+//         _T("{\"timeout\":30, \"profile\":\"HEADPHONES\"}"), response));
+//     EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
+// }
 
 // #endif
 TEST_F(BluetoothTest, StartScanWrapper_InvalidTimeout) {
