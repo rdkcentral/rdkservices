@@ -80,51 +80,6 @@ namespace Plugin {
                                  #endif
                                  public PluginHost::IStateControl {
     public:
-        class BundleConfig : public Core::JSON::Container {
-        private:
-            using BundleConfigMap = std::map<string, Core::JSON::String>;
-
-        public:
-            using Iterator = Core::IteratorMapType<const BundleConfigMap, const Core::JSON::String&, const string&, BundleConfigMap::const_iterator>;
-
-            BundleConfig(const BundleConfig&) = delete;
-            BundleConfig& operator=(const BundleConfig&) = delete;
-
-            BundleConfig()
-                : _configs()
-            {
-            }
-            ~BundleConfig() override
-            {
-            }
-
-            inline bool Config(const string& index, string& value) const
-            {
-                BundleConfigMap::const_iterator position(_configs.find(index));
-                bool result = (position != _configs.cend());
-
-                if (result == true) {
-                    value = position->second.Value();
-                }
-
-                return (result);
-            }
-
-        private:
-            bool Request(const TCHAR label[]) override
-            {
-                if (_configs.find(label) == _configs.end()) {
-                    auto element = _configs.emplace(std::piecewise_construct,
-                        std::forward_as_tuple(label),
-                        std::forward_as_tuple());
-                    Add(element.first->first.c_str(), &(element.first->second));
-                }
-                return (true);
-            }
-
-        private:
-            BundleConfigMap _configs;
-        };
         class Config : public Core::JSON::Container {
         private:
             Config(const Config&) = delete;
@@ -451,7 +406,6 @@ namespace Plugin {
             Core::JSON::DecSInt16 PTSOffset;
             Core::JSON::DecUInt16 ScaleFactor;
             Core::JSON::DecUInt8 MaxFPS; // A value between 1 and 100...
-            BundleConfig Bundle;
             Core::JSON::String ExecPath;
             Core::JSON::String ExtensionDir;
             Core::JSON::String HTTPProxy;
