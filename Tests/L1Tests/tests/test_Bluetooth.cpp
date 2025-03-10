@@ -148,7 +148,6 @@ TEST_F(BluetoothTest, StartScanWrapper_DiscoveryFailed) {
     // Verify the response matches the actual implementation
     EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
 }
-#endif
 
 TEST_F(BluetoothTest, StartScanWrapper_DiscoveryInProgress) {
     // Mock the behavior when there is one available adapter
@@ -172,8 +171,7 @@ TEST_F(BluetoothTest, StartScanWrapper_DiscoveryInProgress) {
     EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
 }
 
-
-
+#endif
 TEST_F(BluetoothTest, StartScanWrapper_InvalidTimeout) {
     // Mock expectations
     EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetNumberOfAdapters(::testing::_))
