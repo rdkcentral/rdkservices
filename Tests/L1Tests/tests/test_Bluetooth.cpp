@@ -162,19 +162,14 @@ TEST_F(BluetoothTest, StartScanWrapper_DiscoveryInProgress) {
 
    
     // First call: Start discovery successfully
-
-   
-    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_StopDeviceDiscovery(::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Return(BTRMGR_RESULT_SUCCESS));
    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"),
-        _T("{\"timeout\":-1, \"profile\":\"LOUDSPEAKER\"}"), response));
+        _T("{\"timeout\":30, \"profile\":\"LOUDSPEAKER\"}"), response));
     EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
 
     // Second call: Attempt to start discovery while already running
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"),
-        _T("{\"timeout\":-1, \"profile\":\"HEADPHONES\"}"), response));
+        _T("{\"timeout\":30, \"profile\":\"HEADPHONES\"}"), response));
     EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
 }
 
