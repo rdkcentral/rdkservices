@@ -23,8 +23,8 @@
 #include <stdint.h>
 #include <thread>
 #include <map>
-#include <ctime.h>
-#include <csignal.h>
+#include <time.h>
+#include <signal.h>
 #include <dirent.h>
 
 #include "Module.h"
