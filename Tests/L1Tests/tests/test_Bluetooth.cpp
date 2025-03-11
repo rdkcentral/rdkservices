@@ -31,7 +31,7 @@ protected:
     static void SetUpTestCase() {
         std::cout << "Setup once before start test" << std::endl;
 
-	if(mockBluetoothManagerInstance == nullptr) {
+	if(p_iarmBusImplMock == nullptr) {
             p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
             IarmBus::setImpl(p_iarmBusImplMock);
 	}
@@ -45,16 +45,17 @@ protected:
         // Called once after all test cases have run
         std::cout << "Tearing down after all tests are run." << std::endl;
         // Clean up tasks such as releasing resources or resetting state
-	if (p_iarmBusImplMock != nullptr) {
-	    delete p_iarmBusImplMock;
-	    p_iarmBusImplMock = nullptr;
-	    IarmBus::setImpl(nullptr);
-	}
-
 	if(mockBluetoothManagerInstance != nullptr) {
 	    delete mockBluetoothManagerInstance;
 	    mockBluetoothManagerInstance = nullptr;
 	}
+
+	IarmBus::setImpl(nullptr);
+        if (p_iarmBusImplMock != nullptr) {
+            delete p_iarmBusImplMock;
+            p_iarmBusImplMock = nullptr;
+        }
+
     }
 
     void SetUp() override {
