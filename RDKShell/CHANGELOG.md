@@ -16,6 +16,9 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.6.4] - 2025-02-27
+### Fixed
+- Increase Hibernation delay to 30sec
 
 ## [1.6.3] - 2024-09-09
 ### Added

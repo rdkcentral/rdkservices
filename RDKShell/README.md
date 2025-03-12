@@ -86,6 +86,3 @@ setOpacity:
 ```
 none
 ```
-
-## Full Reference
-https://etwiki.sys.comcast.net/display/RDK/RDKShell

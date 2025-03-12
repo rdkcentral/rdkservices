@@ -51,14 +51,20 @@
 #define USERSETTINGS_PLAYBACK_WATERSHED_KEY                   "playbackWaterShed"
 #define USERSETTINGS_BLOCK_NOT_RATED_CONTENT_KEY              "blockNotRatedContent"
 #define USERSETTINGS_PIN_ON_PURCHASE_KEY                      "pinOnPurchase"
+#define USERSETTINGS_HIGH_CONTRAST_KEY                        "highContrast"
+#define USERSETTINGS_VOICE_GUIDANCE_KEY                       "voiceGuidance"
+#define USERSETTINGS_VOICE_GUIDANCE_RATE_KEY                  "voiceGuidanceRate"
+#define USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY                 "voiceGuidanceHints"
 
 namespace WPEFramework {
 namespace Plugin {
     class UserSettingsImplementation : public Exchange::IUserSettings,
+                                       public Exchange::IUserSettingsInspector,
                                        public Exchange::IConfiguration {
 
     public:
         static const std::map<string, string> usersettingsDefaultMap;
+        static const std::map<SettingsKey, string> _userSettingsInspectorMap;
 
     private:
         class Store2Notification : public Exchange::IStore2::INotification {
@@ -100,11 +106,13 @@ namespace Plugin {
 
         BEGIN_INTERFACE_MAP(UserSettingsImplementation)
         INTERFACE_ENTRY(Exchange::IUserSettings)
+        INTERFACE_ENTRY(Exchange::IUserSettingsInspector)
         INTERFACE_ENTRY(Exchange::IConfiguration)
         END_INTERFACE_MAP
 
     public:
-        enum Event {
+        enum Event
+        {
                 AUDIO_DESCRIPTION_CHANGED,
                 PREFERRED_AUDIO_CHANGED,
                 PRESENTATION_LANGUAGE_CHANGED,
@@ -118,7 +126,11 @@ namespace Plugin {
                 LIVE_WATERSHED_CHANGED,
                 PLAYBACK_WATERSHED_CHANGED,
                 BLOCK_NOT_RATED_CONTENT_CHANGED,
-                PIN_ON_PURCHASE_CHANGED
+                PIN_ON_PURCHASE_CHANGED,
+                HIGH_CONTRAST_CHANGED,
+                VOICE_GUIDANCE_CHANGED,
+                VOICE_GUIDANCE_RATE_CHANGED,
+                VOICE_GUIDANCE_HINTS_CHANGED
             };
 
         class EXTERNAL Job : public Core::IDispatch {
@@ -191,6 +203,18 @@ namespace Plugin {
         uint32_t GetBlockNotRatedContent(bool &blockNotRatedContent) const override;
         uint32_t SetPinOnPurchase(const bool pinOnPurchase) override;
         uint32_t GetPinOnPurchase(bool &pinOnPurchase) const override;
+        uint32_t SetHighContrast(const bool enabled) override;
+        uint32_t GetHighContrast(bool &enabled) const override;
+        uint32_t SetVoiceGuidance(const bool enabled) override;
+        uint32_t GetVoiceGuidance(bool &enabled) const override;
+        uint32_t SetVoiceGuidanceRate(const double rate) override;
+        uint32_t GetVoiceGuidanceRate(double &rate) const override;
+        uint32_t SetVoiceGuidanceHints(const bool hints) override;
+        uint32_t GetVoiceGuidanceHints(bool &hints) const override;
+
+        // IUserSettingsInspector methods
+        Core::hresult GetMigrationState(const SettingsKey key, bool &requiresMigration) const override;
+        Core::hresult GetMigrationStates(IUserSettingsMigrationStateIterator *&states) const override;
 
         // IConfiguration methods
         uint32_t Configure(PluginHost::IShell* service) override;
@@ -219,5 +243,6 @@ namespace Plugin {
 
         friend class Job;
     };
+
 } // namespace Plugin
 } // namespace WPEFramework
