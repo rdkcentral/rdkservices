@@ -339,7 +339,6 @@ class AVOutputTV : public AVOutputBase {
 		tvDataComponentColor_t getComponentColorEnum(std::string colorName);
 		tvError_t getParamsCaps(std::string param, capVectors_t &vecInfo);
 		int GetPanelID(char *panelid);
-		// int ConvertHDRFormatToContentFormat(tvhdr_type_t hdrFormat);
 		int ReadCapablitiesFromConf(std::string param, capDetails_t& info);
 		void getDimmingModeStringFromEnum(int value, std::string &toStore);
 		void getColorTempStringFromEnum(int value, std::string &toStore);

@@ -1609,32 +1609,6 @@ namespace Plugin {
         return 0;
     }
 
-    // int AVOutputTV::ConvertHDRFormatToContentFormat(tvhdr_type_t hdrFormat)
-    // {
-    //     int ret=tvContentFormatType_SDR;
-    //     switch(hdrFormat)
-    //     {
-    //         case HDR_TYPE_SDR:
-    //             ret=tvContentFormatType_SDR;
-    //             break;
-    //         case HDR_TYPE_HDR10:
-    //             ret=tvContentFormatType_HDR10;
-    //             break;
-    //         case HDR_TYPE_HDR10PLUS:
-    //             ret=tvContentFormatType_HDR10PLUS;
-    //             break;
-    //         case HDR_TYPE_DOVI:
-    //             ret=tvContentFormatType_DOVI;
-    //             break;
-    //         case HDR_TYPE_HLG:
-    //             ret=tvContentFormatType_HLG;
-    //             break;
-    //         default:
-    //             break;
-    //     }
-    //     return ret;
-    // }
-
     void AVOutputTV::getDimmingModeStringFromEnum(int value, std::string &toStore)
     {
         const char *color_temp_string[] = {
