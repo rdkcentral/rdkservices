@@ -479,7 +479,7 @@ namespace WPEFramework
             tasks.push_back(task_names_foreground[2].c_str());
 #endif
             std::unique_lock<std::mutex> lck(m_callMutex);
-            for( i = 0; i < tasks.size() && !m_abort_flag; i++) 
+            for (i = 0; i < static_cast<int>(tasks.size()) && !m_abort_flag; i++)
             {
                 int task_status = -1;
                 task = tasks[i];
@@ -2230,7 +2230,7 @@ namespace WPEFramework
 	    LOGINFO("Request for stopMaintenance()");
 	    string codeDLtask;
             int k_ret = EINVAL;
-            int I = 0;
+            int i = 0;
             bool task_status[3] = {false};
             bool result = false;
 
