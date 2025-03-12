@@ -1099,6 +1099,7 @@ Core::hresult UserSettingsImplementation::GetMigrationStates(IUserSettingsMigrat
     {
         for (auto uimap = _userSettingsInspectorMap.begin(); uimap != _userSettingsInspectorMap.end(); uimap++)
         {
+            value.assign(""); 
             LOGINFO("Property [%s] value is fetching...", (uimap->second).c_str());
             status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, uimap->second, value, ttl);
             LOGINFO("value[%s] status[%d]", value.c_str(), status);
