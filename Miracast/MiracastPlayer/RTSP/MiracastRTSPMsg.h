@@ -21,6 +21,7 @@
 #define _MIRACAST_RTSP_MSG_H_
 
 #include <MiracastCommon.h>
+#include <MiracastHDCPState.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/epoll.h>
@@ -44,11 +45,14 @@ typedef enum rtsp_status_e
     RTSP_M1_M7_MSG_EXCHANGE_RECEIVED,
     RTSP_KEEP_ALIVE_MSG_RECEIVED,
     RTSP_TIMEDOUT,
-    RTSP_METHOD_NOT_SUPPORTED
+    RTSP_METHOD_NOT_SUPPORTED,
+    RTSP_SOC_HDCP_AUTH_FAILURE
 } RTSP_STATUS;
 
 /* Default values*/
-#define RTSP_DFLT_CONTENT_PROTECTION "none"
+#define RTSP_DFLT_WFD_HDCP_PORT (1189)
+#define RTSP_DFLT_WFD_HDCP_VERSION "HDCP2.1"
+
 #define RTSP_DFLT_VIDEO_FORMATS "00 00 03 10 0001ffff 1fffffff 00001fff 00 0000 0000 10 none none"
 #define RTSP_DFLT_AUDIO_FORMATS "AAC 00000007 00"
 #define RTSP_DFLT_TRANSPORT_PROFILE "RTP/AVP/UDP"
@@ -400,7 +404,7 @@ public:
     bool set_WFDUIBCCapability(std::string uibc_caps);
     bool set_WFDDisplayEDID(std::string wfd_display_edid);
     bool set_WFDConnectorType(std::string wfd_connector_type);
-    bool set_WFDContentProtection(std::string content_protection);
+    bool set_WFDContentProtection(bool enabled, std::string hdcpVersion = "", unsigned int port = 0);
     bool set_WFDSecScreenSharing(std::string screen_sharing);
     bool set_WFDPortraitDisplay(std::string portrait_display);
     bool set_WFDSecRotation(std::string rotation);
@@ -458,6 +462,7 @@ private:
     unsigned int m_wfd_src_req_timeout;
     unsigned int m_wfd_src_res_timeout;
     unsigned int m_current_wait_time_ms;
+    unsigned int m_hdcp_port_number;
     int m_wfd_src_session_timeout;
     eMIRA_PLAYER_STATES m_current_state;
 
@@ -471,6 +476,7 @@ private:
     std::string m_wfd_uibc_capability;
     std::string m_wfd_display_edid;
     std::string m_wfd_connector_type;
+    std::string m_wfd_hdcp_version;
     std::string m_wfd_content_protection;
     std::string m_wfd_sec_screensharing;
     std::string m_wfd_sec_portrait_display;
@@ -498,6 +504,8 @@ private:
     MiracastThread *m_rtsp_msg_handler_thread;
     MiracastThread *m_controller_thread;
     MiracastPlayerNotifier *m_player_notify_handler;
+
+    MiracastHDCPState* m_p_instance{nullptr};
 
     void set_state( eMIRA_PLAYER_STATES state , bool send_notification = false , eM_PLAYER_REASON_CODE reason_code = MIRACAST_PLAYER_REASON_CODE_SUCCESS );
     void store_srcsink_info( std::string client_name, std::string client_mac, std::string src_dev_ip, std::string sink_ip);
