@@ -193,12 +193,19 @@ namespace Plugin {
         // IDispatcher
         // -------------------------------------------------------------------------------------------------------
         //! ==================================== CALLED ON THREADPOOL THREAD ======================================
+#ifndef USE_THUNDER_R4
         Core::ProxyType<Core::JSONRPC::Message> Invoke(const string& token, const uint32_t channelId, const Core::JSONRPC::Message& message) override;
+#else
+	Core::ProxyType<Core::JSONRPC::Message> Invoke(const Core::JSONRPC::Context& context, const Core::JSONRPC::Message& message) override;
+#endif
         //! ==================================== CALLED ON THREADPOOL THREAD ======================================
         void Activate(PluginHost::IShell* service) override;
         //! ==================================== CALLED ON THREADPOOL THREAD ======================================
         void Deactivate() override;
-
+#ifdef USE_THUNDER_R4
+        //! ==================================== CALLED ON THREADPOOL THREAD ======================================
+        void Close(const uint32_t id) override;
+#endif
         // IPluginExtended
         // -------------------------------------------------------------------------------------------------------
         //! ================================== CALLED ON COMMUNICATION THREAD =====================================
