@@ -25,5 +25,3 @@ reserveTTSResource:
 ```
 none
 ```
-## Full Reference
-https://etwiki.sys.comcast.net/display/RDKV/RDK+Resource+Manager

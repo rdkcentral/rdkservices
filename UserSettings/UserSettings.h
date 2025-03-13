@@ -22,6 +22,8 @@
 #include "Module.h"
 #include <interfaces/json/JsonData_UserSettings.h>
 #include <interfaces/json/JUserSettings.h>
+#include <interfaces/json/JUserSettingsInspector.h>
+#include <interfaces/json/JsonData_UserSettingsInspector.h>
 #include <interfaces/IUserSettings.h>
 #include <interfaces/IConfiguration.h>
 #include "UtilsLogging.h"
@@ -48,7 +50,7 @@ namespace Plugin {
                 {
                     if (parent == nullptr)
                     {
-                       LOGERR("_parent is null");
+                       LOGERR("parent is null");
                     }
                 }
 
@@ -193,6 +195,7 @@ namespace Plugin {
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
             INTERFACE_AGGREGATE(Exchange::IUserSettings, _userSetting)
+            INTERFACE_AGGREGATE(Exchange::IUserSettingsInspector, _userSettingsInspector)
             END_INTERFACE_MAP
 
             //  IPlugin methods
@@ -208,6 +211,7 @@ namespace Plugin {
             PluginHost::IShell* _service{};
             uint32_t _connectionId{};
             Exchange::IUserSettings* _userSetting{};
+            Exchange::IUserSettingsInspector* _userSettingsInspector{};
             Core::Sink<Notification> _usersettingsNotification;
             Exchange::IConfiguration* configure;
     };

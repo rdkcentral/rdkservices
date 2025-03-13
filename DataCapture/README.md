@@ -23,5 +23,3 @@ getAudioClip:
 onAudioClipReady:
 {"fileName":"acm-songid0","status":false,"message":"Unable to read data from  /tmp/acm-songid0"}
 ```
-## Full Reference
-https://etwiki.sys.comcast.net/display/RDK/DataCapture

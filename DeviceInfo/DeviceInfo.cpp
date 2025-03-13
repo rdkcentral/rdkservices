@@ -18,6 +18,7 @@
  */
 
 #include "DeviceInfo.h"
+#include <time.h>
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 1
@@ -154,10 +155,13 @@ namespace Plugin {
     void DeviceInfo::SysInfo(JsonData::DeviceInfo::SysteminfoData& systemInfo) const
     {
         string serialNumber;
+	struct timespec currentTime{};
 
         Core::SystemInfo& singleton(Core::SystemInfo::Instance());
 
-        systemInfo.Time = Core::Time::Now().ToRFC1123(true);
+        clock_gettime(CLOCK_REALTIME, &currentTime);
+	systemInfo.Time = Core::Time(currentTime).ToRFC1123(true);
+	    
 #if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR >= 4))
 	systemInfo.Version = _subSystem->Version() + _T("#") + _subSystem->BuildTreeHash();
 #else

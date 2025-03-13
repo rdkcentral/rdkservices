@@ -22,6 +22,3 @@ curl -d '{"jsonrpc":"2.0","id":"3","method":"org.rdk.UsbAccess.1.clearLink","par
 ```
 None
 ```
-
-## Full Reference
-https://etwiki.sys.comcast.net/pages/viewpage.action?spaceKey=RDKV&title=UsbAccess

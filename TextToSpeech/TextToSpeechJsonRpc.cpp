@@ -182,8 +182,12 @@ uint32_t TextToSpeech::SetACL(const JsonObject& parameters, JsonObject& response
             Exchange::ITextToSpeech::Configuration config;
             config.ttsEndPoint = GET_STR(parameters, "ttsendpoint", "");
             config.ttsEndPointSecured = GET_STR(parameters, "ttsendpointsecured", "");
-            config.language = GET_STR(parameters, "language", "");
+            config.language = GET_STR(parameters, "language", "");        
+            #ifndef UNIT_TESTING
+            config.voice = ""; //ignore voice from app           
+            #else
             config.voice = GET_STR(parameters, "voice", "");
+            #endif
             config.speechRate = GET_STR(parameters, "speechrate", "");
 
             std::string proxyVolume = GET_STR(parameters, "volume", "0.0");

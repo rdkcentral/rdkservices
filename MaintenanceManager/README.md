@@ -37,6 +37,3 @@ startMaintenance
 onMaintenanceStatusChange
 
 ```
-
-## Full Reference
-https://etwiki.sys.comcast.net/display/RDKV/MaintenanceManager
