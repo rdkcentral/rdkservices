@@ -45,6 +45,7 @@ add_executable(${PROJECT_NAME}
         ../mocks/rdkshell.cpp
 	../mocks/opkgMock.cpp
 	../mocks/WpaCtrl.cpp
+	../mocks/BluetoothMocks.cpp
         )
 
 set_source_files_properties(
@@ -183,6 +184,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}TextToSpeech
 	${NAMESPACE}MiracastService
 	${NAMESPACE}MiracastPlayer
+	${NAMESPACE}Bluetooth
         )
 
 target_include_directories(${PROJECT_NAME}

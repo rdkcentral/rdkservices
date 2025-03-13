@@ -296,6 +296,7 @@ jobs:
           -DDS_FOUND=ON
           -DPLUGIN_TEXTTOSPEECH=ON
           -DPLUGIN_MIRACAST=ON
+          -DPLUGIN_BLUETOOTH=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
