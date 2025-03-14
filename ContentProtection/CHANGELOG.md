@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.1] - 2025-03-14
+### Fixed
+- Fix callsign
+
 ## [1.0.0] - 2024-07-15
 ### Added
 - Add CHANGELOG
