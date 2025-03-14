@@ -68,6 +68,10 @@ const std::map<Exchange::IUserSettingsInspector::SettingsKey, string> UserSettin
          {Exchange::IUserSettingsInspector::SettingsKey::VOICE_GUIDANCE_RATE, USERSETTINGS_VOICE_GUIDANCE_RATE_KEY},
          {Exchange::IUserSettingsInspector::SettingsKey::VOICE_GUIDANCE_HINTS, USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY}};
 
+
+const double UserSettingsImplementation::minVGR = 0.1;
+const double UserSettingsImplementation::maxVGR = 10;
+
 SERVICE_REGISTRATION(UserSettingsImplementation, 1, 0);
 
 UserSettingsImplementation::UserSettingsImplementation()
@@ -987,13 +991,13 @@ uint32_t UserSettingsImplementation::SetVoiceGuidanceRate(const double rate)
     uint32_t status = Core::ERROR_GENERAL;
 
     LOGINFO("rate: %lf", rate);
-    if (0.1 > rate && 10 < rate)
+    if (minVGR <= rate && maxVGR >= rate)
     {
-        status = Core::ERROR_INVALID_RANGE;
+        status = SetUserSettingsValue(USERSETTINGS_VOICE_GUIDANCE_RATE_KEY, std::to_string(rate));
     }
     else
     {
-        status = SetUserSettingsValue(USERSETTINGS_VOICE_GUIDANCE_RATE_KEY, std::to_string(rate));
+        status = Core::ERROR_INVALID_RANGE;
     }
     return status;
 }
