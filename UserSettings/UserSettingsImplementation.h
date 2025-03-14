@@ -65,8 +65,8 @@ namespace Plugin {
     public:
         static const std::map<string, string> usersettingsDefaultMap;
         static const std::map<SettingsKey, string> _userSettingsInspectorMap;
-	const double minVGR;
-	const double maxVGR;
+	static const double minVGR;
+	static const double maxVGR;
 
     private:
         class Store2Notification : public Exchange::IStore2::INotification {
