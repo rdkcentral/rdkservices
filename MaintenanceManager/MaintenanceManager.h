@@ -46,7 +46,7 @@
 #define MM_LOG(priority, format, ...) \
     sd_journal_send("MESSAGE=" format, ##__VA_ARGS__,  \
                     "PRIORITY=%i", priority,          \
-                    "IDENTIFIER=%s", JOURNAL_IDENTIFIER, \
+                    "SYSLOG_IDENTIFIER=%s", JOURNAL_IDENTIFIER, \
                     "CODE_FILE=%s", __FILE__,         \
                     "CODE_LINE=%d", __LINE__,         \
                     "CODE_FUNC=%s", __func__,         \
