@@ -3548,6 +3548,12 @@ namespace WPEFramework
 		    {
 		        if(keyInfo.keyCode == MUTE)
 			{
+				if (_instance->m_audioStatusDetectionTimer.isActive())
+				{
+					LOGINFO("Mute Key pressed. Stopping the timer!\n");
+					m_audioStatusDetectionTimer.stop();
+					m_audioStatusTimerStarted = false;
+				}
 				_instance->sendGiveAudioStatusMsg();
 			}
 			else
