@@ -987,7 +987,14 @@ uint32_t UserSettingsImplementation::SetVoiceGuidanceRate(const double rate)
     uint32_t status = Core::ERROR_GENERAL;
 
     LOGINFO("rate: %lf", rate);
-    status = SetUserSettingsValue(USERSETTINGS_VOICE_GUIDANCE_RATE_KEY, std::to_string(rate));
+    if (0.1 > rate && 10 < rate)
+    {
+        status = Core::ERROR_INVALID_RANGE;
+    }
+    else
+    {
+        status = SetUserSettingsValue(USERSETTINGS_VOICE_GUIDANCE_RATE_KEY, std::to_string(rate));
+    }
     return status;
 }
 
