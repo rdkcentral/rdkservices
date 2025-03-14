@@ -43,18 +43,19 @@
 #include <systemd/sd-journal.h>
 #define JOURNAL_IDENTIFIER "MaintenanceManager"
 
-#define MM_LOG(priority, format, ...) \
-    sd_journal_send("MESSAGE=" format, ##__VA_ARGS__,  \
-                    "PRIORITY=%i", priority,          \
-                    "SYSLOG_IDENTIFIER=%s", JOURNAL_IDENTIFIER, \
-                    "CODE_FILE=%s", __FILE__,         \
-                    "CODE_LINE=%d", __LINE__,         \
-                    "CODE_FUNC=%s", __func__,         \
+#define MM_LOG(priority, priority_str, format, ...)                             \
+    sd_journal_send("MESSAGE=%s [%s:%d] %s: " format,                           \
+                    priority_str, __FILE__, __LINE__, __func__, ##__VA_ARGS__,  \
+                    "PRIORITY=%i", priority,                                    \
+                    "SYSLOG_IDENTIFIER=%s", JOURNAL_IDENTIFIER,                 \
                     NULL)
 
-#define MM_LOGINFO(format, ...) MM_LOG(LOG_INFO, format, ##__VA_ARGS__)
-#define MM_LOGWARN(format, ...) MM_LOG(LOG_WARNING, format, ##__VA_ARGS__)
-#define MM_LOGERR(format, ...)  MM_LOG(LOG_ERR, format, ##__VA_ARGS__)
+#define MM_LOGINFO(format, ...) MM_LOG(LOG_INFO, "INFO", format, ##__VA_ARGS__)
+#define MM_LOGWARN(format, ...) MM_LOG(LOG_WARNING, "WARN", format, ##__VA_ARGS__)
+#define MM_LOGERR(format, ...)  MM_LOG(LOG_ERR, "ERROR", format, ##__VA_ARGS__)
+#ifdef DEBUG
+#define MM_LOGDEBUG(format, ...) MM_LOG(LOG_DEBUG, "DEBUG", format, ##__VA_ARGS__)
+#endif
 
 /* MaintenanceManager Services Triggered Events. */
 #define EVT_ONMAINTMGRSAMPLEEVENT           "onSampleEvent"
