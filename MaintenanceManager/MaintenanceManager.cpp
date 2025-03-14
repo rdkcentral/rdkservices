@@ -1730,7 +1730,7 @@ namespace WPEFramework
                     {
                         if ( (g_task_status & ALL_TASKS_SUCCESS) == ALL_TASKS_SUCCESS )
                         { // all tasks success
-                            LOGINFO("DBG:Maintenance Successfully Completed!!");
+                            LOGINFO("Maintenance Successfully Completed!!");
                             notify_status = MAINTENANCE_COMPLETE;
                             /* we store the time in persistent location */
                             successfulTime = time(nullptr);
@@ -1748,12 +1748,12 @@ namespace WPEFramework
                         {
                             if ((g_task_status & MAINTENANCE_TASK_SKIPPED) == MAINTENANCE_TASK_SKIPPED )
                             {
-                                LOGINFO("DBG:There are Skipped Task. Maintenance Incomplete");
+                                LOGINFO("There are Skipped Task. Maintenance Incomplete");
                                 notify_status = MAINTENANCE_INCOMPLETE;
                             }
                             else
                             {
-                                LOGINFO("DBG:Maintenance Ended with Errors");
+                                LOGINFO("Maintenance Ended with Errors");
                                 notify_status = MAINTENANCE_ERROR;
                             }
                         }
