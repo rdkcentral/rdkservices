@@ -700,8 +700,8 @@ namespace WPEFramework
         {
             if (g_task_timerCreated)
             {
-                sd_journal_send("MESSAGE=Timer has already been created, no need to create a Timer.", "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-                LOGINFO("Timer has already been created, no need to create a Timer.");
+                //sd_journal_send("MESSAGE=Timer has already been created, no need to create a Timer.", "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                MM_LOGINFO("Timer has already been created, no need to create a Timer.");
                 return g_task_timerCreated;
             }
 
@@ -712,13 +712,13 @@ namespace WPEFramework
 
             if (timer_create(BASE_CLOCK, &sev, &timerid) == -1)
             {
-                sd_journal_send("MESSAGE=timer_create() failed to create the Timer", "PRIORITY=%d", LOG_ERR, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-                LOGERR("timer_create() failed to create the Timer");
+                //sd_journal_send("MESSAGE=timer_create() failed to create the Timer", "PRIORITY=%d", LOG_ERR, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                MM_LOGERR("timer_create() failed to create the Timer");
             }
             else{
                 g_task_timerCreated = true; // Timer Created
-                sd_journal_send("MESSAGE=Timer created successfully.", "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-                LOGINFO("Timer created successfully.");
+                //sd_journal_send("MESSAGE=Timer created successfully.", "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                MM_LOGINFO("Timer created successfully.");
             }
             return g_task_timerCreated;
         }
@@ -735,13 +735,13 @@ namespace WPEFramework
             bool status = false;
             if (g_task_timerCreated)
             {
-                sd_journal_send("MESSAGE=Timer has already been created, start the Timer", "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-                LOGINFO("Timer has already been created, start the Timer");
+                //sd_journal_send("MESSAGE=Timer has already been created, start the Timer", "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                MM_LOGINFO("Timer has already been created, start the Timer");
             }
             else
             {
-                sd_journal_send("MESSAGE=Timer has not been created already, create a new Timer.", "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-                LOGINFO("Timer has not been created already, create a new Timer.");
+                //sd_journal_send("MESSAGE=Timer has not been created already, create a new Timer.", "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                MM_LOGINFO("Timer has not been created already, create a new Timer.");
                 if (!maintenance_initTimer())
                 {
                     return status;
@@ -756,13 +756,13 @@ namespace WPEFramework
 
             if (timer_settime(timerid, 0, &its, NULL) == -1)
             {
-                sd_journal_send("MESSAGE=timer_settime() failed to start the Timer", "PRIORITY=%d", LOG_ERR, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                //sd_journal_send("MESSAGE=timer_settime() failed to start the Timer", "PRIORITY=%d", LOG_ERR, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
                 LOGERR("timer_settime() failed to start the Timer");
             }
             else
             {
-                sd_journal_send("MESSAGE=Timer started for %d seconds for %s", TASK_TIMEOUT, currentTask.c_str(), "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-                LOGINFO("Timer started for %d seconds for %s", TASK_TIMEOUT, currentTask.c_str());
+                //sd_journal_send("MESSAGE=Timer started for %d seconds for %s", TASK_TIMEOUT, currentTask.c_str(), "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                MM_LOGINFO("Timer started for %d seconds for %s", TASK_TIMEOUT, currentTask.c_str());
                 status = true;
             }
             return status;
@@ -780,8 +780,8 @@ namespace WPEFramework
             bool status = false;
             if (!g_task_timerCreated)
             {
-                sd_journal_send("MESSAGE=Timer has not been created already, cannot stop the Timer", "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-                LOGINFO("Timer has not been created already, cannot stop the Timer");
+                //sd_journal_send("MESSAGE=Timer has not been created already, cannot stop the Timer", "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                MM_LOGINFO("Timer has not been created already, cannot stop the Timer");
                 return status;
             }
 
@@ -791,13 +791,13 @@ namespace WPEFramework
 
             if (timer_settime(timerid, 0, &its, NULL) == -1)
             {
-                sd_journal_send("MESSAGE=timer_settime() failed to stop the Timer", "PRIORITY=%d", LOG_ERR, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-                LOGERR("timer_settime() failed to stop the Timer");
+                //sd_journal_send("MESSAGE=timer_settime() failed to stop the Timer", "PRIORITY=%d", LOG_ERR, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                MM_LOGERR("timer_settime() failed to stop the Timer");
             }
             else
             {
-                sd_journal_send("MESSAGE=Timer stopped for %s", currentTask.c_str(), "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-                LOGINFO("Timer stopped for %s", currentTask.c_str());
+                //sd_journal_send("MESSAGE=Timer stopped for %s", currentTask.c_str(), "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                MM_LOGINFO("Timer stopped for %s", currentTask.c_str());
                 status = true;
             }
             return status;
@@ -815,23 +815,23 @@ namespace WPEFramework
             bool status = false;
             if (!g_task_timerCreated)
             {
-                sd_journal_send("MESSAGE=Timer has not been created already, cannot delete the Timer.", "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-                LOGINFO("Timer has not been created already, cannot delete the Timer.");
+                //sd_journal_send("MESSAGE=Timer has not been created already, cannot delete the Timer.", "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                MM_LOGINFO("Timer has not been created already, cannot delete the Timer.");
                 return status;
             }
-            sd_journal_send("MESSAGE=Timer has already been created, delete the Timer.", "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-            LOGINFO("Timer has already been created, delete the Timer.");
+            //sd_journal_send("MESSAGE=Timer has already been created, delete the Timer.", "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+            MM_LOGINFO("Timer has already been created, delete the Timer.");
 
             if (timer_delete(timerid) == -1)
             {
-                sd_journal_send("MESSAGE=timer_delete() failed to delete the Timer.", "PRIORITY=%d", LOG_ERR, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-                LOGERR("timer_delete() failed to delete the Timer.");
+                //sd_journal_send("MESSAGE=timer_delete() failed to delete the Timer.", "PRIORITY=%d", LOG_ERR, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                MM_LOGERR("timer_delete() failed to delete the Timer.");
             }
             else
             {
                 g_task_timerCreated = false;
-                sd_journal_send("MESSAGE=Timer successfully deleted.", "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-                LOGINFO("Timer successfully deleted.");
+                //sd_journal_send("MESSAGE=Timer successfully deleted.", "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                MM_LOGINFO("Timer successfully deleted.");
                 status = true;
             }
             return status;
@@ -848,8 +848,8 @@ namespace WPEFramework
         {
             if (signo == SIGALRM)
             {
-                sd_journal_send("MESSAGE=Timeout reached for %s. Set task to Error...", currentTask.c_str(), "PRIORITY=%d", LOG_ERR, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-                LOGERR("Timeout reached for %s. Set task to Error...", currentTask.c_str());
+                //sd_journal_send("MESSAGE=Timeout reached for %s. Set task to Error...", currentTask.c_str(), "PRIORITY=%d", LOG_ERR, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                MM_LOGERR("Timeout reached for %s. Set task to Error...", currentTask.c_str());
 
                 const char *failedTask = nullptr;
                 int complete_status = 0;
@@ -866,22 +866,22 @@ namespace WPEFramework
 
                 if (failedTask && !MaintenanceManager::_instance->m_task_map[failedTask])
                 {
-                    sd_journal_send("MESSAGE=Ignoring Error Event for Task: %s", failedTask, "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-                    LOGINFO("Ignoring Error Event for Task: %s", failedTask);
+                    //sd_journal_send("MESSAGE=Ignoring Error Event for Task: %s", failedTask, "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                    MM_LOGINFO("Ignoring Error Event for Task: %s", failedTask);
                 }
                 else if (failedTask)
                 {
                     MaintenanceManager::_instance->m_task_map[failedTask] = false;
                     SET_STATUS(MaintenanceManager::_instance->g_task_status, complete_status);
                     MaintenanceManager::_instance->task_thread.notify_one();
-                    sd_journal_send("MESSAGE=Set %s Task to ERROR", failedTask, "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-                    LOGINFO("Set %s Task to ERROR", failedTask);
+                    //sd_journal_send("MESSAGE=Set %s Task to ERROR", failedTask, "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                    MM_LOGINFO("Set %s Task to ERROR", failedTask);
                 }
             }
             else
             {
-                sd_journal_send("MESSAGE=Received %d Signal instead of SIGALRM", signo, "PRIORITY=%d", LOG_ERR, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-                LOGERR("Received %d Signal instead of SIGALRM", signo);
+                //sd_journal_send("MESSAGE=Received %d Signal instead of SIGALRM", signo, "PRIORITY=%d", LOG_ERR, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                MM_LOGERR("Received %d Signal instead of SIGALRM", signo);
             }
         }
 
@@ -897,22 +897,22 @@ namespace WPEFramework
          */
         bool MaintenanceManager::setRFC(const char *rfc, const char *value, DATA_TYPE dataType)
         {
-            sd_journal_send("MESSAGE=Invoke setRFC...", "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-            LOGINFO("Invoke setRFC...");
+            //sd_journal_send("MESSAGE=Invoke setRFC...", "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+            MM_LOGINFO("Invoke setRFC...");
             bool result = false;
             WDMP_STATUS status;
             status = setRFCParameter((char *)MAINTENANCE_MANAGER_RFC_CALLER_ID, rfc, value, dataType);
 
             if (WDMP_SUCCESS == status)
             {
-                sd_journal_send("MESSAGE=Successfuly set the tr181 parameter %s with value %s", rfc, value, "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-                LOGINFO("Successfuly set the tr181 parameter %s with value %s", rfc, value);
+                //sd_journal_send("MESSAGE=Successfuly set the tr181 parameter %s with value %s", rfc, value, "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                MM_LOGINFO("Successfuly set the tr181 parameter %s with value %s", rfc, value);
                 result = true;
             }
             else
             {
-                sd_journal_send("MESSAGE=Failed setting %s parameter", rfc, "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
-                LOGINFO("Failed setting %s parameter", rfc);
+                //sd_journal_send("MESSAGE=Failed setting %s parameter", rfc, "PRIORITY=%d", LOG_INFO, "IDENTIFIER=%s", JOURNAL_IDENTIFIER, "CODE_FILE=%s", __FILE__, "CODE_LINE=%d", __LINE__, "CODE_FUNC=%s", __func__, NULL);
+                MM_LOGINFO("Failed setting %s parameter", rfc);
             }
             return result;
         }
