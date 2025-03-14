@@ -39,6 +39,24 @@
 #include "rfcapi.h"
 #include "cSettings.h"
 
+//#ifdef ENABLE_JOURNAL_LOGGING
+#include <systemd/sd-journal.h>
+#define JOURNAL_IDENTIFIER "MaintenanceManager"
+
+#define MM_LOG(priority, priority_str, format, ...)                             \
+    sd_journal_send("MESSAGE=%s [%s:%d] %s: " format,                           \
+                    priority_str, __FILE__, __LINE__, __func__, ##__VA_ARGS__,  \
+                    "PRIORITY=%i", priority,                                    \
+                    "SYSLOG_IDENTIFIER=%s", JOURNAL_IDENTIFIER,                 \
+                    NULL)
+
+#define MM_LOGINFO(format, ...) MM_LOG(LOG_INFO, "INFO", format, ##__VA_ARGS__)
+#define MM_LOGWARN(format, ...) MM_LOG(LOG_WARNING, "WARN", format, ##__VA_ARGS__)
+#define MM_LOGERR(format, ...)  MM_LOG(LOG_ERR, "ERROR", format, ##__VA_ARGS__)
+#ifdef DEBUG
+#define MM_LOGDEBUG(format, ...) MM_LOG(LOG_DEBUG, "DEBUG", format, ##__VA_ARGS__)
+#endif
+
 /* MaintenanceManager Services Triggered Events. */
 #define EVT_ONMAINTMGRSAMPLEEVENT           "onSampleEvent"
 #define EVT_ONMAINTENANCSTATUSCHANGE        "onMaintenanceStatusChange" /* Maintenance Status change */
