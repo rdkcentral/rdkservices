@@ -18,14 +18,14 @@
  */
  
 #include "../../Module.h"
-#include <interfaces/IDeviceIdentification2.h>
+#include <interfaces/IDeviceIdentification.h>
 #include <interfaces/IConfiguration.h>
 #include <fstream>
 
 namespace WPEFramework {
 namespace Plugin {
 
-class DeviceImplementation : public Exchange::IDeviceIdentification2, public PluginHost::ISubSystem::IIdentifier {
+class DeviceImplementation : public Exchange::IDeviceIdentification, public PluginHost::ISubSystem::IIdentifier {
     static constexpr const TCHAR* PlatformFile = _T("/proc/brcm/platform");
 
 public:
@@ -68,7 +68,7 @@ public:
         return ret;
     }
 
-    // IDeviceIdentification2 interface
+    // IDeviceIdentification interface
 
     Core::hresult Identification(DeviceInfo& info) const override
     {
@@ -88,7 +88,7 @@ public:
     }
 
     BEGIN_INTERFACE_MAP(DeviceImplementation)
-        INTERFACE_ENTRY(Exchange::IDeviceIdentification2)
+        INTERFACE_ENTRY(Exchange::IDeviceIdentification)
         INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
     END_INTERFACE_MAP
 

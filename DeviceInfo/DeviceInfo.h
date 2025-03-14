@@ -27,7 +27,7 @@
 #include <interfaces/IDeviceInfo2.h>
 #endif /* USE_THUNDER_R4 */
 #include <interfaces/IFirmwareVersion.h>
-#include <interfaces/IDeviceIdentification2.h>
+#include <interfaces/IDeviceIdentification.h>
 #include <interfaces/json/JsonData_DeviceInfo.h>
 
 namespace WPEFramework {
@@ -94,7 +94,7 @@ namespace Plugin {
         INTERFACE_AGGREGATE(Exchange::IDeviceAudioCapabilities, _deviceAudioCapabilities)
         INTERFACE_AGGREGATE(Exchange::IDeviceVideoCapabilities, _deviceVideoCapabilities)
         INTERFACE_AGGREGATE(Exchange::IFirmwareVersion, _firmwareVersion)
-        INTERFACE_AGGREGATE(Exchange::IDeviceIdentification2, _device)
+        INTERFACE_AGGREGATE(Exchange::IDeviceIdentification, _device)
         END_INTERFACE_MAP
 
     public:
@@ -153,7 +153,7 @@ namespace Plugin {
         Exchange::IFirmwareVersion* _firmwareVersion;
         string _deviceId;
         PluginHost::ISubSystem::IIdentifier* _identifier;
-        Exchange::IDeviceIdentification2* _device;
+        Exchange::IDeviceIdentification* _device;
 
     };
 

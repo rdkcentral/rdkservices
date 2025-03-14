@@ -19,7 +19,7 @@
 
 #include "DeviceInfo.h"
 #include <interfaces/IConfiguration.h>
-#include <interfaces/IDeviceIdentification2.h>
+#include <interfaces/IDeviceIdentification.h>
 #include "tracing/Logging.h"
 #include "UtilsJsonRpc.h"
 #include "UtilsController.h"
@@ -75,7 +75,7 @@ namespace Plugin {
         _deviceAudioCapabilities = service->Root<Exchange::IDeviceAudioCapabilities>(_connectionId, 2000, _T("DeviceAudioCapabilities"));
         _deviceVideoCapabilities = service->Root<Exchange::IDeviceVideoCapabilities>(_connectionId, 2000, _T("DeviceVideoCapabilities"));
         _firmwareVersion = service->Root<Exchange::IFirmwareVersion>(_connectionId, 2000, _T("FirmwareVersion"));
-        _device = service->Root<Exchange::IDeviceIdentification2>(_connectionId, 2000, _T("DeviceImplementation"));
+        _device = service->Root<Exchange::IDeviceIdentification>(_connectionId, 2000, _T("DeviceImplementation"));
         if (_device != nullptr) {
 
             Exchange::IConfiguration* configure = _device->QueryInterface<Exchange::IConfiguration>();

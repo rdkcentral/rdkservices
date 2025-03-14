@@ -348,7 +348,7 @@ namespace Plugin {
     uint32_t DeviceInfo::get_chipset(JsonData::DeviceInfo::ChipsetData& response) const
     {
         uint32_t result = Core::ERROR_NONE ;
-        Exchange::IDeviceIdentification2::DeviceInfo info;
+        Exchange::IDeviceIdentification::DeviceInfo info;
         if(_device)
         {
             result = _device->Identification (info);

@@ -18,7 +18,7 @@
  */
 
 #include "../../Module.h"
-#include <interfaces/IDeviceIdentification2.h>
+#include <interfaces/IDeviceIdentification.h>
 
 #include <fstream>
 
@@ -28,7 +28,7 @@ extern "C" {
 
 namespace WPEFramework {
 namespace Plugin {
-    class DeviceImplementation : public Exchange::IDeviceIdentification2, public PluginHost::ISubSystem::IIdentifier {
+    class DeviceImplementation : public Exchange::IDeviceIdentification, public PluginHost::ISubSystem::IIdentifier {
 
     public:
         DeviceImplementation()
@@ -71,7 +71,7 @@ namespace Plugin {
             return _firmwareVersion;
         }
 
-        // IDeviceIdentification2 interface
+        // IDeviceIdentification interface
 
         Core::hresult Identification(DeviceInfo& info) const override
         {
@@ -92,7 +92,7 @@ namespace Plugin {
 
         BEGIN_INTERFACE_MAP(DeviceImplementation)
         INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
-        INTERFACE_ENTRY(Exchange::IDeviceIdentification2)
+        INTERFACE_ENTRY(Exchange::IDeviceIdentification)
         END_INTERFACE_MAP
 
     private:
