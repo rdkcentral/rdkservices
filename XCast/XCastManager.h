@@ -71,6 +71,12 @@ public:
     void registerApplications (std::vector<DynamicAppConfig*>& appConfigList);
     string  getProtocolVersion(void);
     void setNetworkStandbyMode(bool nwStandbymode);
+
+    int setManufacturerName( string manufacturer);
+    string getManufacturerName(void);
+    int setModelName( string model);
+    string getModelName(void);
+
     /**
      *Request the single instance of this class
      */
