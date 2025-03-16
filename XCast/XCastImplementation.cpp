@@ -171,6 +171,54 @@ namespace Plugin {
         return Core::ERROR_NONE;
     }
 
+    uint32_t XCastImplementation::setManufacturerName(string manufacturerName) const
+    {
+        uint32_t status = Core::ERROR_GENERAL;
+
+        LOGINFO("ManufacturerName : %s", manufacturerName.c_str());
+
+        if (nullptr != m_xcast_manager)
+        {
+            m_xcast_manager->setManufacturerName(manufacturerName);
+            status = Core::ERROR_NONE;
+        }
+        return status;
+    }
+
+    uint32_t XCastImplementation::getManufacturerName(std::string &manufacturerName) const
+    {
+        if (nullptr != m_xcast_manager)
+        {
+            manufacturerName = m_xcast_manager->getManufacturerName();
+            LOGINFO("Manufacturer[%s]", manufacturerName.c_str());
+        }
+        return Core::ERROR_NONE;
+    }
+
+    uint32_t XCastImplementation::setModelName(string modelName) const
+    {
+        uint32_t status = Core::ERROR_GENERAL;
+
+        LOGINFO("ModelName : %s", modelName.c_str());
+
+        if (nullptr != m_xcast_manager)
+        {
+            m_xcast_manager->setModelName(modelName);
+            status = Core::ERROR_NONE;
+        }
+        return status;
+    }
+
+    uint32_t XCastImplementation::getModelName(std::string &modelName) const
+    {
+        if (nullptr != m_xcast_manager)
+        {
+            modelName = m_xcast_manager->getModelName();
+            LOGINFO("Model[%s]", modelName.c_str());
+        }
+        return Core::ERROR_NONE;
+    }
+
     uint32_t XCastImplementation::registerApplications(Exchange::IXCast::IApplicationInfoIterator* const appLists)
     {
         LOGINFO("XcastService::registerApplications");
