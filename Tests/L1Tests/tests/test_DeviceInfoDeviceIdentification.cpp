@@ -19,7 +19,7 @@ const string deviceId = _T("WPEdGVzdElkZW50aXR5");
 
 namespace WPEFramework {
 namespace Plugin {
-    class DeviceImplementation : public Exchange::IDeviceIdentification2, public PluginHost::ISubSystem::IIdentifier {
+    class DeviceImplementation : public Exchange::IDeviceIdentification, public PluginHost::ISubSystem::IIdentifier {
     public:
         virtual ~DeviceImplementation() = default;
 
@@ -44,7 +44,7 @@ namespace Plugin {
 
 
         BEGIN_INTERFACE_MAP(DeviceImplementation)
-	INTERFACE_ENTRY(Exchange::IDeviceIdentification2)
+	INTERFACE_ENTRY(Exchange::IDeviceIdentification)
         INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)		
         END_INTERFACE_MAP
     };
@@ -56,13 +56,13 @@ namespace Plugin {
 class DeviceInfoDeviceIdentificationTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::DeviceImplementation> deviceInfoDeviceIdentification;
-    Exchange::IDeviceIdentification2* interface;
+    Exchange::IDeviceIdentification* interface;
 
     DeviceInfoDeviceIdentificationTest()
         : deviceInfoDeviceIdentification(Core::ProxyType<Plugin::DeviceImplementation>::Create())
     {
-        interface = static_cast<Exchange::IDeviceIdentification2*>(
-            deviceInfoDeviceIdentification->QueryInterface(Exchange::IDeviceIdentification2::ID));
+        interface = static_cast<Exchange::IDeviceIdentification*>(
+            deviceInfoDeviceIdentification->QueryInterface(Exchange::IDeviceIdentification::ID));
     }
     virtual ~DeviceInfoDeviceIdentificationTest()
     {
@@ -84,7 +84,7 @@ protected:
 
 TEST_F(DeviceInfoDeviceIdentificationTest, Identification)
 {
-    Exchange::IDeviceIdentification2::DeviceInfo info;
+    Exchange::IDeviceIdentification::DeviceInfo info;
     EXPECT_EQ(Core::ERROR_NONE, interface->Identification(info));
     EXPECT_EQ(info.chipset, _T("testChipset"));
     EXPECT_EQ(info.deviceID, _T("WPEdGVzdElkZW50aXR5"));
