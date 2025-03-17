@@ -446,13 +446,12 @@ namespace WPEFramework
                 }
                 return;
             }
-
-	        if (delayMaintenanceStarted) 
+            if (delayMaintenanceStarted) 
             {
-		        m_statusMutex.lock();
+                m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
                 m_statusMutex.unlock();
-	        }
+	    }
 
             LOGINFO("Reboot_Pending: %s",g_is_reboot_pending.c_str());
             LOGINFO("%s", UNSOLICITED_MAINTENANCE == g_maintenance_type ? "---------------UNSOLICITED_MAINTENANCE--------------" : "=============SOLICITED_MAINTENANCE===============");
@@ -466,7 +465,7 @@ namespace WPEFramework
                 /* Skip Firmware Download Task and add other tasks */
                 tasks.push_back(task_names_foreground[0].c_str());
                 tasks.push_back(task_names_foreground[2].c_str());
-		    }
+	    }
             else
             {
                 tasks.push_back(task_names_foreground[0].c_str());
@@ -511,7 +510,7 @@ namespace WPEFramework
                         {
                             LOGINFO("Retry %s after %d seconds (%d retry left)\n", tasks[i].c_str(), TASK_RETRY_DELAY, retry_count);
                             sleep(TASK_RETRY_DELAY);
-                            i--; /* Decrement iterator to retry same task again */
+                            i--; /* Decrement iterator to retry the same task again */
                             retry_count--;
                             continue;
                         }
