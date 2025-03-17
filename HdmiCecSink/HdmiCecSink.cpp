@@ -1417,6 +1417,13 @@ namespace WPEFramework
              return;
             if(!(_instance->smConnection))
                 return;
+	    if (_instance->m_audioStatusDetectionTimer.isActive())
+	    {
+		    LOGINFO("Mute Key pressed. Stopping the timer!\n");
+		    _instance->m_audioStatusDetectionTimer.stop();
+		    _instance->m_audioStatusTimerStarted = false;
+		    LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ",_instance->m_isAudioStatusInfoUpdated,_instance->m_audioStatusReceived,_instance->m_audioStatusTimerStarted);
+	    }
              LOGINFO(" Send GiveAudioStatus ");
 	      _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(GiveAudioStatus()), 100);
 
@@ -3549,13 +3556,6 @@ namespace WPEFramework
 			LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ",_instance->m_isAudioStatusInfoUpdated,_instance->m_audioStatusReceived,_instance->m_audioStatusTimerStarted);
 		        if(keyInfo.keyCode == MUTE)
 			{
-				if (_instance->m_audioStatusDetectionTimer.isActive())
-				{
-					LOGINFO("Mute Key pressed. Stopping the timer!\n");
-					_instance->m_audioStatusDetectionTimer.stop();
-					_instance->m_audioStatusTimerStarted = false;
-					LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ",_instance->m_isAudioStatusInfoUpdated,_instance->m_audioStatusReceived,_instance->m_audioStatusTimerStarted);
-				}
 				_instance->sendGiveAudioStatusMsg();
 			}
 			else
