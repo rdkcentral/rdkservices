@@ -1419,7 +1419,7 @@ namespace WPEFramework
                 return;
 	    if (_instance->m_audioStatusDetectionTimer.isActive())
 	    {
-		    LOGINFO("Mute Key pressed. Stopping the timer!\n");
+		    LOGINFO("Stopping the Audio Status Timer!\n");
 		    _instance->m_audioStatusDetectionTimer.stop();
 		    _instance->m_audioStatusTimerStarted = false;
 		    LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ",_instance->m_isAudioStatusInfoUpdated,_instance->m_audioStatusReceived,_instance->m_audioStatusTimerStarted);
