@@ -61,7 +61,6 @@ set_source_files_properties(
 
 include_directories(../../LocationSync
         ../../SecurityAgent
-        ../../DeviceIdentification
         ../../DeviceDiagnostics
         ../../FrameRate
         ../../AVInput
@@ -105,7 +104,6 @@ include_directories(../../LocationSync
         )
 link_directories(../../LocationSync
         ../../SecurityAgent
-        ../../DeviceIdentification
         ../../DeviceDiagnostics
         ../../FrameRate
         ../../AVInput
