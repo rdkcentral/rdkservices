@@ -1,0 +1,4 @@
+precondition = ["Platform"]
+callsign = "org.rdk.WebBridge"
+autostart = "false"
+startuporder = "@PLUGIN_WEBBRIDGE_STARTUPORDER@"
