@@ -148,7 +148,6 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}DeviceDiagnostics
         ${NAMESPACE}LocationSync
         ${NAMESPACE}SecurityAgent
-        ${NAMESPACE}DeviceIdentification
         ${NAMESPACE}FrameRate
         ${NAMESPACE}AVInput
         ${NAMESPACE}ScreenCapture
