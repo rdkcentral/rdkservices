@@ -2446,7 +2446,14 @@ static GSourceFuncs _handlerIntervention =
             if(isRegistered)
             {
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, EventHandler) );
-                device::Manager::DeInitialize();
+                /*
+                 * When WPEProcess terminates by exit() function call (i.e. when WPEWebProcess crash is detected),
+                 * device::Manager' static objects are freed before calling ~WebKitImplementation() destructor.
+                 * In such case below deinit function tries to free objects which are already freed and core dump is triggered.
+                 * device::Manager's static objects are freed either by exit() call or during graceful quit so there's no need
+                 * to explicitly call below deinit.
+                 */
+                //device::Manager::DeInitialize();
                 IARM_Bus_Disconnect();
                 IARM_Bus_Term();
                 LOGINFO("Removed IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG & uninitialized DS Mgr");
