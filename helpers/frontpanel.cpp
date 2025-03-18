@@ -195,9 +195,6 @@ namespace WPEFramework
             LOGWARN("Front panel start");
             try
             {
-                if (powerStatus)
-                    device::FrontPanelIndicator::getInstance("Power").setState(true);
-
                 device::List <device::FrontPanelIndicator> fpIndicators = device::FrontPanelConfig::getInstance().getIndicators();
                 for (uint i = 0; i < fpIndicators.size(); i++)
                 {
