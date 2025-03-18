@@ -54,6 +54,25 @@
 #define MM_LOGINFO(format, ...) MM_LOG(LOG_INFO, "INFO", format, ##__VA_ARGS__)
 #define MM_LOGWARN(format, ...) MM_LOG(LOG_WARNING, "WARN", format, ##__VA_ARGS__)
 #define MM_LOGERR(format, ...)  MM_LOG(LOG_ERR, "ERROR", format, ##__VA_ARGS__)
+
+/* sendNotify() */
+#define MM_SEND_NOTIFY(event, params)                \
+{                                                    \
+    std::string json;                                \
+    params.ToString(json);                           \
+    MM_LOGINFO("Notify %s %s", event, json.c_str()); \
+}
+
+/* returnResponse() */
+#define MM_RETURN_RESPONSE(expr)                     \
+{                                                    \
+    bool s_Bool = expr;                              \
+    JsonObject response;                             \
+    response["success"] = s_Bool;                    \
+    std::string json;                                \
+    response.ToString(json);                         \
+    MM_LOGINFO("response=%s", json.c_str());         \
+}
 //#else /* else of ENABLE_JOURNAL_LOGGING */
 //#define MM_LOGINFO(format, ...) LOGINFO(format, ##__VA_ARGS__)
 //#define MM_LOGWARN(format, ...) LOGWARN(format, ##__VA_ARGS__)
