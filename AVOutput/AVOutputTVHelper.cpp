@@ -32,36 +32,6 @@ static bool m_isDalsEnabled = false;
 namespace WPEFramework {
 namespace Plugin {
 
-    tvContentFormatType_t AVOutputTV::getContentFormatIndex(tvVideoHDRFormat_t formatToConvert)
-    {
-        /* default to SDR always*/
-        tvContentFormatType_t ret = tvContentFormatType_NONE;
-        switch(formatToConvert) {
-            case tvVideoHDRFormat_HLG:
-                ret = tvContentFormatType_HLG;
-                break;
-
-            case tvVideoHDRFormat_HDR10:
-                ret = tvContentFormatType_HDR10;
-                break;
-
-            case tvVideoHDRFormat_HDR10PLUS:
-                ret =  tvContentFormatType_HDR10PLUS;
-                break;
-
-            case tvVideoHDRFormat_DV:
-                ret = tvContentFormatType_DOVI;
-                break;
-
-            case tvVideoHDRFormat_SDR:
-            case tvVideoHDRFormat_NONE:
-            default:
-                ret  = tvContentFormatType_SDR;
-                break;
-        }
-        return ret;
-    }
-
     int AVOutputTV::getPictureModeIndex(std::string pqparam)
     {
         int index = -1;
@@ -265,8 +235,8 @@ namespace Plugin {
     int AVOutputTV::getDolbyModeIndex(const char * dolbyMode)
     {
         int mode = 0;
-        tvDolbyMode_t dolbyModes[tvMode_Max];
-        tvDolbyMode_t *dolbyModesPtr[tvMode_Max]={0};
+        tvDolbyMode_t dolbyModes[tvMode_Max] = { tvDolbyMode_Invalid };
+        tvDolbyMode_t *dolbyModesPtr[tvMode_Max] = { 0 };
         unsigned short totalAvailable = 0;
 
         for (int i = 0; i < tvMode_Max; i++)
@@ -752,6 +722,7 @@ namespace Plugin {
             }
         }
         strncpy(rfc_caller_id,PQFileName.c_str(),PQFileName.size());
+        rfc_caller_id[sizeof(rfc_caller_id) - 1] = '\0';
         LOGINFO("%s : Default tvsettings file : %s\n",__FUNCTION__,rfc_caller_id);
     }
 
@@ -931,26 +902,6 @@ namespace Plugin {
                 break;
             }
         }
-        return ret;
-    }
-
-    tvContentFormatType_t AVOutputTV::convertFormatStringToTVContentFormat(const char *format)
-    {
-        tvContentFormatType_t ret = tvContentFormatType_SDR;
-
-        if( strncmp(format,"sdr",strlen(format)) == 0 || strncmp(format,"SDR",strlen(format)) == 0 ) {
-            ret = tvContentFormatType_SDR;
-	}
-        else if( strncmp(format,"hdr10",strlen(format)) == 0 || strncmp(format,"HDR10",strlen(format))==0 ) {
-            ret = tvContentFormatType_HDR10;
-	}
-        else if( strncmp(format,"hlg",strlen(format)) == 0 || strncmp(format,"HLG",strlen(format)) == 0 ) {
-            ret = tvContentFormatType_HLG;
-	}
-        else if( strncmp(format,"dolby",strlen(format)) == 0 || strncmp(format,"DOLBY",strlen(format)) == 0 ) {
-            ret=tvContentFormatType_DOVI;
-	}
-
         return ret;
     }
 
@@ -1681,32 +1632,6 @@ namespace Plugin {
         return 0;
     }
 
-    int AVOutputTV::ConvertHDRFormatToContentFormat(tvhdr_type_t hdrFormat)
-    {
-        int ret=tvContentFormatType_SDR;
-        switch(hdrFormat)
-        {
-            case HDR_TYPE_SDR:
-                ret=tvContentFormatType_SDR;
-                break;
-            case HDR_TYPE_HDR10:
-                ret=tvContentFormatType_HDR10;
-                break;
-            case HDR_TYPE_HDR10PLUS:
-                ret=tvContentFormatType_HDR10PLUS;
-                break;
-            case HDR_TYPE_DOVI:
-                ret=tvContentFormatType_DOVI;
-                break;
-            case HDR_TYPE_HLG:
-                ret=tvContentFormatType_HLG;
-                break;
-            default:
-                break;
-        }
-        return ret;
-    }
-
     void AVOutputTV::getDimmingModeStringFromEnum(int value, std::string &toStore)
     {
         const char *color_temp_string[] = {
@@ -1757,6 +1682,7 @@ namespace Plugin {
         tr181ErrorCode_t err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
         if ( err == tr181Success ) {
             strncpy(picMode, param.value, strlen(param.value)+1);
+            picMode[strlen(param.value)] = '\0';
             LOGINFO("getLocalParam success, mode = %s\n", picMode);
             return 1;
         }
