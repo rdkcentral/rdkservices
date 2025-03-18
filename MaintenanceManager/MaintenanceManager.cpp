@@ -494,13 +494,13 @@ namespace WPEFramework
                 {
                     if (retry_count == TASK_RETRY_COUNT)
                     {
-                        MM_LOGINFO("Starting Timer for %s \n", currentTask.c_str());
+                        MM_LOGINFO("Starting Timer for %s", currentTask.c_str());
                         isTaskTimerStarted = task_startTimer();
                     }
                     if (isTaskTimerStarted)
                     {
                         m_task_map[tasks[i]] = true;
-                        MM_LOGINFO("Starting Task :  %s \n", task.c_str());
+                        MM_LOGINFO("Starting Task :  %s", task.c_str());
                         task_status = system(task.c_str());
                     }
                     /* Set task_status purposefully to non-zero value to verify failure logic*/
@@ -511,7 +511,7 @@ namespace WPEFramework
                         MM_LOGINFO("%s invocation failed with return status %d", tasks[i].c_str(), WEXITSTATUS(task_status));
                         if (retry_count > 0 && isTaskTimerStarted)
                         {
-                            MM_LOGINFO("Retry %s after %d seconds (%d retry left)\n", tasks[i].c_str(), TASK_RETRY_DELAY, retry_count);
+                            MM_LOGINFO("Retry %s after %d seconds (%d retry left)", tasks[i].c_str(), TASK_RETRY_DELAY, retry_count);
                             sleep(TASK_RETRY_DELAY);
                             i--; /* Decrement iterator to retry same task again */
                             retry_count--;
@@ -1087,7 +1087,7 @@ namespace WPEFramework
             PluginHost::IShell::state state = PluginHost::IShell::state::UNAVAILABLE;
             if ((getServiceState(m_service, "org.rdk.AuthService", state) != Core::ERROR_NONE) || (state != PluginHost::IShell::state::ACTIVATED))
             {
-                MM_LOGERR("AuthService plugin is not activated.Retrying.. \n");
+                MM_LOGERR("AuthService plugin is not activated.Retrying.");
                 // if plugin is not activated we need to retry
                 do
                 {
@@ -1095,7 +1095,7 @@ namespace WPEFramework
                     {
                         sleep(10);
                         i++;
-                        MM_LOGINFO("AuthService retries [%d/4] \n", i);
+                        MM_LOGINFO("AuthService retries [%d/4]", i);
                     }
                     else
                     {
@@ -1336,7 +1336,7 @@ namespace WPEFramework
         bool MaintenanceManager::isDeviceOnline()
         {
             bool network_available = false;
-            MM_LOGINFO("Checking device has network connectivity\n");
+            MM_LOGINFO("Checking device has network connectivity");
             /* add 4 checks every 30 seconds */
             network_available = checkNetwork();
             if (!network_available)
@@ -1346,7 +1346,7 @@ namespace WPEFramework
                 {
                     MM_LOGINFO("Network not available. Sleeping for %d seconds", NETWORK_RETRY_INTERVAL);
                     sleep(NETWORK_RETRY_INTERVAL);
-                    MM_LOGINFO("Network retries [%d/%d] \n", ++retry_count, MAX_NETWORK_RETRIES);
+                    MM_LOGINFO("Network retries [%d/%d]", ++retry_count, MAX_NETWORK_RETRIES);
                     network_available = checkNetwork();
                     if (network_available)
                     {
@@ -1535,14 +1535,14 @@ namespace WPEFramework
             OptOutmode = m_setting.getValue("softwareoptout").String();
             if (!checkValidOptOutModes(OptOutmode))
             {
-                MM_LOGINFO("OptOut Value is not Set. Setting to NONE \n");
+                MM_LOGINFO("OptOut Value is not Set. Setting to NONE");
                 m_setting.remove("softwareoptout");
                 OptOutmode = "NONE";
                 m_setting.setValue("softwareoptout", OptOutmode);
             }
             else
             {
-                MM_LOGINFO("OptOut Value Found as: %s \n", OptOutmode.c_str());
+                MM_LOGINFO("OptOut Value Found as: %s", OptOutmode.c_str());
             }
 
             MaintenanceManager::g_is_critical_maintenance = "false";
@@ -1588,16 +1588,16 @@ namespace WPEFramework
                 auto task_status_LOGUPLD = m_task_map.find(task_names_foreground[2].c_str());
 
                 IARM_Bus_MaintMGR_EventId_t event = (IARM_Bus_MaintMGR_EventId_t)eventId;
-                MM_LOGINFO("Maintenance Event-ID = %d \n", event);
+                MM_LOGINFO("Maintenance Event-ID = %d", event);
 
                 if (!strcmp(owner, IARM_BUS_MAINTENANCE_MGR_NAME))
                 {
                     if ((IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE == eventId) && (MAINTENANCE_STARTED == m_notify_status))
                     {
                         module_status = module_event_data->data.maintenance_module_status.status;
-                        MM_LOGINFO("MaintMGR Status %d \n", module_status);
+                        MM_LOGINFO("MaintMGR Status %d", module_status);
                         string status_string = moduleStatusToString(module_status);
-                        MM_LOGINFO("MaintMGR Status %s \n", status_string.c_str());
+                        MM_LOGINFO("MaintMGR Status %s", status_string.c_str());
                         switch (module_status)
                         {
                         case MAINT_RFC_COMPLETE:
@@ -1655,7 +1655,7 @@ namespace WPEFramework
                             SET_STATUS(g_task_status, SWUPDATE_COMPLETE);
                             task_thread.notify_one();
                             m_task_map[task_names_foreground[1].c_str()] = false;
-                            MM_LOGINFO("FW Download task aborted \n");
+                            MM_LOGINFO("FW Download task aborted");
                             break;
                         case MAINT_RFC_ERROR:
                             if (task_status_RFC->second != true)
@@ -1667,7 +1667,7 @@ namespace WPEFramework
                             {
                                 SET_STATUS(g_task_status, RFC_COMPLETE);
                                 task_thread.notify_one();
-                                MM_LOGINFO("Error encountered in RFC Task \n");
+                                MM_LOGINFO("Error encountered in RFC Task");
                                 m_task_map[task_names_foreground[0].c_str()] = false;
                             }
 
@@ -1682,7 +1682,7 @@ namespace WPEFramework
                             {
                                 SET_STATUS(g_task_status, LOGUPLOAD_COMPLETE);
                                 task_thread.notify_one();
-                                MM_LOGINFO("Error encountered in LOGUPLOAD Task \n");
+                                MM_LOGINFO("Error encountered in LOGUPLOAD Task");
                                 m_task_map[task_names_foreground[2].c_str()] = false;
                             }
 
@@ -1697,24 +1697,24 @@ namespace WPEFramework
                             {
                                 SET_STATUS(g_task_status, SWUPDATE_COMPLETE);
                                 task_thread.notify_one();
-                                MM_LOGINFO("Error encountered in SWUPDATE Task \n");
+                                MM_LOGINFO("Error encountered in SWUPDATE Task");
                                 m_task_map[task_names_foreground[1].c_str()] = false;
                             }
                             break;
                         case MAINT_RFC_INPROGRESS:
                             m_task_map[task_names_foreground[0].c_str()] = true;
                             /* Set false once COMPLETE/ ERROR is received for RFC*/
-                            MM_LOGINFO(" RFC already IN PROGRESS -> setting m_task_map of RFC to true \n");
+                            MM_LOGINFO(" RFC already IN PROGRESS -> setting m_task_map of RFC to true");
                             break;
                         case MAINT_FWDOWNLOAD_INPROGRESS:
                             m_task_map[task_names_foreground[1].c_str()] = true;
                             /* Set false once COMPLETE/ ERROR is received for FWDOWNLOAD*/
-                            MM_LOGINFO(" FWDOWNLOAD already IN PROGRESS -> setting m_task_map of FWDOWNLOAD to true \n");
+                            MM_LOGINFO(" FWDOWNLOAD already IN PROGRESS -> setting m_task_map of FWDOWNLOAD to true");
                             break;
                         case MAINT_LOGUPLOAD_INPROGRESS:
                             m_task_map[task_names_foreground[2].c_str()] = true;
                             /* Set false once COMPLETE/ ERROR is received for LOGUPLOAD*/
-                            MM_LOGINFO(" LOGUPLOAD already IN PROGRESS -> setting m_task_map of LOGUPLOAD to true \n");
+                            MM_LOGINFO(" LOGUPLOAD already IN PROGRESS -> setting m_task_map of LOGUPLOAD to true");
                             break;
                         default:
                             break;
@@ -1765,7 +1765,7 @@ namespace WPEFramework
                         if (m_thread.joinable())
                         {
                             m_thread.join();
-                            MM_LOGINFO("Thread joined successfully\n");
+                            MM_LOGINFO("Thread joined successfully");
                         }
 
                         if (g_maintenance_type == UNSOLICITED_MAINTENANCE && !g_unsolicited_complete)
@@ -1991,7 +1991,7 @@ namespace WPEFramework
             string softwareOptOutmode = "NONE";
             if (BACKGROUND_MODE != g_currentMode && FOREGROUND_MODE != g_currentMode)
             {
-                MM_LOGERR("Didnt get a valid Mode. Failed\n");
+                MM_LOGERR("Didnt get a valid Mode. Failed");
                 returnResponse(false);
                 MM_RETURN_RESPONSE(false);
             }
@@ -2006,7 +2006,7 @@ namespace WPEFramework
                         /* check if the value is valid */
                         if (!checkValidOptOutModes(softwareOptOutmode))
                         {
-                            MM_LOGERR("OptOut Value Corrupted. Failed\n");
+                            MM_LOGERR("OptOut Value Corrupted. Failed");
                             returnResponse(false);
                             MM_RETURN_RESPONSE(false);
                         }
@@ -2017,14 +2017,14 @@ namespace WPEFramework
                     }
                     else
                     {
-                        MM_LOGERR("OptOut Value Not Found. Failed\n");
+                        MM_LOGERR("OptOut Value Not Found. Failed");
                         returnResponse(false);
                         MM_RETURN_RESPONSE(false);
                     }
                 }
                 else
                 {
-                    MM_LOGERR("OptOut Config File Not Found. Failed\n");
+                    MM_LOGERR("OptOut Config File Not Found. Failed");
                     returnResponse(false);
                     MM_RETURN_RESPONSE(false);
                 }
@@ -2064,7 +2064,7 @@ namespace WPEFramework
 
                 if (BACKGROUND_MODE != new_mode && FOREGROUND_MODE != new_mode)
                 {
-                    MM_LOGERR("value of new mode is incorrect, therefore current mode '%s' not changed.\n", old_mode.c_str());
+                    MM_LOGERR("value of new mode is incorrect, therefore current mode '%s' not changed.", old_mode.c_str());
                     returnResponse(false);
                     MM_RETURN_RESPONSE(false);
                 }
@@ -2076,7 +2076,7 @@ namespace WPEFramework
                 if (MAINTENANCE_STARTED != m_notify_status)
                 {
 
-                    MM_LOGINFO("SetMaintenanceMode new_mode = %s\n", new_mode.c_str());
+                    MM_LOGINFO("SetMaintenanceMode new_mode = %s", new_mode.c_str());
 
                     /* remove any older one */
                     m_setting.remove("background_flag");
@@ -2098,15 +2098,15 @@ namespace WPEFramework
                     if (rdkvfwrfc == true)
                     {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-                        MM_LOGINFO("SetMaintenanceMode new_mode = %s\n", new_mode.c_str());
+                        MM_LOGINFO("SetMaintenanceMode new_mode = %s", new_mode.c_str());
                         /* Sending IARM Event to application for mode change */
                         (new_mode != BACKGROUND_MODE) ? mode = 1 : mode = 0;
-                        MM_LOGINFO("setMaintenanceMode rfc is true and mode:%d\n", mode);
+                        MM_LOGINFO("setMaintenanceMode rfc is true and mode:%d", mode);
                         IARM_Result_t ret_code = IARM_RESULT_SUCCESS;
                         ret_code = IARM_Bus_BroadcastEvent("RdkvFWupgrader", (IARM_EventId_t)0, (void *)&mode, sizeof(mode));
                         if (ret_code == IARM_RESULT_SUCCESS)
                         {
-                            MM_LOGINFO("IARM_Bus_BroadcastEvent is success and value=%d\n", mode);
+                            MM_LOGINFO("IARM_Bus_BroadcastEvent is success and value=%d", mode);
                             g_currentMode = new_mode;
                             /* remove any older one */
                             m_setting.remove("background_flag");
@@ -2123,7 +2123,7 @@ namespace WPEFramework
                         }
                         else
                         {
-                           MM_LOGINFO("IARM_Bus_BroadcastEvent is fail Mode change not allowed and value=%d\n", mode);
+                           MM_LOGINFO("IARM_Bus_BroadcastEvent is fail Mode change not allowed and value=%d", mode);
                         }
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
                     }
@@ -2137,7 +2137,7 @@ namespace WPEFramework
                 /* OptOut changes here */
                 new_optout_state = parameters["optOut"].String();
 
-                MM_LOGINFO("SetMaintenanceMode optOut = %s\n", new_optout_state.c_str());
+                MM_LOGINFO("SetMaintenanceMode optOut = %s", new_optout_state.c_str());
 
                 /* check if we have a valid state from user */
                 if (checkValidOptOutModes(new_optout_state))
@@ -2147,7 +2147,7 @@ namespace WPEFramework
                 }
                 else
                 {
-                    MM_LOGINFO("Invalid optOut = %s\n", new_optout_state.c_str());
+                    MM_LOGINFO("Invalid optOut = %s", new_optout_state.c_str());
                     returnResponse(false);
                     MM_RETURN_RESPONSE(false);
                 }
@@ -2157,7 +2157,7 @@ namespace WPEFramework
             else
             {
                 /* havent got the correct label */
-                MM_LOGERR("SetMaintenanceMode Missing Key Values\n");
+                MM_LOGERR("SetMaintenanceMode Missing Key Values");
             }
             returnResponse(result);
             MM_RETURN_RESPONSE(result);
@@ -2296,7 +2296,7 @@ namespace WPEFramework
                     }
                     else
                     {
-                        MM_LOGINFO("Task[%d] is false \n", i);
+                        MM_LOGINFO("Task[%d] is false", i);
                     }
                 }
                 result = true;
@@ -2379,25 +2379,25 @@ namespace WPEFramework
         {
             int k_ret = EINVAL;
             pid_t pid_num = getTaskPID(taskname);
-            MM_LOGINFO("PID of %s is %d \n", taskname, (int)pid_num);
+            MM_LOGINFO("PID of %s is %d", taskname, (int)pid_num);
 
             if (pid_num != -1)
             {
                 /* send the signal to task to terminate */
                 k_ret = kill(pid_num, sig_to_send);
-                MM_LOGINFO(" %s sent signal %d\n", taskname, sig_to_send);
+                MM_LOGINFO(" %s sent signal %d", taskname, sig_to_send);
                 if (k_ret == 0)
                 {
-                    MM_LOGINFO(" %s Terminated\n", taskname);
+                    MM_LOGINFO(" %s Terminated", taskname);
                 }
                 else
                 {
-                    MM_LOGINFO("Failed to terminate with error %s - %d \n", taskname, k_ret);
+                    MM_LOGINFO("Failed to terminate with error %s - %d", taskname, k_ret);
                 }
             }
             else
             {
-                MM_LOGINFO("Didnt find PID for %s\n", taskname);
+                MM_LOGINFO("Didnt find PID for %s", taskname);
             }
             return k_ret;
         }
