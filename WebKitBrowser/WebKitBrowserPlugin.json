@@ -21,10 +21,6 @@
                         "description": "The URL that is loaded upon starting the browser",
                         "type": "string"
                     },
-                    "injectedbundle": {
-                        "description": "The name of the .so loaded to extend the HTML5 with customized JavaScript handlers",
-                        "type": "string"
-                    },
                     "cookiestorage": {
                         "description": "Post-fixed path to the persistent location on where cookies will be stored",
                         "type": "string"
