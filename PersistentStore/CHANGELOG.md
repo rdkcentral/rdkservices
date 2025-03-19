@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [2.0.3] - 2025-03-19
+### Fixed
+- Delete sqlite temporary data
+
 ## [2.0.2] - 2024-11-19
 ### Fixed
 - Delete file if not a database, or corrupted
