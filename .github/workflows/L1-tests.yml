@@ -57,7 +57,7 @@ jobs:
             !install/usr/lib/wpeframework/plugins
           key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}-4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v3
         with:
           python-version: '3.x'
       - run: pip install jsonref
@@ -71,7 +71,7 @@ jobs:
         run: >
           sudo apt update
           &&
-          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang libsystemd-dev libboost-all-dev libwebsocketpp-dev meson libcunit1 libcunit1-dev
+          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang libsystemd-dev libboost-all-dev libwebsocketpp-dev meson libcunit1 libcunit1-dev gdb
 
       - name: Install GStreamer
         run: |
@@ -138,11 +138,9 @@ jobs:
           ref: ${{env.INTERFACES_REF}}
 
       - name: Apply patches ThunderInterfaces
-        run: >
-          cd "${{github.workspace}}/ThunderInterfaces"
-          &&
-          git apply "${{github.workspace}}/rdkservices/Tests/L2Tests/patches/DeviceInfo_brand_R2_L1tests.patch"
-          &&
+        run: |
+          cd ThunderInterfaces
+          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/DeviceInfo_brand_R2_L1tests.patch
           cd ..
 
       - name: Build ThunderInterfaces
