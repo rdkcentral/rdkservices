@@ -1887,9 +1887,13 @@ namespace WPEFramework
             response["isCriticalMaintenance"] = b_criticalMaintenace;
             response["isRebootPending"] = b_rebootPending;
             result = true;
-
-            returnResponse(result);
+            MM_LOGINFO("A Before returnResponse() Macro call");
             MM_RETURN_RESPONSE(result);
+            MM_LOGINFO("B Before returnResponse() Macro call");
+            returnResponse(result);
+            MM_LOGINFO("A After returnResponse() Macro call");
+            MM_RETURN_RESPONSE(result);
+            MM_LOGINFO("B After returnResponse() Macro call");
         }
 
         /**
