@@ -996,7 +996,7 @@ uint32_t UserSettingsImplementation::SetVoiceGuidanceRate(const double rate)
     }
     else
     {
-        status = Core::ERROR_INVALID_RANGE;
+        status = Core::ERROR_INVALID_PARAMETER;
     }
     return status;
 }
