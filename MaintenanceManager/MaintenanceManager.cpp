@@ -1813,8 +1813,8 @@ namespace WPEFramework
             /* Kept for debug purpose/future reference. */
             sendNotify(EVT_ONMAINTMGRSAMPLEEVENT, parameters);
             MM_SEND_NOTIFY(EVT_ONMAINTMGRSAMPLEEVENT, parameters);
-            returnResponse(true);
             MM_RETURN_RESPONSE(true);
+            returnResponse(true);   
         }
 #endif
 
@@ -1887,13 +1887,8 @@ namespace WPEFramework
             response["isCriticalMaintenance"] = b_criticalMaintenace;
             response["isRebootPending"] = b_rebootPending;
             result = true;
-            MM_LOGINFO("A Before returnResponse() Macro call");
             MM_RETURN_RESPONSE(result);
-            MM_LOGINFO("B Before returnResponse() Macro call");
             returnResponse(result);
-            MM_LOGINFO("A After returnResponse() Macro call");
-            MM_RETURN_RESPONSE(result);
-            MM_LOGINFO("B After returnResponse() Macro call");
         }
 
         /**
@@ -1913,9 +1908,8 @@ namespace WPEFramework
                 response["maintenanceStartTime"] = stoi(starttime.c_str());
                 result = true;
             }
-
-            returnResponse(result);
             MM_RETURN_RESPONSE(result);
+            returnResponse(result);
         }
 
         /***
@@ -1996,8 +1990,8 @@ namespace WPEFramework
             if (BACKGROUND_MODE != g_currentMode && FOREGROUND_MODE != g_currentMode)
             {
                 MM_LOGERR("Didnt get a valid Mode. Failed");
-                returnResponse(false);
                 MM_RETURN_RESPONSE(false);
+                returnResponse(false);
             }
             else
             {
@@ -2011,8 +2005,8 @@ namespace WPEFramework
                         if (!checkValidOptOutModes(softwareOptOutmode))
                         {
                             MM_LOGERR("OptOut Value Corrupted. Failed");
-                            returnResponse(false);
                             MM_RETURN_RESPONSE(false);
+                            returnResponse(false);
                         }
                         else
                         {
@@ -2022,21 +2016,21 @@ namespace WPEFramework
                     else
                     {
                         MM_LOGERR("OptOut Value Not Found. Failed");
-                        returnResponse(false);
                         MM_RETURN_RESPONSE(false);
+                        returnResponse(false);
                     }
                 }
                 else
                 {
                     MM_LOGERR("OptOut Config File Not Found. Failed");
-                    returnResponse(false);
                     MM_RETURN_RESPONSE(false);
+                    returnResponse(false);
                 }
                 response["optOut"] = softwareOptOutmode.c_str();
                 result = true;
             }
-            returnResponse(result);
             MM_RETURN_RESPONSE(result);
+            returnResponse(result);
         }
 
         /**
@@ -2069,8 +2063,8 @@ namespace WPEFramework
                 if (BACKGROUND_MODE != new_mode && FOREGROUND_MODE != new_mode)
                 {
                     MM_LOGERR("value of new mode is incorrect, therefore current mode '%s' not changed.", old_mode.c_str());
-                    returnResponse(false);
                     MM_RETURN_RESPONSE(false);
+                    returnResponse(false);
                 }
 
                 std::lock_guard<std::mutex> guard(m_callMutex);
@@ -2152,8 +2146,8 @@ namespace WPEFramework
                 else
                 {
                     MM_LOGINFO("Invalid optOut = %s", new_optout_state.c_str());
-                    returnResponse(false);
                     MM_RETURN_RESPONSE(false);
+                    returnResponse(false);
                 }
                 /* Set the result as true */
                 result = true;
@@ -2163,8 +2157,8 @@ namespace WPEFramework
                 /* havent got the correct label */
                 MM_LOGERR("SetMaintenanceMode Missing Key Values");
             }
-            returnResponse(result);
             MM_RETURN_RESPONSE(result);
+            returnResponse(result);
         }
 
         /**
@@ -2219,8 +2213,8 @@ namespace WPEFramework
                 MM_LOGINFO("Already a maintenance is in Progress. Please wait for it to complete !!");
             }
             m_statusMutex.unlock();
-            returnResponse(result);
             MM_RETURN_RESPONSE(result);
+            returnResponse(result);
         }
 
         /*
@@ -2242,8 +2236,8 @@ namespace WPEFramework
             {
                 MM_LOGERR("Failed to initiate stopMaintenance, RFC is set as False");
             }
-            returnResponse(result);
             MM_RETURN_RESPONSE(result);
+            returnResponse(result);
         }
 
         /**
