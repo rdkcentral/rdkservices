@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.41] - 2025-03-06
+### Added
+- Added reliable Maintenance Task Status handling and reporting
+
 ## [1.0.40] - 2025-02-11
 ### Removed
 - Changed Maintenance Manager Task execution thread to honour WhoAmI only in Unsolicited Maintenance.
