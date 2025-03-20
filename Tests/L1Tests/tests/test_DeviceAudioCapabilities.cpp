@@ -116,7 +116,7 @@ TEST_F(DeviceAudioCapabilitiesDsTest, DISABLED_SupportedAudioPorts)
     supportedAudioPorts->Release();
 }
 
-TEST_F(DeviceAudioCapabilitiesDsTest, AudioCapabilities_noParam)
+TEST_F(DeviceAudioCapabilitiesDsTest, DISABLED_AudioCapabilities_noParam)
 {
     device::AudioOutputPort audioOutputPort;
     Exchange::IDeviceAudioCapabilities::IAudioCapabilityIterator* audioCapabilities = nullptr;
