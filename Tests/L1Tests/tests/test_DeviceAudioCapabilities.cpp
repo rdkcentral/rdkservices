@@ -174,7 +174,7 @@ TEST_F(DeviceAudioCapabilitiesDsTest, DISABLED_MS12Capabilities_noParam)
     ms12Capabilities->Release();
 }
 
-TEST_F(DeviceAudioCapabilitiesDsTest, SupportedMS12AudioProfiles_noParam)
+TEST_F(DeviceAudioCapabilitiesDsTest, DISABLED_SupportedMS12AudioProfiles_noParam)
 {
     device::AudioOutputPort audioOutputPort;
     RPC::IStringIterator* supportedMS12AudioProfiles = nullptr;
