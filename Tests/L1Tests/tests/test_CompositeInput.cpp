@@ -213,7 +213,7 @@ Value of: (nullptr == impl) || (nullptr == newImpl)
 Actual: false
 Expected: true
 */
-TEST_F(CompositeInputInitializedEventDsTest_DISABLED, onDevicesChanged)
+TEST_F(CompositeInputInitializedEventDsTest, DISABLED_onDevicesChanged)
 {
    ASSERT_TRUE(dsCompositeEventHandler != nullptr);
     ON_CALL(*p_compositeInputImplMock, getNumberOfInputs())
