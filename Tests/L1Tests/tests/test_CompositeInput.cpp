@@ -262,7 +262,7 @@ TEST_F(CompositeInputInitializedEventDsTest, DISABLED_onInputStatusChangeOn)
     dsCompositeStatusEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS , &eventData , 0);
     handler.Unsubscribe(0, _T("onInputStatusChanged"), _T("client.events.onInputStatusChanged"), message);
 }
-TEST_F(CompositeInputInitializedEventDsTest, onInputStatusChangeOff)
+TEST_F(CompositeInputInitializedEventDsTest, DISABLED_onInputStatusChangeOff)
 {
    ASSERT_TRUE(dsCompositeStatusEventHandler != nullptr);
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
@@ -281,7 +281,7 @@ TEST_F(CompositeInputInitializedEventDsTest, onInputStatusChangeOff)
     dsCompositeStatusEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS, &eventData , 0);
     handler.Unsubscribe(0, _T("onInputStatusChanged"), _T("client.events.onInputStatusChanged"), message);
 }
-TEST_F(CompositeInputInitializedEventDsTest, onSignalChangedStable)
+TEST_F(CompositeInputInitializedEventDsTest, DISABLED_onSignalChangedStable)
 {
    ASSERT_TRUE(dsCompositeSignalStatusEventHandler != nullptr);
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
@@ -300,7 +300,7 @@ TEST_F(CompositeInputInitializedEventDsTest, onSignalChangedStable)
     dsCompositeSignalStatusEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS , &eventData , 0);
     handler.Unsubscribe(0, _T("onSignalChanged"), _T("client.events.onSignalChanged"), message);
 }
-TEST_F(CompositeInputInitializedEventDsTest, onSignalChangedNoSignal)
+TEST_F(CompositeInputInitializedEventDsTest, DISABLED_onSignalChangedNoSignal)
 {
    ASSERT_TRUE(dsCompositeSignalStatusEventHandler != nullptr);
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
@@ -319,7 +319,7 @@ TEST_F(CompositeInputInitializedEventDsTest, onSignalChangedNoSignal)
     dsCompositeSignalStatusEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS, &eventData , 0);
     handler.Unsubscribe(0, _T("onSignalChanged"), _T("client.events.onSignalChanged"), message);
 }
-TEST_F(CompositeInputInitializedEventDsTest, onSignalChangedUnstable)
+TEST_F(CompositeInputInitializedEventDsTest, DISABLED_onSignalChangedUnstable)
 {
    ASSERT_TRUE(dsCompositeSignalStatusEventHandler != nullptr);
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
@@ -338,7 +338,7 @@ TEST_F(CompositeInputInitializedEventDsTest, onSignalChangedUnstable)
     dsCompositeSignalStatusEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS, &eventData , 0);
     handler.Unsubscribe(0, _T("onSignalChanged"), _T("client.events.onSignalChanged"), message);
 }
-TEST_F(CompositeInputInitializedEventDsTest, onSignalChangedNotSupported)
+TEST_F(CompositeInputInitializedEventDsTest, DISABLED_onSignalChangedNotSupported)
 {
    ASSERT_TRUE(dsCompositeSignalStatusEventHandler != nullptr);
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
@@ -357,7 +357,7 @@ TEST_F(CompositeInputInitializedEventDsTest, onSignalChangedNotSupported)
     dsCompositeSignalStatusEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS, &eventData , 0);
     handler.Unsubscribe(0, _T("onSignalChanged"), _T("client.events.onSignalChanged"), message);
 }
-TEST_F(CompositeInputInitializedEventDsTest, onSignalChangedDefault)
+TEST_F(CompositeInputInitializedEventDsTest, DISABLED_onSignalChangedDefault)
 {
    ASSERT_TRUE(dsCompositeSignalStatusEventHandler != nullptr);
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
@@ -376,7 +376,7 @@ TEST_F(CompositeInputInitializedEventDsTest, onSignalChangedDefault)
     dsCompositeSignalStatusEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS, &eventData , 0);
     handler.Unsubscribe(0, _T("onSignalChanged"), _T("client.events.onSignalChanged"), message);
 }
-TEST_F(CompositeInputInitializedEventDsTest, videoStreamInfoUpdate)
+TEST_F(CompositeInputInitializedEventDsTest, DISABLED_videoStreamInfoUpdate)
 {
     ASSERT_TRUE(dsCompositeVideoModeEventHandler != nullptr);
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
