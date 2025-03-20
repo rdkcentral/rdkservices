@@ -285,6 +285,7 @@ namespace Plugin {
 
     private:
         enum { Timeout = 1000 };
+        enum { OpenSessionTimeout = 5000 };
 
     private:
         using JSONRPCLink = WPEFramework::JSONRPC::SmartLinkType<
@@ -355,7 +356,7 @@ namespace Plugin {
                 out["licenseRequest"] = licenseRequest;
                 JsonObject in;
                 result = _parent._secManager->Invoke<JsonObject, JsonObject>(
-                    Timeout, _T("openPlaybackSession"), out, in);
+                    OpenSessionTimeout, _T("openPlaybackSession"), out, in);
                 if (result == Core::ERROR_NONE) {
                     if (!in["success"].Boolean()) {
                         result = Core::ERROR_GENERAL;
@@ -416,7 +417,7 @@ namespace Plugin {
                 JsonObject in;
                 result = _parent._secManager->Invoke<
                     JsonObject, JsonObject>(
-                    Timeout, _T("updatePlaybackSession"), out, in);
+                    OpenSessionTimeout, _T("updatePlaybackSession"), out, in);
                 if (result == Core::ERROR_NONE) {
                     if (!in["success"].Boolean()) {
                         result = Core::ERROR_GENERAL;
