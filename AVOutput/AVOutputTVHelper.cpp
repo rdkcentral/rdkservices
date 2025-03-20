@@ -670,6 +670,11 @@ namespace Plugin {
             LOGERR("Failed to fetch the range capability[%s] \n", param.c_str());
             return -1;
         }
+        if (param == "PictureMode") {
+            // Add extra accepted parameters
+            std::vector<std::string> extraModes = {"DVIQ", "Dark", "AIPQ", "Bright"};
+            info.rangeVector.insert(info.rangeVector.end(), extraModes.begin(), extraModes.end());
+        }
 
         if ( (param == "ColorTemperature") ||
              (param == "DimmingMode") || (param == "AutoBacklightMode") ||
@@ -977,6 +982,15 @@ namespace Plugin {
                             case PQ_PARAM_DIMMINGMODE:
                             case PQ_PARAM_LOWLATENCY_STATE:
                             case PQ_PARAM_DOLBY_MODE:
+                            case PQ_PARAM_PRECISION_DETAIL:
+                            case PQ_PARAM_SDR_GAMMA:
+                            case PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT:
+                            case PQ_PARAM_MPEG_NOISE_REDUCTION:
+                            case PQ_PARAM_DIGITAL_NOISE_REDUCTION:
+                            case PQ_PARAM_AI_SUPER_RESOLUTION:
+                            case PQ_PARAM_MEMC:
+                            case PQ_PARAM_MULTI_POINT_WB:
+                            case PQ_PARAM_DOLBY_VISION_CALIBRATION:
                                 if(reset) {
                                     ret |= updateAVoutputTVParamToHAL(tr181ParamName,paramIndex,0,false);
                                 }
@@ -1126,6 +1140,15 @@ namespace Plugin {
                             }
                             case PQ_PARAM_CMS:
                             case PQ_PARAM_LDIM:
+                            case PQ_PARAM_PRECISION_DETAIL:
+                            case PQ_PARAM_SDR_GAMMA:
+                            case PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT:
+                            case PQ_PARAM_MPEG_NOISE_REDUCTION:
+                            case PQ_PARAM_DIGITAL_NOISE_REDUCTION:
+                            case PQ_PARAM_AI_SUPER_RESOLUTION:
+                            case PQ_PARAM_MEMC:
+                            case PQ_PARAM_MULTI_POINT_WB:
+                            case PQ_PARAM_DOLBY_VISION_CALIBRATION:
                             default:
                                 break;
                         }
@@ -2393,5 +2416,233 @@ namespace Plugin {
         return true;
     }
 
+    bool AVOutputTV::validateIntegerInputParameterAdvanced(int inputValue, int fromValue, int toValue) {
+	    return (inputValue >= fromValue && inputValue <= toValue);
+    }
+
+    std::string trim(const std::string& str) {
+        size_t first = str.find_first_not_of(" \t\n\r\f\v");
+        size_t last = str.find_last_not_of(" \t\n\r\f\v");
+        if (first == std::string::npos || last == std::string::npos) {
+            return "";  // Return an empty string if no non-whitespace characters found
+        }
+        return str.substr(first, (last - first + 1));
+    }
+
+    bool AVOutputTV::paramsInRangeCheck(const JsonObject& parameters) {
+        static const std::unordered_map<std::string, std::unordered_set<std::string>> validStringValues = {
+            {"pictureMode", {"Global", "Current", "Standard", "Vivid", "EnergySaving"}},
+            {"videoSource", {"Global", "Current", "Composite1", "HDMI1", "HDMI2", "HDMI3", "IP", "Tuner"}},
+            {"videoFormat", {"Global", "Current", "SDR"}}
+        };
+
+        for (const auto& param : validStringValues) {
+            if (parameters.HasLabel(param.first.c_str())) {
+                std::string value = parameters[param.first.c_str()].String();
+
+                // Remove square brackets if present
+                if (value.front() == '[' && value.back() == ']') {
+                    value = value.substr(1, value.length() - 2);
+                }
+
+                // Remove double quotes if present
+                if (value.front() == '"' && value.back() == '"') {
+                    value = value.substr(1, value.length() - 2);
+                }
+
+                // Trim any whitespace from the value
+                value = trim(value);
+
+                // Check if the value is in the valid set
+                if (param.second.find(value) == param.second.end()) {
+                    LOGERR("Invalid %s: %s", param.first.c_str(), value.c_str());
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    int AVOutputTV::parsingGetInputArgumentAdvanced(const JsonObject& parameters, std::string pqparam, capDetails_t& info) {
+
+        info.pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+
+        info.source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
+
+        info.format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
+
+        if ( (info.source.compare("Global") == 0) || (info.pqmode.compare("Global") == 0) || (info.format.compare("Global") == 0) ) {
+            LOGERR("%s: get cannot fetch the Global inputs \n", __FUNCTION__);
+            return -1;
+        }
+
+        if (info.source.empty()) {
+	       info.source = "Current";
+        }
+        if (info.pqmode.empty()) {
+	        info.pqmode = "Current";
+	    }
+        if (info.format.empty()) {
+	        info.format = "Current";
+        }
+
+        if (!paramsInRangeCheck(parameters)) {
+            LOGERR("Input params are out of range");
+            return -1;
+        }
+        if (convertToValidInputParameterAdvanced(pqparam,info) != 0) {
+            LOGERR("%s: Failed to convert the input paramters. \n", __FUNCTION__);
+            return -1;
+        }
+        return 0;
+    }
+
+    int AVOutputTV::parsingSetInputArgumentAdvanced(const JsonObject& parameters, std::string pqparam,capDetails_t& paramInfo) {
+
+        JsonArray sourceArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+
+
+        pqmodeArray = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].Array() : JsonArray();
+        for (int i = 0; i < pqmodeArray.Length(); ++i) {
+            paramInfo.pqmode += pqmodeArray[i].String();
+            if (i != (pqmodeArray.Length() - 1) ) {
+                paramInfo.pqmode += ",";
+            }
+        }
+
+        sourceArray = parameters.HasLabel("videoSource") ? parameters["videoSource"].Array() : JsonArray();
+        for (int i = 0; i < sourceArray.Length(); ++i) {
+            paramInfo.source += sourceArray[i].String();
+            if (i != (sourceArray.Length() - 1) ) {
+                paramInfo.source += ",";
+	        }
+        }
+
+        formatArray = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].Array() : JsonArray();
+        for (int i = 0; i < formatArray.Length(); ++i) {
+            paramInfo.format += formatArray[i].String();
+            if (i != (formatArray.Length() - 1) ) {
+                paramInfo.format += ",";
+            }
+        }
+
+	    if (paramInfo.source.empty()) {
+            paramInfo.source = "Global";
+	    }
+        if (paramInfo.pqmode.empty()) {
+            paramInfo.pqmode = "Global";
+	    }
+        if (paramInfo.format.empty()) {
+            paramInfo.format = "Global";
+	    }
+
+        if (!paramsInRangeCheck(parameters)) {
+            LOGERR("Input params are out of range");
+            return -1;
+        }
+        if (convertToValidInputParameterAdvanced(pqparam,paramInfo) != 0) {
+            LOGERR("%s: Failed to convert the input paramters. \n", __FUNCTION__);
+            return -1;
+        }
+        return 0;
+    }
+
+    bool AVOutputTV::validatePrecisionDetailString(const std::string& input) {
+        return (input == "true" || input == "false");
+    }
+
+    int AVOutputTV::precisionDetailstringToInt(const std::string& input) {
+        if (input == "true") return 1;
+        if (input == "false") return 0;
+        return -1;
+    }
+
+    const char* AVOutputTV::precisionDetailIntToString(int value) {
+        if (value == 1) return "true";
+        if (value == 0) return "false";
+        return "invalid";
+    }
+
+    bool AVOutputTV::validateInputSDRGammaParameter(const std::string& input) {
+        return (input == "2.0" || input == "2.2" || input == "2.4" || input == "BT.1886");
+    }
+
+    SDRGammaType AVOutputTV::getSDRGammaEnumFromString(const std::string& gammaOption) {
+        if (gammaOption == "2.0") return SDR_GAMMA_2_0;
+        if (gammaOption == "2.2") return SDR_GAMMA_2_2;
+        if (gammaOption == "2.4") return SDR_GAMMA_2_4;
+        if (gammaOption == "BT.1886") return SDR_GAMMA_BT1886;
+        return SDR_GAMMA_UNKNOWN;
+    }
+
+    const char* AVOutputTV::getSDRGammaStringFromEnum(SDRGammaType gammaType) {
+        switch (gammaType) {
+            case SDR_GAMMA_2_0:
+                return "2.0";
+            case SDR_GAMMA_2_2:
+                return "2.2";
+            case SDR_GAMMA_2_4:
+                return "2.4";
+            case SDR_GAMMA_BT1886:
+                return "BT.1886";
+            default:
+                return "UNKNOWN";
+        }
+    }
+
+    int AVOutputTV::convertToValidInputParameterAdvanced(std::string pqparam, capDetails_t& info)
+    {
+
+        LOGINFO("Entry %s source %s pqmode %s format %s \n", __FUNCTION__, info.source.c_str(), info.pqmode.c_str(), info.format.c_str());
+	    capDetails_t globalInfo;
+	    globalInfo.pqmode = "Standard,Vivid,EnergySaving";
+	    globalInfo.format = "SDR";
+	    globalInfo.source = "Composite1,HDMI1,HDMI2,HDMI3,IP,Tuner";
+
+        // converting pq to valid paramter format
+        if (info.pqmode == "Global") {
+            info.pqmode = globalInfo.pqmode;
+        }
+        else if (info.pqmode == "Current") {
+            char picMode[PIC_MODE_NAME_MAX]={0};
+            if(!getCurrentPictureMode(picMode)) {
+                LOGINFO("Failed to get the Current picture mode\n");
+                return -1;
+            }
+            else {
+                info.pqmode = picMode;
+            }
+        }
+
+        if (info.source == "Global") {
+            info.source = globalInfo.source;
+        }
+        else if (info.source == "Current") {
+            tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
+            tvError_t ret = GetCurrentVideoSource(&currentSource);
+
+            if(ret != tvERROR_NONE) {
+                LOGWARN("%s: GetCurrentVideoSource( ) Failed \n",__FUNCTION__);
+                return -1;
+            }
+            info.source = convertSourceIndexToString(currentSource);
+        }
+
+        //convert format into valid parameter
+        if (info.format == "Global") {
+            info.format = globalInfo.format;
+        }
+        else if (info.format == "Current") {
+            tvVideoFormatType_t formatIndex = VIDEO_FORMAT_NONE;
+            GetCurrentVideoFormat(&formatIndex);
+            if ( formatIndex  == VIDEO_FORMAT_NONE) {
+                formatIndex  = VIDEO_FORMAT_SDR;
+                }
+            info.format = convertVideoFormatToString(formatIndex);
+        }
+	return 0;
+    }
 } //namespace Plugin
 } //namespace WPEFramework
