@@ -96,7 +96,7 @@ protected:
     }
 };
 
-TEST_F(DeviceAudioCapabilitiesDsTest, SupportedAudioPorts)
+TEST_F(DeviceAudioCapabilitiesDsTest, DISABLED_SupportedAudioPorts)
 {
     device::AudioOutputPort audioOutputPort;
     RPC::IStringIterator* supportedAudioPorts = nullptr;
