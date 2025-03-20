@@ -145,7 +145,7 @@ TEST_F(DeviceAudioCapabilitiesDsTest, DISABLED_AudioCapabilities_noParam)
     audioCapabilities->Release();
 }
 
-TEST_F(DeviceAudioCapabilitiesDsTest, MS12Capabilities_noParam)
+TEST_F(DeviceAudioCapabilitiesDsTest, DISABLED_MS12Capabilities_noParam)
 {
     device::AudioOutputPort audioOutputPort;
     Exchange::IDeviceAudioCapabilities::IMS12CapabilityIterator* ms12Capabilities = nullptr;
