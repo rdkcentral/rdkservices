@@ -176,7 +176,8 @@ bool TTSConfiguration::setEndpointType(const std::string type) {
 }
 
 bool TTSConfiguration::setSpeechRate(const std::string rate) {
-    if(!rate.empty())
+    TTSLOG_ERROR("vis DBG speechrate %s\n" , rate.c_str());
+    if(!rate.empty() && rate.find_first_not_of(' ') != std::string::npos)
     {
         UPDATE_AND_RETURN(m_speechRate, rate);
     }
@@ -311,9 +312,9 @@ bool TTSConfiguration::updateWith(TTSConfiguration &nConfig) {
 }
 
 bool TTSConfiguration::isValid() {
-    if((m_ttsEndPoint.empty() && m_ttsEndPointSecured.empty())) {
-        TTSLOG_ERROR("TTSEndPointEmpty=%d, TTSSecuredEndPointEmpty=%d",
-                m_ttsEndPoint.empty(), m_ttsEndPointSecured.empty());
+    if((m_ttsEndPoint.empty() && m_ttsEndPointSecured.empty() && m_ttsRFCEndpoint.empty())) {
+        TTSLOG_ERROR("TTSEndPointEmpty=%d, TTSSecuredEndPointEmpty=%d , TTSRFCEndpoint=%d",
+                m_ttsEndPoint.empty(), m_ttsEndPointSecured.empty(), m_ttsRFCEndpoint.empty());
         return false;
     }
     return true;
