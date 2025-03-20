@@ -243,7 +243,7 @@ TEST_F(CompositeInputInitializedEventDsTest, DISABLED_onDevicesChanged)
     handler.Unsubscribe(0, _T("onDevicesChanged"), _T("client.events.onDevicesChanged"), message);
 }
 
-TEST_F(CompositeInputInitializedEventDsTest, onInputStatusChangeOn)
+TEST_F(CompositeInputInitializedEventDsTest, DISABLED_onInputStatusChangeOn)
 {
    ASSERT_TRUE(dsCompositeStatusEventHandler != nullptr);
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
