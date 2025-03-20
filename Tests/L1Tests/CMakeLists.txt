@@ -45,7 +45,7 @@ add_executable(${PROJECT_NAME}
         ../mocks/rdkshell.cpp
 	../mocks/opkgMock.cpp
 	../mocks/WpaCtrl.cpp
-	../mocks/BluetoothMocks.cpp
+        ../mocks/BluetoothMocks.cpp
         )
 
 set_source_files_properties(
@@ -79,6 +79,8 @@ include_directories(../../LocationSync
         ../../SystemServices
         ../../HdmiInput
         ../../HdcpProfile
+        ../../Network
+        ../../WifiManager
         ../../TraceControl
         ../../Warehouse
         ../../ActivityMonitor
@@ -120,6 +122,8 @@ link_directories(../../LocationSync
         ../../DeviceInfo
         ../../HdmiInput
         ../../HdcpProfile
+        ../../Network
+        ../../WifiManager
         ../../TraceControl
         ../../Warehouse
         ../../ActivityMonitor
@@ -161,6 +165,8 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}DeviceInfo
         ${NAMESPACE}HdmiInput
         ${NAMESPACE}HdcpProfile
+        ${NAMESPACE}Network
+        ${NAMESPACE}WifiManager
         ${NAMESPACE}TraceControl
         ${NAMESPACE}Warehouse
         ${NAMESPACE}ActivityMonitor
@@ -178,7 +184,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}TextToSpeech
 	${NAMESPACE}MiracastService
 	${NAMESPACE}MiracastPlayer
-	${NAMESPACE}Bluetooth
+        ${NAMESPACE}Bluetooth
         )
 
 target_include_directories(${PROJECT_NAME}

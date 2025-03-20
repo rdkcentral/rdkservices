@@ -57,7 +57,7 @@ jobs:
             !install/usr/lib/wpeframework/plugins
           key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}-4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v3
         with:
           python-version: '3.x'
       - run: pip install jsonref
@@ -71,7 +71,7 @@ jobs:
         run: >
           sudo apt update
           &&
-          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang libsystemd-dev libboost-all-dev libwebsocketpp-dev meson libcunit1 libcunit1-dev
+          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang libsystemd-dev libboost-all-dev libwebsocketpp-dev meson libcunit1 libcunit1-dev gdb
 
       - name: Install GStreamer
         run: |
@@ -140,7 +140,9 @@ jobs:
       - name: Apply patches ThunderInterfaces
         run: |
           cd ThunderInterfaces
-          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/DeviceInfo_brand_R2_L1tests.patch
+          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-DELIA-66976-SystemAudioPlayer-interface.patch 
+          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0002-DELIA-66976-specially-for-comcast-bring-back-the-old.patch
+          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/DeviceInfo_brand.patch
           cd ..
 
       - name: Build ThunderInterfaces
@@ -169,6 +171,7 @@ jobs:
           headers/rdk/iarmbus
           headers/rdk/iarmmgrs-hal
           headers/ccec/drivers
+          headers/network
           &&
           cd headers
           &&
@@ -200,6 +203,8 @@ jobs:
           rdk/iarmmgrs-hal/mfrMgr.h
           rdk/iarmmgrs-hal/pwrMgr.h
           rdk/iarmmgrs-hal/sysMgr.h
+          network/wifiSrvMgrIarmIf.h
+          network/netsrvmgrIarm.h
           libudev.h
           rfcapi.h
           rbus.h
@@ -238,6 +243,7 @@ jobs:
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmbus
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmmgrs-hal
           -I ${{github.workspace}}/rdkservices/Tests/headers/ccec/drivers
+          -I ${{github.workspace}}/rdkservices/Tests/headers/network
           -include ${{github.workspace}}/rdkservices/Tests/mocks/devicesettings.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/maintenanceMGR.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/pkg.h
@@ -282,6 +288,8 @@ jobs:
           -DRDK_SERVICES_L1_TEST=ON
           -DPLUGIN_HDMIINPUT=ON
           -DPLUGIN_HDCPPROFILE=ON
+          -DPLUGIN_NETWORK=ON
+          -DPLUGIN_WIFIMANAGER=ON
           -DPLUGIN_TRACECONTROL=ON
           -DPLUGIN_WAREHOUSE=ON
           -DPLUGIN_ACTIVITYMONITOR=ON
