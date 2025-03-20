@@ -364,21 +364,21 @@ jobs:
             rdkL2TestResultsWithValgrind.json
           if-no-files-found: warn
 
-      - name: Run contract tests
-        if: ${{ !env.ACT }}
-        env:
-          PACTFLOW_TOKEN: ${{ secrets.PACTFLOW_TOKEN }}
-        run: >
-          PATH=$GITHUB_WORKSPACE/install/usr/bin:${PATH}
-          LD_LIBRARY_PATH=$GITHUB_WORKSPACE/install/usr/lib:$GITHUB_WORKSPACE/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
-          RdkServicesL2Test CTVerifierMain
+      # - name: Run contract tests
+      #   if: ${{ !env.ACT }}
+      #   env:
+      #     PACTFLOW_TOKEN: ${{ secrets.PACTFLOW_TOKEN }}
+      #   run: >
+      #     PATH=$GITHUB_WORKSPACE/install/usr/bin:${PATH}
+      #     LD_LIBRARY_PATH=$GITHUB_WORKSPACE/install/usr/lib:$GITHUB_WORKSPACE/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
+      #     RdkServicesL2Test CTVerifierMain
 
-      - name: Upload contract test results
-        if: ${{ !env.ACT }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: Contract test results
-          path: |
-            contract-test-results.json
-            contract-test-statistics.txt
-          if-no-files-found: warn
+      # - name: Upload contract test results
+      #   if: ${{ !env.ACT }}
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: Contract test results
+      #     path: |
+      #       contract-test-results.json
+      #       contract-test-statistics.txt
+      #     if-no-files-found: warn

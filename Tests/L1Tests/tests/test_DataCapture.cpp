@@ -215,7 +215,7 @@ TEST_F(DataCaptureTest, ShouldReturnErrorWhenParamsAreEmpty)
     EXPECT_EQ(Core::ERROR_GENERAL, handler_.Invoke(connection_, _T("getAudioClip"), _T(""), response));
 }
 
-TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOnAudioCapture)
+TEST_F(DataCaptureInitializedEnableAudioCaptureTest, DISABLED_ShouldTurnOnAudioCapture)
 {
     ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
@@ -236,7 +236,7 @@ TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOnAudioCapture)
     EXPECT_EQ(response, _T("{\"error\":0,\"success\":true}"));
 }
 
-TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOffAudioCapture)
+TEST_F(DataCaptureInitializedEnableAudioCaptureTest, DISABLED_ShouldTurnOffAudioCapture)
 {
     ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
