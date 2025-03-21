@@ -1612,7 +1612,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.key | string | <sup>*(optional)*</sup> the property key, for which we need to get migration state |
+| params.key | string | the property key, for which we need to get migration state |
 
 ### Result
 
@@ -1664,8 +1664,8 @@ This method takes no parameters.
 | :-------- | :-------- | :-------- |
 | result | array | migration state of all the defined keys |
 | result[#] | object | Keys and it's migration states |
-| result[#]?.key | string | <sup>*(optional)*</sup> key of the property |
-| result[#]?.requiresMigration | boolean | <sup>*(optional)*</sup> The name of the USB device |
+| result[#].key | string | key of the property |
+| result[#].requiresMigration | boolean | Migration State Of the Property |
 
 ### Example
 
