@@ -63,7 +63,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 42
+#define API_VERSION_NUMBER_PATCH 44
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 #define PROC_DIR "/proc"
@@ -312,7 +312,7 @@ namespace WPEFramework
             MaintenanceManager::_instance = this;
             if (Utils::directoryExists(MAINTENANCE_MGR_RECORD_FILE))
             {
-                LOGINFO("File %s detected as folder, deleting..", MAINTENANCE_MGR_RECORD_FILE);
+                MM_LOGINFO("File %s detected as folder, deleting..", MAINTENANCE_MGR_RECORD_FILE);
                 if (rmdir(MAINTENANCE_MGR_RECORD_FILE) == 0)
                 {
                     cSettings mtemp(MAINTENANCE_MGR_RECORD_FILE);
@@ -320,7 +320,7 @@ namespace WPEFramework
                 }
                 else
                 {
-                     LOGINFO("Unable to delete folder: %s", MAINTENANCE_MGR_RECORD_FILE);
+                     MM_LOGINFO("Unable to delete folder: %s", MAINTENANCE_MGR_RECORD_FILE);
                 }
             }
 
@@ -364,7 +364,7 @@ namespace WPEFramework
             bool isTaskTimerStarted = false;
 
             std::unique_lock<std::mutex> wailck(m_waiMutex);
-            LOGINFO("Executing Maintenance tasks");
+            MM_LOGINFO("Executing Maintenance tasks");
 
 #if defined(ENABLE_WHOAMI)
             /* Purposefully delaying MAINTENANCE_STARTED status to honor POWER compliance */
@@ -410,18 +410,18 @@ namespace WPEFramework
             {
                 string activation_status = checkActivatedStatus(); /* Device Activation Status Check */
                 bool whoAmIStatus = knowWhoAmI(activation_status); /* WhoAmI Response & Set Status Check */
-                LOGINFO("knowWhoAmI() returned %s", (whoAmIStatus) ? "successfully" : "false");
+                MM_LOGINFO("knowWhoAmI() returned %s", (whoAmIStatus) ? "successfully" : "false");
 
                 if (!whoAmIStatus && activation_status != "activated")
                 {
-                    LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
+                    MM_LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
                     g_listen_to_deviceContextUpdate = true;
-                    LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
+                    MM_LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
                     task_thread.wait(wailck);
                 }
                 else if (!internetConnectStatus && activation_status == "activated")
                 {
-                    LOGINFO("Device is not connected to the Internet and Device is already Activated");
+                    MM_LOGINFO("Device is not connected to the Internet and Device is already Activated");
                     exitOnNoNetwork = true;
                 }
             }
@@ -441,7 +441,7 @@ namespace WPEFramework
                 m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                 m_statusMutex.unlock();
-                LOGINFO("Maintenance is exiting as device is not connected to internet.");
+                MM_LOGINFO("Maintenance is exiting as device is not connected to internet.");
                 if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete)
                 {
                     g_unsolicited_complete = true;
@@ -457,8 +457,8 @@ namespace WPEFramework
                 m_statusMutex.unlock();
             }
 
-            LOGINFO("Reboot_Pending :%s", g_is_reboot_pending.c_str());
-            LOGINFO("%s", UNSOLICITED_MAINTENANCE == g_maintenance_type ? "---------------UNSOLICITED_MAINTENANCE--------------" : "=============SOLICITED_MAINTENANCE===============");
+            MM_LOGINFO("Reboot_Pending :%s", g_is_reboot_pending.c_str());
+            MM_LOGINFO("%s", UNSOLICITED_MAINTENANCE == g_maintenance_type ? "---------------UNSOLICITED_MAINTENANCE--------------" : "=============SOLICITED_MAINTENANCE===============");
 
 #if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
             if (skipFirmwareCheck)
@@ -494,13 +494,13 @@ namespace WPEFramework
                 {
                     if (retry_count == TASK_RETRY_COUNT)
                     {
-                        LOGINFO("Starting Timer for %s \n", currentTask.c_str());
+                        MM_LOGINFO("Starting Timer for %s", currentTask.c_str());
                         isTaskTimerStarted = task_startTimer();
                     }
                     if (isTaskTimerStarted)
                     {
                         m_task_map[tasks[i]] = true;
-                        LOGINFO("Starting Task :  %s \n", task.c_str());
+                        MM_LOGINFO("Starting Task :  %s", task.c_str());
                         task_status = system(task.c_str());
                     }
                     /* Set task_status purposefully to non-zero value to verify failure logic*/
@@ -508,10 +508,10 @@ namespace WPEFramework
                     if (task_status != 0) /* system() call fails */
                     {
                         m_task_map[tasks[i]] = false;
-                        LOGINFO("%s invocation failed with return status %d", tasks[i].c_str(), WEXITSTATUS(task_status));
+                        MM_LOGINFO("%s invocation failed with return status %d", tasks[i].c_str(), WEXITSTATUS(task_status));
                         if (retry_count > 0 && isTaskTimerStarted)
                         {
-                            LOGINFO("Retry %s after %d seconds (%d retry left)\n", tasks[i].c_str(), TASK_RETRY_DELAY, retry_count);
+                            MM_LOGINFO("Retry %s after %d seconds (%d retry left)", tasks[i].c_str(), TASK_RETRY_DELAY, retry_count);
                             sleep(TASK_RETRY_DELAY);
                             i--; /* Decrement iterator to retry same task again */
                             retry_count--;
@@ -519,35 +519,35 @@ namespace WPEFramework
                         }
                         else
                         {
-                            LOGINFO("Task Failed");
+                            MM_LOGINFO("Task Failed");
                             auto it = task_status_map.find(tasks[i]);
                             if (it != task_status_map.end())
                             {
-                                LOGINFO("Setting task as Error");
+                                MM_LOGINFO("Setting task as Error");
                                 int complete_status = it->second;
                                 SET_STATUS(g_task_status, complete_status);
                             }
                             if (task_stopTimer())
                             {
-                                LOGINFO("Stopped Timer Successfully");
+                                MM_LOGINFO("Stopped Timer Successfully");
                             }
                             else
                             {
-                                LOGERR("task_stopTimer() did not stop the Timer");
+                                MM_LOGERR("task_stopTimer() did not stop the Timer");
                             }
                         }
                     }
                     else /* System() executes successfully */
                     {
-                        LOGINFO("Waiting to unlock.. [%d/%d]", i + 1, (int)tasks.size());
+                        MM_LOGINFO("Waiting to unlock.. [%d/%d]", i + 1, (int)tasks.size());
                         task_thread.wait(lck);
                         if (task_stopTimer())
                         {
-                            LOGINFO("Stopped Timer Successfully");
+                            MM_LOGINFO("Stopped Timer Successfully");
                         }
                         else
                         {
-                            LOGERR("task_stopTimer() did not stop the Timer");
+                            MM_LOGERR("task_stopTimer() did not stop the Timer");
                         }
                     }
                 }
@@ -558,14 +558,14 @@ namespace WPEFramework
                 m_abort_flag = false;
                 if (task_stopTimer())
                 {
-                    LOGINFO("Stopped Timer Successfully");
+                    MM_LOGINFO("Stopped Timer Successfully");
                 }
                 else
                 {
-                    LOGERR("task_stopTimer() did not stop the Timer");
+                    MM_LOGERR("task_stopTimer() did not stop the Timer");
                 }
             }
-            LOGINFO("Worker Thread Completed");
+            MM_LOGINFO("Worker Thread Completed");
         } /* end of task_execution_thread() */
 
 #if defined(ENABLE_WHOAMI)
@@ -593,7 +593,7 @@ namespace WPEFramework
             {
                 if ((getServiceState(m_service, secMgr_callsign, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
                 {
-                    LOGINFO("%s is active", secMgr_callsign);
+                    MM_LOGINFO("%s is active", secMgr_callsign);
                     thunder_client = getThunderPluginHandle(secMgr_callsign_ver);
                     if (thunder_client != nullptr)
                     {
@@ -605,26 +605,26 @@ namespace WPEFramework
                             static const char *kDeviceInitializationContext = "deviceInitializationContext";
                             if (joGetResult.HasLabel(kDeviceInitializationContext))
                             {
-                                LOGINFO("%s found in the response", kDeviceInitializationContext);
+                                MM_LOGINFO("%s found in the response", kDeviceInitializationContext);
                                 success = setDeviceInitializationContext(joGetResult);
                             }
                             else
                             {
-                                LOGERR("%s is not available in the response", kDeviceInitializationContext);
+                                MM_LOGERR("%s is not available in the response", kDeviceInitializationContext);
                             }
                         }
                         else
                         {
-                            LOGERR("getDeviceInitializationContext failed");
+                            MM_LOGERR("getDeviceInitializationContext failed");
                         }
                     }
                     else
                     {
-                        LOGERR("Failed to get plugin handle");
+                        MM_LOGERR("Failed to get plugin handle");
                     }
                     if (!g_subscribed_for_deviceContextUpdate)
                     {
-                        LOGINFO("onDeviceInitializationContextUpdate event not subscribed...");
+                        MM_LOGINFO("onDeviceInitializationContextUpdate event not subscribed...");
                         g_subscribed_for_deviceContextUpdate = subscribeToDeviceInitializationEvent();
                     }
                     return success;
@@ -634,12 +634,12 @@ namespace WPEFramework
                     g_subscribed_for_deviceContextUpdate = false;
                     if (activation_status != "activated")
                     {
-                        LOGINFO("%s is not active. Retry after %d seconds", secMgr_callsign, SECMGR_RETRY_INTERVAL);
+                        MM_LOGINFO("%s is not active. Retry after %d seconds", secMgr_callsign, SECMGR_RETRY_INTERVAL);
                         sleep(SECMGR_RETRY_INTERVAL);
                     }
                     else
                     {
-                        LOGINFO("%s is not active. Device is already Activated. Hence exiting from knoWhoAmI()", secMgr_callsign);
+                        MM_LOGINFO("%s is not active. Device is already Activated. Hence exiting from knoWhoAmI()", secMgr_callsign);
                         return success;
                     }
                 }
@@ -670,17 +670,17 @@ namespace WPEFramework
                         reinterpret_cast<const uint8_t *>(payload.c_str()),
                         token) == Core::ERROR_NONE)
                 {
-                    LOGINFO("MaintenanceManager got security token");
+                    MM_LOGINFO("MaintenanceManager got security token");
                 }
                 else
                 {
-                    LOGERR("MaintenanceManager failed to get security token");
+                    MM_LOGERR("MaintenanceManager failed to get security token");
                 }
                 security->Release();
             }
             else
             {
-                LOGERR("No security agent");
+                MM_LOGERR("No security agent");
             }
 
             string query = "token=" + token;
@@ -700,7 +700,7 @@ namespace WPEFramework
         {
             if (g_task_timerCreated)
             {
-                LOGINFO("Timer has already been created, no need to create a Timer.");
+                MM_LOGINFO("Timer has already been created, no need to create a Timer.");
                 return g_task_timerCreated;
             }
 
@@ -711,11 +711,11 @@ namespace WPEFramework
 
             if (timer_create(BASE_CLOCK, &sev, &timerid) == -1)
             {
-                LOGERR("timer_create() failed to create the Timer");
+                MM_LOGERR("timer_create() failed to create the Timer");
             }
             else{
                 g_task_timerCreated = true; // Timer Created
-                LOGINFO("Timer created successfully.");
+                MM_LOGINFO("Timer created successfully.");
             }
             return g_task_timerCreated;
         }
@@ -732,11 +732,11 @@ namespace WPEFramework
             bool status = false;
             if (g_task_timerCreated)
             {
-                LOGINFO("Timer has already been created, start the Timer");
+                MM_LOGINFO("Timer has already been created, start the Timer");
             }
             else
             {
-                LOGINFO("Timer has not been created already, create a new Timer.");
+                MM_LOGINFO("Timer has not been created already, create a new Timer.");
                 if (!maintenance_initTimer())
                 {
                     return status;
@@ -751,11 +751,11 @@ namespace WPEFramework
 
             if (timer_settime(timerid, 0, &its, NULL) == -1)
             {
-                LOGERR("timer_settime() failed to start the Timer");
+                MM_LOGERR("timer_settime() failed to start the Timer");
             }
             else
             {
-                LOGINFO("Timer started for %d seconds for %s", TASK_TIMEOUT, currentTask.c_str());
+                MM_LOGINFO("Timer started for %d seconds for %s", TASK_TIMEOUT, currentTask.c_str());
                 status = true;
             }
             return status;
@@ -773,7 +773,7 @@ namespace WPEFramework
             bool status = false;
             if (!g_task_timerCreated)
             {
-                LOGINFO("Timer has not been created already, cannot stop the Timer");
+                MM_LOGINFO("Timer has not been created already, cannot stop the Timer");
                 return status;
             }
 
@@ -783,11 +783,11 @@ namespace WPEFramework
 
             if (timer_settime(timerid, 0, &its, NULL) == -1)
             {
-                LOGERR("timer_settime() failed to stop the Timer");
+                MM_LOGERR("timer_settime() failed to stop the Timer");
             }
             else
             {
-                LOGINFO("Timer stopped for %s", currentTask.c_str());
+                MM_LOGINFO("Timer stopped for %s", currentTask.c_str());
                 status = true;
             }
             return status;
@@ -805,20 +805,19 @@ namespace WPEFramework
             bool status = false;
             if (!g_task_timerCreated)
             {
-                LOGINFO("Timer has not been created already, cannot delete the Timer.");
+                MM_LOGINFO("Timer has not been created already, cannot delete the Timer.");
                 return status;
             }
-
-            LOGINFO("Timer has already been created, delete the Timer.");
+            MM_LOGINFO("Timer has already been created, delete the Timer.");
 
             if (timer_delete(timerid) == -1)
             {
-                LOGERR("timer_delete() failed to delete the Timer.");
+                MM_LOGERR("timer_delete() failed to delete the Timer.");
             }
             else
             {
                 g_task_timerCreated = false;
-                LOGINFO("Timer successfully deleted.");
+                MM_LOGINFO("Timer successfully deleted.");
                 status = true;
             }
             return status;
@@ -835,7 +834,7 @@ namespace WPEFramework
         {
             if (signo == SIGALRM)
             {
-                LOGERR("Timeout reached for %s. Set task to Error...", currentTask.c_str());
+                MM_LOGERR("Timeout reached for %s. Set task to Error...", currentTask.c_str());
 
                 const char *failedTask = nullptr;
                 int complete_status = 0;
@@ -852,19 +851,19 @@ namespace WPEFramework
 
                 if (failedTask && !MaintenanceManager::_instance->m_task_map[failedTask])
                 {
-                    LOGINFO("Ignoring Error Event for Task: %s", failedTask);
+                    MM_LOGINFO("Ignoring Error Event for Task: %s", failedTask);
                 }
                 else if (failedTask)
                 {
                     MaintenanceManager::_instance->m_task_map[failedTask] = false;
                     SET_STATUS(MaintenanceManager::_instance->g_task_status, complete_status);
                     MaintenanceManager::_instance->task_thread.notify_one();
-                    LOGINFO("Set %s Task to ERROR", failedTask);
+                    MM_LOGINFO("Set %s Task to ERROR", failedTask);
                 }
             }
             else
             {
-                LOGERR("Received %d Signal instead of SIGALRM", signo);
+                MM_LOGERR("Received %d Signal instead of SIGALRM", signo);
             }
         }
 
@@ -880,19 +879,19 @@ namespace WPEFramework
          */
         bool MaintenanceManager::setRFC(const char *rfc, const char *value, DATA_TYPE dataType)
         {
-            LOGINFO("Invoke setRFC...");
+            MM_LOGINFO("Invoke setRFC...");
             bool result = false;
             WDMP_STATUS status;
             status = setRFCParameter((char *)MAINTENANCE_MANAGER_RFC_CALLER_ID, rfc, value, dataType);
 
             if (WDMP_SUCCESS == status)
             {
-                LOGINFO("Successfuly set the tr181 parameter %s with value %s", rfc, value);
+                MM_LOGINFO("Successfuly set the tr181 parameter %s with value %s", rfc, value);
                 result = true;
             }
             else
             {
-                LOGINFO("Failed setting %s parameter", rfc);
+                MM_LOGINFO("Failed setting %s parameter", rfc);
             }
             return result;
         }
@@ -906,7 +905,7 @@ namespace WPEFramework
          */
         void MaintenanceManager::setPartnerId(string partnerid)
         {
-            LOGINFO("Invoke setPartnerId...");
+            MM_LOGINFO("Invoke setPartnerId...");
             const char *authservice_callsign = "org.rdk.AuthService.1";
             PluginHost::IShell::state state;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *thunder_client = nullptr;
@@ -917,7 +916,7 @@ namespace WPEFramework
 
                 if (thunder_client == nullptr)
                 {
-                    LOGERR("Failed to get plugin handle");
+                    MM_LOGERR("Failed to get plugin handle");
                 }
                 else
                 {
@@ -929,14 +928,14 @@ namespace WPEFramework
                     thunder_client->Invoke<JsonObject, JsonObject>(5000, "setPartnerId", joGetParams, joGetResult);
                     string responseJson;
                     joGetResult.ToString(responseJson);
-                    LOGINFO("AuthService Response Data: %s", responseJson.c_str());
+                    MM_LOGINFO("AuthService Response Data: %s", responseJson.c_str());
                     if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean())
                     {
-                        LOGINFO("Successfully set the partnerId via Authservice");
+                        MM_LOGINFO("Successfully set the partnerId via Authservice");
                     }
                     else
                     {
-                        LOGERR("Failed to set the partnerId through Authservice");
+                        MM_LOGERR("Failed to set the partnerId through Authservice");
                     }
                 }
             }
@@ -954,14 +953,14 @@ namespace WPEFramework
         {
             int32_t status = Core::ERROR_NONE;
             bool result = false;
-            LOGINFO("Attempting to subscribe for %s events", event.c_str());
+            MM_LOGINFO("Attempting to subscribe for %s events", event.c_str());
             const char *network_callsign = "org.rdk.Network.1";
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *thunder_client = nullptr;
 
             thunder_client = getThunderPluginHandle(network_callsign);
             if (thunder_client == nullptr)
             {
-                LOGERR("Failed to get plugin handle");
+                MM_LOGERR("Failed to get plugin handle");
             }
             else
             {
@@ -991,7 +990,7 @@ namespace WPEFramework
                 value = parameters["status"].String();
                 state = parameters["state"].Number();
 
-                LOGINFO("Received onInternetStatusChange event: [%s:%d]", value.c_str(), state);
+                MM_LOGINFO("Received onInternetStatusChange event: [%s:%d]", value.c_str(), state);
                 if (g_listen_to_nwevents)
                 {
                     if (state == INTERNET_CONNECTED_STATE)
@@ -1015,32 +1014,31 @@ namespace WPEFramework
             bool contextSet = false;
             if (g_listen_to_deviceContextUpdate && UNSOLICITED_MAINTENANCE == g_maintenance_type)
             {
-                LOGINFO("onDeviceInitializationContextUpdate event is already subscribed and Maintenance Type is Unsolicited Maintenance");
+                MM_LOGINFO("onDeviceInitializationContextUpdate event is already subscribed and Maintenance Type is Unsolicited Maintenance");
                 if (parameters.HasLabel("deviceInitializationContext"))
                 {
-                    LOGINFO("deviceInitializationContext found");
-
+                    MM_LOGINFO("deviceInitializationContext found");
                     contextSet = setDeviceInitializationContext(parameters);
                     if (contextSet)
                     {
-                        LOGINFO("setDeviceInitializationContext() success");
+                        MM_LOGINFO("setDeviceInitializationContext() success");
                         g_listen_to_deviceContextUpdate = false;
-                        LOGINFO("Notify maintenance execution thread");
+                        MM_LOGINFO("Notify maintenance execution thread");
                         task_thread.notify_one();
                     }
                     else
                     {
-                        LOGINFO("setDeviceInitializationContext() failed");
+                        MM_LOGINFO("setDeviceInitializationContext() failed");
                     }
                 }
                 else
                 {
-                    LOGINFO("deviceInitializationContext not found");
+                    MM_LOGINFO("deviceInitializationContext not found");
                 }
             }
             else
             {
-                LOGINFO("onDeviceInitializationContextUpdate event is not being listened already or Maintenance Type is not Unsolicited Maintenance");
+                MM_LOGINFO("onDeviceInitializationContextUpdate event is not being listened already or Maintenance Type is not Unsolicited Maintenance");
             }
         }
 
@@ -1051,22 +1049,22 @@ namespace WPEFramework
          */
         void MaintenanceManager::startCriticalTasks()
         {
-            LOGINFO("Starting Critical Tasks...");
+            MM_LOGINFO("Starting Critical Tasks...");
             int rfc_task_status = -1;
             int xconf_imagecheck_status = -1;
 
-            LOGINFO("Starting Script /lib/rdk/Start_RFC.sh");
+            MM_LOGINFO("Starting Script /lib/rdk/Start_RFC.sh");
             rfc_task_status = system("/lib/rdk/Start_RFC.sh &");
             if (rfc_task_status != 0)
             {
-                LOGINFO("Failed to run Start_RFC.sh with %d", WEXITSTATUS(rfc_task_status));
+                MM_LOGINFO("Failed to run Start_RFC.sh with %d", WEXITSTATUS(rfc_task_status));
             }
 
-            LOGINFO("Starting Script /lib/rdk/xconfImageCheck.sh");
+            MM_LOGINFO("Starting Script /lib/rdk/xconfImageCheck.sh");
             xconf_imagecheck_status = system("/lib/rdk/xconfImageCheck.sh &");
             if (xconf_imagecheck_status != 0)
             {
-                LOGINFO("Failed to run xconfImageCheck.sh with %d", WEXITSTATUS(xconf_imagecheck_status));
+                MM_LOGINFO("Failed to run xconfImageCheck.sh with %d", WEXITSTATUS(xconf_imagecheck_status));
             }
         }
 
@@ -1089,7 +1087,7 @@ namespace WPEFramework
             PluginHost::IShell::state state = PluginHost::IShell::state::UNAVAILABLE;
             if ((getServiceState(m_service, "org.rdk.AuthService", state) != Core::ERROR_NONE) || (state != PluginHost::IShell::state::ACTIVATED))
             {
-                LOGERR("AuthService plugin is not activated.Retrying.. \n");
+                MM_LOGERR("AuthService plugin is not activated.Retrying.");
                 // if plugin is not activated we need to retry
                 do
                 {
@@ -1097,7 +1095,7 @@ namespace WPEFramework
                     {
                         sleep(10);
                         i++;
-                        LOGINFO("AuthService retries [%d/4] \n", i);
+                        MM_LOGINFO("AuthService retries [%d/4]", i);
                     }
                     else
                     {
@@ -1107,17 +1105,17 @@ namespace WPEFramework
 
                 if (state != PluginHost::IShell::state::ACTIVATED)
                 {
-                    LOGERR("AuthService plugin is Still not active");
+                    MM_LOGERR("AuthService plugin is Still not active");
                     return ret_status;
                 }
                 else
                 {
-                    LOGINFO("AuthService plugin is Now active");
+                    MM_LOGINFO("AuthService plugin is Now active");
                 }
             }
             if (state == PluginHost::IShell::state::ACTIVATED)
             {
-                LOGINFO("AuthService is active");
+                MM_LOGINFO("AuthService is active");
             }
 
             string token;
@@ -1132,17 +1130,17 @@ namespace WPEFramework
                         reinterpret_cast<const uint8_t *>(payload.c_str()),
                         token) == Core::ERROR_NONE)
                 {
-                    LOGINFO("MaintenanceManager got security token");
+                    MM_LOGINFO("MaintenanceManager got security token");
                 }
                 else
                 {
-                    LOGERR("MaintenanceManager failed to get security token");
+                    MM_LOGERR("MaintenanceManager failed to get security token");
                 }
                 security->Release();
             }
             else
             {
-                LOGERR("No security agent");
+                MM_LOGERR("No security agent");
             }
 
             string query = "token=" + token;
@@ -1151,28 +1149,27 @@ namespace WPEFramework
             if (thunder_client != nullptr)
             {
                 uint32_t status = thunder_client->Invoke<JsonObject, JsonObject>(5000, "getActivationStatus", joGetParams, joGetResult);
-                LOGINFO("Invoke status : %d", status);
+                MM_LOGINFO("Invoke status : %d", status);
                 if (status > 0)
                 {
-                    LOGERR("%s call failed %d", callsign.c_str(), status);
+                    MM_LOGERR("%s call failed %d", callsign.c_str(), status);
                     ret_status = "invalid";
-                    LOGINFO("Setting Default to [%s]", ret_status.c_str());
+                    MM_LOGINFO("Setting Default to [%s]", ret_status.c_str());
                 }
                 else if (joGetResult.HasLabel("status"))
                 {
                     ret_status = joGetResult["status"].String();
-                    LOGINFO("Activation Value [%s]", ret_status.c_str());
+                    MM_LOGINFO("Activation Value [%s]", ret_status.c_str());
                 }
                 else
                 {
-                    LOGERR("Failed to read the ActivationStatus");
+                    MM_LOGERR("Failed to read the ActivationStatus");
                     ret_status = "invalid";
                 }
 
                 return ret_status;
             }
-
-            LOGERR("thunder client failed");
+            MM_LOGERR("thunder client failed");
             return ret_status;
         }
 
@@ -1206,7 +1203,7 @@ namespace WPEFramework
             };
 
             activationStatus = checkActivatedStatus();
-            LOGINFO("activation status : [ %s ]", activationStatus.c_str());
+            MM_LOGINFO("activation status : [ %s ]", activationStatus.c_str());
             const auto end = act.end();
             auto search = act.find(activationStatus);
             if (search != end)
@@ -1216,7 +1213,7 @@ namespace WPEFramework
             else
             {
                 result = INVALID_ACTIVATION;
-                LOGERR("result: invalid Activation");
+                MM_LOGERR("result: invalid Activation");
             }
 
             switch (result)
@@ -1235,7 +1232,7 @@ namespace WPEFramework
                 default:
                     ret_result = true;
             }
-            LOGINFO("ret_result: [%s] skipFirmwareCheck:[%s]", (ret_result) ? "true" : "false", (skipFirmwareCheck) ? "true" : "false");
+            MM_LOGINFO("ret_result: [%s] skipFirmwareCheck:[%s]", (ret_result) ? "true" : "false", (skipFirmwareCheck) ? "true" : "false");
             return ret_result;
         }
 
@@ -1257,7 +1254,7 @@ namespace WPEFramework
 
             if ((getServiceState(m_service, "org.rdk.Network", state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
             {
-                LOGINFO("Network plugin is active");
+                MM_LOGINFO("Network plugin is active");
 
                 if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_subscribed_for_nwevents)
                 {
@@ -1265,18 +1262,18 @@ namespace WPEFramework
                     bool subscribe_status = subscribeForInternetStatusEvent("onInternetStatusChange");
                     if (subscribe_status)
                     {
-                        LOGINFO("MaintenanceManager subscribed for onInternetStatusChange event");
+                        MM_LOGINFO("MaintenanceManager subscribed for onInternetStatusChange event");
                         g_subscribed_for_nwevents = true;
                     }
                     else
                     {
-                        LOGERR("Failed to subscribe for onInternetStatusChange event");
+                        MM_LOGERR("Failed to subscribe for onInternetStatusChange event");
                     }
                 }
             }
             else
             {
-                LOGERR("Network plugin is not active");
+                MM_LOGERR("Network plugin is not active");
                 return false;
             }
 
@@ -1290,17 +1287,17 @@ namespace WPEFramework
                         reinterpret_cast<const uint8_t *>(payload.c_str()),
                         token) == Core::ERROR_NONE)
                 {
-                    LOGINFO("MaintenanceManager got security token");
+                    MM_LOGINFO("MaintenanceManager got security token");
                 }
                 else
                 {
-                    LOGERR("MaintenanceManager failed to get security token");
+                    MM_LOGERR("MaintenanceManager failed to get security token");
                 }
                 security->Release();
             }
             else
             {
-                LOGERR("No security agent");
+                MM_LOGERR("No security agent");
             }
 
             string query = "token=" + token;
@@ -1311,12 +1308,12 @@ namespace WPEFramework
                 uint32_t status = thunder_client->Invoke<JsonObject, JsonObject>(5000, "isConnectedToInternet", joGetParams, joGetResult);
                 if (status > 0)
                 {
-                    LOGERR("%s call failed %d", callsign.c_str(), status);
+                    MM_LOGERR("%s call failed %d", callsign.c_str(), status);
                     return false;
                 }
                 else if (joGetResult.HasLabel("connectedToInternet"))
                 {
-                    LOGINFO("connectedToInternet status %s", (joGetResult["connectedToInternet"].Boolean()) ? "true" : "false");
+                    MM_LOGINFO("connectedToInternet status %s", (joGetResult["connectedToInternet"].Boolean()) ? "true" : "false");
                     return joGetResult["connectedToInternet"].Boolean();
                 }
                 else
@@ -1325,7 +1322,7 @@ namespace WPEFramework
                 }
             }
 
-            LOGERR("thunder client failed");
+            MM_LOGERR("thunder client failed");
             return false;
         }
 
@@ -1339,7 +1336,7 @@ namespace WPEFramework
         bool MaintenanceManager::isDeviceOnline()
         {
             bool network_available = false;
-            LOGINFO("Checking device has network connectivity\n");
+            MM_LOGINFO("Checking device has network connectivity");
             /* add 4 checks every 30 seconds */
             network_available = checkNetwork();
             if (!network_available)
@@ -1347,9 +1344,9 @@ namespace WPEFramework
                 int retry_count = 0;
                 while (retry_count < MAX_NETWORK_RETRIES)
                 {
-                    LOGINFO("Network not available. Sleeping for %d seconds", NETWORK_RETRY_INTERVAL);
+                    MM_LOGINFO("Network not available. Sleeping for %d seconds", NETWORK_RETRY_INTERVAL);
                     sleep(NETWORK_RETRY_INTERVAL);
-                    LOGINFO("Network retries [%d/%d] \n", ++retry_count, MAX_NETWORK_RETRIES);
+                    MM_LOGINFO("Network retries [%d/%d]", ++retry_count, MAX_NETWORK_RETRIES);
                     network_available = checkNetwork();
                     if (network_available)
                     {
@@ -1384,7 +1381,7 @@ namespace WPEFramework
                     {
                         paramValue = "https://" + paramValue;
                     }
-                    LOGINFO("[deviceInitializationContext] %s : %s", key.c_str(), paramValue.c_str());
+                    MM_LOGINFO("[deviceInitializationContext] %s : %s", key.c_str(), paramValue.c_str());
 
                     // Retrieve tr181 parameter from m_param_map
                     string rfc_parameter = m_param_map[key];
@@ -1394,7 +1391,7 @@ namespace WPEFramework
 
                     // Set the RFC values for deviceInitializationContext parameters
                     setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
-                    LOGINFO("deviceInitializationContext parameters set successfully via RFC");
+                    MM_LOGINFO("deviceInitializationContext parameters set successfully via RFC");
 
                     if (strcmp(key.c_str(), "partnerId") == 0)
                     {
@@ -1403,7 +1400,7 @@ namespace WPEFramework
                 }
                 else
                 {
-                    LOGERR("Not able to fetch %s value from deviceInitializationContext", key.c_str());
+                    MM_LOGERR("Not able to fetch %s value from deviceInitializationContext", key.c_str());
                     paramEmpty = true;
                 }
             }
@@ -1427,12 +1424,12 @@ namespace WPEFramework
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *thunder_client = nullptr;
 
             // subscribe to onDeviceInitializationContextUpdate event
-            LOGINFO("Attempting to subscribe for %s events", event.c_str());
+            MM_LOGINFO("Attempting to subscribe for %s events", event.c_str());
 
             thunder_client = getThunderPluginHandle(secMgr_callsign_ver);
             if (thunder_client == nullptr)
             {
-                LOGINFO("Failed to get plugin handle");
+                MM_LOGINFO("Failed to get plugin handle");
             }
             else
             {
@@ -1445,12 +1442,12 @@ namespace WPEFramework
             g_subscribed_for_deviceContextUpdate = result;
             if (g_subscribed_for_deviceContextUpdate)
             {
-                LOGINFO("MaintenanceManager subscribed for %s event", event.c_str());
+                MM_LOGINFO("MaintenanceManager subscribed for %s event", event.c_str());
                 return true;
             }
             else
             {
-                LOGINFO("Failed to subscribe for %s event", event.c_str());
+                MM_LOGINFO("Failed to subscribe for %s event", event.c_str());
                 return false;
             }
         }
@@ -1480,10 +1477,10 @@ namespace WPEFramework
             // Register Signal Handler
             if (signal(SIGALRM, timer_handler) == SIG_ERR)
             {
-                LOGERR("Failed to register signal handler");
+                MM_LOGERR("Failed to register signal handler");
                 return string("Failed to register signal handler");
             }
-            LOGINFO("Signal Handler registered for Timer");
+            MM_LOGINFO("Signal Handler registered for Timer");
 
             /* On Success; return empty to indicate no error text. */
             return (string());
@@ -1493,9 +1490,9 @@ namespace WPEFramework
         {
             if (!maintenance_deleteTimer())
             {
-                LOGINFO("Failed to delete timer");
+                MM_LOGINFO("Failed to delete timer");
             }
-            LOGINFO("Timer Deleted on Deinitialization.");
+            MM_LOGINFO("Timer Deleted on Deinitialization.");
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             stopMaintenanceTasks();
             DeinitializeIARM();
@@ -1530,7 +1527,7 @@ namespace WPEFramework
 
             /* to know whether the maintenance is solicited or unsolicited */
             g_maintenance_type = UNSOLICITED_MAINTENANCE;
-            LOGINFO("Triggering Maintenance on bootup");
+            MM_LOGINFO("Triggering Maintenance on bootup");
 
             /* On bootup we check for opt-out value
              * if empty set the value to none */
@@ -1538,14 +1535,14 @@ namespace WPEFramework
             OptOutmode = m_setting.getValue("softwareoptout").String();
             if (!checkValidOptOutModes(OptOutmode))
             {
-                LOGINFO("OptOut Value is not Set. Setting to NONE \n");
+                MM_LOGINFO("OptOut Value is not Set. Setting to NONE");
                 m_setting.remove("softwareoptout");
                 OptOutmode = "NONE";
                 m_setting.setValue("softwareoptout", OptOutmode);
             }
             else
             {
-                LOGINFO("OptOut Value Found as: %s \n", OptOutmode.c_str());
+                MM_LOGINFO("OptOut Value Found as: %s", OptOutmode.c_str());
             }
 
             MaintenanceManager::g_is_critical_maintenance = "false";
@@ -1567,11 +1564,13 @@ namespace WPEFramework
         {
             if (MaintenanceManager::_instance)
             {
-                LOGWARN("IARM event Received with %d !", eventId);
+                MM_LOGWARN("IARM event Received with %d !", eventId);
                 MaintenanceManager::_instance->iarmEventHandler(owner, eventId, data, len);
             }
             else
-                LOGWARN("WARNING - cannot handle IARM events without MaintenanceManager plugin instance!");
+            {
+                MM_LOGWARN("WARNING - cannot handle IARM events without MaintenanceManager plugin instance!");
+            }
         }
 
         void MaintenanceManager::iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
@@ -1589,22 +1588,22 @@ namespace WPEFramework
                 auto task_status_LOGUPLD = m_task_map.find(task_names_foreground[2].c_str());
 
                 IARM_Bus_MaintMGR_EventId_t event = (IARM_Bus_MaintMGR_EventId_t)eventId;
-                LOGINFO("Maintenance Event-ID = %d \n", event);
+                MM_LOGINFO("Maintenance Event-ID = %d", event);
 
                 if (!strcmp(owner, IARM_BUS_MAINTENANCE_MGR_NAME))
                 {
                     if ((IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE == eventId) && (MAINTENANCE_STARTED == m_notify_status))
                     {
                         module_status = module_event_data->data.maintenance_module_status.status;
-                        LOGINFO("MaintMGR Status %d \n", module_status);
+                        MM_LOGINFO("MaintMGR Status %d", module_status);
                         string status_string = moduleStatusToString(module_status);
-                        LOGINFO("MaintMGR Status %s \n", status_string.c_str());
+                        MM_LOGINFO("MaintMGR Status %s", status_string.c_str());
                         switch (module_status)
                         {
                         case MAINT_RFC_COMPLETE:
                             if (task_status_RFC->second != true)
                             {
-                                LOGINFO("Ignoring Event RFC_COMPLETE");
+                                MM_LOGINFO("Ignoring Event RFC_COMPLETE");
                                 break;
                             }
                             else
@@ -1618,7 +1617,7 @@ namespace WPEFramework
                         case MAINT_FWDOWNLOAD_COMPLETE:
                             if (task_status_FWDLD->second != true)
                             {
-                                LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_COMPLETE");
+                                MM_LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_COMPLETE");
                                 break;
                             }
                             else
@@ -1632,7 +1631,7 @@ namespace WPEFramework
                         case MAINT_LOGUPLOAD_COMPLETE:
                             if (task_status_LOGUPLD->second != true)
                             {
-                                LOGINFO("Ignoring Event MAINT_LOGUPLOAD_COMPLETE");
+                                MM_LOGINFO("Ignoring Event MAINT_LOGUPLOAD_COMPLETE");
                                 break;
                             }
                             else
@@ -1656,19 +1655,19 @@ namespace WPEFramework
                             SET_STATUS(g_task_status, SWUPDATE_COMPLETE);
                             task_thread.notify_one();
                             m_task_map[task_names_foreground[1].c_str()] = false;
-                            LOGINFO("FW Download task aborted \n");
+                            MM_LOGINFO("FW Download task aborted");
                             break;
                         case MAINT_RFC_ERROR:
                             if (task_status_RFC->second != true)
                             {
-                                LOGINFO("Ignoring Event RFC_ERROR");
+                                MM_LOGINFO("Ignoring Event RFC_ERROR");
                                 break;
                             }
                             else
                             {
                                 SET_STATUS(g_task_status, RFC_COMPLETE);
                                 task_thread.notify_one();
-                                LOGINFO("Error encountered in RFC Task \n");
+                                MM_LOGINFO("Error encountered in RFC Task");
                                 m_task_map[task_names_foreground[0].c_str()] = false;
                             }
 
@@ -1676,14 +1675,14 @@ namespace WPEFramework
                         case MAINT_LOGUPLOAD_ERROR:
                             if (task_status_LOGUPLD->second != true)
                             {
-                                LOGINFO("Ignoring Event MAINT_LOGUPLOAD_ERROR");
+                                MM_LOGINFO("Ignoring Event MAINT_LOGUPLOAD_ERROR");
                                 break;
                             }
                             else
                             {
                                 SET_STATUS(g_task_status, LOGUPLOAD_COMPLETE);
                                 task_thread.notify_one();
-                                LOGINFO("Error encountered in LOGUPLOAD Task \n");
+                                MM_LOGINFO("Error encountered in LOGUPLOAD Task");
                                 m_task_map[task_names_foreground[2].c_str()] = false;
                             }
 
@@ -1691,31 +1690,31 @@ namespace WPEFramework
                         case MAINT_FWDOWNLOAD_ERROR:
                             if (task_status_FWDLD->second != true)
                             {
-                                LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_ERROR");
+                                MM_LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_ERROR");
                                 break;
                             }
                             else
                             {
                                 SET_STATUS(g_task_status, SWUPDATE_COMPLETE);
                                 task_thread.notify_one();
-                                LOGINFO("Error encountered in SWUPDATE Task \n");
+                                MM_LOGINFO("Error encountered in SWUPDATE Task");
                                 m_task_map[task_names_foreground[1].c_str()] = false;
                             }
                             break;
                         case MAINT_RFC_INPROGRESS:
                             m_task_map[task_names_foreground[0].c_str()] = true;
                             /* Set false once COMPLETE/ ERROR is received for RFC*/
-                            LOGINFO(" RFC already IN PROGRESS -> setting m_task_map of RFC to true \n");
+                            MM_LOGINFO(" RFC already IN PROGRESS -> setting m_task_map of RFC to true");
                             break;
                         case MAINT_FWDOWNLOAD_INPROGRESS:
                             m_task_map[task_names_foreground[1].c_str()] = true;
                             /* Set false once COMPLETE/ ERROR is received for FWDOWNLOAD*/
-                            LOGINFO(" FWDOWNLOAD already IN PROGRESS -> setting m_task_map of FWDOWNLOAD to true \n");
+                            MM_LOGINFO(" FWDOWNLOAD already IN PROGRESS -> setting m_task_map of FWDOWNLOAD to true");
                             break;
                         case MAINT_LOGUPLOAD_INPROGRESS:
                             m_task_map[task_names_foreground[2].c_str()] = true;
                             /* Set false once COMPLETE/ ERROR is received for LOGUPLOAD*/
-                            LOGINFO(" LOGUPLOAD already IN PROGRESS -> setting m_task_map of LOGUPLOAD to true \n");
+                            MM_LOGINFO(" LOGUPLOAD already IN PROGRESS -> setting m_task_map of LOGUPLOAD to true");
                             break;
                         default:
                             break;
@@ -1723,26 +1722,26 @@ namespace WPEFramework
                     }
                     else
                     {
-                        LOGINFO("Ignoring/Unknown Maintenance Status!!");
+                        MM_LOGINFO("Ignoring/Unknown Maintenance Status!!");
                         m_statusMutex.unlock();
                         return;
                     }
 
-                    LOGINFO(" BITFIELD Status : %x", g_task_status);
+                    MM_LOGINFO(" BITFIELD Status : %x", g_task_status);
                     /* Send the updated status only if all tasks complete execution
                      * Until that Maintenance is in started state */
                     if ((g_task_status & TASKS_COMPLETED) == TASKS_COMPLETED)
                     {
                         if ((g_task_status & ALL_TASKS_SUCCESS) == ALL_TASKS_SUCCESS)
                         { // all tasks success
-                            LOGINFO("Maintenance Successfully Completed!!");
+                            MM_LOGINFO("Maintenance Successfully Completed!!");
                             notify_status = MAINTENANCE_COMPLETE;
                             /*  we store the time in persistent location */
                             successfulTime = time(nullptr);
                             tm ltime = *localtime(&successfulTime);
                             time_t epoch_time = mktime(&ltime);
                             str_successfulTime = to_string(epoch_time);
-                            LOGINFO("last succesful time is :%s", str_successfulTime.c_str());
+                            MM_LOGINFO("last succesful time is :%s", str_successfulTime.c_str());
                             /* Remove any old completion time */
                             m_setting.remove("LastSuccessfulCompletionTime");
                             m_setting.setValue("LastSuccessfulCompletionTime", str_successfulTime);
@@ -1752,21 +1751,21 @@ namespace WPEFramework
                         {
                             if ((g_task_status & MAINTENANCE_TASK_SKIPPED) == MAINTENANCE_TASK_SKIPPED)
                             {
-                                LOGINFO("There are Skipped Task. Maintenance Incomplete");
+                                MM_LOGINFO("There are Skipped Task. Maintenance Incomplete");
                                 notify_status = MAINTENANCE_INCOMPLETE;
                             }
                             else
                             {
-                                LOGINFO("Maintenance Ended with Errors");
+                                MM_LOGINFO("Maintenance Ended with Errors");
                                 notify_status = MAINTENANCE_ERROR;
                             }
                         }
 
-                        LOGINFO("ENDING MAINTENANCE CYCLE");
+                        MM_LOGINFO("ENDING MAINTENANCE CYCLE");
                         if (m_thread.joinable())
                         {
                             m_thread.join();
-                            LOGINFO("Thread joined successfully\n");
+                            MM_LOGINFO("Thread joined successfully");
                         }
 
                         if (g_maintenance_type == UNSOLICITED_MAINTENANCE && !g_unsolicited_complete)
@@ -1777,17 +1776,17 @@ namespace WPEFramework
                     }
                     else
                     {
-                        LOGINFO("Tasks are not completed!!!!");
+                        MM_LOGINFO("Tasks are not completed!!!!");
                     }
                 }
                 else
                 {
-                    LOGWARN("Ignoring unexpected event - owner: %s, eventId: %d!!", owner, eventId);
+                    MM_LOGWARN("Ignoring unexpected event - owner: %s, eventId: %d!!", owner, eventId);
                 }
             }
             else
             {
-                LOGINFO("Maintenance has been aborted. Hence ignoring the event");
+                MM_LOGINFO("Maintenance has been aborted. Hence ignoring the event");
             }
             m_statusMutex.unlock();
         } /* end of iarmEventHandler() */
@@ -1813,7 +1812,11 @@ namespace WPEFramework
             response["sampleAPI"] = "Success";
             /* Kept for debug purpose/future reference. */
             sendNotify(EVT_ONMAINTMGRSAMPLEEVENT, parameters);
-            returnResponse(true);
+#if defined(ENABLE_JOURNAL_LOGGING)
+            MM_SEND_NOTIFY(EVT_ONMAINTENANCSTATUSCHANGE, params);
+            MM_RETURN_RESPONSE(true);
+#endif
+            returnResponse(true);   
         }
 #endif
 
@@ -1828,7 +1831,7 @@ namespace WPEFramework
          */
         uint32_t MaintenanceManager::getMaintenanceActivityStatus(const JsonObject &parameters, JsonObject &response)
         {
-            LOGINFO("Request for getMaintenanceActivityStatus()");
+            MM_LOGINFO("Request for getMaintenanceActivityStatus()");
             bool result = false;
             string isCriticalMaintenance = "false";
             string isRebootPending = "false";
@@ -1850,7 +1853,7 @@ namespace WPEFramework
                 isRebootPending = g_is_reboot_pending;
             }
 
-            /* Get the last SuccessfulCompletion time from Persistant location */
+            /* Get the last SuccessfulCompletion time from Persistent location */
             if (m_setting.contains("LastSuccessfulCompletionTime"))
             {
                 LastSuccessfulCompletionTime = m_setting.getValue("LastSuccessfulCompletionTime").String();
@@ -1886,7 +1889,9 @@ namespace WPEFramework
             response["isCriticalMaintenance"] = b_criticalMaintenace;
             response["isRebootPending"] = b_rebootPending;
             result = true;
-
+#if defined(ENABLE_JOURNAL_LOGGING)
+            MM_RETURN_RESPONSE(true);
+#endif
             returnResponse(result);
         }
 
@@ -1907,7 +1912,9 @@ namespace WPEFramework
                 response["maintenanceStartTime"] = stoi(starttime.c_str());
                 result = true;
             }
-
+#if defined(ENABLE_JOURNAL_LOGGING)
+            MM_RETURN_RESPONSE(true);
+#endif
             returnResponse(result);
         }
 
@@ -1968,7 +1975,6 @@ namespace WPEFramework
                     }
                 }
             }
-
             if(found){
                 return true;
             }
@@ -1989,7 +1995,10 @@ namespace WPEFramework
             string softwareOptOutmode = "NONE";
             if (BACKGROUND_MODE != g_currentMode && FOREGROUND_MODE != g_currentMode)
             {
-                LOGERR("Didnt get a valid Mode. Failed\n");
+                MM_LOGERR("Didnt get a valid Mode. Failed");
+#if defined(ENABLE_JOURNAL_LOGGING)
+                MM_RETURN_RESPONSE(true);
+#endif
                 returnResponse(false);
             }
             else
@@ -2003,28 +2012,40 @@ namespace WPEFramework
                         /* check if the value is valid */
                         if (!checkValidOptOutModes(softwareOptOutmode))
                         {
-                            LOGERR("OptOut Value Corrupted. Failed\n");
+                            MM_LOGERR("OptOut Value Corrupted. Failed");
+#if defined(ENABLE_JOURNAL_LOGGING)
+                            MM_RETURN_RESPONSE(true);
+#endif
                             returnResponse(false);
                         }
                         else
                         {
-                            LOGINFO("OptOut Value = %s", softwareOptOutmode.c_str());
+                            MM_LOGINFO("OptOut Value = %s", softwareOptOutmode.c_str());
                         }
                     }
                     else
                     {
-                        LOGERR("OptOut Value Not Found. Failed\n");
+                        MM_LOGERR("OptOut Value Not Found. Failed");
+#if defined(ENABLE_JOURNAL_LOGGING)
+                        MM_RETURN_RESPONSE(true);
+#endif
                         returnResponse(false);
                     }
                 }
                 else
                 {
-                    LOGERR("OptOut Config File Not Found. Failed\n");
+                    MM_LOGERR("OptOut Config File Not Found. Failed");
+#if defined(ENABLE_JOURNAL_LOGGING)
+                    MM_RETURN_RESPONSE(true);
+#endif
                     returnResponse(false);
                 }
                 response["optOut"] = softwareOptOutmode.c_str();
                 result = true;
             }
+#if defined(ENABLE_JOURNAL_LOGGING)
+            MM_RETURN_RESPONSE(true);
+#endif
             returnResponse(result);
         }
 
@@ -2038,7 +2059,7 @@ namespace WPEFramework
          */
         uint32_t MaintenanceManager::setMaintenanceMode(const JsonObject &parameters, JsonObject &response)
         {
-            LOGINFO("Request for setMaintenanceMode()");
+            MM_LOGINFO("Request for setMaintenanceMode()");
             bool result = false;
             string new_mode = "";
             string old_mode = g_currentMode;
@@ -2057,9 +2078,10 @@ namespace WPEFramework
 
                 if (BACKGROUND_MODE != new_mode && FOREGROUND_MODE != new_mode)
                 {
-                    LOGERR("value of new mode is incorrect, therefore \
-                            current mode '%s' not changed.\n",
-                           old_mode.c_str());
+                    MM_LOGERR("value of new mode is incorrect, therefore current mode '%s' not changed.", old_mode.c_str());
+#if defined(ENABLE_JOURNAL_LOGGING)
+                    MM_RETURN_RESPONSE(true);
+#endif
                     returnResponse(false);
                 }
 
@@ -2070,7 +2092,7 @@ namespace WPEFramework
                 if (MAINTENANCE_STARTED != m_notify_status)
                 {
 
-                    LOGINFO("SetMaintenanceMode new_mode = %s\n", new_mode.c_str());
+                    MM_LOGINFO("SetMaintenanceMode new_mode = %s", new_mode.c_str());
 
                     /* remove any older one */
                     m_setting.remove("background_flag");
@@ -2092,15 +2114,15 @@ namespace WPEFramework
                     if (rdkvfwrfc == true)
                     {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-                        LOGINFO("SetMaintenanceMode new_mode = %s\n", new_mode.c_str());
+                        MM_LOGINFO("SetMaintenanceMode new_mode = %s", new_mode.c_str());
                         /* Sending IARM Event to application for mode change */
                         (new_mode != BACKGROUND_MODE) ? mode = 1 : mode = 0;
-                        LOGINFO("setMaintenanceMode rfc is true and mode:%d\n", mode);
+                        MM_LOGINFO("setMaintenanceMode rfc is true and mode:%d", mode);
                         IARM_Result_t ret_code = IARM_RESULT_SUCCESS;
                         ret_code = IARM_Bus_BroadcastEvent("RdkvFWupgrader", (IARM_EventId_t)0, (void *)&mode, sizeof(mode));
                         if (ret_code == IARM_RESULT_SUCCESS)
                         {
-                            LOGINFO("IARM_Bus_BroadcastEvent is success and value=%d\n", mode);
+                            MM_LOGINFO("IARM_Bus_BroadcastEvent is success and value=%d", mode);
                             g_currentMode = new_mode;
                             /* remove any older one */
                             m_setting.remove("background_flag");
@@ -2117,13 +2139,13 @@ namespace WPEFramework
                         }
                         else
                         {
-                            LOGINFO("IARM_Bus_BroadcastEvent is fail Mode change not allowed and value=%d\n", mode);
+                           MM_LOGINFO("IARM_Bus_BroadcastEvent is fail Mode change not allowed and value=%d", mode);
                         }
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
                     }
                     else
                     {
-                        LOGERR("Maintenance is in Progress, Mode change not allowed");
+                        MM_LOGERR("Maintenance is in Progress, Mode change not allowed");
                     }
                     result = true;
                 }
@@ -2131,7 +2153,7 @@ namespace WPEFramework
                 /* OptOut changes here */
                 new_optout_state = parameters["optOut"].String();
 
-                LOGINFO("SetMaintenanceMode optOut = %s\n", new_optout_state.c_str());
+                MM_LOGINFO("SetMaintenanceMode optOut = %s", new_optout_state.c_str());
 
                 /* check if we have a valid state from user */
                 if (checkValidOptOutModes(new_optout_state))
@@ -2141,19 +2163,23 @@ namespace WPEFramework
                 }
                 else
                 {
-                    LOGINFO("Invalid optOut = %s\n", new_optout_state.c_str());
+                    MM_LOGINFO("Invalid optOut = %s", new_optout_state.c_str());
+#if defined(ENABLE_JOURNAL_LOGGING)
+                    MM_RETURN_RESPONSE(true);
+#endif
                     returnResponse(false);
                 }
-
                 /* Set the result as true */
                 result = true;
             }
             else
             {
                 /* havent got the correct label */
-                LOGERR("SetMaintenanceMode Missing Key Values\n");
+                MM_LOGERR("SetMaintenanceMode Missing Key Values");
             }
-
+#if defined(ENABLE_JOURNAL_LOGGING)
+            MM_RETURN_RESPONSE(true);
+#endif
             returnResponse(result);
         }
 
@@ -2167,12 +2193,12 @@ namespace WPEFramework
 
         uint32_t MaintenanceManager::startMaintenance(const JsonObject &parameters, JsonObject &response)
         {
-            LOGINFO("Request for startMaintenance()");
+            MM_LOGINFO("Request for startMaintenance()");
             bool result = false;
             /* check what mode we currently have */
             string current_mode = "";
 
-            LOGINFO("Triggering scheduled maintenance ");
+            MM_LOGINFO("Triggering scheduled maintenance ");
             /* only one maintenance at a time */
             /* Lock so that m_notify_status will not be updated  further */
             m_statusMutex.lock();
@@ -2197,7 +2223,7 @@ namespace WPEFramework
                 if (m_thread.joinable())
                 {
                     m_thread.join();
-                    LOGINFO("Thread joined successfully");
+                    MM_LOGINFO("Thread joined successfully");
                 }
 
                 m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
@@ -2206,9 +2232,12 @@ namespace WPEFramework
             }
             else
             {
-                LOGINFO("Already a maintenance is in Progress. Please wait for it to complete !!");
+                MM_LOGINFO("Already a maintenance is in Progress. Please wait for it to complete !!");
             }
             m_statusMutex.unlock();
+#if defined(ENABLE_JOURNAL_LOGGING)
+            MM_RETURN_RESPONSE(true);
+#endif
             returnResponse(result);
         }
 
@@ -2229,8 +2258,11 @@ namespace WPEFramework
             }
             else
             {
-                LOGERR("Failed to initiate stopMaintenance, RFC is set as False");
+                MM_LOGERR("Failed to initiate stopMaintenance, RFC is set as False");
             }
+#if defined(ENABLE_JOURNAL_LOGGING)
+            MM_RETURN_RESPONSE(true);
+#endif
             returnResponse(result);
         }
 
@@ -2244,14 +2276,14 @@ namespace WPEFramework
          */
         bool MaintenanceManager::stopMaintenanceTasks()
         {
-            LOGINFO("Request for stopMaintenance()");
+            MM_LOGINFO("Request for stopMaintenance()");
             string codeDLtask;
             int k_ret = EINVAL;
             int i = 0;
             bool task_status[3] = {false};
             bool result = false;
 
-            LOGINFO("Stopping maintenance activities");
+            MM_LOGINFO("Stopping maintenance activities");
             /* run only when the maintenance status is MAINTENANCE_STARTED */
             m_statusMutex.lock();
             if (MAINTENANCE_STARTED == m_notify_status)
@@ -2270,7 +2302,7 @@ namespace WPEFramework
 
                 for (i = 0; i < 3; i++)
                 {
-                    LOGINFO("task status [%d]  = %s ScriptName %s", i, (task_status[i]) ? "true" : "false", task_names[i].c_str());
+                    MM_LOGINFO("task status [%d]  = %s ScriptName %s", i, (task_status[i]) ? "true" : "false", task_names[i].c_str());
                 }
                 for (i = 0; i < 3; i++)
                 {
@@ -2288,29 +2320,29 @@ namespace WPEFramework
                     }
                     else
                     {
-                        LOGINFO("Task[%d] is false \n", i);
+                        MM_LOGINFO("Task[%d] is false", i);
                     }
                 }
                 result = true;
             }
             else
             {
-                LOGERR("Failed to stopMaintenance without starting maintenance");
+                MM_LOGERR("Failed to stopMaintenance without starting maintenance");
             }
             if (task_stopTimer())
             {
-                LOGINFO("Stopped Timer Successfully..");
+                MM_LOGINFO("Stopped Timer Successfully..");
             }
             else
             {
-                LOGERR("task_stopTimer() did not stop the Timer...");
+                MM_LOGERR("task_stopTimer() did not stop the Timer...");
             }
             task_thread.notify_one();
 
             if (m_thread.joinable())
             {
                 m_thread.join();
-                LOGINFO("Thread joined successfully");
+                MM_LOGINFO("Thread joined successfully");
             }
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete)
@@ -2318,10 +2350,9 @@ namespace WPEFramework
                 g_unsolicited_complete = true;
             }
 
-            LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR");
+            MM_LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR");
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
             m_statusMutex.unlock();
-
             return result;
         }
 
@@ -2344,18 +2375,18 @@ namespace WPEFramework
             WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("MaintenanceManager"), rfc, &param);
             if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE)
             {
-                LOGINFO("rfc read success");
+                MM_LOGINFO("rfc read success");
                 if (param.type == WDMP_BOOLEAN)
                 {
-                    LOGINFO("rfc type is boolean");
+                    MM_LOGINFO("rfc type is boolean");
                     if (strncasecmp(param.value, "true", 4) == 0)
                     {
-                        LOGINFO("rfc value=%s", param.value);
+                        MM_LOGINFO("rfc value=%s", param.value);
                         ret = true;
                     }
                 }
             }
-            LOGINFO(" %s = %s , call value %d ", rfc, (ret == true) ? "true" : "false", wdmpStatus);
+            MM_LOGINFO(" %s = %s , call value %d ", rfc, (ret == true) ? "true" : "false", wdmpStatus);
             return ret;
         }
 
@@ -2372,25 +2403,25 @@ namespace WPEFramework
         {
             int k_ret = EINVAL;
             pid_t pid_num = getTaskPID(taskname);
-            LOGINFO("PID of %s is %d \n", taskname, (int)pid_num);
+            MM_LOGINFO("PID of %s is %d", taskname, (int)pid_num);
 
             if (pid_num != -1)
             {
                 /* send the signal to task to terminate */
                 k_ret = kill(pid_num, sig_to_send);
-                LOGINFO(" %s sent signal %d\n", taskname, sig_to_send);
+                MM_LOGINFO(" %s sent signal %d", taskname, sig_to_send);
                 if (k_ret == 0)
                 {
-                    LOGINFO(" %s Terminated\n", taskname);
+                    MM_LOGINFO(" %s Terminated", taskname);
                 }
                 else
                 {
-                    LOGINFO("Failed to terminate with error %s - %d \n", taskname, k_ret);
+                    MM_LOGINFO("Failed to terminate with error %s - %d", taskname, k_ret);
                 }
             }
             else
             {
-                LOGINFO("Didnt find PID for %s\n", taskname);
+                MM_LOGINFO("Didnt find PID for %s", taskname);
             }
             return k_ret;
         }
@@ -2408,7 +2439,7 @@ namespace WPEFramework
             DIR *dir = opendir(PROC_DIR);
             if (!dir)
             {
-                LOGINFO("Failed to open %s", PROC_DIR);
+                MM_LOGINFO("Failed to open %s", PROC_DIR);
                 return -1;
             }
 
@@ -2467,6 +2498,9 @@ namespace WPEFramework
             m_notify_status = status;
             params["maintenanceStatus"] = notifyStatusToString(status);
             sendNotify(EVT_ONMAINTENANCSTATUSCHANGE, params);
+#if defined(ENABLE_JOURNAL_LOGGING)
+            MM_SEND_NOTIFY(EVT_ONMAINTENANCSTATUSCHANGE, params);
+#endif
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */

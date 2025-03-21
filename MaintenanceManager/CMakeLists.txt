@@ -50,6 +50,24 @@ target_include_directories(${MODULE_NAME} PRIVATE ./)
 
 set_source_files_properties(MaintenanceManager.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 
+# Check for ENABLE_JOURNAL_LOGGING option
+if (ENABLE_JOURNAL_LOGGING)
+    message("Journal Logging enabled.")
+    target_compile_definitions(${MODULE_NAME} PRIVATE ENABLE_JOURNAL_LOGGING=ON)
+    target_link_libraries(${MODULE_NAME} PRIVATE systemd)
+endif()
+
+# Add Task Timeout
+if (TASK_TIMEOUT)
+    message(STATUS "Task Timeout set to ${TASK_TIMEOUT}")
+    target_compile_definitions(${MODULE_NAME} PRIVATE TASK_TIMEOUT=${TASK_TIMEOUT})
+else()
+    target_compile_definitions(${MODULE_NAME} PRIVATE TASK_TIMEOUT=3600) # default value
+endif()
+
+# Include and link for signal, csignal, time, ctime headers
+target_link_libraries(${MODULE_NAME} PRIVATE pthread rt)
+
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
