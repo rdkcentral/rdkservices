@@ -113,6 +113,11 @@ namespace Plugin {
         virtual uint32_t registerApplications(Exchange::IXCast::IApplicationInfoIterator* const appLists) override;
         virtual uint32_t setNetworkStandbyMode(bool nwStandbymode) override;
 
+        uint32_t setManufacturerName(string manufacturerName) const override;
+        uint32_t getManufacturerName(std::string &manufacturerName) const override;
+        uint32_t setModelName(string modelName) const override;
+        uint32_t getModelName(std::string &modelName) const override;
+
         virtual void onXcastApplicationLaunchRequestWithLaunchParam (string appName, string strPayLoad, string strQuery, string strAddDataUrl) override ;
         virtual void onXcastApplicationLaunchRequest(string appName, string parameter) override ;
         virtual void onXcastApplicationStopRequest(string appName, string appId) override ;
