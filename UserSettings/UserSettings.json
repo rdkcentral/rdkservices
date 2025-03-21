@@ -33,7 +33,7 @@
         "viewingRestrictions": {
             "summary": "A project-specific representation of the time interval when viewing.",
             "type": "string",
-            "example": "{\"restrictions\": [{\"scheme\": \"US_TV\", \"restrict\": [\"TV-Y7/FV\"]}, {\"scheme\": \"MPAA\", \"restrict\": []}]}"
+	    "example": "{\\\"restrictions\\\": [{\\\"scheme\\\": \\\"US_TV\\\", \\\"restrict\\\": [\\\"TV-Y7/FV\\\"]}, {\\\"scheme\\\": \\\"MPAA\\\", \\\"restrict\\\": []}]}"
         },
         "viewingRestrictionsWindow": {
             "summary": "A project-specific representation of the time interval",
@@ -45,6 +45,22 @@
             "summary": "voice guidance rate value",
             "type": "number",
             "example": 0.1
+        },
+		"MigrationStates": {
+            "summary": "Keys and it's migration states",
+            "type": "object",
+            "properties": {
+                "key": {
+                    "summary": "key of the property",
+                    "type": "string",
+                    "example": "PREFERRED_AUDIO_LANGUAGES"
+                },
+                "requiresMigration": {
+                    "summary": "The name of the USB device",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
         }
     },
     "methods": {
@@ -516,6 +532,37 @@
                 "type": "boolean",
                 "example": true
             }
+        },
+        "getMigrationState":
+        {
+            "summary": "Gets the migration state of the respective key.",
+			"params": {
+                "type": "object",
+                "properties": {
+                    "key": {
+                        "summary": "the property key, for which we need to get migration state.",
+                        "type": "string",
+                        "example": "VOICE_GUIDANCE_RATE"
+                    }
+                },
+                "required": ["deviceName"]
+            },
+            "result": {
+                "summary": "migration state of the respective key true/false",
+                "type": "boolean",
+                "example": true
+            }
+        },
+        "getMigrationStates":
+        {
+            "summary": "Gets the migration state of all the defined keys.",
+            "result": {
+                "summary": "migration state of all the defined keys",
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/MigrationStates"
+                }
+            }
         }
     },
     "events": {
@@ -639,7 +686,7 @@
                     "viewingRestrictions":{
                         "summary": "Receive viewingRestrictions changes",
                         "type": "string",
-                        "example": "{\"restrictions\": [{\"scheme\": \"US_TV\", \"restrict\": [\"TV-Y7/FV\"]}, {\"scheme\": \"MPAA\", \"restrict\": []}]}"
+			"example": "{\\\"restrictions\\\": [{\\\"scheme\\\": \\\"US_TV\\\", \\\"restrict\\\": [\\\"TV-Y7/FV\\\"]}, {\\\"scheme\\\": \\\"MPAA\\\", \\\"restrict\\\": []}]}"
                     }
                 },
                 "required": [
