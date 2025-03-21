@@ -39,7 +39,7 @@
 #include "cSettings.h"
 
 /* ---- LOGGING ---- */
-//#ifdef ENABLE_JOURNAL_LOGGING
+#ifdef ENABLE_JOURNAL_LOGGING
 #include <systemd/sd-journal.h>
 #define JOURNAL_IDENTIFIER "MaintenanceManager"
 #define MM_FILE_NAME "MaintenanceManager.cpp"
@@ -73,11 +73,11 @@
     response.ToString(json);                         \
     MM_LOGINFO("response=%s", json.c_str());         \
 }
-//#else /* else of ENABLE_JOURNAL_LOGGING */
-//#define MM_LOGINFO(format, ...) LOGINFO(format, ##__VA_ARGS__)
-//#define MM_LOGWARN(format, ...) LOGWARN(format, ##__VA_ARGS__)
-//#define MM_LOGERR(format, ...)  LOGERR(format, ##__VA_ARGS__)
-//#endif /* end of ENABLE_JOURNAL_LOGGING */
+#else /* else of ENABLE_JOURNAL_LOGGING */
+#define MM_LOGINFO(format, ...) LOGINFO(format, ##__VA_ARGS__)
+#define MM_LOGWARN(format, ...) LOGWARN(format, ##__VA_ARGS__)
+#define MM_LOGERR(format, ...)  LOGERR(format, ##__VA_ARGS__)
+#endif /* end of ENABLE_JOURNAL_LOGGING */
 
 /* MaintenanceManager Services Triggered Events. */
 #define EVT_ONMAINTMGRSAMPLEEVENT           "onSampleEvent"
