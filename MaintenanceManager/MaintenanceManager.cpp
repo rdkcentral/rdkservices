@@ -1812,8 +1812,10 @@ namespace WPEFramework
             response["sampleAPI"] = "Success";
             /* Kept for debug purpose/future reference. */
             sendNotify(EVT_ONMAINTMGRSAMPLEEVENT, parameters);
-            MM_SEND_NOTIFY(EVT_ONMAINTMGRSAMPLEEVENT, parameters);
+#if defined(ENABLE_JOURNAL_LOGGING)
+            MM_SEND_NOTIFY(EVT_ONMAINTENANCSTATUSCHANGE, params);
             MM_RETURN_RESPONSE(true);
+#endif
             returnResponse(true);   
         }
 #endif
@@ -1887,7 +1889,9 @@ namespace WPEFramework
             response["isCriticalMaintenance"] = b_criticalMaintenace;
             response["isRebootPending"] = b_rebootPending;
             result = true;
-            MM_RETURN_RESPONSE(result);
+#if defined(ENABLE_JOURNAL_LOGGING)
+            MM_RETURN_RESPONSE(true);
+#endif
             returnResponse(result);
         }
 
@@ -1908,7 +1912,9 @@ namespace WPEFramework
                 response["maintenanceStartTime"] = stoi(starttime.c_str());
                 result = true;
             }
-            MM_RETURN_RESPONSE(result);
+#if defined(ENABLE_JOURNAL_LOGGING)
+            MM_RETURN_RESPONSE(true);
+#endif
             returnResponse(result);
         }
 
@@ -1990,7 +1996,9 @@ namespace WPEFramework
             if (BACKGROUND_MODE != g_currentMode && FOREGROUND_MODE != g_currentMode)
             {
                 MM_LOGERR("Didnt get a valid Mode. Failed");
-                MM_RETURN_RESPONSE(false);
+#if defined(ENABLE_JOURNAL_LOGGING)
+                MM_RETURN_RESPONSE(true);
+#endif
                 returnResponse(false);
             }
             else
@@ -2005,7 +2013,9 @@ namespace WPEFramework
                         if (!checkValidOptOutModes(softwareOptOutmode))
                         {
                             MM_LOGERR("OptOut Value Corrupted. Failed");
-                            MM_RETURN_RESPONSE(false);
+#if defined(ENABLE_JOURNAL_LOGGING)
+                            MM_RETURN_RESPONSE(true);
+#endif
                             returnResponse(false);
                         }
                         else
@@ -2016,20 +2026,26 @@ namespace WPEFramework
                     else
                     {
                         MM_LOGERR("OptOut Value Not Found. Failed");
-                        MM_RETURN_RESPONSE(false);
+#if defined(ENABLE_JOURNAL_LOGGING)
+                        MM_RETURN_RESPONSE(true);
+#endif
                         returnResponse(false);
                     }
                 }
                 else
                 {
                     MM_LOGERR("OptOut Config File Not Found. Failed");
-                    MM_RETURN_RESPONSE(false);
+#if defined(ENABLE_JOURNAL_LOGGING)
+                    MM_RETURN_RESPONSE(true);
+#endif
                     returnResponse(false);
                 }
                 response["optOut"] = softwareOptOutmode.c_str();
                 result = true;
             }
-            MM_RETURN_RESPONSE(result);
+#if defined(ENABLE_JOURNAL_LOGGING)
+            MM_RETURN_RESPONSE(true);
+#endif
             returnResponse(result);
         }
 
@@ -2063,7 +2079,9 @@ namespace WPEFramework
                 if (BACKGROUND_MODE != new_mode && FOREGROUND_MODE != new_mode)
                 {
                     MM_LOGERR("value of new mode is incorrect, therefore current mode '%s' not changed.", old_mode.c_str());
-                    MM_RETURN_RESPONSE(false);
+#if defined(ENABLE_JOURNAL_LOGGING)
+                    MM_RETURN_RESPONSE(true);
+#endif
                     returnResponse(false);
                 }
 
@@ -2146,7 +2164,9 @@ namespace WPEFramework
                 else
                 {
                     MM_LOGINFO("Invalid optOut = %s", new_optout_state.c_str());
-                    MM_RETURN_RESPONSE(false);
+#if defined(ENABLE_JOURNAL_LOGGING)
+                    MM_RETURN_RESPONSE(true);
+#endif
                     returnResponse(false);
                 }
                 /* Set the result as true */
@@ -2157,7 +2177,9 @@ namespace WPEFramework
                 /* havent got the correct label */
                 MM_LOGERR("SetMaintenanceMode Missing Key Values");
             }
-            MM_RETURN_RESPONSE(result);
+#if defined(ENABLE_JOURNAL_LOGGING)
+            MM_RETURN_RESPONSE(true);
+#endif
             returnResponse(result);
         }
 
@@ -2213,7 +2235,9 @@ namespace WPEFramework
                 MM_LOGINFO("Already a maintenance is in Progress. Please wait for it to complete !!");
             }
             m_statusMutex.unlock();
-            MM_RETURN_RESPONSE(result);
+#if defined(ENABLE_JOURNAL_LOGGING)
+            MM_RETURN_RESPONSE(true);
+#endif
             returnResponse(result);
         }
 
@@ -2236,7 +2260,9 @@ namespace WPEFramework
             {
                 MM_LOGERR("Failed to initiate stopMaintenance, RFC is set as False");
             }
-            MM_RETURN_RESPONSE(result);
+#if defined(ENABLE_JOURNAL_LOGGING)
+            MM_RETURN_RESPONSE(true);
+#endif
             returnResponse(result);
         }
 
@@ -2472,7 +2498,9 @@ namespace WPEFramework
             m_notify_status = status;
             params["maintenanceStatus"] = notifyStatusToString(status);
             sendNotify(EVT_ONMAINTENANCSTATUSCHANGE, params);
+#if defined(ENABLE_JOURNAL_LOGGING)
             MM_SEND_NOTIFY(EVT_ONMAINTENANCSTATUSCHANGE, params);
+#endif
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */
