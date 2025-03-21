@@ -16,7 +16,9 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-
+## [2.2.0] - 2025-02-18
+### Added
+- Add user settings inspector interface to user settings plugin.
 
 ## [2.1.0] - 2025-02-18
 ### Updated
