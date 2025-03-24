@@ -49,8 +49,8 @@ All notable changes to this RDK Service will be documented in this file.
 - Handled wpeframework crashes of SystemServices when there are multiple setMode requests.
 
 ## [3.2.1] - 2024-09-27
-### Changed
-- DELIA-66303: Handled the Invoke Response value with respect to Thunder R4.4.1
+### Fixed
+- Handled wpeframework crashes of SystemServices when there are multiple setMode requests.
 
 ## [3.2.0] - 2024-09-17
 ### Added

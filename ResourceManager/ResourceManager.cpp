@@ -22,7 +22,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 3
+#define API_VERSION_NUMBER_PATCH 1
 
 static std::string sThunderSecurityToken;
 //methods
@@ -395,11 +395,6 @@ namespace WPEFramework {
                         message->Error.Text = output;
                     }
                 }
-            }
-
-            if (!FromMessage(response, message, isResponseString))
-            {
-                return Core::ERROR_GENERAL;
             }
 #elif (THUNDER_VERSION == 2)
             auto resp =  dispatcher_->Invoke(sThunderSecurityToken, channelId, *message);
