@@ -77,6 +77,7 @@ jobs:
               cd "${{github.workspace}}/Thunder"
               &&
               git apply "${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-RDK-30034-callsign.patch"
+              git apply "${{github.workspace}}/rdkservices/Tests/L2Tests/patches/error_code_R4_4.patch"
 
       - name: Build Thunder
         run: >
