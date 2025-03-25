@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.13] - 2025-03-19
+### Added
+- Added unsupport event for the pair/connect request
+
 ## [1.0.12] - 2024-09-26
 ### Added
 - Make sure connect response is sent on a connect request

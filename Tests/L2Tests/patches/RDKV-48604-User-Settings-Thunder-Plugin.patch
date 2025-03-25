@@ -6,10 +6,10 @@ Date:   Fri Sep 6 12:49:05 2024 +0530
 
 diff --git a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
 new file mode 100755
-index 0000000..9353f6d
+index 0000000..bd7ea1f
 --- /dev/null
 +++ b/interfaces/IUserSettings.h
-@@ -0,0 +1,281 @@
+@@ -0,0 +1,414 @@
 +/*
 + * If not stated otherwise in this file or this component's LICENSE file the
 + * following copyright and licenses apply:
@@ -33,86 +33,118 @@ index 0000000..9353f6d
 +
 +#include "Module.h"
 +
++// @stubgen:include <com/IIteratorType.h>
 +namespace WPEFramework {
 +namespace Exchange {
-+  // @json @text:keep
-+  struct EXTERNAL IUserSettings : virtual public Core::IUnknown {
-+  enum { ID = ID_USER_SETTINGS };
 +
-+  // @event
-+  struct EXTERNAL INotification : virtual public Core::IUnknown {
-+    enum { ID = ID_USER_SETTINGS_NOTIFICATION };
++// @json @text:keep
++struct EXTERNAL IUserSettings : virtual public Core::IUnknown
++{
++    enum { ID = ID_USER_SETTINGS };
 +
-+    // @text onAudioDescriptionChanged
-+    // @brief The AudioDescription setting has changed.
-+    // @param enabled: Enabled/Disabled.
-+    virtual void OnAudioDescriptionChanged(const bool enabled) = 0;
++    // @event
++    struct EXTERNAL INotification : virtual public Core::IUnknown
++    {
++        enum { ID = ID_USER_SETTINGS_NOTIFICATION };
 +
-+    // @text onPreferredAudioLanguagesChanged
-+    // @brief The preferredLanguages setting has changed.
-+    // @param preferredLanguages: PreferredLanguages.
-+    virtual void OnPreferredAudioLanguagesChanged(const string& preferredLanguages /* @text preferredLanguages */) = 0;
++        // Constructor
++        INotification() {};
 +
-+    // @text onPresentationLanguageChanged
-+    // @brief The PresentationLanguages setting has changed.
-+    // @param presentationLanguage: PresentationLanguage.
-+    virtual void OnPresentationLanguageChanged(const string& presentationLanguage /* @text presentationLanguage */) = 0;
++        // Destructor
++        virtual ~INotification() {};
 +
-+    // @text onCaptionsChanged
-+    // @brief The Captions setting has changed.
-+    // @param enabled: Enabled/Disabled.
-+    virtual void OnCaptionsChanged(const bool enabled) = 0;
++        // copy constructor
++        INotification & operator=(const INotification &) = delete;
 +
-+    // @text onPreferredCaptionsLanguagesChanged
-+    // @brief The PreferredCaptionsLanguages setting has changed.
-+    // @param preferredLanguages: PreferredLanguages.
-+    virtual void OnPreferredCaptionsLanguagesChanged(const string& preferredLanguages /* @text preferredLanguages */) = 0;
++        // @text onAudioDescriptionChanged
++        // @brief The AudioDescription setting has changed.
++        // @param enabled: audioDescription enabled or not
++        virtual void OnAudioDescriptionChanged(const bool enabled) {};
 +
-+    // @text onPreferredClosedCaptionServiceChanged
-+    // @brief The PreferredClosedCaptionService setting has changed.
-+    // @param service: "CC[1-4]", "TEXT[1-4]", "SERVICE[1-64]".
-+    virtual void OnPreferredClosedCaptionServiceChanged(const string& service) = 0;
++        // @text onPreferredAudioLanguagesChanged
++        // @brief The preferredLanguages setting has changed.
++        // @param preferredLanguages: the changed preferredLanguages.
++        virtual void OnPreferredAudioLanguagesChanged(const string& preferredLanguages /* @text preferredLanguages */) {};
++
++        // @text onPresentationLanguageChanged
++        // @brief The PresentationLanguages setting has changed.
++        // @param presentationLanguage: the changed presentationLanguage.
++        virtual void OnPresentationLanguageChanged(const string& presentationLanguage /* @text presentationLanguage */) {};
++
++        // @text onCaptionsChanged
++        // @brief The Captions setting has changed.
++        // @param enabled: Captions enabled or not.
++        virtual void OnCaptionsChanged(const bool enabled) {};
++
++        // @text onPreferredCaptionsLanguagesChanged
++        // @brief The PreferredCaptionsLanguages setting has changed.
++        // @param preferredLanguages: the changed preferredLanguages.
++        virtual void OnPreferredCaptionsLanguagesChanged(const string& preferredLanguages /* @text preferredLanguages */) {};
++
++        // @text onPreferredClosedCaptionServiceChanged
++        // @brief The PreferredClosedCaptionService setting has changed.Eg: "CC[1-4]", "TEXT[1-4]", "SERVICE[1-64]".
++        // @param service: the changed preferredClosedCaptionService.
++        virtual void OnPreferredClosedCaptionServiceChanged(const string& service) {};
 +
 +    // @text onPrivacyModeChanged
 +    // @brief The PrivacyMode setting has changed.
 +    // @param privacyMode: "SHARE", "DO_NOT_SHARE".
-+    virtual void OnPrivacyModeChanged(const string& privacyMode /* @text privacyMode */) = 0;
++    virtual void OnPrivacyModeChanged(const string& privacyMode /* @text privacyMode */) {};
 +
 +    // @text onPinControlChanged
 +    // @brief The PinControl setting has changed.
 +    // @param pinControl: Enabled/Disabled.
-+    virtual void OnPinControlChanged(const bool pinControl) = 0;
++    virtual void OnPinControlChanged(const bool pinControl) {};
 +
 +    // @text onViewingRestrictionsChanged
 +    // @brief The ViewingRestrictions setting has changed.
 +    // @param viewingRestrictions:  Empty string
-+    virtual void OnViewingRestrictionsChanged(const string& viewingRestrictions /* @text viewingRestrictions */) = 0;
++        virtual void OnViewingRestrictionsChanged(const string& viewingRestrictions /* @text viewingRestrictions */) {};
 +
 +    // @text onViewingRestrictionsWindowChanged
 +    // @brief The ViewingRestrictionsWindow setting has changed.
 +    // @param viewingRestrictionsWindow: "ALWAYS"
-+    virtual void OnViewingRestrictionsWindowChanged(const string& viewingRestrictionsWindow /* @text viewingRestrictionsWindow */) = 0;
++        virtual void OnViewingRestrictionsWindowChanged(const string& viewingRestrictionsWindow /* @text viewingRestrictionsWindow */) {};
 +
 +    // @text onLiveWatershedChanged
 +    // @brief The LiveWatershed setting has changed.
 +    // @param liveWatershed: Enabled/Disabled.
-+    virtual void OnLiveWatershedChanged(const bool liveWatershed) = 0;
++        virtual void OnLiveWatershedChanged(const bool liveWatershed) {};
 +
 +    // @text onPlaybackWatershedChanged
 +    // @brief The PlaybackWatershed setting has changed.
 +    // @param playbackWatershed: Enabled/Disabled.
-+    virtual void OnPlaybackWatershedChanged(const bool playbackWatershed) = 0;
++        virtual void OnPlaybackWatershedChanged(const bool playbackWatershed) {};
 +
 +    // @text onBlockNotRatedContentChanged
 +    // @brief The BlockNotRatedContent setting has changed.
 +    // @param blockNotRatedContent: Enabled/Disabled.
-+    virtual void OnBlockNotRatedContentChanged(const bool blockNotRatedContent) = 0;
++    virtual void OnBlockNotRatedContentChanged(const bool blockNotRatedContent) {};
 +
 +    // @text onPinOnPurchaseChanged
 +    // @brief The PinOnPurchase setting has changed.
 +    // @param pinOnPurchase: Enabled/Disabled.
-+    virtual void OnPinOnPurchaseChanged(const bool pinOnPurchase) = 0;
++        virtual void OnPinOnPurchaseChanged(const bool pinOnPurchase) {};
 +
++        // @text onHighContrastChanged
++        // @brief Triggered after the high contrast settings changes.
++        // @param enabled: high contrast enabled or not.
++        virtual void OnHighContrastChanged(const bool enabled) {};
++
++        // @text onVoiceGuidanceChanged
++        // @brief Triggered after the voice guidance enabled settings changes.
++        // @param enabled: voice guidance enabled or not.
++        virtual void OnVoiceGuidanceChanged(const bool enabled) {};
++
++        // @text onVoiceGuidanceRateChanged
++        // @brief Triggered after the voice guidance rate changed.
++        // @param rate: the changed voice guidance rate.
++        virtual void OnVoiceGuidanceRateChanged(const double rate) {};
++
++        // @text onVoiceGuidanceHintsChanged
++        // @brief Triggered after the voice guidance hints changes.
++        // @param hints: voice guidance hints enabled or not.
++        virtual void OnVoiceGuidanceHintsChanged(const bool hints) {};
 +  };
 +
 +  virtual uint32_t Register(Exchange::IUserSettings::INotification* notification /* @in */) = 0;
@@ -162,7 +194,7 @@ index 0000000..9353f6d
 +  // of this state while a playback is active.
 +  // When media players start playback, they should also call the GetCaptions method to retrieve the current enabled state.
 +  // This holds true for media players that utilize TextTrack render sessions for text track decode-display and also for media
-+  // players or apps that decode-display internally 
++  // players or apps that decode-display internally
 +  // @param enabled: Sets the state
 +  virtual uint32_t SetCaptions(const bool enabled  /* @in */) = 0;
 +
@@ -177,7 +209,7 @@ index 0000000..9353f6d
 +  // expressed as a comma separated lists of languages of zero of more elements.
 +  // The players will pick the subtitle track that has the best match compared with
 +  // this list. In the absence of a matching track, the player should by best
-+  // effort select the preferred subtitle track. 
++  // effort select the preferred subtitle track.
 +  // @param preferredLanguages: Is the list to set (e.g. "eng,fra")
 +  virtual uint32_t SetPreferredCaptionsLanguages(const string& preferredLanguages  /* @in @text preferredLanguages */) = 0;
 +
@@ -189,7 +221,7 @@ index 0000000..9353f6d
 +  // @text setPreferredClosedCaptionService
 +  // @brief Sets the PreferredClosedCaptionService.
 +  // @details The setting should be honored by the player. The behaviour of AUTO may be player specific.
-+  // Valid input for service is "CC[1-4]", "TEXT[1-4]", "SERVICE[1-64]" 
++  // Valid input for service is "CC[1-4]", "TEXT[1-4]", "SERVICE[1-64]"
 +  // @param service: Identifies the service to display e.g. "CC3".
 +  virtual uint32_t SetPreferredClosedCaptionService(const string& service  /* @in */) = 0;
 +
@@ -237,7 +269,7 @@ index 0000000..9353f6d
 +  // restrictions are to be applied, if applicable for the project
 +  // @param viewingRestrictionsWindow: A project-specific representation of the time interval.Eg: "ALWAYS"
 +  virtual uint32_t SetViewingRestrictionsWindow(const string &viewingRestrictionsWindow /* @in @text viewingRestrictionsWindow */) = 0;
-+  
++
 +  // @text getViewingRestrictionsWindow
 +  // @brief Gets the current ViewingRestrictionsWindow.
 +  // @param viewingRestrictionsWindow: A project-specific representation of the time interval.Eg: "ALWAYS"
@@ -287,15 +319,116 @@ index 0000000..9353f6d
 +  // @param pinOnPurchase: Enabled/Disabled
 +  virtual uint32_t GetPinOnPurchase(bool &pinOnPurchase /* @out */) const = 0;
 +
++    // @text setHighContrast
++    // @brief Sets highContrast. Whether the app should display with high contrast or not.
++    // @param enabled: Enabled/Disabled
++    virtual uint32_t SetHighContrast(const bool enabled /* @in */) = 0;
++
++    // @text getHighContrast
++    // @brief Gets the current highContrast setting.
++    // @param enabled: Enabled/Disabled
++    virtual uint32_t GetHighContrast(bool &enabled /* @out */) const = 0;
++
++    // @text setVoiceGuidance
++    // @brief Sets voiceGuidance. Whether Voice Guidance is enabled or not.
++    // @param enabled: Enabled/Disabled
++    virtual uint32_t SetVoiceGuidance(const bool enabled /* @in */) = 0;
++
++    // @text getVoiceGuidance
++    // @brief Gets the current voiceGuidance setting.
++    // @param enabled: Enabled/Disabled
++    virtual uint32_t GetVoiceGuidance(bool &enabled /* @out */) const = 0;
++
++    // @text setVoiceGuidanceRate
++    // @brief Sets voiceGuidanceRate. Setting voice guidance rate value. from 0.1 to 10 inclusive.
++    // @param rate: Sets Voice Guidance rate
++    virtual uint32_t SetVoiceGuidanceRate(const double rate /* @in */) = 0;
++
++    // @text getVoiceGuidanceRate
++    // @brief Gets the current voiceGuidanceRate setting.
++    // @param rate: Gets Voice Guidance rate
++    virtual uint32_t GetVoiceGuidanceRate(double &rate /* @out */) const = 0;
++
++    // @text setVoiceGuidanceHints
++    // @brief Sets voiceGuidanceHints ON/OFF. Whether Voice Guidance hints setting is switched on or not.
++    // @param hints: Enabled/Disabled
++    virtual uint32_t SetVoiceGuidanceHints(const bool hints /* @in */) = 0;
++
++    // @text getVoiceGuidanceHints
++    // @brief Gets the current voiceGuidanceHints setting.
++    // @param hints: true/false
++    virtual uint32_t GetVoiceGuidanceHints(bool &hints /* @out */) const = 0;
++
 +};
++
++/**
++ * If a setting was owned by an other component prior to being migrated into UserSettings,
++ * we require the ability to detect when this migration has completed.
++ * The component which was the previous owner of a given setting has the responsibility
++ * to always set the setting on UserSettings interface (During migration AND during first time install).
++ * Until this is done the setting is not considered valid, meaning the the MigrationState will contain requiresMigration=true
++ * All settings not requiring migration would immediately be valid.
++ */
++
++/* @json 1.0.0 @text:keep */
++struct EXTERNAL IUserSettingsInspector : virtual public Core::IUnknown
++{
++    enum { ID = ID_USER_SETTINGS_INSPECTOR };
++
++    ~IUserSettingsInspector() override = default;
++
++    enum SettingsKey : uint32_t
++    {
++        PREFERRED_AUDIO_LANGUAGES = 1,
++        AUDIO_DESCRIPTION = 2,
++        CAPTIONS = 3,
++        PREFERRED_CAPTIONS_LANGUAGES = 4,
++        PREFERRED_CLOSED_CAPTION_SERVICE = 5,
++        PRESENTATION_LANGUAGE = 6,
++        HIGH_CONTRAST = 7,
++        PIN_CONTROL = 8,
++        VIEWING_RESTRICTIONS = 9,
++        VIEWING_RESTRICTIONS_WINDOW = 10,
++        LIVE_WATERSHED = 11,
++        PLAYBACK_WATERSHED = 12,
++        BLOCK_NOT_RATED_CONTENT = 13,
++        PIN_ON_PURCHASE = 14,
++        VOICE_GUIDANCE = 15,
++        VOICE_GUIDANCE_RATE = 16,
++        VOICE_GUIDANCE_HINTS = 17
++    };
++
++    struct SettingsMigrationState
++    {
++        SettingsKey key             /* @text key which needs the migration information */ ;
++        bool requiresMigration      /* @text whether the key requires migration or not */;
++    };
++
++    using IUserSettingsMigrationStateIterator = RPC::IIteratorType<SettingsMigrationState, ID_USER_SETTINGS_MIGRATION_STATE_ITERATOR>;
++
++    /** Get the migration state of the respective key */
++    // @text getMigrationState
++    // @brief Get the migration state of the respective key
++    // @param key: one of UserSettingsKey
++    // @param migrationState: key and it's migration state.
++    virtual Core::hresult GetMigrationState(const SettingsKey key, bool &requiresMigration /* @out */) const = 0;
++
++    /** Get the migration state of all the defined keys */
++    // @text getMigrationStates
++    // @brief Get the migration state of all the defined keys
++    // @param states: array of migration status.
++    virtual Core::hresult GetMigrationStates(IUserSettingsMigrationStateIterator*& states /* @out */) const = 0;
++
++};
++
 +} // namespace Exchange
 +} // namespace WPEFramework
 +
 diff --git a/interfaces/Ids.h b/interfaces/Ids.h
-index a37db24..293dd73 100644
+index 64151cf..9f28fe0 100644
 --- a/interfaces/Ids.h
 +++ b/interfaces/Ids.h
-@@ -354,7 +354,10 @@ namespace Exchange {
+@@ -360,7 +360,14 @@ namespace Exchange {
          ID_SCRIPT_ENGINE_NOTIFICATION                = ID_SCRIPT_ENGINE + 1,
  
          ID_TEXT_TO_SPEECH                            = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x4C0,
@@ -303,7 +436,11 @@ index a37db24..293dd73 100644
 +        ID_TEXT_TO_SPEECH_NOTIFICATION               = ID_TEXT_TO_SPEECH + 1,
 +
 +	ID_USER_SETTINGS                             = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x4D0,
-+        ID_USER_SETTINGS_NOTIFICATION                = ID_USER_SETTINGS + 1
++        ID_USER_SETTINGS_NOTIFICATION                = ID_USER_SETTINGS + 1,
++	ID_USER_SETTINGS_INSPECTOR                   = ID_USER_SETTINGS + 2,
++	ID_USER_SETTINGS_MIGRATION_STATE_ITERATOR    = ID_USER_SETTINGS + 3,
++
++
      };
  }
  }

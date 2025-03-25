@@ -1,12 +1,12 @@
 diff --git a/interfaces/IDeviceInfo2.h b/interfaces/IDeviceInfo2.h
-index f87914d..90e9c41 100644
+index f87914d..0e56da9 100644
 --- a/interfaces/IDeviceInfo2.h
 +++ b/interfaces/IDeviceInfo2.h
 @@ -18,6 +18,7 @@ namespace Exchange {
          virtual uint32_t Model(string& model /* @out */) const = 0;
          virtual uint32_t DeviceType(string& deviceType /* @out */) const = 0;
          virtual uint32_t DistributorId(string& distributorId /* @out */) const = 0;
-+        virtual uint32_t Brand(string& brand /* @out */) const = 0;
++	virtual uint32_t Brand(string& brand /* @out */) const = 0;
      };
  
      struct EXTERNAL IDeviceAudioCapabilities : virtual public Core::IUnknown {
@@ -18,12 +18,12 @@ index f87914d..90e9c41 100644
 \ No newline at end of file
 +}
 diff --git a/jsonrpc/DeviceInfo.json b/jsonrpc/DeviceInfo.json
-index ed32927..83c45fd 100644
+index ed32927..1f7997e 100644
 --- a/jsonrpc/DeviceInfo.json
 +++ b/jsonrpc/DeviceInfo.json
-@@ -131,6 +131,28 @@
-         "$ref": "#/definitions/output_resolution"
-       }
+@@ -567,6 +567,28 @@
+         }
+       ]
      },
 +    "brandname": {
 +      "summary": "Device brand",
@@ -48,5 +48,5 @@ index ed32927..83c45fd 100644
 +      ]
 +    },
      "devicetype": {
-       "type": "string",
-       "enum": [
+       "summary": "Device type",
+       "readonly": true,

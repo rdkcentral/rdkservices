@@ -22,6 +22,8 @@
 #include "Module.h"
 #include <interfaces/json/JsonData_UserSettings.h>
 #include <interfaces/json/JUserSettings.h>
+#include <interfaces/json/JUserSettingsInspector.h>
+#include <interfaces/json/JsonData_UserSettingsInspector.h>
 #include <interfaces/IUserSettings.h>
 #include <interfaces/IConfiguration.h>
 #include "UtilsLogging.h"
@@ -46,7 +48,10 @@ namespace Plugin {
             explicit Notification(UserSettings* parent)
                 : _parent(*parent)
                 {
-                    ASSERT(parent != nullptr);
+                    if (parent == nullptr)
+                    {
+                       LOGERR("parent is null");
+                    }
                 }
 
                 virtual ~Notification()
@@ -60,12 +65,10 @@ namespace Plugin {
 
                 void Activated(RPC::IRemoteConnection*) override
                 {
-                    LOGINFO("UserSettings Notification Activated");
                 }
 
                 void Deactivated(RPC::IRemoteConnection *connection) override
                 {
-                   LOGINFO("UserSettings Notification Deactivated");
                    _parent.Deactivated(connection);
                 }
 
@@ -153,6 +156,30 @@ namespace Plugin {
                     Exchange::JUserSettings::Event::OnPinOnPurchaseChanged(_parent, pinOnPurchase);
                 }
 
+                void OnHighContrastChanged(const bool enabled) override
+                {
+                    LOGINFO("HighContrastChanged: %d\n", enabled);
+                    Exchange::JUserSettings::Event::OnHighContrastChanged(_parent, enabled);
+                }
+
+                void OnVoiceGuidanceChanged(const bool enabled) override
+                {
+                    LOGINFO("VoiceGuidanceChanged: %d\n", enabled);
+                    Exchange::JUserSettings::Event::OnVoiceGuidanceChanged(_parent, enabled);
+                }
+
+                void OnVoiceGuidanceRateChanged(const double rate) override
+                {
+                    LOGINFO("GuidanceRateChanged: %lf\n", rate);
+                    Exchange::JUserSettings::Event::OnVoiceGuidanceRateChanged(_parent, rate);
+                }
+
+                void OnVoiceGuidanceHintsChanged(const bool hints) override
+                {
+                    LOGINFO("GuidanceHintsChanged: %d\n", hints);
+                    Exchange::JUserSettings::Event::OnVoiceGuidanceHintsChanged(_parent, hints);
+                }
+
             private:
                 UserSettings& _parent;
         };
@@ -169,6 +196,7 @@ namespace Plugin {
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
             INTERFACE_AGGREGATE(Exchange::IUserSettings, _userSetting)
+            INTERFACE_AGGREGATE(Exchange::IUserSettingsInspector, _userSettingsInspector)
             END_INTERFACE_MAP
 
             //  IPlugin methods
@@ -184,6 +212,7 @@ namespace Plugin {
             PluginHost::IShell* _service{};
             uint32_t _connectionId{};
             Exchange::IUserSettings* _userSetting{};
+            Exchange::IUserSettingsInspector* _userSettingsInspector{};
             Core::Sink<Notification> _usersettingsNotification;
             Exchange::IConfiguration* configure;
     };
