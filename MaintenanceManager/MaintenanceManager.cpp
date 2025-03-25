@@ -270,7 +270,7 @@ namespace WPEFramework
         /* Static Member Definitions */
         timer_t MaintenanceManager::timerid;
         string MaintenanceManager::currentTask;
-        bool MaintenanceManager::taskCompleted = false;
+        bool MaintenanceManager::g_task_timerCreated = false;
 
         string task_names_foreground[] = {
             "/lib/rdk/Start_RFC.sh",
@@ -497,7 +497,7 @@ namespace WPEFramework
                         LOGINFO("Starting Timer for %s \n", currentTask.c_str());
                         isTaskTimerStarted = task_startTimer();
                     }
-                    if (isTaskTimerRunning())
+                    if (isTaskTimerStarted)
                     {
                         m_task_map[tasks[i]] = true;
                         LOGINFO("Starting Task :  %s \n", task.c_str());
@@ -690,83 +690,18 @@ namespace WPEFramework
         }
 
         /**
-         * @brief Checks if the task timer exists.
-         *
-         * This function checks if the task timer identified by `timerid` exists by querying its time.
-         *
-         * @return true if the timer exists, false otherwise.
-         */
-        bool MaintenanceManager::checkTaskTimerExists()
-        {
-            bool status = false;
-            struct itimerspec current;
-            int result = timer_gettime(timerid, &current);
-            if (result == 0)
-            {
-                LOGINFO("Timer Already Exists");
-                status = true; /* Timer Exist */
-            }
-            else if (errno == EINVAL)
-            {
-                LOGINFO("Timer does not exist (EINVAL)");
-            }
-            else
-            {
-                LOGERR("timer_gettime() failed with %s", strerror(errno));
-            }
-            return status;
-        }
-
-        /**
-         * @brief Checks if the task timer is currently running.
-         *
-         * This function verifies if the task timer associated with `timerid` is currently active.
-         *
-         * @return true if the timer is running, false otherwise.
-         */
-        bool MaintenanceManager::isTaskTimerRunning()
-        {
-            bool status = false;
-            if (!checkTaskTimerExists())
-            {
-                LOGINFO("Timer does not exist.");
-                return status;
-            }
-
-            struct itimerspec current;
-            if (timer_gettime(timerid, &current) == 0)
-            {
-                if (current.it_value.tv_sec != 0 || current.it_value.tv_nsec != 0)
-                {
-                    LOGINFO("Timer is currently running with timerid: %p", static_cast<void *>(&timerid));
-                    status = true; // Timer is running
-                }
-                else
-                {
-                    LOGINFO("Timer exists but is not currently running."); // Timer not running
-                }
-            }
-            else
-            {
-                LOGERR("timer_gettime failed with error: %s", strerror(errno)); // timer_gettime failed
-            }
-            return status;
-        }
-
-        /**
          * @brief Creates a new task timer.
          *
          * This function initializes and creates a new task timer if it does not already exist or is not running.
          *
          * @return true if the timer was successfully created, false otherwise.
          */
-        bool MaintenanceManager::maintenance_createTimer()
+        bool MaintenanceManager::maintenance_initTimer()
         {
-            bool status = false;
-            if (checkTaskTimerExists() || isTaskTimerRunning())
+            if (g_task_timerCreated)
             {
-                LOGINFO("Timer is already created/ running. No need to create a new timer.");
-                return status; // Timer Already Exist/ Timer Already running
+                LOGINFO("Timer has already been created, no need to create a Timer.");
+                return g_task_timerCreated;
             }
 
             struct sigevent sev = {0};
@@ -776,13 +711,13 @@ namespace WPEFramework
 
             if (timer_create(BASE_CLOCK, &sev, &timerid) == -1)
             {
-                LOGERR("Failed to create timer");
-                return status; // Timer creation failed
+                LOGERR("timer_create() failed to create the Timer");
             }
-
-            LOGINFO("Timer created successfully.");
-            status = true;
-            return status; // Timer created successfully
+            else{
+                g_task_timerCreated = true; // Timer Created
+                LOGINFO("Timer created successfully.");
+            }
+            return g_task_timerCreated;
         }
 
         /**
@@ -795,28 +730,20 @@ namespace WPEFramework
         bool MaintenanceManager::task_startTimer()
         {
             bool status = false;
-            if (checkTaskTimerExists())
+            if (g_task_timerCreated)
             {
-                if (isTaskTimerRunning())
-                {
-                    LOGINFO("Timer is already running. Restart the Timer...");
-                }
-                else
-                {
-                    LOGINFO("Timer exists but is not running. Starting timer.");
-                }
+                LOGINFO("Timer has already been created, start the Timer");
             }
             else
             {
-                LOGINFO("Timer does not exist. Creating new timer.");
-                if (!maintenance_createTimer())
+                LOGINFO("Timer has not been created already, create a new Timer.");
+                if (!maintenance_initTimer())
                 {
                     return status;
                 }
             }
 
             struct itimerspec its;
-
             its.it_value.tv_sec = TASK_TIMEOUT;
             its.it_value.tv_nsec = 0;
             its.it_interval.tv_sec = 0;
@@ -824,7 +751,7 @@ namespace WPEFramework
 
             if (timer_settime(timerid, 0, &its, NULL) == -1)
             {
-                LOGERR("Failed to start timer");
+                LOGERR("timer_settime() failed to start the Timer");
             }
             else
             {
@@ -844,9 +771,9 @@ namespace WPEFramework
         bool MaintenanceManager::task_stopTimer()
         {
             bool status = false;
-            if (!checkTaskTimerExists() || !isTaskTimerRunning())
+            if (!g_task_timerCreated)
             {
-                LOGINFO("Timer does not exist/ Timer is not running. Unable to stop timer.");
+                LOGINFO("Timer has not been created already, cannot stop the Timer");
                 return status;
             }
 
@@ -856,7 +783,7 @@ namespace WPEFramework
 
             if (timer_settime(timerid, 0, &its, NULL) == -1)
             {
-                LOGERR("Failed to stop timer");
+                LOGERR("timer_settime() failed to stop the Timer");
             }
             else
             {
@@ -876,54 +803,23 @@ namespace WPEFramework
         bool MaintenanceManager::maintenance_deleteTimer()
         {
             bool status = false;
-            if (!checkTaskTimerExists())
+            if (!g_task_timerCreated)
             {
-                LOGINFO("Timer does not exist. Unable to delete timer.");
+                LOGINFO("Timer has not been created already, cannot delete the Timer.");
                 return status;
             }
 
-            if (isTaskTimerRunning())
+            LOGINFO("Timer has already been created, delete the Timer.");
+
+            if (timer_delete(timerid) == -1)
             {
-                LOGINFO("Timer is currently running. Attempting to stop it before deletion.");
-                if (task_stopTimer())
-                {
-                    // Timer was successfully stopped
-                    if (timer_delete(timerid) == -1)
-                    {
-                        LOGERR("Failed to delete timer after stopping it.");
-                    }
-                    else
-                    {
-                        LOGINFO("Timer successfully deleted after stopping.");
-                        status = true;
-                    }
-                }
-                else
-                {
-                    LOGINFO("Can't stop running Timer, hence deleting the timer forcefully...");
-                    if (timer_delete(timerid) == -1)
-                    {
-                        LOGERR("Failed to delete timer.");
-                    }
-                    else
-                    {
-                        LOGINFO("Timer successfully deleted");
-                        status = true;
-                    }
-                }
+                LOGERR("timer_delete() failed to delete the Timer.");
             }
             else
             {
-                // Timer is not running, delete directly
-                if (timer_delete(timerid) == -1)
-                {
-                    LOGERR("Failed to delete timer.");
-                }
-                else
-                {
-                    LOGINFO("Timer successfully deleted.");
-                    status = true;
-                }
+                g_task_timerCreated = false;
+                LOGINFO("Timer successfully deleted.");
+                status = true;
             }
             return status;
         }
@@ -939,7 +835,7 @@ namespace WPEFramework
         {
             if (signo == SIGALRM)
             {
-                LOGERR("Timeout reached for %s. Setting task to Error...", currentTask.c_str());
+                LOGERR("Timeout reached for %s. Set task to Error...", currentTask.c_str());
 
                 const char *failedTask = nullptr;
                 int complete_status = 0;
@@ -984,6 +880,7 @@ namespace WPEFramework
          */
         bool MaintenanceManager::setRFC(const char *rfc, const char *value, DATA_TYPE dataType)
         {
+            LOGINFO("Invoke setRFC...");
             bool result = false;
             WDMP_STATUS status;
             status = setRFCParameter((char *)MAINTENANCE_MANAGER_RFC_CALLER_ID, rfc, value, dataType);
@@ -1009,7 +906,7 @@ namespace WPEFramework
          */
         void MaintenanceManager::setPartnerId(string partnerid)
         {
-            LOGINFO("Initiate setPartnerId...");
+            LOGINFO("Invoke setPartnerId...");
             const char *authservice_callsign = "org.rdk.AuthService.1";
             PluginHost::IShell::state state;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *thunder_client = nullptr;
@@ -1567,7 +1464,8 @@ namespace WPEFramework
         {
             ASSERT(service != nullptr);
             ASSERT(m_service == nullptr);
-
+            ASSERT(timerid != nullptr);
+            
             m_service = service;
             m_service->AddRef();
 
@@ -1585,11 +1483,8 @@ namespace WPEFramework
                 LOGERR("Failed to register signal handler");
                 return string("Failed to register signal handler");
             }
+            LOGINFO("Signal Handler registered for Timer");
 
-            if (!maintenance_createTimer())
-            {
-                return string("Failed to create timer");
-            }
             /* On Success; return empty to indicate no error text. */
             return (string());
         }
@@ -1600,6 +1495,7 @@ namespace WPEFramework
             {
                 LOGINFO("Failed to delete timer");
             }
+            LOGINFO("Timer Deleted on Deinitialization.");
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             stopMaintenanceTasks();
             DeinitializeIARM();

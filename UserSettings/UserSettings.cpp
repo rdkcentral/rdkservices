@@ -20,7 +20,7 @@
 #include "UserSettings.h"
 
 #define API_VERSION_NUMBER_MAJOR 2
-#define API_VERSION_NUMBER_MINOR 1
+#define API_VERSION_NUMBER_MINOR 2
 #define API_VERSION_NUMBER_PATCH 0
 
 namespace WPEFramework
@@ -48,7 +48,7 @@ namespace WPEFramework
      **/
     SERVICE_REGISTRATION(UserSettings, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
-    UserSettings::UserSettings() : _service(nullptr), _connectionId(0), _userSetting(nullptr), _usersettingsNotification(this)
+    UserSettings::UserSettings() : _service(nullptr), _connectionId(0), _userSetting(nullptr), _userSettingsInspector(nullptr), _usersettingsNotification(this)
     {
         SYSLOG(Logging::Startup, (_T("UserSettings Constructor")));
     }
@@ -94,6 +94,16 @@ namespace WPEFramework
             _userSetting->Register(&_usersettingsNotification);
             // Invoking Plugin API register to wpeframework
             Exchange::JUserSettings::Register(*this, _userSetting);
+
+            _userSettingsInspector = _userSetting->QueryInterface<Exchange::IUserSettingsInspector>();
+            if (_userSettingsInspector != nullptr)
+            {
+                Exchange::JUserSettingsInspector::Register(*this, _userSettingsInspector);
+            }
+            else
+            {
+                message = _T("UserSettings implementation did not provide a IUserSettingsInspector interface");
+            }
         }
         else
         {
@@ -122,8 +132,13 @@ namespace WPEFramework
         {
             _userSetting->Unregister(&_usersettingsNotification);
             Exchange::JUserSettings::Unregister(*this);
+            Exchange::JUserSettingsInspector::Unregister(*this);
 
             configure->Release();
+            _userSettingsInspector->Release();
+
+            configure = nullptr;
+            _userSettingsInspector = nullptr;
 
             // Stop processing:
             RPC::IRemoteConnection* connection = service->RemoteConnection(_connectionId);

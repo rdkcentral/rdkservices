@@ -95,12 +95,6 @@ else()
     set(WPE_WEBKIT_DEPRECATED_API FALSE CACHE INTERNAL "" FORCE)
 endif()
 
-if(WPE_WEBKIT_VERSION VERSION_GREATER 2.28.0)
-    set(WEBKIT_GLIB_API TRUE CACHE INTERNAL "" FORCE)
-else()
-    set(WEBKIT_GLIB_API FALSE CACHE INTERNAL "" FORCE)
-endif()
-
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(WPEWebKit 
     VERSION_VAR WPE_WEBKIT_VERSION

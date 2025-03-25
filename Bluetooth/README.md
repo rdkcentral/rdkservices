@@ -117,7 +117,3 @@ onDeviceLost
 onDiscoveredDevice
 onDeviceMediaStatus
 ```
-
-## Full Reference
-https://etwiki.sys.comcast.net/display/RDKV/Bluetooth
-

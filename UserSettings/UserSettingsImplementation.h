@@ -59,10 +59,14 @@
 namespace WPEFramework {
 namespace Plugin {
     class UserSettingsImplementation : public Exchange::IUserSettings,
+                                       public Exchange::IUserSettingsInspector,
                                        public Exchange::IConfiguration {
 
     public:
         static const std::map<string, string> usersettingsDefaultMap;
+        static const std::map<SettingsKey, string> _userSettingsInspectorMap;
+	static const double minVGR;
+	static const double maxVGR;
 
     private:
         class Store2Notification : public Exchange::IStore2::INotification {
@@ -104,11 +108,13 @@ namespace Plugin {
 
         BEGIN_INTERFACE_MAP(UserSettingsImplementation)
         INTERFACE_ENTRY(Exchange::IUserSettings)
+        INTERFACE_ENTRY(Exchange::IUserSettingsInspector)
         INTERFACE_ENTRY(Exchange::IConfiguration)
         END_INTERFACE_MAP
 
     public:
-        enum Event {
+        enum Event
+        {
                 AUDIO_DESCRIPTION_CHANGED,
                 PREFERRED_AUDIO_CHANGED,
                 PRESENTATION_LANGUAGE_CHANGED,
@@ -208,6 +214,10 @@ namespace Plugin {
         uint32_t SetVoiceGuidanceHints(const bool hints) override;
         uint32_t GetVoiceGuidanceHints(bool &hints) const override;
 
+        // IUserSettingsInspector methods
+        Core::hresult GetMigrationState(const SettingsKey key, bool &requiresMigration) const override;
+        Core::hresult GetMigrationStates(IUserSettingsMigrationStateIterator *&states) const override;
+
         // IConfiguration methods
         uint32_t Configure(PluginHost::IShell* service) override;
 
@@ -235,5 +245,6 @@ namespace Plugin {
 
         friend class Job;
     };
+
 } // namespace Plugin
 } // namespace WPEFramework
