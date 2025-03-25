@@ -76,6 +76,7 @@ jobs:
         run: |
           cd ${{github.workspace}}/Thunder
           patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/Use_Legact_Alt_Based_On_ThunderTools_R4.4.3.patch
+          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/error_code_R4_4.patch
           cd -
 
       - name: Checkout ThunderTools
