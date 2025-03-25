@@ -6,7 +6,7 @@ on:
     paths-ignore: ['docs/**', 'Tests/**', 'Tools/**', '.github/**']
 
   pull_request:
-    branches: [ main, 'release/**' ]
+    branches: [ main, 'release/**',develop ]
     paths-ignore: ['docs/**', 'Tests/**', 'Tools/**', '.github/**']
 
 
@@ -21,7 +21,7 @@ jobs:
 
       - name: Get changed files using defaults
         id: changed-files
-        uses: tj-actions/changed-files@v19
+        uses: rdkcentral/tj-actions_changed-files@v19
 
       - name: Run step when a CHANGELOG.md didn't change
         uses: actions/github-script@v3
