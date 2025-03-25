@@ -1478,7 +1478,7 @@ namespace WPEFramework
                     try
                     {
                         /*LOGINFO("Command: sending ImageViewOn TV \r\n");
-                        smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(ImageViewOn()));*/
+                        smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(ImageViewOn())); */
                         LOGINFO("Command: sending TextViewOn TV \r\n");
                         smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(TextViewOn()));
                         usleep(10000);
