@@ -2023,9 +2023,84 @@ namespace Plugin {
             }
             browser->OnLoadFailed(failingURI);
         }
-        static bool authenticationCallback(WebKitWebView*, WebKitAuthenticationRequest* request)
+        static bool authenticationCallback(WebKitWebView*, WebKitAuthenticationRequest* request, WebKitImplementation* browser)
         {
+            TRACE(HTML5Notification, ("AUTHENTICATION: Started Authentication callback"));
+            //Need to check Glib version >= 2.72, otherwise return nullptr
+#if GLIB_CHECK_VERSION (2, 72, 0) 
+            GError *error = NULL;
+            GTlsCertificate *cert = NULL;
+            std::string clientCertStr;
+            std::string clientCertKeyStr;
+            bool test = true;
+            const gchar *certPath = NULL, *keyPath = NULL;
+
+            if (browser->_config.ClientCert.IsSet() == true && browser->_config.ClientCert.Value().empty() == false)
+            {
+                clientCertStr = browser->_config.ClientCert.Value().c_str();
+                certPath = clientCertStr.c_str();
+            }
+
+            if (!certPath)
+                goto out;
+
+            if (browser->_config.ClientCertKey.IsSet() == true && browser->_config.ClientCertKey.Value().empty() == false)
+            {
+                clientCertKeyStr = browser->_config.ClientCertKey.Value().c_str();
+                keyPath = clientCertKeyStr.c_str();
+            }
+
+            if (g_str_has_suffix(certPath, ".pk12"))
+            {
+                TRACE(HTML5Notification, ("Cert Path accepted as pk12");
+                gchar *certData, *keyData = NULL;
+                gsize certLen, keyLen;
+                if (keyPath)
+                {
+                    gsize i;
+                    if (!g_file_get_contents(keyPath, &keyData, &keyLen, &error))
+                        goto out;
+                    for (i = keyLen - 1; i >= 0 && g_ascii_isspace(keyData[i]); --i)
+                        keyData[i] = '\0';
+                }
+
+                if (!g_file_get_contents(certPath, &certData, &certLen, &error))
+                {
+                    g_free(keyData);
+                    goto out;
+                }
+
+                cert = g_tls_certificate_new_from_pkcs12((guint8 *)certData, certLen, keyData, &error);
+                g_free(certData);
+                g_free(keyData);
+            }
+            else if (keyPath)
+            {
+                TRACE(HTML5Notification, ("AUTHENTICATION: Certificate not pk12");
+                cert = g_tls_certificate_new_from_files(certPath, keyPath, &error);
+            }
+            else
+            {
+                TRACE(HTML5Notification, ("AUTHENTICATION: No key path set");
+                cert = g_tls_certificate_new_from_file(certPath, &error);
+            }
+
+            out:
+            if (error)
+            {
+                TRACE(HTML5Notification, ("AUTHENTICATION:Cert load failed. %s\n", error ? error->message : "unknown");
+                g_error_free(error);
+                webkit_authentication_request_authenticate(request, nullptr);
+            }
+            else
+            {
+                TRACE(HTML5Notification, ("AUTHENTICATION:Sending cert to webkit\n");
+                webkit_authentication_request_authenticate(request, webkit_credential_new_for_certificate(cert, WEBKIT_CREDENTIAL_PERSISTENCE_NONE));
+            }
+#else
+            TRACE(HTML5Notification, ("AUTHENTICATION: Glib version check failed- Detected as not 2.7.2 or greater."));
             webkit_authentication_request_authenticate(request, nullptr);
+#endif
             return TRUE;
         }
         static void postExitJob()
@@ -2403,7 +2478,7 @@ namespace Plugin {
             g_signal_connect(_view, "user-message-received", reinterpret_cast<GCallback>(userMessageReceivedCallback), this);
             g_signal_connect(_view, "notify::is-web-process-responsive", reinterpret_cast<GCallback>(isWebProcessResponsiveCallback), this);
             g_signal_connect(_view, "load-failed", reinterpret_cast<GCallback>(loadFailedCallback), this);
-            g_signal_connect(_view, "authenticate", reinterpret_cast<GCallback>(authenticationCallback), nullptr);
+            g_signal_connect(_view, "authenticate", reinterpret_cast<GCallback>(authenticationCallback), this);
 
             _configurationCompleted.SetState(true);
 
