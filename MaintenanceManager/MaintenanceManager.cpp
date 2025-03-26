@@ -1350,7 +1350,7 @@ namespace WPEFramework
             if (!network_available && !m_abort_flag)
             {
                 int retry_count = 0;
-                while (retry_count < MAX_NETWORK_RETRIES)
+                while ((retry_count < MAX_NETWORK_RETRIES) && !m_abort_flag)
                 {
                     LOGINFO("Network not available. Sleeping for %d seconds", NETWORK_RETRY_INTERVAL);
                     sleep(NETWORK_RETRY_INTERVAL);
