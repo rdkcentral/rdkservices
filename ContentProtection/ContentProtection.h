@@ -166,8 +166,8 @@ namespace Plugin {
             SetPlaybackSessionStateParams()
             {
                 Add(_T("clientId"), &ClientId);
-                Add(_T("sessionid"), &SessionId);
-                Add(_T("sessionstate"), &SessionState);
+                Add(_T("sessionId"), &SessionId);
+                Add(_T("sessionState"), &SessionState);
             }
             Core::JSON::String ClientId;
             Core::JSON::DecUInt32 SessionId;
@@ -180,7 +180,7 @@ namespace Plugin {
             ClosePlaybackSessionParams()
             {
                 Add(_T("clientId"), &ClientId);
-                Add(_T("sessionid"), &SessionId);
+                Add(_T("sessionId"), &SessionId);
             }
             Core::JSON::String ClientId;
             Core::JSON::DecUInt32 SessionId;
@@ -189,7 +189,7 @@ namespace Plugin {
         struct SetPlaybackSpeedStateParams : public Core::JSON::Container {
             SetPlaybackSpeedStateParams()
             {
-                Add(_T("sessionid"), &SessionId);
+                Add(_T("sessionId"), &SessionId);
                 Add(_T("playbackSpeed"), &PlaybackSpeed);
                 Add(_T("playbackPosition"), &PlaybackPosition);
             }
