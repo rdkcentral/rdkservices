@@ -67,7 +67,6 @@
 #define MM_RETURN_RESPONSE(expr)                     \
 {                                                    \
     bool s_Bool = expr;                              \
-    JsonObject response;                             \
     response["success"] = s_Bool;                    \
     std::string json;                                \
     response.ToString(json);                         \
