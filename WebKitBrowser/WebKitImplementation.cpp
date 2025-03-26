@@ -2025,8 +2025,13 @@ namespace Plugin {
         }
         static bool authenticationCallback(WebKitWebView*, WebKitAuthenticationRequest* request, WebKitImplementation* browser)
         {
+<<<<<<< HEAD
             TRACE(HTML5Notification, ("AUTHENTICATION: Started Authentication callback"));
             //Need to check Glib version >= 2.72, otherwise return nullptr
+=======
+            TRACE(Trace::Information ("AUTHENTICATION: Started Authentication callback"));
+//Need to check Glib version >= 2.72, otherwise return nullptr
+>>>>>>> a10d7dd0 (Implemented authenticationCallback in WebKitImplementation in order to call webkit_authenticate with a pk12 certificate instead of a nullptr placeholder. Reverts back to previous functionality if Glib version is less than 2.72 or if a certificate cannot be obtained.)
 #if GLIB_CHECK_VERSION (2, 72, 0) 
             GError *error = NULL;
             GTlsCertificate *cert = NULL;
@@ -2052,7 +2057,11 @@ namespace Plugin {
 
             if (g_str_has_suffix(certPath, ".pk12"))
             {
+<<<<<<< HEAD
                 TRACE(HTML5Notification, ("Cert Path accepted as pk12");
+=======
+                TRACE(Trace::Information ("Cert Path accepted as pk12"));
+>>>>>>> a10d7dd0 (Implemented authenticationCallback in WebKitImplementation in order to call webkit_authenticate with a pk12 certificate instead of a nullptr placeholder. Reverts back to previous functionality if Glib version is less than 2.72 or if a certificate cannot be obtained.)
                 gchar *certData, *keyData = NULL;
                 gsize certLen, keyLen;
                 if (keyPath)
@@ -2076,29 +2085,49 @@ namespace Plugin {
             }
             else if (keyPath)
             {
+<<<<<<< HEAD
                 TRACE(HTML5Notification, ("AUTHENTICATION: Certificate not pk12");
+=======
+                TRACE(Trace::Information ("AUTHENTICATION: Certificate not pk12"));
+>>>>>>> a10d7dd0 (Implemented authenticationCallback in WebKitImplementation in order to call webkit_authenticate with a pk12 certificate instead of a nullptr placeholder. Reverts back to previous functionality if Glib version is less than 2.72 or if a certificate cannot be obtained.)
                 cert = g_tls_certificate_new_from_files(certPath, keyPath, &error);
             }
             else
             {
+<<<<<<< HEAD
                 TRACE(HTML5Notification, ("AUTHENTICATION: No key path set");
+=======
+                TRACE(Trace::Information ("AUTHENTICATION: No key path set"));
+>>>>>>> a10d7dd0 (Implemented authenticationCallback in WebKitImplementation in order to call webkit_authenticate with a pk12 certificate instead of a nullptr placeholder. Reverts back to previous functionality if Glib version is less than 2.72 or if a certificate cannot be obtained.)
                 cert = g_tls_certificate_new_from_file(certPath, &error);
             }
 
             out:
             if (error)
             {
+<<<<<<< HEAD
                 TRACE(HTML5Notification, ("AUTHENTICATION:Cert load failed. %s\n", error ? error->message : "unknown");
+=======
+                TRACE(Trace::Information ("AUTHENTICATION:Cert load failed. %s", error ? error->message : "unknown"));
+>>>>>>> a10d7dd0 (Implemented authenticationCallback in WebKitImplementation in order to call webkit_authenticate with a pk12 certificate instead of a nullptr placeholder. Reverts back to previous functionality if Glib version is less than 2.72 or if a certificate cannot be obtained.)
                 g_error_free(error);
                 webkit_authentication_request_authenticate(request, nullptr);
             }
             else
             {
+<<<<<<< HEAD
                 TRACE(HTML5Notification, ("AUTHENTICATION:Sending cert to webkit\n");
                 webkit_authentication_request_authenticate(request, webkit_credential_new_for_certificate(cert, WEBKIT_CREDENTIAL_PERSISTENCE_NONE));
             }
 #else
             TRACE(HTML5Notification, ("AUTHENTICATION: Glib version check failed- Detected as not 2.7.2 or greater."));
+=======
+                TRACE(Trace::Information ("AUTHENTICATION:Sending cert to webkit"));
+                webkit_authentication_request_authenticate(request, webkit_credential_new_for_certificate(cert, WEBKIT_CREDENTIAL_PERSISTENCE_NONE));
+            }
+#else
+            TRACE(Trace::Information ("AUTHENTICATION: Glib version check failed- Detected as not 2.7.2 or greater."));
+>>>>>>> a10d7dd0 (Implemented authenticationCallback in WebKitImplementation in order to call webkit_authenticate with a pk12 certificate instead of a nullptr placeholder. Reverts back to previous functionality if Glib version is less than 2.72 or if a certificate cannot be obtained.)
             webkit_authentication_request_authenticate(request, nullptr);
 #endif
             return TRUE;
