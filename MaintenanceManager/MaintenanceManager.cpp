@@ -63,7 +63,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 42
+#define API_VERSION_NUMBER_PATCH 43
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 #define PROC_DIR "/proc"
@@ -643,7 +643,12 @@ namespace WPEFramework
                         return success;
                     }
                 }
-            } while (true);
+            } while (!m_abort_flag);
+            if (m_abort_flag)
+            {
+                LOGINFO("Maintenance aborted during knowWhoAmI.");
+            }
+            return success;
         }
 #endif /* end of ENABLE_WHOAMI */
 
@@ -1342,7 +1347,7 @@ namespace WPEFramework
             LOGINFO("Checking device has network connectivity\n");
             /* add 4 checks every 30 seconds */
             network_available = checkNetwork();
-            if (!network_available)
+            if (!network_available && !m_abort_flag)
             {
                 int retry_count = 0;
                 while (retry_count < MAX_NETWORK_RETRIES)
@@ -1356,6 +1361,10 @@ namespace WPEFramework
                         break;
                     }
                 }
+            }
+            if (m_abort_flag)
+            {
+                LOGINFO("Maintenance aborted while checking network connectivity.");
             }
             return network_available;
         }
@@ -2250,16 +2259,15 @@ namespace WPEFramework
             int i = 0;
             bool task_status[3] = {false};
             bool result = false;
+            bool maintenance_stopped = false;
 
-            LOGINFO("Stopping maintenance activities");
+            // Set the condition flag m_abort_flag to true
+            m_abort_flag = true;
             /* run only when the maintenance status is MAINTENANCE_STARTED */
             m_statusMutex.lock();
             if (MAINTENANCE_STARTED == m_notify_status)
             {
-
-                // Set the condition flag m_abort_flag to true
-                m_abort_flag = true;
-
+                LOGINFO("Stopping maintenance activities");
                 auto task_status_RFC = m_task_map.find(task_names_foreground[0].c_str());
                 auto task_status_FWDLD = m_task_map.find(task_names_foreground[1].c_str());
                 auto task_status_LOGUPLD = m_task_map.find(task_names_foreground[2].c_str());
@@ -2292,11 +2300,13 @@ namespace WPEFramework
                     }
                 }
                 result = true;
+                maintenance_stopped = true;
             }
             else
             {
                 LOGERR("Failed to stopMaintenance without starting maintenance");
             }
+            
             if (task_stopTimer())
             {
                 LOGINFO("Stopped Timer Successfully..");
@@ -2318,10 +2328,12 @@ namespace WPEFramework
                 g_unsolicited_complete = true;
             }
 
-            LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR");
-            MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
+            if (maintenance_stopped)
+            {
+                LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR");
+                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
+            }
             m_statusMutex.unlock();
-
             return result;
         }
 
