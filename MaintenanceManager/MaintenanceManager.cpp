@@ -639,12 +639,11 @@ namespace WPEFramework
                     }
                     else
                     {
-                        LOGINFO("%s is not active. Device is already Activated. Hence exiting from knoWhoAmI()", secMgr_callsign);
+                        LOGINFO("%s is not active. Device is already Activated. Hence exiting from knowWhoAmI()", secMgr_callsign);
                         return success;
                     }
                 }
             } while (true);
-            return success;
         }
 #endif /* end of ENABLE_WHOAMI */
 
@@ -1346,7 +1345,7 @@ namespace WPEFramework
             if (!network_available)
             {
                 int retry_count = 0;
-                while ((retry_count < MAX_NETWORK_RETRIES))
+                while (retry_count < MAX_NETWORK_RETRIES)
                 {
                     LOGINFO("Network not available. Sleeping for %d seconds", NETWORK_RETRY_INTERVAL);
                     sleep(NETWORK_RETRY_INTERVAL);
