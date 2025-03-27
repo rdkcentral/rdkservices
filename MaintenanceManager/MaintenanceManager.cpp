@@ -2305,16 +2305,16 @@ namespace WPEFramework
                     m_thread.join();
                     LOGINFO("Thread joined successfully");
                 }
-                if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete)
-                {
-                    g_unsolicited_complete = true;
-                }
                 LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR");
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
             }
             else
             {
                 LOGERR("Failed to stopMaintenance without starting maintenance");
+            }
+            if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete)
+            {
+                g_unsolicited_complete = true;
             }
             m_statusMutex.unlock();
             return result;
