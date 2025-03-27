@@ -643,11 +643,7 @@ namespace WPEFramework
                         return success;
                     }
                 }
-            } while (!m_abort_flag);
-            if (m_abort_flag)
-            {
-                LOGINFO("Maintenance aborted during knowWhoAmI.");
-            }
+            } while (true);
             return success;
         }
 #endif /* end of ENABLE_WHOAMI */
@@ -1347,10 +1343,10 @@ namespace WPEFramework
             LOGINFO("Checking device has network connectivity\n");
             /* add 4 checks every 30 seconds */
             network_available = checkNetwork();
-            if (!network_available && !m_abort_flag)
+            if (!network_available)
             {
                 int retry_count = 0;
-                while ((retry_count < MAX_NETWORK_RETRIES) && !m_abort_flag)
+                while ((retry_count < MAX_NETWORK_RETRIES))
                 {
                     LOGINFO("Network not available. Sleeping for %d seconds", NETWORK_RETRY_INTERVAL);
                     sleep(NETWORK_RETRY_INTERVAL);
@@ -1361,10 +1357,6 @@ namespace WPEFramework
                         break;
                     }
                 }
-            }
-            if (m_abort_flag)
-            {
-                LOGINFO("Maintenance aborted while checking network connectivity.");
             }
             return network_available;
         }
@@ -2259,15 +2251,15 @@ namespace WPEFramework
             int i = 0;
             bool task_status[3] = {false};
             bool result = false;
-            bool maintenance_stopped = false;
 
-            // Set the condition flag m_abort_flag to true
-            m_abort_flag = true;
             /* run only when the maintenance status is MAINTENANCE_STARTED */
             m_statusMutex.lock();
             if (MAINTENANCE_STARTED == m_notify_status)
             {
                 LOGINFO("Stopping maintenance activities");
+                // Set the condition flag m_abort_flag to true
+                m_abort_flag = true;
+                
                 auto task_status_RFC = m_task_map.find(task_names_foreground[0].c_str());
                 auto task_status_FWDLD = m_task_map.find(task_names_foreground[1].c_str());
                 auto task_status_LOGUPLD = m_task_map.find(task_names_foreground[2].c_str());
@@ -2300,7 +2292,6 @@ namespace WPEFramework
                     }
                 }
                 result = true;
-                maintenance_stopped = true;
                 if(task_stopTimer())
                 {
                     LOGINFO("Stopped Timer Successfully..");
