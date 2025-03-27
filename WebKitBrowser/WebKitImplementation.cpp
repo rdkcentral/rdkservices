@@ -2088,13 +2088,13 @@ namespace Plugin {
             out:
             if (error || !cert)
             {
-                TRACE(Trace::Information, ("AUTHENTICATION:Cert load failed. %s", error ? error->message : "unknown"));
+                TRACE(Trace::Information, ("AUTHENTICATION: Cert load failed. %s", error ? error->message : "unknown"));
                 g_error_free(error);
                 webkit_authentication_request_authenticate(request, nullptr);
             }
             else
             {
-                TRACE(Trace::Information, ("AUTHENTICATION:Sending cert to webkit"));
+                TRACE(Trace::Information, ("AUTHENTICATION: Sending cert to webkit"));
                 webkit_authentication_request_authenticate(request, webkit_credential_new_for_certificate(cert, WEBKIT_CREDENTIAL_PERSISTENCE_NONE));
             }
             g_object_unref(cert);
