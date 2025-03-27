@@ -2025,7 +2025,7 @@ namespace Plugin {
         }
         static bool authenticationCallback(WebKitWebView*, WebKitAuthenticationRequest* request, WebKitImplementation* browser)
         {
-            TRACE(Trace::Information ("AUTHENTICATION: Started Authentication callback"));
+            TRACE(Trace::Information, ("AUTHENTICATION: Started Authentication callback"));
 //Need to check Glib version >= 2.72, otherwise return nullptr
 #if GLIB_CHECK_VERSION (2, 72, 0) 
             GError *error = NULL;
@@ -2052,7 +2052,7 @@ namespace Plugin {
 
             if (g_str_has_suffix(certPath, ".pk12"))
             {
-                TRACE(Trace::Information ("Cert Path accepted as pk12"));
+                TRACE(Trace::Information, ("AUTHENTICATION: Cert Path accepted as pk12"));
                 gchar *certData, *keyData = NULL;
                 gsize certLen, keyLen;
                 if (keyPath)
@@ -2076,29 +2076,30 @@ namespace Plugin {
             }
             else if (keyPath)
             {
-                TRACE(Trace::Information ("AUTHENTICATION: Certificate not pk12"));
+                TRACE(Trace::Information, ("AUTHENTICATION: Certificate not pk12"));
                 cert = g_tls_certificate_new_from_files(certPath, keyPath, &error);
             }
             else
             {
-                TRACE(Trace::Information ("AUTHENTICATION: No key path set"));
+                TRACE(Trace::Information, ("AUTHENTICATION: No key path set"));
                 cert = g_tls_certificate_new_from_file(certPath, &error);
             }
 
             out:
-            if (error)
+            if (error || !cert)
             {
-                TRACE(Trace::Information ("AUTHENTICATION:Cert load failed. %s", error ? error->message : "unknown"));
+                TRACE(Trace::Information, ("AUTHENTICATION:Cert load failed. %s", error ? error->message : "unknown"));
                 g_error_free(error);
                 webkit_authentication_request_authenticate(request, nullptr);
             }
             else
             {
-                TRACE(Trace::Information ("AUTHENTICATION:Sending cert to webkit"));
+                TRACE(Trace::Information, ("AUTHENTICATION:Sending cert to webkit"));
                 webkit_authentication_request_authenticate(request, webkit_credential_new_for_certificate(cert, WEBKIT_CREDENTIAL_PERSISTENCE_NONE));
             }
+            g_object_unref(cert);
 #else
-            TRACE(Trace::Information ("AUTHENTICATION: Glib version check failed- Detected as not 2.7.2 or greater."));
+            TRACE(Trace::Information, ("AUTHENTICATION: Glib version check failed- Detected as not 2.7.2 or greater."));
             webkit_authentication_request_authenticate(request, nullptr);
 #endif
             return TRUE;
