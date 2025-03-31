@@ -2030,9 +2030,7 @@ namespace Plugin {
 #if GLIB_CHECK_VERSION (2, 72, 0) 
             GError *error = NULL;
             GTlsCertificate *cert = NULL;
-            std::string clientCertStr;
-            std::string clientCertKeyStr;
-            bool test = true;
+            std::string clientCertStr, clientCertKeyStr;
             const gchar *certPath = NULL, *keyPath = NULL;
 
             if (browser->_config.ClientCert.IsSet() == true && browser->_config.ClientCert.Value().empty() == false)
@@ -2086,18 +2084,25 @@ namespace Plugin {
             }
 
             out:
-            if (error || !cert)
+            if (error)
             {
                 TRACE(Trace::Information, ("AUTHENTICATION: Cert load failed. %s", error ? error->message : "unknown"));
                 g_error_free(error);
                 webkit_authentication_request_authenticate(request, nullptr);
             }
+            else if(!cert)
+            {
+                TRACE(Trace::Information, ("AUTHENTICATION: No certificate provided"));
+                webkit_authentication_request_authenticate(request, nullptr);
+            }
             else
             {
                 TRACE(Trace::Information, ("AUTHENTICATION: Sending cert to webkit"));
-                webkit_authentication_request_authenticate(request, webkit_credential_new_for_certificate(cert, WEBKIT_CREDENTIAL_PERSISTENCE_NONE));
+                auto *credential = webkit_credential_new_for_certificate(cert, WEBKIT_CREDENTIAL_PERSISTENCE_NONE);
+                webkit_authentication_request_authenticate(request, credential);
+                g_object_unref(cert);
+                webkit_credential_free(credential);
             }
-            g_object_unref(cert);
 #else
             TRACE(Trace::Information, ("AUTHENTICATION: Glib version check failed- Detected as not 2.7.2 or greater."));
             webkit_authentication_request_authenticate(request, nullptr);
