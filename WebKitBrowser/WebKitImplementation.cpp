@@ -3653,7 +3653,7 @@ static GSourceFuncs _handlerIntervention =
         {
             struct ExitJob : public Core::IDispatch
             {
-                virtual void Dispatch() { exit(1); }
+                void Dispatch() override { exit(1); }
             };
 
             Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<ExitJob>::Create()));

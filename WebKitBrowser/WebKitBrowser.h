@@ -293,7 +293,7 @@ namespace Plugin {
         void event_statechange(const bool& suspended); // StateControl
 
     private:
-        uint8_t _skipURL;
+        size_t _skipURL;
         uint32_t _connectionId;
         PluginHost::IShell* _service;
         Exchange::IWebBrowser* _browser;
