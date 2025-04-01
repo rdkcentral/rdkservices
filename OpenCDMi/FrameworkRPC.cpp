@@ -346,14 +346,9 @@ namespace Plugin {
                             if (IsRunning() == true) {
                                 uint8_t *payloadBuffer = Buffer();
 
-                                CDMi::SampleInfo sampleInfo;
-                                sampleInfo.scheme = static_cast<CDMi::EncryptionScheme>(EncScheme());
-                                EncPattern(sampleInfo.pattern.encrypted_blocks,sampleInfo.pattern.clear_blocks);
-                                sampleInfo.iv = const_cast<uint8_t *>(IVKey());
-                                sampleInfo.ivLength = IVKeyLength();
-                                sampleInfo.keyId = const_cast<uint8_t *>(KeyId(sampleInfo.keyIdLength));
-                                sampleInfo.subSample = const_cast<CDMi::SubSampleInfo *>(SubSamples());
-                                sampleInfo.subSampleCount = SubSampleLength();
+                                uint16_t sampleCount = SampleLength();
+                                CDMi::SampleInfo sampleInfo[sampleCount];
+                                Samples(&sampleInfo[0], sampleCount);
 
                                 uint16_t width = 0, height = 0;
                                 uint8_t type = 0;
@@ -368,7 +363,8 @@ namespace Plugin {
                                         BytesWritten(),
                                         &clearContent,
                                         &clearContentSize,
-                                        const_cast<CDMi::SampleInfo *>(&sampleInfo),
+                                        sampleInfo,
+										sampleCount,
                                         dynamic_cast<const CDMi::IStreamProperties *>(&streamProperties));
 
                                 if ((cr == 0) && (clearContentSize != 0)) {
