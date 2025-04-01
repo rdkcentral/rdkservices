@@ -2399,8 +2399,8 @@ tvError_t AVOutputTV::ReadJsonFile(JsonObject& root) {
 
 tvError_t AVOutputTV::ExtractRangeInfo(const JsonObject& data, int* max_value, std::vector<std::string>& options) {
     if (!data.HasLabel("rangeInfo")) {
-        LOGWARN("AVOutputPlugins: %s: 'rangeInfo' missing", __FUNCTION__);
-        return tvERROR_GENERAL;
+        LOGWARN("AVOutputPlugins: %s: 'rangeInfo' not available", __FUNCTION__);
+        return tvERROR_NONE;
     }
 
     JsonObject rangeInfo = data["rangeInfo"].Object();
@@ -2567,6 +2567,10 @@ tvError_t AVOutputTV::GetPrecisionDetailCaps(int* max_precision, tvContextCaps_t
     std::vector<std::string> emptyOptions;
     return GetCaps("PrecisionDetails", max_precision, context_caps, emptyOptions);
 }
+tvError_t AVOutputTV::GetLowLatencyStateCaps(int* max_latency, tvContextCaps_t ** context_caps){
+    std::vector<std::string> emptyOptions;
+    return GetCaps("LowLatencyState", max_latency, context_caps, emptyOptions);
+}
 
 tvError_t AVOutputTV::GetColorTemperatureCaps(int* options_count, tvContextCaps_t** context_caps, std::vector<std::string>& options) {
     return GetCaps("ColorTemperature", options_count, context_caps, options);
@@ -2574,6 +2578,20 @@ tvError_t AVOutputTV::GetColorTemperatureCaps(int* options_count, tvContextCaps_
 
 tvError_t AVOutputTV::GetSdrGammaCaps(int* options_count, tvContextCaps_t** context_caps, std::vector<std::string>& options) {
     return GetCaps("SDRGamma", options_count, context_caps, options);
+}
+
+tvError_t AVOutputTV::GetTVDimmingModeCaps(int* options_count, tvContextCaps_t** context_caps, std::vector<std::string>& options) {
+    return GetCaps("DimmingMode", options_count, context_caps, options);
+}
+
+tvError_t AVOutputTV::GetAspectRatioCaps(int* options_count, tvContextCaps_t** context_caps, std::vector<std::string>& options){
+    return GetCaps("AspectRatio", options_count, context_caps, options);
+}
+
+tvError_t AVOutputTV::GetTVPictureModeCaps( tvContextCaps_t** context_caps){
+    std::vector<std::string> emptyOptions;
+    int* options_count = nullptr;
+    return GetCaps("PictureMode", options_count, context_caps, emptyOptions);
 }
 
 /*

@@ -365,9 +365,13 @@ namespace Plugin {
         registerMethod("getSaturationCapsV2", &AVOutputTV::getSaturationCapsV2, this);
         registerMethod("getHueCapsV2", &AVOutputTV::getHueCapsV2, this);
         registerMethod("getPrecisionDetailCapsV2", &AVOutputTV::getPrecisionDetailCapsV2, this);
+        registerMethod("getLowLatencyStateCapsV2", &AVOutputTV::getLowLatencyStateCapsV2, this);
         registerMethod("getColorTemperatureCapsV2", &AVOutputTV::getColorTemperatureCapsV2, this);
         registerMethod("getSdrGammaCapsV2", &AVOutputTV::getSdrGammaCapsV2, this);
+        registerMethod("getTVDimmingModeCapsV2", &AVOutputTV::getTVDimmingModeCapsV2, this);
+        registerMethod("getAspectRatioCapsV2", &AVOutputTV::getAspectRatioCapsV2, this);
         registerMethod("getDVCalibrationCapsV2", &AVOutputTV::getDVCalibrationCapsV2, this);
+        registerMethod("getTVPictureModeCapsV2", &AVOutputTV::getTVPictureModeCapsV2, this);
 
         LOGINFO("Exit\n");
     }
@@ -471,7 +475,7 @@ namespace Plugin {
     }
 
     uint32_t AVOutputTV::getCapsV2(
-        const std::function<tvError_t(int*, tvContextCaps_t**, std::vector<std::string>&)>& getCapsFunc,
+        const std::function<tvError_t( tvContextCaps_t**,int*, std::vector<std::string>&)>& getCapsFunc,
         const char* key,
         const JsonObject& parameters,
         JsonObject& response)
@@ -480,7 +484,7 @@ namespace Plugin {
         tvContextCaps_t* context_caps = nullptr;
         std::vector<std::string> options;
         // Call the HAL function
-        tvError_t result = getCapsFunc(&max_value, &context_caps, options);
+        tvError_t result = getCapsFunc( &context_caps, &max_value, options);
         LOGWARN("AVOutputPlugins: %s: result: %d", __FUNCTION__, result);
         if (result != tvERROR_NONE) {
             returnResponse(false);
@@ -493,11 +497,12 @@ namespace Plugin {
                 optionsArray.Add(option);
             }
             rangeInfo["options"] = optionsArray;
-        } else {
+            capsInfo["rangeInfo"] = rangeInfo;
+        } else if (max_value){
             rangeInfo["from"] = 0;
             rangeInfo["to"] = max_value;
+            capsInfo["rangeInfo"] = rangeInfo;
         }
-        capsInfo["rangeInfo"] = rangeInfo;
         capsInfo["platformSupport"] = true;
         capsInfo["context"] = parseContextCaps(context_caps);
         response[key] = capsInfo;
@@ -554,65 +559,92 @@ namespace Plugin {
     }
 
     uint32_t AVOutputTV::getBacklightCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](int* max_backlight, tvContextCaps_t** context_caps, std::vector<std::string>&) {
+        return getCapsV2([this]( tvContextCaps_t** context_caps, int* max_backlight, std::vector<std::string>&) {
             return this->GetBacklightCaps(max_backlight, context_caps);
         }, "Backlight", parameters, response);
     }
 
     uint32_t AVOutputTV::getBrightnessCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](int* max_brightness, tvContextCaps_t** context_caps, std::vector<std::string>& options) {
+        return getCapsV2([this]( tvContextCaps_t** context_caps, int* max_brightness, std::vector<std::string>& options) {
             return this->GetBrightnessCaps(max_brightness, context_caps);
         },
         "Brightness", parameters, response);
     }
 
     uint32_t AVOutputTV::getContrastCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](int* max_contrast, tvContextCaps_t** context_caps, std::vector<std::string>& options) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_contrast,  std::vector<std::string>& options) {
             return this->GetContrastCaps(max_contrast, context_caps);
         },
         "Contrast", parameters, response);
     }
 
     uint32_t AVOutputTV::getSharpnessCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](int* max_sharpness, tvContextCaps_t** context_caps, std::vector<std::string>& options) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_sharpness, std::vector<std::string>& options) {
             return this->GetSharpnessCaps(max_sharpness, context_caps);
         },
         "Sharpness", parameters, response);
     }
 
     uint32_t AVOutputTV::getSaturationCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](int* max_saturation, tvContextCaps_t** context_caps, std::vector<std::string>& options) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_saturation, std::vector<std::string>& options) {
             return this->GetSaturationCaps(max_saturation, context_caps);
         },
         "Saturation", parameters, response);
     }
 
     uint32_t AVOutputTV::getHueCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](int* max_hue, tvContextCaps_t** context_caps, std::vector<std::string>& options) {
+        return getCapsV2([this]( tvContextCaps_t** context_caps, int* max_hue, std::vector<std::string>& options) {
             return this->GetHueCaps(max_hue, context_caps);
         },
         "Hue", parameters, response);
     }
 
     uint32_t AVOutputTV::getPrecisionDetailCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](int* max_precision, tvContextCaps_t** context_caps, std::vector<std::string>& options) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_precision, std::vector<std::string>& options) {
             return this->GetPrecisionDetailCaps(max_precision, context_caps);
         },
         "PrecisionDetails", parameters, response);
     }
 
+    uint32_t AVOutputTV::getLowLatencyStateCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_latency,  std::vector<std::string>& options) {
+            return this->GetLowLatencyStateCaps(max_latency, context_caps);
+        },
+        "LowLatencyState", parameters, response);
+    }
+
     uint32_t AVOutputTV::getColorTemperatureCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](int* options_count, tvContextCaps_t** context_caps, std::vector<std::string>& options) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* options_count, std::vector<std::string>& options) {
             return this->GetColorTemperatureCaps(options_count, context_caps, options);
         },
         "ColorTemperature", parameters, response);
     }
 
     uint32_t AVOutputTV::getSdrGammaCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](int* options_count, tvContextCaps_t** context_caps, std::vector<std::string>& options) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* options_count, std::vector<std::string>& options) {
             return this->GetSdrGammaCaps(options_count, context_caps, options);
         },
         "SDRGamma", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getTVDimmingModeCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* options_count, std::vector<std::string>& options) {
+            return this->GetTVDimmingModeCaps(options_count, context_caps, options);
+        },
+        "DimmingMode", parameters, response);
+    }
+    uint32_t AVOutputTV::getAspectRatioCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* options_count, std::vector<std::string>& options) {
+            return this->GetAspectRatioCaps(options_count, context_caps, options);
+        },
+        "AspectRatio", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getTVPictureModeCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* options_count, std::vector<std::string>& options) {
+            return this->GetTVPictureModeCaps(context_caps);
+        },
+        "PictureMode", parameters, response);
     }
 
     uint32_t AVOutputTV::getDVCalibrationCapsV2(const JsonObject& parameters, JsonObject& response) {
