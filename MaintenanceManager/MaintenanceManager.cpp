@@ -63,7 +63,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 42
+#define API_VERSION_NUMBER_PATCH 44
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 #define PROC_DIR "/proc"
@@ -639,7 +639,7 @@ namespace WPEFramework
                     }
                     else
                     {
-                        LOGINFO("%s is not active. Device is already Activated. Hence exiting from knoWhoAmI()", secMgr_callsign);
+                        LOGINFO("%s is not active. Device is already Activated. Hence exiting from knowWhoAmI()", secMgr_callsign);
                         return success;
                     }
                 }
@@ -2251,15 +2251,14 @@ namespace WPEFramework
             bool task_status[3] = {false};
             bool result = false;
 
-            LOGINFO("Stopping maintenance activities");
             /* run only when the maintenance status is MAINTENANCE_STARTED */
             m_statusMutex.lock();
             if (MAINTENANCE_STARTED == m_notify_status)
             {
-
+                LOGINFO("Stopping maintenance activities");
                 // Set the condition flag m_abort_flag to true
                 m_abort_flag = true;
-
+                
                 auto task_status_RFC = m_task_map.find(task_names_foreground[0].c_str());
                 auto task_status_FWDLD = m_task_map.find(task_names_foreground[1].c_str());
                 auto task_status_LOGUPLD = m_task_map.find(task_names_foreground[2].c_str());
@@ -2292,36 +2291,32 @@ namespace WPEFramework
                     }
                 }
                 result = true;
+                if(task_stopTimer())
+                {
+                    LOGINFO("Stopped Timer Successfully..");
+                }
+                else
+                {
+                    LOGERR("task_stopTimer() did not stop the Timer...");
+                }
+                task_thread.notify_one();
+                if (m_thread.joinable())
+                {
+                    m_thread.join();
+                    LOGINFO("Thread joined successfully");
+                }
+                LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR");
+                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
             }
             else
             {
                 LOGERR("Failed to stopMaintenance without starting maintenance");
             }
-            if (task_stopTimer())
-            {
-                LOGINFO("Stopped Timer Successfully..");
-            }
-            else
-            {
-                LOGERR("task_stopTimer() did not stop the Timer...");
-            }
-            task_thread.notify_one();
-
-            if (m_thread.joinable())
-            {
-                m_thread.join();
-                LOGINFO("Thread joined successfully");
-            }
-
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete)
             {
                 g_unsolicited_complete = true;
             }
-
-            LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR");
-            MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
             m_statusMutex.unlock();
-
             return result;
         }
 
