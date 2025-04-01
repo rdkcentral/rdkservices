@@ -2705,6 +2705,11 @@ static GSourceFuncs _handlerIntervention =
             }
             browser->OnLoadFailed(failingURI);
         }
+        static bool authenticationCallback(WebKitWebView*, WebKitAuthenticationRequest* request)
+        {
+            webkit_authentication_request_authenticate(request, nullptr);
+            return TRUE;
+        }
         static void postExitJob()
         {
             struct ExitJob : public Core::IDispatch
@@ -3080,6 +3085,7 @@ static GSourceFuncs _handlerIntervention =
             g_signal_connect(_view, "user-message-received", reinterpret_cast<GCallback>(userMessageReceivedCallback), this);
             g_signal_connect(_view, "notify::is-web-process-responsive", reinterpret_cast<GCallback>(isWebProcessResponsiveCallback), this);
             g_signal_connect(_view, "load-failed", reinterpret_cast<GCallback>(loadFailedCallback), this);
+            g_signal_connect(_view, "authenticate", reinterpret_cast<GCallback>(authenticationCallback), nullptr);
 
             _configurationCompleted.SetState(true);
 
