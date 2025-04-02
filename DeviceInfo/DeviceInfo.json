@@ -488,6 +488,28 @@
         }
       ]
     },
+    "chipset": {
+      "summary": "Chipset used for this device",
+      "readonly": true,
+      "params": {
+        "type": "object",
+        "properties": {
+          "chipset": {
+            "type": "string",
+            "example": "T962X3"
+          }
+        },
+        "required": [
+          "chipset"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
     "modelid": {
       "summary": "Device model number or SKU",
       "readonly": true,
