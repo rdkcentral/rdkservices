@@ -143,6 +143,7 @@ jobs:
           patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-DELIA-66976-SystemAudioPlayer-interface.patch 
           patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0002-DELIA-66976-specially-for-comcast-bring-back-the-old.patch
           patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/DeviceInfo_brand.patch
+          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/RDKTV-35484-DeviceIdentification.patch
           cd ..
 
       - name: Build ThunderInterfaces
@@ -274,7 +275,6 @@ jobs:
           -DPLUGIN_LOCATIONSYNC=ON
           -DPLUGIN_TIMER=ON
           -DPLUGIN_SECURITYAGENT=ON
-          -DPLUGIN_DEVICEIDENTIFICATION=ON
           -DPLUGIN_FRAMERATE=ON
           -DPLUGIN_AVINPUT=ON
           -DPLUGIN_TELEMETRY=ON

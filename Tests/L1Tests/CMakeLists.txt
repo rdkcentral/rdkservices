@@ -62,7 +62,6 @@ set_source_files_properties(
 
 include_directories(../../LocationSync
         ../../SecurityAgent
-        ../../DeviceIdentification
         ../../DeviceDiagnostics
         ../../FrameRate
         ../../AVInput
@@ -106,7 +105,6 @@ include_directories(../../LocationSync
         )
 link_directories(../../LocationSync
         ../../SecurityAgent
-        ../../DeviceIdentification
         ../../DeviceDiagnostics
         ../../FrameRate
         ../../AVInput
@@ -151,7 +149,6 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}DeviceDiagnostics
         ${NAMESPACE}LocationSync
         ${NAMESPACE}SecurityAgent
-        ${NAMESPACE}DeviceIdentification
         ${NAMESPACE}FrameRate
         ${NAMESPACE}AVInput
         ${NAMESPACE}ScreenCapture
