@@ -139,7 +139,7 @@ namespace WPEFramework {
 				LOGERR("getApplicationToken Error \n");
 			}
 			appToken.Add(JsonValue(token));
-			response["application_token"]=appToken;
+			//response["application_token"]=appToken;
 			returnResponse(ret);
 		}
 
