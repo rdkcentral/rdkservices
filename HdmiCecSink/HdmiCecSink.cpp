@@ -78,7 +78,7 @@
 #define HDMICECSINK_NUMBER_TV_ADDR 					2
 #define HDMICECSINK_UPDATE_POWER_STATUS_INTERVA_MS    (60 * 1000)
 #define HDMISINK_ARC_START_STOP_MAX_WAIT_MS           4000
-#define HDMICECSINK_UPDATE_AUDIO_STATUS_INTERVAL_MS    500
+#define HDMICECSINK_UPDATE_AUDIO_STATUS_INTERVAL_MS    2000
 
 
 #define SAD_FMT_CODE_AC3 2
@@ -1417,6 +1417,13 @@ namespace WPEFramework
              return;
             if(!(_instance->smConnection))
                 return;
+	    if (_instance->m_audioStatusDetectionTimer.isActive())
+	    {
+		    LOGINFO("Stopping the Audio Status Timer!\n");
+		    _instance->m_audioStatusDetectionTimer.stop();
+		    _instance->m_audioStatusTimerStarted = false;
+		    LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ",_instance->m_isAudioStatusInfoUpdated,_instance->m_audioStatusReceived,_instance->m_audioStatusTimerStarted);
+	    }
              LOGINFO(" Send GiveAudioStatus ");
 	      _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(GiveAudioStatus()), 100);
 
@@ -3546,13 +3553,13 @@ namespace WPEFramework
 
 		    if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && ((keyInfo.keyCode == VOLUME_UP) || (keyInfo.keyCode == VOLUME_DOWN) || (keyInfo.keyCode == MUTE)) )
 		    {
+			LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ",_instance->m_isAudioStatusInfoUpdated,_instance->m_audioStatusReceived,_instance->m_audioStatusTimerStarted);
 		        if(keyInfo.keyCode == MUTE)
 			{
 				_instance->sendGiveAudioStatusMsg();
 			}
 			else
 			{
-				LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ",_instance->m_isAudioStatusInfoUpdated,_instance->m_audioStatusReceived,_instance->m_audioStatusTimerStarted);
 				if (!_instance->m_isAudioStatusInfoUpdated)
 				{
 					if ( !(_instance->m_audioStatusDetectionTimer.isActive()))
