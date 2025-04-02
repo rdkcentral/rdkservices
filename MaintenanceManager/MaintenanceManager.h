@@ -39,6 +39,46 @@
 #include "rfcapi.h"
 #include "cSettings.h"
 
+/* ---- LOGGING ---- */
+#ifdef ENABLE_JOURNAL_LOGGING
+#include <systemd/sd-journal.h>
+#define JOURNAL_IDENTIFIER "MaintenanceManager"
+#define MM_FILE_NAME "MaintenanceManager.cpp"
+
+#define MM_LOG(priority, priority_str, format, ...)                                 \
+    sd_journal_send("MESSAGE=%s [%s:%d] %s: " format,                               \
+                    priority_str, MM_FILE_NAME, __LINE__, __func__, ##__VA_ARGS__,  \
+                    "PRIORITY=%i", priority,                                        \
+                    "SYSLOG_IDENTIFIER=%s", JOURNAL_IDENTIFIER,                     \
+                    NULL)
+
+#define MM_LOGINFO(format, ...) MM_LOG(LOG_INFO, "INFO", format, ##__VA_ARGS__)
+#define MM_LOGWARN(format, ...) MM_LOG(LOG_WARNING, "WARN", format, ##__VA_ARGS__)
+#define MM_LOGERR(format, ...)  MM_LOG(LOG_ERR, "ERROR", format, ##__VA_ARGS__)
+
+/* sendNotify() */
+#define MM_SEND_NOTIFY(event, params)                \
+{                                                    \
+    std::string json;                                \
+    params.ToString(json);                           \
+    MM_LOGINFO("Notify %s %s", event, json.c_str()); \
+}
+
+/* returnResponse() */
+#define MM_RETURN_RESPONSE(expr)                     \
+{                                                    \
+    bool s_Bool = expr;                              \
+    response["success"] = s_Bool;                    \
+    std::string json;                                \
+    response.ToString(json);                         \
+    MM_LOGINFO("response=%s", json.c_str());         \
+}
+#else /* else of ENABLE_JOURNAL_LOGGING */
+#define MM_LOGINFO(format, ...) LOGINFO(format, ##__VA_ARGS__)
+#define MM_LOGWARN(format, ...) LOGWARN(format, ##__VA_ARGS__)
+#define MM_LOGERR(format, ...)  LOGERR(format, ##__VA_ARGS__)
+#endif /* end of ENABLE_JOURNAL_LOGGING */
+
 /* MaintenanceManager Services Triggered Events. */
 #define EVT_ONMAINTMGRSAMPLEEVENT           "onSampleEvent"
 #define EVT_ONMAINTENANCSTATUSCHANGE        "onMaintenanceStatusChange" /* Maintenance Status change */
