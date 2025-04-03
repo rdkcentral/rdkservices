@@ -407,10 +407,10 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t GetHueCaps(int* max_hue, tvContextCaps_t** context_caps);
 		tvError_t GetPrecisionDetailCaps(int* max_precision, tvContextCaps_t** context_caps);
 		tvError_t GetLowLatencyStateCaps(int* max_latency, tvContextCaps_t ** context_caps);
-		tvError_t GetColorTemperatureCaps(int* options_count, tvContextCaps_t** context_caps, std::vector<std::string>& options);
-		tvError_t GetSdrGammaCaps(int* options_count, tvContextCaps_t** context_caps, std::vector<std::string>& options);
-		tvError_t GetTVDimmingModeCaps(int* options_count, tvContextCaps_t** context_caps, std::vector<std::string>& options);
-		tvError_t GetAspectRatioCaps(int* options_count, tvContextCaps_t** context_caps, std::vector<std::string>& options);
+		tvError_t GetColorTemperatureCaps(tvColorTemp_t** color_temp, size_t* num_color_temp, tvContextCaps_t** context_caps);
+		tvError_t GetSdrGammaCaps(tvSdrGamma_t** sdr_gamma, size_t* num_sdr_gamma, tvContextCaps_t** context_caps);
+		tvError_t GetTVDimmingModeCaps(tvDimmingMode_t** dimming_mode, size_t* num_dimming_mode, tvContextCaps_t** context_caps);
+		tvError_t GetAspectRatioCaps(tvAspectRatio_t** aspect_ratio, size_t* num_aspect_ratio, tvContextCaps_t** context_caps);
 		tvError_t GetDVCalibrationCaps(tvDVCalibrationSettings_t **min_values, tvDVCalibrationSettings_t **max_values, tvContextCaps_t **context_caps);
 		tvError_t GetTVPictureModeCaps( tvContextCaps_t** context_caps);
 		uint32_t getCapsV2(

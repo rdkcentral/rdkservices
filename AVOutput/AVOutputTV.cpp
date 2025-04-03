@@ -614,30 +614,142 @@ namespace Plugin {
     }
 
     uint32_t AVOutputTV::getColorTemperatureCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* options_count, std::vector<std::string>& options) {
-            return this->GetColorTemperatureCaps(options_count, context_caps, options);
-        },
-        "ColorTemperature", parameters, response);
+        tvColorTemp_t* color_temp = nullptr;
+        size_t num_color_temp = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t err = GetColorTemperatureCaps(&color_temp, &num_color_temp, &context_caps);
+        if (err != tvERROR_NONE) {
+            return err;
+        }
+
+        JsonObject colorTempJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+        for (size_t i = 0; i < num_color_temp; ++i) {
+            switch (color_temp[i]) {
+                case tvColorTemp_STANDARD: optionsArray.Add("Standard"); break;
+                case tvColorTemp_WARM: optionsArray.Add("Warm"); break;
+                case tvColorTemp_COLD: optionsArray.Add("Cold"); break;
+                case tvColorTemp_USER: optionsArray.Add("UserDefined"); break;
+                case tvColorTemp_SUPERCOLD: optionsArray.Add("Supercold"); break;
+                case tvColorTemp_BOOST_STANDARD: optionsArray.Add("BoostStandard"); break;
+                case tvColorTemp_BOOST_WARM: optionsArray.Add("BoostWarm"); break;
+                case tvColorTemp_BOOST_COLD: optionsArray.Add("BoostCold"); break;
+                case tvColorTemp_BOOST_USER: optionsArray.Add("BoostUserDefined"); break;
+                case tvColorTemp_BOOST_SUPERCOLD: optionsArray.Add("BoostSupercold"); break;
+                default: break;
+            }
+        }
+        rangeInfo["options"] = optionsArray;
+        colorTempJson["rangeInfo"] = rangeInfo;
+        colorTempJson["platformSupport"] = true;
+        colorTempJson["context"] = parseContextCaps(context_caps);
+        response["ColorTemperature"] = colorTempJson;
+
+        free(color_temp); //revisit
+        returnResponse(true);
     }
 
     uint32_t AVOutputTV::getSdrGammaCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* options_count, std::vector<std::string>& options) {
-            return this->GetSdrGammaCaps(options_count, context_caps, options);
-        },
-        "SDRGamma", parameters, response);
+        tvSdrGamma_t* sdr_gamma = nullptr;
+        size_t num_sdr_gamma = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t err = GetSdrGammaCaps(&sdr_gamma, &num_sdr_gamma, &context_caps);
+        if (err != tvERROR_NONE) {
+            return err;
+        }
+
+        JsonObject sdrGammaJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+        for (size_t i = 0; i < num_sdr_gamma; ++i) {
+            switch (sdr_gamma[i]) {
+                case tvSdrGamma_1_8: optionsArray.Add("1.8"); break;
+                case tvSdrGamma_1_9: optionsArray.Add("1.9"); break;
+                case tvSdrGamma_2_0: optionsArray.Add("2.0"); break;
+                case tvSdrGamma_2_1: optionsArray.Add("2.1"); break;
+                case tvSdrGamma_2_2: optionsArray.Add("2.2"); break;
+                case tvSdrGamma_2_3: optionsArray.Add("2.3"); break;
+                case tvSdrGamma_2_4: optionsArray.Add("2.4"); break;
+                case tvSdrGamma_BT_1886: optionsArray.Add("BT.1886"); break;
+                default: break;
+            }
+        }
+        rangeInfo["options"] = optionsArray;
+        sdrGammaJson["rangeInfo"] = rangeInfo;
+        sdrGammaJson["platformSupport"] = true;
+        sdrGammaJson["context"] = parseContextCaps(context_caps);
+        response["SDRGamma"] = sdrGammaJson;
+
+        free(sdr_gamma);
+        returnResponse(true);
     }
 
     uint32_t AVOutputTV::getTVDimmingModeCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* options_count, std::vector<std::string>& options) {
-            return this->GetTVDimmingModeCaps(options_count, context_caps, options);
-        },
-        "DimmingMode", parameters, response);
+        tvDimmingMode_t* dimming_mode = nullptr;
+        size_t num_dimming_mode = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t err = GetTVDimmingModeCaps(&dimming_mode, &num_dimming_mode, &context_caps);
+        if (err != tvERROR_NONE) {
+            return err;
+        }
+
+        JsonObject dimmingModeJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+        for (size_t i = 0; i < num_dimming_mode; ++i) {
+            switch (dimming_mode[i]) {
+                case tvDimmingMode_Fixed: optionsArray.Add("Fixed"); break;
+                case tvDimmingMode_Local: optionsArray.Add("Local"); break;
+                case tvDimmingMode_Global: optionsArray.Add("Global"); break;
+                default: break;
+            }
+        }
+        rangeInfo["options"] = optionsArray;
+        dimmingModeJson["rangeInfo"] = rangeInfo;
+        dimmingModeJson["platformSupport"] = true;
+        dimmingModeJson["context"] = parseContextCaps(context_caps);
+        response["DimmingMode"] = dimmingModeJson;
+
+        free(dimming_mode);
+        returnResponse(true);
     }
+
     uint32_t AVOutputTV::getAspectRatioCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* options_count, std::vector<std::string>& options) {
-            return this->GetAspectRatioCaps(options_count, context_caps, options);
-        },
-        "AspectRatio", parameters, response);
+        tvAspectRatio_t* aspect_ratio = nullptr;
+        size_t num_aspect_ratio = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t err = GetAspectRatioCaps(&aspect_ratio, &num_aspect_ratio, &context_caps);
+        if (err != tvERROR_NONE) {
+            return err;
+        }
+
+        JsonObject aspectRatioJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+        for (size_t i = 0; i < num_aspect_ratio; ++i) {
+            switch (aspect_ratio[i]) {
+                case tvAspectRatio_Auto: optionsArray.Add("TV AUTO"); break;
+                case tvAspectRatio_Direct: optionsArray.Add("TV DIRECT"); break;
+                case tvAspectRatio_Normal: optionsArray.Add("TV NORMAL"); break;
+                case tvAspectRatio_16X9_Stretch: optionsArray.Add("TV 16X9 STRETCH"); break;
+                case tvAspectRatio_4X3_Pillarbox: optionsArray.Add("TV 4X3 PILLARBOX"); break;
+                case tvAspectRatio_Zoom: optionsArray.Add("TV ZOOM"); break;
+                default: break;
+            }
+        }
+        rangeInfo["options"] = optionsArray;
+        aspectRatioJson["rangeInfo"] = rangeInfo;
+        aspectRatioJson["platformSupport"] = true;
+        aspectRatioJson["context"] = parseContextCaps(context_caps);
+        response["AspectRatio"] = aspectRatioJson;
+
+        free(aspect_ratio);
+        returnResponse(true);
     }
 
     uint32_t AVOutputTV::getTVPictureModeCapsV2(const JsonObject& parameters, JsonObject& response) {

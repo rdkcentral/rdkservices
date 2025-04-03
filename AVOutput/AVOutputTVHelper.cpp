@@ -2572,20 +2572,193 @@ tvError_t AVOutputTV::GetLowLatencyStateCaps(int* max_latency, tvContextCaps_t *
     return GetCaps("LowLatencyState", max_latency, context_caps, emptyOptions);
 }
 
-tvError_t AVOutputTV::GetColorTemperatureCaps(int* options_count, tvContextCaps_t** context_caps, std::vector<std::string>& options) {
-    return GetCaps("ColorTemperature", options_count, context_caps, options);
+tvError_t AVOutputTV::GetColorTemperatureCaps(tvColorTemp_t** color_temp, size_t* num_color_temp, tvContextCaps_t** context_caps) {
+    LOGINFO("Entry\n");
+    JsonObject root;
+    if (ReadJsonFile(root) != tvERROR_NONE) {
+        return tvERROR_GENERAL;
+    }
+
+    std::string key = "ColorTemperature";
+    if (!root.HasLabel(key.c_str())) {
+        LOGWARN("AVOutputPlugins: %s: Missing '%s' label", __FUNCTION__, key.c_str());
+        return tvERROR_GENERAL;
+    }
+
+    JsonObject data = root[key.c_str()].Object();
+    if (!data.HasLabel("platformSupport") || !data["platformSupport"].Boolean()) {
+        LOGWARN("AVOutputPlugins: %s: Platform support is false", __FUNCTION__);
+        return tvERROR_OPERATION_NOT_SUPPORTED;
+    }
+
+    JsonObject rangeInfo = data["rangeInfo"].Object();
+    JsonArray optionsArray = rangeInfo["options"].Array();
+
+    *num_color_temp = optionsArray.Length();
+    *color_temp = static_cast<tvColorTemp_t*>(malloc(*num_color_temp * sizeof(tvColorTemp_t)));
+    if (!(*color_temp)) {
+        return tvERROR_GENERAL;
+    }
+
+    for (size_t i = 0; i < *num_color_temp; ++i) {
+        std::string tempStr = optionsArray[i].String();
+        if (tempStr == "Standard") (*color_temp)[i] = tvColorTemp_STANDARD;
+        else if (tempStr == "Warm") (*color_temp)[i] = tvColorTemp_WARM;
+        else if (tempStr == "Cold") (*color_temp)[i] = tvColorTemp_COLD;
+        else if (tempStr == "UserDefined") (*color_temp)[i] = tvColorTemp_USER;
+        else if (tempStr == "Supercold") (*color_temp)[i] = tvColorTemp_SUPERCOLD;
+        else if (tempStr == "BoostStandard") (*color_temp)[i] = tvColorTemp_BOOST_STANDARD;
+        else if (tempStr == "BoostWarm") (*color_temp)[i] = tvColorTemp_BOOST_WARM;
+        else if (tempStr == "BoostCold") (*color_temp)[i] = tvColorTemp_BOOST_COLD;
+        else if (tempStr == "BoostUserDefined") (*color_temp)[i] = tvColorTemp_BOOST_USER;
+        else if (tempStr == "BoostSupercold") (*color_temp)[i] = tvColorTemp_BOOST_SUPERCOLD;
+        else (*color_temp)[i] = tvColorTemp_STANDARD;
+    }
+
+    if (ExtractContextCaps(data, context_caps) != tvERROR_NONE) {
+        free(*color_temp);
+        return tvERROR_GENERAL;
+    }
+
+    return tvERROR_NONE;
 }
 
-tvError_t AVOutputTV::GetSdrGammaCaps(int* options_count, tvContextCaps_t** context_caps, std::vector<std::string>& options) {
-    return GetCaps("SDRGamma", options_count, context_caps, options);
+
+tvError_t AVOutputTV::GetSdrGammaCaps(tvSdrGamma_t** sdr_gamma, size_t* num_sdr_gamma, tvContextCaps_t** context_caps) {
+    LOGINFO("Entry\n");
+    JsonObject root;
+    if (ReadJsonFile(root) != tvERROR_NONE) {
+        return tvERROR_GENERAL;
+    }
+
+    std::string key = "SDRGamma";
+    if (!root.HasLabel(key.c_str())) {
+        LOGWARN("AVOutputPlugins: %s: Missing '%s' label", __FUNCTION__, key.c_str());
+        return tvERROR_GENERAL;
+    }
+
+    JsonObject data = root[key.c_str()].Object();
+    if (!data.HasLabel("platformSupport") || !data["platformSupport"].Boolean()) {
+        LOGWARN("AVOutputPlugins: %s: Platform support is false", __FUNCTION__);
+        return tvERROR_OPERATION_NOT_SUPPORTED;
+    }
+
+    JsonObject rangeInfo = data["rangeInfo"].Object();
+    JsonArray optionsArray = rangeInfo["options"].Array();
+
+    *num_sdr_gamma = optionsArray.Length();
+    *sdr_gamma = static_cast<tvSdrGamma_t*>(malloc(*num_sdr_gamma * sizeof(tvSdrGamma_t)));
+    if (!(*sdr_gamma)) {
+        return tvERROR_GENERAL;
+    }
+
+    for (size_t i = 0; i < *num_sdr_gamma; ++i) {
+        std::string gammaStr = optionsArray[i].String();
+        if (gammaStr == "1.8") (*sdr_gamma)[i] = tvSdrGamma_1_8;
+        else if (gammaStr == "1.9") (*sdr_gamma)[i] = tvSdrGamma_1_9;
+        else if (gammaStr == "2.0") (*sdr_gamma)[i] = tvSdrGamma_2_0;
+        else if (gammaStr == "2.1") (*sdr_gamma)[i] = tvSdrGamma_2_1;
+        else if (gammaStr == "2.2") (*sdr_gamma)[i] = tvSdrGamma_2_2;
+        else if (gammaStr == "2.3") (*sdr_gamma)[i] = tvSdrGamma_2_3;
+        else if (gammaStr == "2.4") (*sdr_gamma)[i] = tvSdrGamma_2_4;
+        else if (gammaStr == "BT.1886") (*sdr_gamma)[i] = tvSdrGamma_BT_1886;
+        else (*sdr_gamma)[i] = tvSdrGamma_INVALID;
+    }
+
+    if (ExtractContextCaps(data, context_caps) != tvERROR_NONE) {
+        free(*sdr_gamma);
+        return tvERROR_GENERAL;
+    }
+
+    return tvERROR_NONE;
+}
+tvError_t AVOutputTV::GetTVDimmingModeCaps(tvDimmingMode_t** dimming_mode, size_t* num_dimming_mode, tvContextCaps_t** context_caps){
+    LOGINFO("Entry\n");
+    JsonObject root;
+    if (ReadJsonFile(root) != tvERROR_NONE) {
+        return tvERROR_GENERAL;
+    }
+    std::string key = "DimmingMode";
+    if (!root.HasLabel(key.c_str())) {
+        LOGWARN("AVOutputPlugins: %s: Missing '%s' label", __FUNCTION__, key.c_str());
+        return tvERROR_GENERAL;
+    }
+    JsonObject data = root[key.c_str()].Object();
+    if (!data.HasLabel("platformSupport") || !data["platformSupport"].Boolean()) {
+        LOGWARN("AVOutputPlugins: %s: Platform support is false", __FUNCTION__);
+        return tvERROR_OPERATION_NOT_SUPPORTED;
+    }
+
+    JsonObject rangeInfo = data["rangeInfo"].Object();
+    JsonArray optionsArray = rangeInfo["options"].Array();
+    *num_dimming_mode = optionsArray.Length();
+    *dimming_mode = static_cast<tvDimmingMode_t*>(malloc(*num_dimming_mode * sizeof(tvDimmingMode_t)));
+    if (!(*dimming_mode)) {
+        return tvERROR_GENERAL;
+    }
+
+    for (size_t i = 0; i < *num_dimming_mode; ++i) {
+        std::string modeStr = optionsArray[i].String();
+        if (modeStr == "Fixed") (*dimming_mode)[i] = tvDimmingMode_Fixed;
+        else if (modeStr == "Local") (*dimming_mode)[i] = tvDimmingMode_Local;
+        else if (modeStr == "Global") (*dimming_mode)[i] = tvDimmingMode_Global;
+        else (*dimming_mode)[i] = tvDimmingMode_MAX;
+    }
+
+    if (ExtractContextCaps(data, context_caps) != tvERROR_NONE) {
+        free(*dimming_mode);
+        return tvERROR_GENERAL;
+    }
+
+    return tvERROR_NONE;
+
 }
 
-tvError_t AVOutputTV::GetTVDimmingModeCaps(int* options_count, tvContextCaps_t** context_caps, std::vector<std::string>& options) {
-    return GetCaps("DimmingMode", options_count, context_caps, options);
-}
+tvError_t AVOutputTV::GetAspectRatioCaps(tvAspectRatio_t** aspect_ratio, size_t* num_aspect_ratio, tvContextCaps_t** context_caps) {
+    LOGINFO("Entry\n");
+    JsonObject root;
+    if (ReadJsonFile(root) != tvERROR_NONE) {
+        return tvERROR_GENERAL;
+    }
 
-tvError_t AVOutputTV::GetAspectRatioCaps(int* options_count, tvContextCaps_t** context_caps, std::vector<std::string>& options){
-    return GetCaps("AspectRatio", options_count, context_caps, options);
+    std::string key = "AspectRatio";
+    if (!root.HasLabel(key.c_str())) {
+        LOGWARN("AVOutputPlugins: %s: Missing '%s' label", __FUNCTION__, key.c_str());
+        return tvERROR_GENERAL;
+    }
+
+    JsonObject data = root[key.c_str()].Object();
+    if (!data.HasLabel("platformSupport") || !data["platformSupport"].Boolean()) {
+        LOGWARN("AVOutputPlugins: %s: Platform support is false", __FUNCTION__);
+        return tvERROR_OPERATION_NOT_SUPPORTED;
+    }
+
+    JsonObject rangeInfo = data["rangeInfo"].Object();
+    JsonArray optionsArray = rangeInfo["options"].Array();
+
+    *num_aspect_ratio = optionsArray.Length();
+    *aspect_ratio = static_cast<tvAspectRatio_t*>(malloc(*num_aspect_ratio * sizeof(tvAspectRatio_t)));
+    if (!(*aspect_ratio)) {
+        return tvERROR_GENERAL;
+    }
+
+    for (size_t i = 0; i < *num_aspect_ratio; ++i) {
+        std::string aspectStr = optionsArray[i].String();
+        if (aspectStr == "TV AUTO") (*aspect_ratio)[i] = tvAspectRatio_Auto;
+        else if (aspectStr == "TV DIRECT") (*aspect_ratio)[i] = tvAspectRatio_Direct;
+        else if (aspectStr == "TV NORMAL") (*aspect_ratio)[i] = tvAspectRatio_Normal;
+        else if (aspectStr == "TV 16X9 STRETCH") (*aspect_ratio)[i] = tvAspectRatio_16X9_Stretch;
+        else if (aspectStr == "TV 4X3 PILLARBOX") (*aspect_ratio)[i] = tvAspectRatio_4X3_Pillarbox;
+        else if (aspectStr == "TV ZOOM") (*aspect_ratio)[i] = tvAspectRatio_Zoom;
+        else (*aspect_ratio)[i] = tvAspectRatio_MAX;
+    }
+
+    if (ExtractContextCaps(data, context_caps) != tvERROR_NONE) {
+        free(*aspect_ratio);
+        return tvERROR_GENERAL;
+    }
+
+    return tvERROR_NONE;
 }
 
 tvError_t AVOutputTV::GetTVPictureModeCaps( tvContextCaps_t** context_caps){
