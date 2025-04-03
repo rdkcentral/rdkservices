@@ -88,6 +88,8 @@ set(PLUGIN_WEBKITBROWSER_THUNDER_DECRYPTOR_PREFERENCE "true" CACHE STRING "Enabl
 set(PLUGIN_WEBKITBROWSER_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
 set(PLUGIN_WEBKITBROWSER_PTSOFFSET "0" CACHE STRING "Set ptsoffset for webkit")
 set(PLUGIN_WEBKITBROWSER_USE_EXACT_PATHS "false" CACHE STRING "Use paths specified in configuration options without further modifying them") 
+set(PLUGIN_WEBKITBROWSER_GST_QUIRKS "" CACHE STRING "A list of GStreamer quirks to be used by the browser")
+set(PLUGIN_WEBKITBROWSER_GST_HOLE_PUNCH_QUIRK "" CACHE STRING "GStreamer hole punch quirk to be used by the browser")
 
 set(PLUGIN_YOUTUBE_AUTOSTART "false" CACHE STRING "Automatically start Youtube plugin")
 set(PLUGIN_YOUTUBE_STARTUPORDER "" CACHE STRING "To configure startup order of YouTube plugin")
