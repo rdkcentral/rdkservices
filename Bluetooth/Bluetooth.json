@@ -395,13 +395,21 @@
                                 },
                                 "activeState":{
                                     "$ref": "#/definitions/activeState"
+                                },
+                                "rawDeviceType": {
+                                    "$ref": "#/definitions/rawDeviceType"
+                                },
+                                "rawBleDeviceType": {
+                                    "$ref": "#/definitions/rawBleDeviceType"
                                 }
                             },
                             "required": [
                                 "deviceID",
                                 "name",
                                 "deviceType",
-                                "activeState"
+                                "activeState",
+                                "rawDeviceType",
+                                "rawBleDeviceType"
                             ]
                         }
                     },
@@ -515,6 +523,12 @@
                                 },
                                 "paired":{
                                     "$ref": "#/definitions/paired"
+                                }, 
+                                "rawDeviceType": {
+                                    "$ref": "#/definitions/rawDeviceType"
+                                },
+                                "rawBleDeviceType": {
+                                    "$ref": "#/definitions/rawBleDeviceType"
                                 }
                             },
                             "required": [
@@ -522,7 +536,9 @@
                                 "name",
                                 "deviceType",
                                 "connected",
-                                "paired"
+                                "paired",
+                                "rawDeviceType",
+                                "rawBleDeviceType"
                             ]
                         }
                     },
@@ -580,13 +596,21 @@
                                     "summary": "Whether the device is connected",
                                     "type": "boolean",
                                     "example": "true"
+                                }, 
+                                "rawDeviceType": {
+                                    "$ref": "#/definitions/rawDeviceType"
+                                },
+                                "rawBleDeviceType": {
+                                    "$ref": "#/definitions/rawBleDeviceType"
                                 }
                             },
                             "required": [
                                 "deviceID",
                                 "name",
                                 "deviceType",
-                                "connected"
+                                "connected",
+                                "rawDeviceType",
+                                "rawBleDeviceType"
                             ]
                         }
                     },

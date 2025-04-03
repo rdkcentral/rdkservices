@@ -15,9 +15,39 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
-## [1.0.6] - 2023-11-13
+
+## [1.0.13] - 2025-03-19
+### Added
+- Added unsupport event for the pair/connect request
+
+## [1.0.12] - 2024-09-26
+### Added
+- Make sure connect response is sent on a connect request
+
+## [1.0.11] - 2024-05-25
+### Added
+- Make plugin autostart configurable from recipe
+
+## [1.0.10] - 2024-03-29
+### Added
+- Device class and appearance to all "get Devices" functions
+- Connect call when JOYSTICK specified should not start streaming out
+
+## [1.0.9] - 2024-03-29
+### Security
+- Resolved security vulnerabilities
+
+## [1.0.8] - 2024-01-26
+## Added
+- view all audio and HID devices by default when doing a scan
+
+## [1.0.7] - 2024-01-22
 ### Added
 - add appearance value in discovered devices to be able to distinguish different types of device
+
+## [1.0.6] - 2024-01-02
+### Security
+- resolved security vulnerabilities
 
 ## [1.0.5] - 2023-11-21
 ### Added

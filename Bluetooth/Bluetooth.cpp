@@ -40,7 +40,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 6
+#define API_VERSION_NUMBER_PATCH 12
 
 const string WPEFramework::Plugin::Bluetooth::SERVICE_NAME = "org.rdk.Bluetooth";
 const string WPEFramework::Plugin::Bluetooth::METHOD_START_SCAN = "startScan";
@@ -106,6 +106,7 @@ const string WPEFramework::Plugin::Bluetooth::STATUS_DISCOVERY_STARTED = "DISCOV
 const string WPEFramework::Plugin::Bluetooth::STATUS_DISCOVERY_COMPLETED = "DISCOVERY_COMPLETED";
 const string WPEFramework::Plugin::Bluetooth::STATUS_PAIRING_FAILED = "PAIRING_FAILED";
 const string WPEFramework::Plugin::Bluetooth::STATUS_CONNECTION_FAILED= "CONNECTION_FAILED";
+const string WPEFramework::Plugin::Bluetooth::STATUS_UNSUPPORTED_DEVICE = "UNSUPPORTED_DEVICE";
 
 const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_PLAY = "PLAY";
 const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_STOP = "STOP";
@@ -280,14 +281,21 @@ namespace WPEFramework
                 rc = BTRMGR_GetNumberOfAdapters(&numOfAdapters);
                 if (BTRMGR_RESULT_SUCCESS != rc)
                     LOGERR("Failed to get the number of adapters..!");
-
                 if (numOfAdapters) {
-                    BTRMGR_DeviceOperationType_t lenDevOpDiscType = BTRMGR_DEVICE_OP_TYPE_AUDIO_OUTPUT;
-
-                    if (Utils::String::contains(discProfile, "LOUDSPEAKER") ||
+                    BTRMGR_DeviceOperationType_t lenDevOpDiscType = BTRMGR_DEVICE_OP_TYPE_UNKNOWN;
+                    if ((Utils::String::contains(discProfile, "LOUDSPEAKER") ||
                         Utils::String::contains(discProfile, "HEADPHONES") ||
                         Utils::String::contains(discProfile, "WEARABLE HEADSET") ||
-                        Utils::String::contains(discProfile, "HIFI AUDIO DEVICE")) {
+                        Utils::String::contains(discProfile, "HIFI AUDIO DEVICE")) &&
+                        (Utils::String::contains(discProfile, "KEYBOARD") ||
+                        Utils::String::contains(discProfile, "MOUSE") ||
+                        Utils::String::contains(discProfile, "JOYSTICK"))) {
+                            lenDevOpDiscType = BTRMGR_DEVICE_OP_TYPE_AUDIO_AND_HID;
+                        }
+                    else if (Utils::String::contains(discProfile, "LOUDSPEAKER") ||
+                            Utils::String::contains(discProfile, "HEADPHONES") ||
+                            Utils::String::contains(discProfile, "WEARABLE HEADSET") ||
+                            Utils::String::contains(discProfile, "HIFI AUDIO DEVICE")) {
                         lenDevOpDiscType = BTRMGR_DEVICE_OP_TYPE_AUDIO_OUTPUT;
                     }
                     else if (Utils::String::contains(discProfile, "SMARTPHONE") ||
@@ -407,10 +415,15 @@ namespace WPEFramework
         JsonArray Bluetooth::getPairedDevices()
         {
             JsonArray deviceArray;
-            BTRMGR_PairedDevicesList_t pairedDevices;
+            BTRMGR_PairedDevicesList_t *pairedDevices = (BTRMGR_PairedDevicesList_t*)malloc(sizeof(BTRMGR_PairedDevicesList_t));
+            if(pairedDevices == nullptr)
+            {
+                LOGERR("Failed to allocate memory");
+                return deviceArray;
+            }
 
-            memset (&pairedDevices, 0, sizeof(pairedDevices));
-            BTRMGR_Result_t rc = BTRMGR_GetPairedDevices(0, &pairedDevices);
+            memset (pairedDevices, 0, sizeof(BTRMGR_PairedDevicesList_t));
+            BTRMGR_Result_t rc = BTRMGR_GetPairedDevices(0, pairedDevices);
             if (BTRMGR_RESULT_SUCCESS != rc)
             {
                 LOGERR("Failed to get the paired devices");
@@ -419,26 +432,35 @@ namespace WPEFramework
             {
                 int i = 0;
                 JsonObject deviceDetails;
-                LOGINFO ("Success....   Paired %d Devices", pairedDevices.m_numOfDevices);
-                for (; i < pairedDevices.m_numOfDevices; i++)
+                LOGINFO ("Success....   Paired %d Devices", pairedDevices->m_numOfDevices);
+                for (; i < pairedDevices->m_numOfDevices; i++)
                 {
-                    deviceDetails["deviceID"] = std::to_string(pairedDevices.m_deviceProperty[i].m_deviceHandle);
-                    deviceDetails["name"] = string(pairedDevices.m_deviceProperty[i].m_name);
-                    deviceDetails["deviceType"] = string(BTRMGR_GetDeviceTypeAsString(pairedDevices.m_deviceProperty[i].m_deviceType));
-                    deviceDetails["connected"] = pairedDevices.m_deviceProperty[i].m_isConnected?true:false;
+                    deviceDetails["deviceID"] = std::to_string(pairedDevices->m_deviceProperty[i].m_deviceHandle);
+                    deviceDetails["name"] = string(pairedDevices->m_deviceProperty[i].m_name);
+                    deviceDetails["deviceType"] = string(BTRMGR_GetDeviceTypeAsString(pairedDevices->m_deviceProperty[i].m_deviceType));
+                    deviceDetails["connected"] = pairedDevices->m_deviceProperty[i].m_isConnected?true:false;
+                    deviceDetails["rawDeviceType"] = std::to_string(pairedDevices->m_deviceProperty[i].m_ui32DevClassBtSpec);
+                    deviceDetails["rawBleDeviceType"] = std::to_string(pairedDevices->m_deviceProperty[i].m_ui16DevAppearanceBleSpec);
+
                     deviceArray.Add(deviceDetails);
                 }
             }
+            free(pairedDevices);
             return deviceArray;
         }
 
         JsonArray Bluetooth::getConnectedDevices()
         {
             JsonArray deviceArray;
-            BTRMGR_ConnectedDevicesList_t connectedDevices;
+            BTRMGR_ConnectedDevicesList_t *connectedDevices = (BTRMGR_ConnectedDevicesList_t*)malloc(sizeof(BTRMGR_ConnectedDevicesList_t));
+            if(connectedDevices == nullptr)
+            {
+                LOGERR("Failed to allocate memory");
+                return deviceArray;
+            }
 
-            memset (&connectedDevices, 0, sizeof(connectedDevices));
-            BTRMGR_Result_t rc = BTRMGR_GetConnectedDevices(0, &connectedDevices);
+            memset (connectedDevices, 0, sizeof(BTRMGR_ConnectedDevicesList_t));
+            BTRMGR_Result_t rc = BTRMGR_GetConnectedDevices(0, connectedDevices);
             if (BTRMGR_RESULT_SUCCESS != rc)
             {
                 LOGERR("Failed to get the connected devices");
@@ -447,16 +469,20 @@ namespace WPEFramework
             {
                 int i = 0;
                 JsonObject deviceDetails;
-                LOGINFO ("Success....   Connected %d Devices", connectedDevices.m_numOfDevices);
-                for (; i < connectedDevices.m_numOfDevices; i++)
+                LOGINFO ("Success....   Connected %d Devices", connectedDevices->m_numOfDevices);
+                for (; i < connectedDevices->m_numOfDevices; i++)
                 {
-                    deviceDetails["deviceID"] = std::to_string(connectedDevices.m_deviceProperty[i].m_deviceHandle);
-                    deviceDetails["name"] = string(connectedDevices.m_deviceProperty[i].m_name);
-                    deviceDetails["deviceType"] = string(BTRMGR_GetDeviceTypeAsString(connectedDevices.m_deviceProperty[i].m_deviceType));
-                    deviceDetails["activeState"] = std::to_string(connectedDevices.m_deviceProperty[i].m_powerStatus);
+                    deviceDetails["deviceID"] = std::to_string(connectedDevices->m_deviceProperty[i].m_deviceHandle);
+                    deviceDetails["name"] = string(connectedDevices->m_deviceProperty[i].m_name);
+                    deviceDetails["deviceType"] = string(BTRMGR_GetDeviceTypeAsString(connectedDevices->m_deviceProperty[i].m_deviceType));
+                    deviceDetails["activeState"] = std::to_string(connectedDevices->m_deviceProperty[i].m_powerStatus);
+                    deviceDetails["rawDeviceType"] = std::to_string(connectedDevices->m_deviceProperty[i].m_ui32DevClassBtSpec);
+                    deviceDetails["rawBleDeviceType"] = std::to_string(connectedDevices->m_deviceProperty[i].m_ui16DevAppearanceBleSpec);
+
                     deviceArray.Add(deviceDetails);
                 }
             }
+            free(connectedDevices);
             return deviceArray;
         }
 
@@ -474,7 +500,10 @@ namespace WPEFramework
                     rc = BTRMGR_ConnectToDevice(0, deviceHandle, stream_pref);
                 }
             }
-            else if (Utils::String::equal(deviceType, "HUMAN INTERFACE DEVICE")) {
+            else if (Utils::String::equal(deviceType, "HUMAN INTERFACE DEVICE") ||
+                     Utils::String::contains(deviceType, "KEYBOARD") ||
+                     Utils::String::contains(deviceType, "MOUSE") ||
+                     Utils::String::contains(deviceType, "JOYSTICK")) {
                 if (Utils::String::equal(enable, "DISCONNECT")) {
                     rc = BTRMGR_DisconnectFromDevice(0, deviceHandle);
                 }
@@ -618,6 +647,7 @@ namespace WPEFramework
             JsonObject response; // responding with a single object
 
             char adapterName[BTRMGR_NAME_LEN_MAX];
+            memset(adapterName, '\0', sizeof(adapterName));
             rc = BTRMGR_GetAdapterName (0, &adapterName[0]);
             if (BTRMGR_RESULT_SUCCESS != rc)
             {
@@ -759,15 +789,15 @@ namespace WPEFramework
 
             lstBtrMgrEvtRsp.m_deviceHandle = deviceID;
 
-            if (eventType.compare(EVT_PAIRING_REQUEST)) {
+            if (eventType == EVT_PAIRING_REQUEST) {
                 lstBtrMgrEvtRsp.m_eventType = BTRMGR_EVENT_RECEIVED_EXTERNAL_PAIR_REQUEST;
                 lstBtrMgrEvtRsp.m_eventResp = Utils::String::equal(respValue, "ACCEPTED") ? 1 : 0;
             }
-            else if (eventType.compare(EVT_CONNECTION_REQUEST)) {
+            else if (eventType == EVT_CONNECTION_REQUEST) {
                 lstBtrMgrEvtRsp.m_eventType = BTRMGR_EVENT_RECEIVED_EXTERNAL_CONNECT_REQUEST;
                 lstBtrMgrEvtRsp.m_eventResp = Utils::String::equal(respValue, "ACCEPTED") ? 1 : 0;
             }
-            else if (eventType.compare(EVT_PLAYBACK_REQUEST)) {
+            else if (eventType == EVT_PLAYBACK_REQUEST) {
                 lstBtrMgrEvtRsp.m_eventType = BTRMGR_EVENT_RECEIVED_EXTERNAL_PLAYBACK_REQUEST;
                 lstBtrMgrEvtRsp.m_eventResp = Utils::String::equal(respValue, "ACCEPTED") ? 1 : 0;
             }
@@ -854,7 +884,7 @@ namespace WPEFramework
             return mediaTrackInfo;
         }
 
-        void Bluetooth::notifyEventWrapper (BTRMGR_EventMessage_t eventMsg)
+        void Bluetooth::notifyEventWrapper (BTRMGR_EventMessage_t &eventMsg)
         {
             JsonObject params;
             string profileInfo;
@@ -956,6 +986,21 @@ namespace WPEFramework
                 case BTRMGR_EVENT_DEVICE_PAIRING_FAILED:
                     LOGERR("Received %s Event from BTRMgr", C_STR(STATUS_PAIRING_FAILED));
                     params["newStatus"] = STATUS_PAIRING_FAILED;
+                    params["deviceID"] = std::to_string(eventMsg.m_discoveredDevice.m_deviceHandle);
+                    params["name"] = string(eventMsg.m_discoveredDevice.m_name);
+                    params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_discoveredDevice.m_deviceType);
+                    params["rawDeviceType"] = std::to_string(eventMsg.m_discoveredDevice.m_ui32DevClassBtSpec);
+                    params["rawBleDeviceType"] = std::to_string(eventMsg.m_discoveredDevice.m_ui16DevAppearanceBleSpec);
+                    params["lastConnectedState"] = eventMsg.m_discoveredDevice.m_isLastConnectedDevice ? true : false;
+                    params["paired"] = eventMsg.m_discoveredDevice.m_isPairedDevice ? true : false;
+                    params["connected"] = eventMsg.m_discoveredDevice.m_isConnected ? true : false;
+
+                    eventId = EVT_REQUEST_FAILED;
+                    break;
+
+                case BTRMGR_EVENT_DEVICE_UNSUPPORTED:
+                    LOGERR("Received %s Event from BTRMgr", C_STR(STATUS_UNSUPPORTED_DEVICE));
+                    params["newStatus"] = STATUS_UNSUPPORTED_DEVICE;
                     params["deviceID"] = std::to_string(eventMsg.m_discoveredDevice.m_deviceHandle);
                     params["name"] = string(eventMsg.m_discoveredDevice.m_name);
                     params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_discoveredDevice.m_deviceType);
