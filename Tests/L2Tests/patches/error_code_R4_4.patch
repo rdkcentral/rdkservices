@@ -1,0 +1,64 @@
+diff --git a/Source/WPEFramework/PluginServer.h b/Source/WPEFramework/PluginServer.h
+index e87933d9a..591385222 100644
+--- a/Source/WPEFramework/PluginServer.h
++++ b/Source/WPEFramework/PluginServer.h
+@@ -1535,6 +1535,22 @@ namespace PluginHost {
+                                 response->Error.SetError(Core::ERROR_ILLEGAL_STATE);
+                                 response->Error.Text = _T("The service is in an illegal state!!!.");
+                                 break;
++                            case Core::ERROR_INVALID_PARAMETER:
++                                response->Error.SetError(Core::ERROR_INVALID_SIGNATURE);
++                                response->Error.Text = _T("Invalid Parameter");
++                                break;
++                            case Core::ERROR_INVALID_DEVICENAME:
++                                response->Error.SetError(Core::ERROR_INVALID_DEVICENAME);
++                                response->Error.Text = _T("Invalid device name");
++                                break;
++                            case Core::ERROR_INVALID_MOUNTPOINT:
++                                response->Error.SetError(Core::ERROR_INVALID_MOUNTPOINT);
++                                response->Error.Text = _T("Invalid mount path");
++                                break;
++                            case Core::ERROR_FIRMWAREUPDATE_INPROGRESS:
++                                response->Error.SetError(Core::ERROR_FIRMWAREUPDATE_INPROGRESS);
++                                response->Error.Text = _T("Firmware update already in progress");
++                                break;
+                             case static_cast<uint32_t>(~0):
+                                 response.Release();
+                                 break;
+diff --git a/Source/core/JSONRPC.h b/Source/core/JSONRPC.h
+index a9c4360fb..5fcef161d 100644
+--- a/Source/core/JSONRPC.h
++++ b/Source/core/JSONRPC.h
+@@ -98,6 +98,15 @@ namespace Core {
+                     case Core::ERROR_TIMEDOUT:
+                         Code = -32000; // Server defined, now mapped to Timed out
+                         break;
++                    case Core::ERROR_INVALID_DEVICENAME:
++                        Code = -32001; // Invalid device name
++                        break;
++                    case Core::ERROR_INVALID_MOUNTPOINT:
++                        Code = -32002; // Invalid mount path
++                        break;
++                    case Core::ERROR_FIRMWAREUPDATE_INPROGRESS:
++                        Code = -32003; // Firmware update inprogress
++                        break;
+                     default:
+                         Code = static_cast<int32_t>(frameworkError);
+                         break;
+diff --git a/Source/core/Portability.h b/Source/core/Portability.h
+index 01e34d398..a5728eebf 100644
+--- a/Source/core/Portability.h
++++ b/Source/core/Portability.h
+@@ -874,7 +874,11 @@ namespace Core {
+         ERROR_CODE(ERROR_HIBERNATED, 46) \
+         ERROR_CODE(ERROR_INPROC, 47) \
+         ERROR_CODE(ERROR_FAILED_REGISTERED, 48) \
+-        ERROR_CODE(ERROR_FAILED_UNREGISTERED, 49) 
++        ERROR_CODE(ERROR_FAILED_UNREGISTERED, 49) \
++        ERROR_CODE(ERROR_INVALID_PARAMETER, 54) \
++        ERROR_CODE(ERROR_INVALID_DEVICENAME, 59) \
++        ERROR_CODE(ERROR_INVALID_MOUNTPOINT, 60) \
++        ERROR_CODE(ERROR_FIRMWAREUPDATE_INPROGRESS,61)
+ 
+     #define ERROR_CODE(CODE, VALUE) CODE = VALUE,
+ 
