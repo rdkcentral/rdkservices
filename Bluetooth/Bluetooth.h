@@ -102,7 +102,7 @@ namespace WPEFramework {
         private: /*internal methods*/
             void getStatusSupport(string& status);
             bool isAdapterDiscoverable();
-            string startDeviceDiscovery(int timeout, const string &discProfile = "LOUDSPEAKER, HEADPHONES, WEARABLE HEADSET, HIFI AUDIO DEVICE");
+            string startDeviceDiscovery(int timeout, const string &discProfile = "LOUDSPEAKER, HEADPHONES, WEARABLE HEADSET, HIFI AUDIO DEVICE, KEYBOARD, MOUSE, JOYSTICK");  //default behaviour is to scan audio devices and gamepads
             bool stopDeviceDiscovery();
             void startDiscoveryTimer(int msec);
             void stopDiscoveryTimer();
@@ -183,7 +183,7 @@ namespace WPEFramework {
 
         public:
             static Bluetooth* _instance;
-            void notifyEventWrapper (BTRMGR_EventMessage_t eventMsg);
+            void notifyEventWrapper (BTRMGR_EventMessage_t &eventMsg);
 
         private:
             static const string STATUS_NO_BLUETOOTH_HARDWARE;
@@ -207,6 +207,7 @@ namespace WPEFramework {
             static const string STATUS_DISCOVERY_COMPLETED;
             static const string STATUS_PAIRING_FAILED;
             static const string STATUS_CONNECTION_FAILED;
+	    static const string STATUS_UNSUPPORTED_DEVICE;
 
             static const string CMD_AUDIO_CTRL_PLAY;
             static const string CMD_AUDIO_CTRL_STOP;
