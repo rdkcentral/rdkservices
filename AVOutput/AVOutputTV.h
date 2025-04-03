@@ -395,10 +395,10 @@ class AVOutputTV : public AVOutputBase {
 
 		tvError_t ReadJsonFile(JsonObject& root);
 		tvError_t ExtractContextCaps(const JsonObject& data, tvContextCaps_t** context_caps);
-		tvError_t ExtractRangeInfo(const JsonObject& data, int* max_value, std::vector<std::string>& options);
+		tvError_t ExtractRangeInfo(const JsonObject& data, int* max_value);
 		std::vector<tvConfigContext_t> ParseContextCaps(const JsonObject& context);
 		tvContextCaps_t* AllocateContextCaps(const std::vector<tvConfigContext_t>& contexts);
-		tvError_t GetCaps(const std::string& key, int* max_value, tvContextCaps_t** context_caps, std::vector<std::string>& options);
+		tvError_t GetCaps(const std::string& key, int* max_value, tvContextCaps_t** context_caps);
 		tvError_t GetBacklightCaps(int *max_backlight, tvContextCaps_t **context_caps);
 		tvError_t GetBrightnessCaps(int *max_brightness, tvContextCaps_t **context_caps);
 		tvError_t GetContrastCaps(int* max_contrast, tvContextCaps_t** context_caps);
@@ -414,7 +414,7 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t GetDVCalibrationCaps(tvDVCalibrationSettings_t **min_values, tvDVCalibrationSettings_t **max_values, tvContextCaps_t **context_caps);
 		tvError_t GetTVPictureModeCaps( tvContextCaps_t** context_caps);
 		uint32_t getCapsV2(
-			const std::function<tvError_t(tvContextCaps_t**, int*, std::vector<std::string>&)>& getCapsFunc,
+			const std::function<tvError_t(tvContextCaps_t**, int*)>& getCapsFunc,
 			const char* key,
 			const JsonObject& parameters,
 			JsonObject& response);
