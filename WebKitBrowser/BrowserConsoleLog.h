@@ -21,9 +21,6 @@
 #define __BROWSERCONSOLELOG_H
 
 #include <tracing/tracing.h>
-#ifndef WEBKIT_GLIB_API
-#include "InjectedBundle/Utils.h"
-#endif
 using namespace WPEFramework;
 
 class BrowserConsoleLog {
@@ -33,7 +30,6 @@ private:
     BrowserConsoleLog& operator=(const BrowserConsoleLog& a_RHS) = delete;
 
 public:
-#ifdef WEBKIT_GLIB_API
     BrowserConsoleLog(const string& prefix, const string& message, const uint64_t line, const uint64_t column)
     {
         _text = '[' + prefix + "][" + Core::NumberType<uint64_t>(line).Text() + ',' + Core::NumberType<uint64_t>(column).Text() + ']' + message;
@@ -46,20 +42,6 @@ public:
             _text = _text.substr(0, maxStringLength);
         }
     }
-#else
-    BrowserConsoleLog(const string& prefix, const WKStringRef message, const uint64_t line, const uint64_t column)
-    { 
-        _text = '[' + prefix + "][" + Core::NumberType<uint64_t>(line).Text() + ',' + Core::NumberType<uint64_t>(column).Text() + ']' + WebKit::Utils::WKStringToString(message);
-#ifdef __CORE_MESSAGING__
-        const uint16_t maxStringLength = Messaging::MessageUnit::DataSize - 1;
-#else
-        const uint16_t maxStringLength = Trace::TRACINGBUFFERSIZE - 1;
-#endif
-        if (_text.length() > maxStringLength) {
-            _text = _text.substr(0, maxStringLength);
-        }
-    }
-#endif
     ~BrowserConsoleLog()
     {
     }
