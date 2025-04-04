@@ -18,6 +18,12 @@
  */
 
 #include "DeviceInfo.h"
+#include <interfaces/IConfiguration.h>
+#include <interfaces/IDeviceIdentification.h>
+#include "tracing/Logging.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsController.h"
+
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 1
@@ -29,11 +35,19 @@ namespace {
         // Version (Major, Minor, Patch)
         API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
         // Preconditions
+#ifdef DISABLE_DEVICEID_CONTROL
+        { PluginHost::ISubSystem::IDENTIFIER },
+#else
         {},
+#endif
         // Terminations
         {},
         // Controls
+#ifdef DISABLE_DEVICEID_CONTROL
         {}
+#else
+        { PluginHost::ISubSystem::IDENTIFIER }
+#endif
     );
 }
 
@@ -47,7 +61,7 @@ namespace Plugin {
     {
         ASSERT(_service == nullptr);
         ASSERT(service != nullptr);
-
+        ASSERT(_identifier == nullptr);
         ASSERT(_subSystem == nullptr);
 
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
@@ -60,11 +74,34 @@ namespace Plugin {
         _deviceAudioCapabilities = service->Root<Exchange::IDeviceAudioCapabilities>(_connectionId, 2000, _T("DeviceAudioCapabilities"));
         _deviceVideoCapabilities = service->Root<Exchange::IDeviceVideoCapabilities>(_connectionId, 2000, _T("DeviceVideoCapabilities"));
         _firmwareVersion = service->Root<Exchange::IFirmwareVersion>(_connectionId, 2000, _T("FirmwareVersion"));
+        _device = service->Root<Exchange::IDeviceIdentification>(_connectionId, 2000, _T("DeviceImplementation"));
+        if (_device != nullptr) {
 
+            Exchange::IConfiguration* configure = _device->QueryInterface<Exchange::IConfiguration>();
+            if (configure != nullptr) {
+                configure->Configure(service);
+                configure->Release();
+            }
+
+            _identifier = _device->QueryInterface<PluginHost::ISubSystem::IIdentifier>();
+            if (_identifier == nullptr) {
+
+                _device->Release();
+                _device = nullptr;
+            } else {
+                _deviceId = GetDeviceId();
+                if (_deviceId.empty() != true) {
+#ifndef DISABLE_DEVICEID_CONTROL
+                    service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _identifier);
+#endif
+                }
+            }
+        }
         ASSERT(_deviceInfo != nullptr);
         ASSERT(_deviceAudioCapabilities != nullptr);
         ASSERT(_deviceVideoCapabilities != nullptr);
         ASSERT(_firmwareVersion != nullptr);
+        ASSERT(_device != nullptr);
 
         // On success return empty, to indicate there is no error text.
 
@@ -72,6 +109,7 @@ namespace Plugin {
                    && (_deviceInfo != nullptr)
                    && (_deviceAudioCapabilities != nullptr)
                    && (_deviceVideoCapabilities != nullptr)
+                   && (_device != nullptr)
                    && (_firmwareVersion != nullptr))
             ? EMPTY_STRING
             : _T("Could not retrieve System Information.");
@@ -81,10 +119,22 @@ namespace Plugin {
     {
         ASSERT(_service == service);
 
+        if (_identifier != nullptr) {           
+            if (_deviceId.empty() != true) {
+#ifndef DISABLE_DEVICEID_CONTROL
+                service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, nullptr);
+#endif
+                _deviceId.clear();
+            }
+            _identifier->Release();
+            _identifier = nullptr;
+        }
+
         _deviceInfo->Release();
         _deviceAudioCapabilities->Release();
         _deviceVideoCapabilities->Release();
         _firmwareVersion->Release();
+        _device->Release();
 
         if (_subSystem != nullptr) {
             _subSystem->Release();
@@ -217,5 +267,74 @@ namespace Plugin {
         socketPortInfo.Runs = Core::ResourceMonitor::Instance().Runs();
     }
 
+    string DeviceInfo::RetrieveSerialNumberThroughCOMRPC() const
+    {
+        std::string Number;
+        if (_service)
+        {
+            if(_deviceInfo)
+            {
+                _deviceInfo->SerialNumber(Number);
+            }
+            else
+            {
+                LOGERR("Failed to create DeviceInfo object\n");
+            }
+        }
+        return Number;
+    }
+    string DeviceInfo::GetDeviceId() const
+    {
+        string result;
+        string serial;
+#ifndef DISABLE_DEVICEID_CONTROL
+        ASSERT(_identifier != nullptr);
+
+        if (_identifier != nullptr) {
+            uint8_t myBuffer[64];
+
+            myBuffer[0] = _identifier->Identifier(sizeof(myBuffer) - 1, &(myBuffer[1]));
+
+            if (myBuffer[0] != 0) {
+                result = Core::SystemInfo::Instance().Id(myBuffer, ~0);
+            }
+            else
+            {
+                serial = RetrieveSerialNumberThroughCOMRPC();
+
+                if (!serial.empty()) {
+                    uint8_t ret = serial.length();
+
+                    if (ret > (sizeof(myBuffer) - 1)){
+                        ret = sizeof(myBuffer) - 1;
+                    }
+                    myBuffer[0] = ret;
+                    ::memcpy(&(myBuffer[1]), serial.c_str(), ret);
+
+                    if(myBuffer[0] != 0){
+                        result = Core::SystemInfo::Instance().Id(myBuffer, ~0);
+                    }
+                }
+            }
+
+        }
+#else
+        // extract DeviceId set by Thunder
+        if (_service->SubSystems()->IsActive(PluginHost::ISubSystem::IDENTIFIER) == true) {
+
+            const PluginHost::ISubSystem::IIdentifier* identifier(_service->SubSystems()->Get<PluginHost::ISubSystem::IIdentifier>());
+
+            if (identifier != nullptr) {
+                uint8_t myBuffer[64];
+
+                if ((myBuffer[0] = identifier->Identifier(sizeof(myBuffer) - 1, &(myBuffer[1]))) != 0) {
+                    result = Core::SystemInfo::Instance().Id(myBuffer, ~0);
+                }
+                identifier->Release();
+            }
+        }
+#endif
+        return result;
+    }
 } // namespace Plugin
 } // namespace WPEFramework
