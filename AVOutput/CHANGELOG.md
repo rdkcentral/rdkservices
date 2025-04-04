@@ -2,7 +2,7 @@
 
 All notable changes to this RDK Service will be documented in this file.
 
-* Each RDK Service has a CHANGELOG file that contains all changes done so far. When version is updated, add a entry in the CHANGELOG.md at the top with user friendly information on what was changed with the new version. Please don't mention JIRA tickets in CHANGELOG. 
+* Each RDK Service has a CHANGELOG file that contains all changes done so far. When version is updated, add a entry in the CHANGELOG.md at the top with user friendly information on what was changed with the new version. Please don't mention JIRA tickets in CHANGELOG.
 
 * Please Add entry in the CHANGELOG for each version change and indicate the type of change with these labels:
     * **Added** for new features.
