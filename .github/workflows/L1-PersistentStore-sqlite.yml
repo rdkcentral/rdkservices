@@ -19,10 +19,10 @@ jobs:
         with:
           path: ${{github.repository}}
 
-      - name: Install valgrind, coverage, cmake, sqlite
+      - name: Install valgrind, cmake, sqlite
         run: |
           sudo apt update
-          sudo apt install -y valgrind lcov cmake libsqlite3-dev
+          sudo apt install -y valgrind cmake libsqlite3-dev
 
       - name: Build Thunder
         working-directory: ${{github.workspace}}
@@ -31,18 +31,12 @@ jobs:
       - name: Build
         working-directory: ${{github.workspace}}
         run: |
-          cmake -S ${GITHUB_REPOSITORY}/PersistentStore/sqlite/l1test -B build/sqlitel1test -DCMAKE_INSTALL_PREFIX="install" -DCMAKE_CXX_FLAGS="--coverage -Wall -Werror"
+          cmake -S ${GITHUB_REPOSITORY}/PersistentStore/sqlite/l1test -B build/sqlitel1test -DCMAKE_INSTALL_PREFIX="install" -DCMAKE_CXX_FLAGS="-Wall -Werror"
           cmake --build build/sqlitel1test --target install
 
       - name: Run
         working-directory: ${{github.workspace}}
         run: PATH=${PWD}/install/bin:${PATH} LD_LIBRARY_PATH=${PWD}/install/lib:${LD_LIBRARY_PATH} valgrind --tool=memcheck --log-file=valgrind_log --leak-check=yes --show-reachable=yes --track-fds=yes --fair-sched=try sqlitel1test
-
-      - name: Generate coverage
-        working-directory: ${{github.workspace}}
-        run: |
-          lcov -c -o coverage.info -d build/sqlitel1test
-          genhtml -o coverage coverage.info
 
       - name: Upload artifacts
         if: ${{ !env.ACT }}
@@ -50,6 +44,5 @@ jobs:
         with:
           name: artifacts
           path: |
-            coverage/
             valgrind_log
           if-no-files-found: warn
