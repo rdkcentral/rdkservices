@@ -8,12 +8,7 @@ configuration = JSON()
 
 configuration.add("url", "@PLUGIN_RESIDENT_APP_STARTURL@")
 configuration.add("useragent", "@PLUGIN_RESIDENT_APP_USERAGENT@")
-
-if not boolean("@WEBKIT_GLIB_API@"):
-    configuration.add("injectedbundle", "libWPEInjectedBundle@CMAKE_SHARED_LIBRARY_SUFFIX@")
-else:
-    configuration.add("extensiondir", "@PLUGIN_WEBKITBROWSER_EXTENSION_DIRECTORY@")
-
+configuration.add("extensiondir", "@PLUGIN_WEBKITBROWSER_EXTENSION_DIRECTORY@")
 configuration.add("transparent", "@PLUGIN_WEBKITBROWSER_TRANSPARENT@")
 configuration.add("compositor", "@PLUGIN_RESIDENT_APP_COMPOSITOR@")
 configuration.add("inspector", "@PLUGIN_RESIDENT_APP_WEBINSPECTOR_ADDRESS@")
