@@ -349,7 +349,7 @@ uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
     
     string sPortId = parameters["portId"].String();
     string sType = parameters["typeOfInput"].String();
-    bool audioMix = parameters["requestAudioMix"].Boolean();
+    bool audioMix =  true;//parameters["requestAudioMix"].Boolean();
     int portId = 0;
     int iType = 0;
     planeType = 0; //planeType = 0 -  primary, 1 - secondary video plane type
