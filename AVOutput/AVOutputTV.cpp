@@ -358,6 +358,57 @@ namespace Plugin {
         registerMethod("resetAutoBacklightMode", &AVOutputTV::resetAutoBacklightMode, this);
         registerMethod("getAutoBacklightModeCaps", &AVOutputTV::getAutoBacklightModeCaps, this);
 
+        registerMethod("getPrecisionDetail", &AVOutputTV::getPrecisionDetail, this);
+        registerMethod("setPrecisionDetail", &AVOutputTV::setPrecisionDetail, this);
+        registerMethod("resetPrecisionDetail", &AVOutputTV::resetPrecisionDetail, this);
+        registerMethod("getPrecisionDetailCaps", &AVOutputTV::getPrecisionDetailCaps, this);
+
+        registerMethod("getSDRGamma", &AVOutputTV::getSDRGamma, this);
+        registerMethod("setSDRGamma", &AVOutputTV::setSDRGamma, this);
+        registerMethod("resetSDRGamma", &AVOutputTV::resetSDRGamma, this);
+        registerMethod("getSDRGammaCaps", &AVOutputTV::getSDRGammaCaps, this);
+
+        registerMethod("getLocalContrastEnhancement", &AVOutputTV::getLocalContrastEnhancement, this);
+        registerMethod("setLocalContrastEnhancement", &AVOutputTV::setLocalContrastEnhancement, this);
+        registerMethod("resetLocalContrastEnhancement", &AVOutputTV::resetLocalContrastEnhancement, this);
+        registerMethod("getLocalContrastEnhancementCaps", &AVOutputTV::getLocalContrastEnhancementCaps, this);
+
+        registerMethod("getMPEGNoiseReduction", &AVOutputTV::getMPEGNoiseReduction, this);
+        registerMethod("setMPEGNoiseReduction", &AVOutputTV::setMPEGNoiseReduction, this);
+        registerMethod("resetMPEGNoiseReduction", &AVOutputTV::resetMPEGNoiseReduction, this);
+        registerMethod("getMPEGNoiseReductionCaps", &AVOutputTV::getMPEGNoiseReductionCaps, this);
+
+        registerMethod("getDigitalNoiseReduction", &AVOutputTV::getDigitalNoiseReduction, this);
+        registerMethod("setDigitalNoiseReduction", &AVOutputTV::setDigitalNoiseReduction, this);
+        registerMethod("resetDigitalNoiseReduction", &AVOutputTV::resetDigitalNoiseReduction, this);
+        registerMethod("getDigitalNoiseReductionCaps", &AVOutputTV::getDigitalNoiseReductionCaps, this);
+
+
+        registerMethod("getAISuperResolution", &AVOutputTV::getAISuperResolution, this);
+        registerMethod("setAISuperResolution", &AVOutputTV::setAISuperResolution, this);
+        registerMethod("resetAISuperResolution", &AVOutputTV::resetAISuperResolution, this);
+        registerMethod("getAISuperResolutionCaps", &AVOutputTV::getAISuperResolutionCaps, this);
+
+        registerMethod("getMEMC", &AVOutputTV::getMEMC, this);
+        registerMethod("setMEMC", &AVOutputTV::setMEMC, this);
+        registerMethod("resetMEMC", &AVOutputTV::resetMEMC, this);
+        registerMethod("getMEMCCaps", &AVOutputTV::getMEMCCaps, this);
+        
+        registerMethod("getBacklightCapsV2", &AVOutputTV::getBacklightCapsV2, this);
+        registerMethod("getBrightnessCapsV2", &AVOutputTV::getBrightnessCapsV2, this);
+        registerMethod("getContrastCapsV2", &AVOutputTV::getContrastCapsV2, this);
+        registerMethod("getSharpnessCapsV2", &AVOutputTV::getSharpnessCapsV2, this);
+        registerMethod("getSaturationCapsV2", &AVOutputTV::getSaturationCapsV2, this);
+        registerMethod("getHueCapsV2", &AVOutputTV::getHueCapsV2, this);
+        registerMethod("getPrecisionDetailCapsV2", &AVOutputTV::getPrecisionDetailCapsV2, this);
+        registerMethod("getLowLatencyStateCapsV2", &AVOutputTV::getLowLatencyStateCapsV2, this);
+        registerMethod("getColorTemperatureCapsV2", &AVOutputTV::getColorTemperatureCapsV2, this);
+        registerMethod("getSdrGammaCapsV2", &AVOutputTV::getSdrGammaCapsV2, this);
+        registerMethod("getTVDimmingModeCapsV2", &AVOutputTV::getTVDimmingModeCapsV2, this);
+        registerMethod("getAspectRatioCapsV2", &AVOutputTV::getAspectRatioCapsV2, this);
+        registerMethod("getDVCalibrationCapsV2", &AVOutputTV::getDVCalibrationCapsV2, this);
+        registerMethod("getTVPictureModeCapsV2", &AVOutputTV::getTVPictureModeCapsV2, this);
+
         LOGINFO("Exit\n");
     }
     
@@ -457,6 +508,326 @@ namespace Plugin {
        }
 
        LOGINFO("Exit\n");
+    }
+
+    uint32_t AVOutputTV::getCapsV2(
+        const std::function<tvError_t( tvContextCaps_t**,int*, std::vector<std::string>&)>& getCapsFunc,
+        const char* key,
+        const JsonObject& parameters,
+        JsonObject& response)
+    {
+        int max_value = 0;
+        tvContextCaps_t* context_caps = nullptr;
+        std::vector<std::string> options;
+        // Call the HAL function
+        tvError_t result = getCapsFunc( &context_caps, &max_value, options);
+        LOGWARN("AVOutputPlugins: %s: result: %d", __FUNCTION__, result);
+        if (result != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        JsonObject capsInfo;
+        JsonObject rangeInfo;
+        if (!options.empty()) {
+            JsonArray optionsArray;
+            for (const auto& option : options) {
+                optionsArray.Add(option);
+            }
+            rangeInfo["options"] = optionsArray;
+            capsInfo["rangeInfo"] = rangeInfo;
+        } else if (max_value){
+            rangeInfo["from"] = 0;
+            rangeInfo["to"] = max_value;
+            capsInfo["rangeInfo"] = rangeInfo;
+        }
+        capsInfo["platformSupport"] = true;
+        capsInfo["context"] = parseContextCaps(context_caps);
+        response[key] = capsInfo;
+        returnResponse(true);
+    }
+
+    JsonObject AVOutputTV::parseContextCaps(tvContextCaps_t* context_caps) {
+        JsonObject contextObj;
+        if (context_caps && context_caps->num_contexts > 0) {
+            for (size_t i = 0; i < context_caps->num_contexts; ++i) {
+                int pqMode = context_caps->contexts[i].pq_mode;
+                int videoFormat = context_caps->contexts[i].videoFormatType;
+                int videoSource = context_caps->contexts[i].videoSrcType;
+
+                auto pqModeIt = AVOutputTV::pqModeMap.find(pqMode);
+                auto videoFormatIt = AVOutputTV::videoFormatMap.find(videoFormat);
+                auto videoSrcIt = AVOutputTV::videoSrcMap.find(videoSource);
+
+                if (pqModeIt != AVOutputTV::pqModeMap.end() &&
+                    videoFormatIt != AVOutputTV::videoFormatMap.end() &&
+                    videoSrcIt != AVOutputTV::videoSrcMap.end()) {
+
+                    const char* pqModeStr = pqModeIt->second.c_str();
+                    const char* videoFormatStr = videoFormatIt->second.c_str();
+                    const char* videoSrcStr = videoSrcIt->second.c_str();
+
+                    if (!contextObj.HasLabel(pqModeStr)) {
+                        contextObj[pqModeStr] = JsonObject();
+                    }
+                    JsonObject pqModeObj = contextObj[pqModeStr].Object();
+
+                    if (!pqModeObj.HasLabel(videoFormatStr)) {
+                        pqModeObj[videoFormatStr] = JsonArray();
+                    }
+                    JsonArray formatArray = pqModeObj[videoFormatStr].Array();
+                    // **Manually check for existence before adding**
+                    bool exists = false;
+                    for (size_t j = 0; j < formatArray.Length(); ++j) {
+                        if (strcmp(formatArray[j].String().c_str(), videoSrcStr) == 0) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                    if (!exists) {
+                        formatArray.Add(videoSrcStr);
+                    }
+                    // Update objects
+                    pqModeObj[videoFormatStr] = formatArray;
+                    contextObj[pqModeStr] = pqModeObj;
+                }
+            }
+        }
+        return contextObj;
+    }
+
+    uint32_t AVOutputTV::getBacklightCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this]( tvContextCaps_t** context_caps, int* max_backlight, std::vector<std::string>&) {
+            return this->GetBacklightCaps(max_backlight, context_caps);
+        }, "Backlight", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getBrightnessCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this]( tvContextCaps_t** context_caps, int* max_brightness, std::vector<std::string>& options) {
+            return this->GetBrightnessCaps(max_brightness, context_caps);
+        },
+        "Brightness", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getContrastCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_contrast,  std::vector<std::string>& options) {
+            return this->GetContrastCaps(max_contrast, context_caps);
+        },
+        "Contrast", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getSharpnessCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_sharpness, std::vector<std::string>& options) {
+            return this->GetSharpnessCaps(max_sharpness, context_caps);
+        },
+        "Sharpness", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getSaturationCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_saturation, std::vector<std::string>& options) {
+            return this->GetSaturationCaps(max_saturation, context_caps);
+        },
+        "Saturation", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getHueCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this]( tvContextCaps_t** context_caps, int* max_hue, std::vector<std::string>& options) {
+            return this->GetHueCaps(max_hue, context_caps);
+        },
+        "Hue", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getPrecisionDetailCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_precision, std::vector<std::string>& options) {
+            return this->GetPrecisionDetailCaps(max_precision, context_caps);
+        },
+        "PrecisionDetails", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getLowLatencyStateCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_latency,  std::vector<std::string>& options) {
+            return this->GetLowLatencyStateCaps(max_latency, context_caps);
+        },
+        "LowLatencyState", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getColorTemperatureCapsV2(const JsonObject& parameters, JsonObject& response) {
+        tvColorTemp_t* color_temp = nullptr;
+        size_t num_color_temp = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t err = GetColorTemperatureCaps(&color_temp, &num_color_temp, &context_caps);
+        if (err != tvERROR_NONE) {
+            return err;
+        }
+
+        JsonObject colorTempJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+        for (size_t i = 0; i < num_color_temp; ++i) {
+            switch (color_temp[i]) {
+                case tvColorTemp_STANDARD: optionsArray.Add("Standard"); break;
+                case tvColorTemp_WARM: optionsArray.Add("Warm"); break;
+                case tvColorTemp_COLD: optionsArray.Add("Cold"); break;
+                case tvColorTemp_USER: optionsArray.Add("UserDefined"); break;
+                case tvColorTemp_SUPERCOLD: optionsArray.Add("Supercold"); break;
+                case tvColorTemp_BOOST_STANDARD: optionsArray.Add("BoostStandard"); break;
+                case tvColorTemp_BOOST_WARM: optionsArray.Add("BoostWarm"); break;
+                case tvColorTemp_BOOST_COLD: optionsArray.Add("BoostCold"); break;
+                case tvColorTemp_BOOST_USER: optionsArray.Add("BoostUserDefined"); break;
+                case tvColorTemp_BOOST_SUPERCOLD: optionsArray.Add("BoostSupercold"); break;
+                default: break;
+            }
+        }
+        rangeInfo["options"] = optionsArray;
+        colorTempJson["rangeInfo"] = rangeInfo;
+        colorTempJson["platformSupport"] = true;
+        colorTempJson["context"] = parseContextCaps(context_caps);
+        response["ColorTemperature"] = colorTempJson;
+
+        free(color_temp); //revisit
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getSdrGammaCapsV2(const JsonObject& parameters, JsonObject& response) {
+        tvSdrGamma_t* sdr_gamma = nullptr;
+        size_t num_sdr_gamma = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t err = GetSdrGammaCaps(&sdr_gamma, &num_sdr_gamma, &context_caps);
+        if (err != tvERROR_NONE) {
+            return err;
+        }
+
+        JsonObject sdrGammaJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+        for (size_t i = 0; i < num_sdr_gamma; ++i) {
+            switch (sdr_gamma[i]) {
+                case tvSdrGamma_1_8: optionsArray.Add("1.8"); break;
+                case tvSdrGamma_1_9: optionsArray.Add("1.9"); break;
+                case tvSdrGamma_2_0: optionsArray.Add("2.0"); break;
+                case tvSdrGamma_2_1: optionsArray.Add("2.1"); break;
+                case tvSdrGamma_2_2: optionsArray.Add("2.2"); break;
+                case tvSdrGamma_2_3: optionsArray.Add("2.3"); break;
+                case tvSdrGamma_2_4: optionsArray.Add("2.4"); break;
+                case tvSdrGamma_BT_1886: optionsArray.Add("BT.1886"); break;
+                default: break;
+            }
+        }
+        rangeInfo["options"] = optionsArray;
+        sdrGammaJson["rangeInfo"] = rangeInfo;
+        sdrGammaJson["platformSupport"] = true;
+        sdrGammaJson["context"] = parseContextCaps(context_caps);
+        response["SDRGamma"] = sdrGammaJson;
+
+        free(sdr_gamma);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getTVDimmingModeCapsV2(const JsonObject& parameters, JsonObject& response) {
+        tvDimmingMode_t* dimming_mode = nullptr;
+        size_t num_dimming_mode = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t err = GetTVDimmingModeCaps(&dimming_mode, &num_dimming_mode, &context_caps);
+        if (err != tvERROR_NONE) {
+            return err;
+        }
+
+        JsonObject dimmingModeJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+        for (size_t i = 0; i < num_dimming_mode; ++i) {
+            switch (dimming_mode[i]) {
+                case tvDimmingMode_Fixed: optionsArray.Add("Fixed"); break;
+                case tvDimmingMode_Local: optionsArray.Add("Local"); break;
+                case tvDimmingMode_Global: optionsArray.Add("Global"); break;
+                default: break;
+            }
+        }
+        rangeInfo["options"] = optionsArray;
+        dimmingModeJson["rangeInfo"] = rangeInfo;
+        dimmingModeJson["platformSupport"] = true;
+        dimmingModeJson["context"] = parseContextCaps(context_caps);
+        response["DimmingMode"] = dimmingModeJson;
+
+        free(dimming_mode);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getAspectRatioCapsV2(const JsonObject& parameters, JsonObject& response) {
+        tvAspectRatio_t* aspect_ratio = nullptr;
+        size_t num_aspect_ratio = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t err = GetAspectRatioCaps(&aspect_ratio, &num_aspect_ratio, &context_caps);
+        if (err != tvERROR_NONE) {
+            return err;
+        }
+
+        JsonObject aspectRatioJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+        for (size_t i = 0; i < num_aspect_ratio; ++i) {
+            switch (aspect_ratio[i]) {
+                case tvAspectRatio_Auto: optionsArray.Add("TV AUTO"); break;
+                case tvAspectRatio_Direct: optionsArray.Add("TV DIRECT"); break;
+                case tvAspectRatio_Normal: optionsArray.Add("TV NORMAL"); break;
+                case tvAspectRatio_16X9_Stretch: optionsArray.Add("TV 16X9 STRETCH"); break;
+                case tvAspectRatio_4X3_Pillarbox: optionsArray.Add("TV 4X3 PILLARBOX"); break;
+                case tvAspectRatio_Zoom: optionsArray.Add("TV ZOOM"); break;
+                default: break;
+            }
+        }
+        rangeInfo["options"] = optionsArray;
+        aspectRatioJson["rangeInfo"] = rangeInfo;
+        aspectRatioJson["platformSupport"] = true;
+        aspectRatioJson["context"] = parseContextCaps(context_caps);
+        response["AspectRatio"] = aspectRatioJson;
+
+        free(aspect_ratio);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getTVPictureModeCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* options_count, std::vector<std::string>& options) {
+            return this->GetTVPictureModeCaps(context_caps);
+        },
+        "PictureMode", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getDVCalibrationCapsV2(const JsonObject& parameters, JsonObject& response) {
+        tvDVCalibrationSettings_t *min_values = nullptr;
+        tvDVCalibrationSettings_t *max_values = nullptr;
+        tvContextCaps_t *context_caps = nullptr;
+
+        if (GetDVCalibrationCaps(&min_values, &max_values, &context_caps) != tvERROR_NONE) {
+            returnResponse(false);
+        }
+
+        JsonObject capsInfo;
+        JsonObject rangeInfo;
+
+        rangeInfo["Tmax"] = JsonObject({{"from", min_values->Tmax}, {"to", max_values->Tmax}});
+        rangeInfo["Tmin"] = JsonObject({{"from", min_values->Tmin}, {"to", max_values->Tmin}});
+        rangeInfo["Tgamma"] = JsonObject({{"from", min_values->Tgamma}, {"to", max_values->Tgamma}});
+        rangeInfo["Rx"] = JsonObject({{"from", min_values->Rx}, {"to", max_values->Rx}});
+        rangeInfo["Ry"] = JsonObject({{"from", min_values->Ry}, {"to", max_values->Ry}});
+        rangeInfo["Gx"] = JsonObject({{"from", min_values->Gx}, {"to", max_values->Gx}});
+        rangeInfo["Gy"] = JsonObject({{"from", min_values->Gy}, {"to", max_values->Gy}});
+        rangeInfo["Bx"] = JsonObject({{"from", min_values->Bx}, {"to", max_values->Bx}});
+        rangeInfo["By"] = JsonObject({{"from", min_values->By}, {"to", max_values->By}});
+        rangeInfo["Wx"] = JsonObject({{"from", min_values->Wx}, {"to", max_values->Wx}});
+        rangeInfo["Wy"] = JsonObject({{"from", min_values->Wy}, {"to", max_values->Wy}});
+
+        capsInfo["rangeInfo"] = rangeInfo;
+        capsInfo["platformSupport"] = true;
+        capsInfo["context"] = parseContextCaps(context_caps);
+
+        response["DolbyVisionCalibration"] = capsInfo;
+
+        delete min_values;
+        delete max_values;
+        returnResponse(true);
     }
 
     uint32_t AVOutputTV::getZoomModeCaps(const JsonObject& parameters, JsonObject& response)
@@ -2602,6 +2973,7 @@ namespace Plugin {
         char prevmode[PIC_MODE_NAME_MAX]={0};
         std::string value;
         GetTVPictureMode(prevmode);
+	    bool isDolbyPQmode = false;
 
         tvError_t ret = tvERROR_NONE;
         value = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -2622,9 +2994,23 @@ namespace Plugin {
             returnResponse(false);
         }
 
+        std::vector<std::string> extraModes = {"DVIQ", "Dark", "AIPQ", "Bright"};
+
+        // Check if value is in the list of four modes
+        auto iter = std::find(extraModes.begin(), extraModes.end(), value);
+        if (iter != extraModes.end()) {
+            // If present, set isDolbyPQmode flag
+            isDolbyPQmode = true;
+        }
+
         if( isSetRequired("Current",inputInfo.source,inputInfo.format) ) {
             LOGINFO("Proceed with SetTVPictureMode\n");
-            ret = SetTVPictureMode(value.c_str());
+            if (isDolbyPQmode) {
+                ret = SetTVPictureMode("EnergySaving");
+            }
+            else {
+                ret = SetTVPictureMode(value.c_str());
+            }
          }
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -2651,8 +3037,12 @@ namespace Plugin {
                     }
                     else {
                         LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM, value.c_str());
-                        int pqmodeindex = (int)getPictureModeIndex(value);
-                        SaveSourcePictureMode(source, format, pqmodeindex);
+
+                        if (!isDolbyPQmode) {
+				int pqmodeindex = (int)getPictureModeIndex(value);
+				SaveSourcePictureMode(source, format, pqmodeindex);
+                        }
+
                     }
                 }
             }
@@ -3925,6 +4315,1135 @@ namespace Plugin {
             returnResponse(true);
         }
     }    
+
+    uint32_t AVOutputTV::getPrecisionDetail(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int precisionDetail = 1;
+
+        if (parsingGetInputArgumentAdvanced(parameters, "PrecisionDetail",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if (getParamIndex("PrecisionDetail", inputInfo,indexInfo) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int err = getLocalparam("PrecisionDetail",indexInfo,precisionDetail, PQ_PARAM_PRECISION_DETAIL);
+        if( err == 0 ) {
+            response["precisionDetail"] = precisionDetailIntToString(precisionDetail);
+            LOGINFO("Exit : %s successful, Value: %s ",__FUNCTION__,precisionDetailIntToString(precisionDetail));
+            returnResponse(true);
+        }
+        else {
+            returnResponse(false);
+        }
+    }
+
+    uint32_t AVOutputTV::setPrecisionDetail(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        std::string value;
+        capDetails_t inputInfo;
+        int precisionDetail = 0;
+
+        value = parameters.HasLabel("precisionDetail") ? parameters["precisionDetail"].String() : "";
+        returnIfParamNotFound(parameters,"precisionDetail");
+
+        if (validatePrecisionDetailString(value) == 0) {
+            LOGERR("Failed in precisionDetail range validation:%s", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        precisionDetail = precisionDetailstringToInt(value);
+
+        LOGINFO("%s value %d is in range", __FUNCTION__,  precisionDetail);
+
+        if (parsingSetInputArgumentAdvanced(parameters, "PrecisionDetail",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+             LOGINFO("Proceed with %s \n",__FUNCTION__);
+        }
+
+        int retval= updateAVoutputTVParam("set","PrecisionDetail",inputInfo,PQ_PARAM_PRECISION_DETAIL,precisionDetail);
+		if(retval != 0 ) {
+			LOGERR("Failed to Save PrecisionDetail to ssm_data\n");
+			returnResponse(false);
+		}
+        LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,precisionDetail);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::resetPrecisionDetail(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int precisionDetail=0;
+        tvError_t ret = tvERROR_NONE;
+
+        if (parsingSetInputArgumentAdvanced(parameters, "PrecisionDetail",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int retval= updateAVoutputTVParam("reset","PrecisionDetail",inputInfo,PQ_PARAM_PRECISION_DETAIL,precisionDetail);
+        if(retval != 0 ) {
+            LOGWARN("Failed to reset precisionDetail\n");
+            returnResponse(false);
+        }
+        else {
+            if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
+                inputInfo.pqmode = "Current";
+                inputInfo.source = "Current";
+                inputInfo.format = "Current";
+                getParamIndex("PrecisionDetail", inputInfo,indexInfo);
+                int err = getLocalparam("PrecisionDetail",indexInfo,precisionDetail, PQ_PARAM_PRECISION_DETAIL);
+                if( err == 0 ) {
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %s\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,precisionDetailIntToString(precisionDetail));
+                }
+                else {
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    ret = tvERROR_GENERAL;
+                }
+            }
+        }
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else {
+            LOGINFO("Exit : %s successful, Value: %s ",__FUNCTION__,precisionDetailIntToString(precisionDetail));
+            returnResponse(true);
+        }
+    }
+
+    uint32_t AVOutputTV::getPrecisionDetailCaps(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        JsonObject result = JsonObject();
+        result["platformSupport"] = true;
+
+        JsonObject context;
+
+        JsonObject bright;
+        JsonArray brightDV;
+        brightDV.Add("IP");
+        brightDV.Add("Tuner");
+        brightDV.Add("HDMI1");
+        brightDV.Add("HDMI2");
+        brightDV.Add("HDMI3");
+        bright["DV"] = brightDV;
+        context["Bright"] = bright;
+
+        JsonObject dark;
+        JsonArray darkDV;
+        darkDV.Add("IP");
+        darkDV.Add("Tuner");
+        darkDV.Add("HDMI1");
+        darkDV.Add("HDMI2");
+        darkDV.Add("HDMI3");
+        dark["DV"] = darkDV;
+        context["Dark"] = dark;
+
+        JsonObject game;
+        JsonArray gameDV;
+        gameDV.Add("IP");
+        gameDV.Add("Tuner");
+        gameDV.Add("HDMI1");
+        gameDV.Add("HDMI2");
+        gameDV.Add("HDMI3");
+        game["DV"] = gameDV;
+        context["Game"] = game;
+
+        JsonObject dolbyVisionIQ;
+        JsonArray dolbyVisionIQDV;
+        dolbyVisionIQDV.Add("IP");
+        dolbyVisionIQDV.Add("Tuner");
+        dolbyVisionIQDV.Add("HDMI1");
+        dolbyVisionIQDV.Add("HDMI2");
+        dolbyVisionIQDV.Add("HDMI3");
+        dolbyVisionIQ["DV"] = dolbyVisionIQDV;
+        context["Dolby Vision IQ"] = dolbyVisionIQ;
+
+        result["context"] = context;
+        response["result"] = result;
+
+        LOGINFO("Exit : getPrecisionDetailCaps successful");
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getSDRGamma(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int sdrGamma = 0;
+
+        if (parsingGetInputArgumentAdvanced(parameters, "SDRGamma",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if (getParamIndex("SDRGamma", inputInfo,indexInfo) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int err = getLocalparam("SDRGamma",indexInfo,sdrGamma, PQ_PARAM_SDR_GAMMA);
+        if( err == 0 ) {
+            response["sdrGamma"] = getSDRGammaStringFromEnum((SDRGammaType)sdrGamma);
+            LOGINFO("Exit : %s successful, Value: %s ",__FUNCTION__,getSDRGammaStringFromEnum((SDRGammaType)sdrGamma));
+            returnResponse(true);
+        }
+        else {
+            returnResponse(false);
+        }
+    }
+
+    uint32_t AVOutputTV::setSDRGamma(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        std::string value;
+        capDetails_t inputInfo;
+        int sdrGamma = 0;
+
+        value = parameters.HasLabel("sdrGamma") ? parameters["sdrGamma"].String() : "";
+        returnIfParamNotFound(parameters,"sdrGamma");
+
+        LOGINFO("Input value before validation: %s\n", value.c_str());
+        if (validateInputSDRGammaParameter(value) == 0) {
+            LOGERR("Failed in setSDRGamma range validation :%s", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if (parsingSetInputArgumentAdvanced(parameters, "SDRGamma",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+             LOGINFO("Proceed with %s \n",__FUNCTION__);
+        }
+
+        sdrGamma=getSDRGammaEnumFromString(value.c_str());
+
+        LOGINFO("%s value %d is in range", __FUNCTION__, sdrGamma);
+
+        int retval= updateAVoutputTVParam("set","SDRGamma",inputInfo,PQ_PARAM_SDR_GAMMA,sdrGamma);
+        if(retval != 0 ) {
+            LOGERR("Failed to Save setSDRGamma to ssm_data\n");
+            returnResponse(false);
+        }
+        LOGINFO("Exit : %s successful, Value: %s ",__FUNCTION__,getSDRGammaStringFromEnum((SDRGammaType)sdrGamma));
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::resetSDRGamma(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        std::string value;
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int sdrGamma=0;
+        tvError_t ret = tvERROR_NONE;
+
+        if (parsingSetInputArgumentAdvanced(parameters, "SDRGamma",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int retval= updateAVoutputTVParam("reset","SDRGamma",inputInfo,PQ_PARAM_SDR_GAMMA,sdrGamma);
+        if(retval != 0 ) {
+            LOGWARN("Failed to reset SDRGamma\n");
+            returnResponse(false);
+        }
+        else {
+            if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
+                inputInfo.pqmode = "Current";
+                inputInfo.source = "Current";
+                inputInfo.format = "Current";
+                getParamIndex("SDRGamma", inputInfo,indexInfo);
+                int err = getLocalparam("SDRGamma",indexInfo,sdrGamma, PQ_PARAM_SDR_GAMMA);
+                if( err == 0 ) {
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %s\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,getSDRGammaStringFromEnum((SDRGammaType)sdrGamma));
+                }
+                else {
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    ret = tvERROR_GENERAL;
+                }
+            }
+        }
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else {
+            LOGINFO("Exit : %s successful, Value: %s ",__FUNCTION__,getSDRGammaStringFromEnum((SDRGammaType)sdrGamma));
+            returnResponse(true);
+        }
+    }
+
+    uint32_t AVOutputTV::getSDRGammaCaps(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        JsonObject result = JsonObject();
+        result["platformSupport"] = true;
+
+        JsonArray options;
+        options.Add("2.0");
+        options.Add("2.2");
+        options.Add("2.4");
+        options.Add("BT.1886");
+        result["options"] = options;
+
+        JsonObject context;
+
+        JsonArray standard;
+        standard.Add("IP");
+        standard.Add("Tuner");
+        standard.Add("HDMI1");
+        standard.Add("HDMI2");
+        standard.Add("HDMI3");
+        standard.Add("Composite1");
+        context["Standard"] = standard;
+
+        JsonArray vivid;
+        vivid.Add("IP");
+        vivid.Add("Tuner");
+        vivid.Add("HDMI1");
+        vivid.Add("HDMI2");
+        vivid.Add("HDMI3");
+        vivid.Add("Composite1");
+        context["Vivid"] = vivid;
+
+        JsonArray sports;
+        sports.Add("IP");
+        sports.Add("Tuner");
+        sports.Add("HDMI1");
+        sports.Add("HDMI2");
+        sports.Add("HDMI3");
+        sports.Add("Composite1");
+        context["Sports"] = sports;
+
+        JsonArray movie;
+        movie.Add("IP");
+        movie.Add("Tuner");
+        movie.Add("HDMI1");
+        movie.Add("HDMI2");
+        movie.Add("HDMI3");
+        movie.Add("Composite1");
+        context["Movie"] = movie;
+
+        result["context"] = context;
+        response["result"] = result;
+
+        LOGINFO("Exit : getSDRGammaCaps successful");
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getLocalContrastEnhancement(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int localContrastEnhancement = 0;
+
+        if (parsingGetInputArgumentAdvanced(parameters, "LocalContrastEnhancement",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if (getParamIndex("LocalContrastEnhancement", inputInfo,indexInfo) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int err = getLocalparam("LocalContrastEnhancement",indexInfo,localContrastEnhancement, PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT);
+        if( err == 0 ) {
+            response["localContrastEnhancement"] = localContrastEnhancement;
+            LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,localContrastEnhancement);
+            returnResponse(true);
+        }
+        else {
+            returnResponse(false);
+        }
+    }
+
+    uint32_t AVOutputTV::setLocalContrastEnhancement(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        std::string value;
+        capDetails_t inputInfo;
+        int localContrastEnhancement = 0;
+
+        value = parameters.HasLabel("localContrastEnhancement") ? parameters["localContrastEnhancement"].String() : "";
+        returnIfParamNotFound(parameters,"localContrastEnhancement");
+        localContrastEnhancement = stoi(value);
+
+        //Hardcoded value ranges
+        int from = 0, to = 3;
+
+        if (!validateIntegerInputParameterAdvanced(localContrastEnhancement, from, to)) {
+            LOGERR("Failed in LocalContrastEnhancement range validation:%s", __FUNCTION__);
+            returnResponse(false);
+        }
+        LOGINFO("%s value %d is in range", __FUNCTION__,  localContrastEnhancement);
+
+        if (parsingSetInputArgumentAdvanced(parameters, "LocalContrastEnhancement",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+             LOGINFO("Proceed with %s \n",__FUNCTION__);
+        }
+
+        int retval= updateAVoutputTVParam("set","LocalContrastEnhancement",inputInfo,PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT,localContrastEnhancement);
+		if(retval != 0 ) {
+			LOGERR("Failed to Save localContrastEnhancement to ssm_data\n");
+			returnResponse(false);
+		}
+        LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,localContrastEnhancement);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::resetLocalContrastEnhancement(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int localContrastEnhancement=0;
+        tvError_t ret = tvERROR_NONE;
+
+        if (parsingSetInputArgumentAdvanced(parameters, "LocalContrastEnhancement",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int retval= updateAVoutputTVParam("reset","LocalContrastEnhancement",inputInfo,PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT,localContrastEnhancement);
+        if(retval != 0 ) {
+            LOGWARN("Failed to reset LocalContrastEnhancement\n");
+            returnResponse(false);
+        }
+        else {
+            if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
+                inputInfo.pqmode = "Current";
+                inputInfo.source = "Current";
+                inputInfo.format = "Current";
+                getParamIndex("LocalContrastEnhancement", inputInfo,indexInfo);
+                int err = getLocalparam("LocalContrastEnhancement",indexInfo,localContrastEnhancement, PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT);
+                if( err == 0 ) {
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,localContrastEnhancement);
+                }
+                else {
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    ret = tvERROR_GENERAL;
+                }
+            }
+        }
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else {
+            LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,localContrastEnhancement);
+            returnResponse(true);
+        }
+    }
+
+    uint32_t AVOutputTV::getLocalContrastEnhancementCaps(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        JsonObject result = JsonObject();
+        result["platformSupport"] = true;
+
+        JsonObject rangeInfo;
+        rangeInfo["from"] = 0;
+        rangeInfo["to"] = 3;
+        result["rangeInfo"] = rangeInfo;
+
+        JsonObject context;
+
+        JsonObject standard;
+        JsonArray standardSDR;
+        standardSDR.Add("IP");
+        standardSDR.Add("Tuner");
+        standardSDR.Add("HDMI1");
+        standardSDR.Add("HDMI2");
+        standardSDR.Add("HDMI3");
+        standardSDR.Add("Composite1");
+        JsonArray standardDV;
+        standardDV.Add("IP");
+        standardDV.Add("Tuner");
+        standardDV.Add("HDMI1");
+        standardDV.Add("HDMI2");
+        standardDV.Add("HDMI3");
+        standard["SDR"] = standardSDR;
+        standard["DV"] = standardDV;
+        context["Standard"] = standard;
+
+        JsonObject dolbyVisionIQ;
+        JsonArray dolbyVisionIQDV;
+        dolbyVisionIQDV.Add("IP");
+        dolbyVisionIQDV.Add("Tuner");
+        dolbyVisionIQDV.Add("HDMI1");
+        dolbyVisionIQDV.Add("HDMI2");
+        dolbyVisionIQDV.Add("HDMI3");
+        dolbyVisionIQ["DV"] = dolbyVisionIQDV;
+        context["Dolby Vision IQ"] = dolbyVisionIQ;
+
+        result["context"] = context;
+        response["result"] = result;
+
+        LOGINFO("Exit : getLocalContrastEnhancementCaps successful");
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getMPEGNoiseReduction(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int mpegNoiseReduction = 0;
+
+        if (parsingGetInputArgumentAdvanced(parameters, "MpegNoiseReduction",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if (getParamIndex("MpegNoiseReduction", inputInfo,indexInfo) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int err = getLocalparam("MpegNoiseReduction",indexInfo,mpegNoiseReduction, PQ_PARAM_MPEG_NOISE_REDUCTION);
+        if( err == 0 ) {
+            response["mpegNoiseReduction"] = mpegNoiseReduction;
+            LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,mpegNoiseReduction);
+            returnResponse(true);
+        }
+        else {
+            returnResponse(false);
+        }
+    }
+
+    uint32_t AVOutputTV::setMPEGNoiseReduction(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        std::string value;
+        capDetails_t inputInfo;
+        int mpegNoiseReduction = 0;
+
+        value = parameters.HasLabel("mpegNoiseReduction") ? parameters["mpegNoiseReduction"].String() : "";
+        returnIfParamNotFound(parameters,"mpegNoiseReduction");
+        mpegNoiseReduction = stoi(value);
+
+        //Hardcoded value ranges
+        int from = 0, to = 3;
+
+        if (!validateIntegerInputParameterAdvanced(mpegNoiseReduction, from, to)) {
+            LOGERR("Failed in MpegNoiseReduction range validation:%s", __FUNCTION__);
+            returnResponse(false);
+        }
+        LOGINFO("%s value %d is in range", __FUNCTION__,  mpegNoiseReduction);
+
+        if (parsingSetInputArgumentAdvanced(parameters, "MpegNoiseReduction",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+             LOGINFO("Proceed with %s \n",__FUNCTION__);
+        }
+
+        int retval= updateAVoutputTVParam("set","MpegNoiseReduction",inputInfo,PQ_PARAM_MPEG_NOISE_REDUCTION,mpegNoiseReduction);
+		if(retval != 0 ) {
+			LOGERR("Failed to Save mpegNoiseReduction to ssm_data\n");
+			returnResponse(false);
+		}
+        LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,mpegNoiseReduction);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::resetMPEGNoiseReduction(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int mpegNoiseReduction=0;
+        tvError_t ret = tvERROR_NONE;
+
+        if (parsingSetInputArgumentAdvanced(parameters, "MpegNoiseReduction",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int retval= updateAVoutputTVParam("reset","MpegNoiseReduction",inputInfo,PQ_PARAM_MPEG_NOISE_REDUCTION,mpegNoiseReduction);
+        if(retval != 0 ) {
+            LOGWARN("Failed to reset MpegNoiseReduction\n");
+            returnResponse(false);
+        }
+        else {
+            if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
+                inputInfo.pqmode = "Current";
+                inputInfo.source = "Current";
+                inputInfo.format = "Current";
+                getParamIndex("MpegNoiseReduction", inputInfo,indexInfo);
+                int err = getLocalparam("MpegNoiseReduction",indexInfo,mpegNoiseReduction, PQ_PARAM_MPEG_NOISE_REDUCTION);
+                if( err == 0 ) {
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,mpegNoiseReduction);
+                }
+                else {
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    ret = tvERROR_GENERAL;
+                }
+            }
+        }
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else {
+            LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,mpegNoiseReduction);
+            returnResponse(true);
+        }
+    }
+
+    uint32_t AVOutputTV::getMPEGNoiseReductionCaps(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        JsonObject result = JsonObject();
+        result["platformSupport"] = true;
+
+        JsonObject rangeInfo;
+        rangeInfo["from"] = 0;
+        rangeInfo["to"] = 3;
+        result["rangeInfo"] = rangeInfo;
+
+        JsonObject context;
+
+        JsonObject standard;
+        JsonArray standardSDR;
+        standardSDR.Add("IP");
+        standardSDR.Add("Tuner");
+        standardSDR.Add("HDMI1");
+        standardSDR.Add("HDMI2");
+        standardSDR.Add("HDMI3");
+        standardSDR.Add("Composite1");
+        JsonArray standardDV;
+        standardDV.Add("IP");
+        standardDV.Add("Tuner");
+        standardDV.Add("HDMI1");
+        standardDV.Add("HDMI2");
+        standardDV.Add("HDMI3");
+        standard["SDR"] = standardSDR;
+        standard["DV"] = standardDV;
+        context["Standard"] = standard;
+
+        JsonObject dolbyVisionIQ;
+        JsonArray dolbyVisionIQDV;
+        dolbyVisionIQDV.Add("IP");
+        dolbyVisionIQDV.Add("Tuner");
+        dolbyVisionIQDV.Add("HDMI1");
+        dolbyVisionIQDV.Add("HDMI2");
+        dolbyVisionIQDV.Add("HDMI3");
+        dolbyVisionIQ["DV"] = dolbyVisionIQDV;
+        context["Dolby Vision IQ"] = dolbyVisionIQ;
+
+        result["context"] = context;
+        response["result"] = result;
+
+        LOGINFO("Exit : getMPEGNoiseReductionCaps successful");
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getDigitalNoiseReduction(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int digitalNoiseReduction = 0;
+
+        if (parsingGetInputArgumentAdvanced(parameters, "DigitalNoiseReduction",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if (getParamIndex("DigitalNoiseReduction", inputInfo,indexInfo) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int err = getLocalparam("DigitalNoiseReduction",indexInfo,digitalNoiseReduction, PQ_PARAM_DIGITAL_NOISE_REDUCTION);
+        if( err == 0 ) {
+            response["digitalNoiseReduction"] = digitalNoiseReduction;
+            LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,digitalNoiseReduction);
+            returnResponse(true);
+        }
+        else {
+            returnResponse(false);
+        }
+    }
+
+    uint32_t AVOutputTV::setDigitalNoiseReduction(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        std::string value;
+        capDetails_t inputInfo;
+        int digitalNoiseReduction = 0;
+
+        value = parameters.HasLabel("digitalNoiseReduction") ? parameters["digitalNoiseReduction"].String() : "";
+        returnIfParamNotFound(parameters,"digitalNoiseReduction");
+        digitalNoiseReduction = stoi(value);
+
+        //Hardcoded value ranges
+        int from = 0, to = 3;
+
+        if (!validateIntegerInputParameterAdvanced(digitalNoiseReduction, from, to)) {
+            LOGERR("Failed in DigitalNoiseReduction range validation:%s", __FUNCTION__);
+            returnResponse(false);
+        }
+        LOGINFO("%s value %d is in range", __FUNCTION__,  digitalNoiseReduction);
+
+        if (parsingSetInputArgumentAdvanced(parameters, "DigitalNoiseReduction",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+             LOGINFO("Proceed with %s \n",__FUNCTION__);
+        }
+
+        int retval= updateAVoutputTVParam("set","DigitalNoiseReduction",inputInfo,PQ_PARAM_DIGITAL_NOISE_REDUCTION,digitalNoiseReduction);
+		if(retval != 0 ) {
+			LOGERR("Failed to Save digitalNoiseReduction to ssm_data\n");
+			returnResponse(false);
+		}
+        LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,digitalNoiseReduction);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::resetDigitalNoiseReduction(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int digitalNoiseReduction=0;
+        tvError_t ret = tvERROR_NONE;
+
+        if (parsingSetInputArgumentAdvanced(parameters, "DigitalNoiseReduction",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int retval= updateAVoutputTVParam("reset","DigitalNoiseReduction",inputInfo,PQ_PARAM_DIGITAL_NOISE_REDUCTION,digitalNoiseReduction);
+        if(retval != 0 ) {
+            LOGWARN("Failed to reset DigitalNoiseReduction\n");
+            returnResponse(false);
+        }
+        else {
+            if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
+                inputInfo.pqmode = "Current";
+                inputInfo.source = "Current";
+                inputInfo.format = "Current";
+                getParamIndex("DigitalNoiseReduction", inputInfo,indexInfo);
+                int err = getLocalparam("DigitalNoiseReduction",indexInfo,digitalNoiseReduction, PQ_PARAM_DIGITAL_NOISE_REDUCTION);
+                if( err == 0 ) {
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,digitalNoiseReduction);
+		}
+                else {
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    ret = tvERROR_GENERAL;
+                }
+            }
+        }
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else {
+            LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,digitalNoiseReduction);
+            returnResponse(true);
+        }
+    }
+
+    uint32_t AVOutputTV::getDigitalNoiseReductionCaps(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        JsonObject result = JsonObject();
+        result["platformSupport"] = true;
+
+        JsonObject rangeInfo;
+        rangeInfo["from"] = 0;
+        rangeInfo["to"] = 3;
+        result["rangeInfo"] = rangeInfo;
+
+        JsonObject context;
+
+        JsonObject standard;
+        JsonArray standardSDR;
+        standardSDR.Add("IP");
+        standardSDR.Add("Tuner");
+        standardSDR.Add("HDMI1");
+        standardSDR.Add("HDMI2");
+        standardSDR.Add("HDMI3");
+        standardSDR.Add("Composite1");
+        JsonArray standardDV;
+        standardDV.Add("IP");
+        standardDV.Add("Tuner");
+        standardDV.Add("HDMI1");
+        standardDV.Add("HDMI2");
+        standardDV.Add("HDMI3");
+        standard["SDR"] = standardSDR;
+        standard["DV"] = standardDV;
+        context["Standard"] = standard;
+
+        JsonObject dolbyVisionIQ;
+        JsonArray dolbyVisionIQDV;
+        dolbyVisionIQDV.Add("IP");
+        dolbyVisionIQDV.Add("Tuner");
+        dolbyVisionIQDV.Add("HDMI1");
+        dolbyVisionIQDV.Add("HDMI2");
+        dolbyVisionIQDV.Add("HDMI3");
+        dolbyVisionIQ["DV"] = dolbyVisionIQDV;
+        context["Dolby Vision IQ"] = dolbyVisionIQ;
+
+        result["context"] = context;
+        response["result"] = result;
+
+        LOGINFO("Exit : getDigitalNoiseReductionCaps successful");
+        returnResponse(true);
+    }
+
+
+	uint32_t AVOutputTV::getAISuperResolution(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int aiSuperResolution = 0;
+
+        if (parsingGetInputArgumentAdvanced(parameters, "AISuperResolution",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if (getParamIndex("AISuperResolution", inputInfo,indexInfo) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int err = getLocalparam("AISuperResolution",indexInfo,aiSuperResolution, PQ_PARAM_AI_SUPER_RESOLUTION);
+        if( err == 0 ) {
+            response["aiSuperResolution"] = aiSuperResolution;
+            LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,aiSuperResolution);
+            returnResponse(true);
+        }
+        else {
+            returnResponse(false);
+        }
+    }
+
+    uint32_t AVOutputTV::setAISuperResolution(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        std::string value;
+        capDetails_t inputInfo;
+        int aiSuperResolution = 0;
+
+        value = parameters.HasLabel("aiSuperResolution") ? parameters["aiSuperResolution"].String() : "";
+        returnIfParamNotFound(parameters,"aiSuperResolution");
+        aiSuperResolution = stoi(value);
+
+        //Hardcoded value ranges
+        int from = 0, to = 3;
+
+        if (!validateIntegerInputParameterAdvanced(aiSuperResolution, from, to)) {
+            LOGERR("Failed in AISuperResolution range validation:%s", __FUNCTION__);
+            returnResponse(false);
+        }
+        LOGINFO("%s value %d is in range", __FUNCTION__,  aiSuperResolution);
+
+        if (parsingSetInputArgumentAdvanced(parameters, "AISuperResolution",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+             LOGINFO("Proceed with %s \n",__FUNCTION__);
+        }
+
+        int retval= updateAVoutputTVParam("set","AISuperResolution",inputInfo,PQ_PARAM_AI_SUPER_RESOLUTION,aiSuperResolution);
+		if(retval != 0 ) {
+			LOGERR("Failed to Save aiSuperResolution to ssm_data\n");
+			returnResponse(false);
+		}
+        response["success"] = true;
+        LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,aiSuperResolution);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::resetAISuperResolution(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int aiSuperResolution=0;
+        tvError_t ret = tvERROR_NONE;
+
+        if (parsingSetInputArgumentAdvanced(parameters, "AISuperResolution",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int retval= updateAVoutputTVParam("reset","AISuperResolution",inputInfo,PQ_PARAM_AI_SUPER_RESOLUTION,aiSuperResolution);
+        if(retval != 0 ) {
+            LOGWARN("Failed to reset AISuperResolution\n");
+            returnResponse(false);
+        }
+        else {
+            if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
+                inputInfo.pqmode = "Current";
+                inputInfo.source = "Current";
+                inputInfo.format = "Current";
+                getParamIndex("AISuperResolution", inputInfo,indexInfo);
+                int err = getLocalparam("AISuperResolution",indexInfo,aiSuperResolution, PQ_PARAM_AI_SUPER_RESOLUTION);
+                if( err == 0 ) {
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,aiSuperResolution);
+                }
+                else {
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    ret = tvERROR_GENERAL;
+                }
+            }
+        }
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else {
+            LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,aiSuperResolution);
+            returnResponse(true);
+        }
+    }
+
+    uint32_t AVOutputTV::getAISuperResolutionCaps(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        JsonObject result = JsonObject();
+        result["platformSupport"] = true;
+
+        JsonObject rangeInfo;
+        rangeInfo["from"] = 0;
+        rangeInfo["to"] = 3;
+        result["rangeInfo"] = rangeInfo;
+
+        JsonObject context;
+
+        JsonObject standard;
+        JsonArray standardSDR;
+        standardSDR.Add("IP");
+        standardSDR.Add("Tuner");
+        standardSDR.Add("HDMI1");
+        standardSDR.Add("HDMI2");
+        standardSDR.Add("HDMI3");
+        standardSDR.Add("Composite1");
+        JsonArray standardDV;
+        standardDV.Add("IP");
+        standardDV.Add("Tuner");
+        standardDV.Add("HDMI1");
+        standardDV.Add("HDMI2");
+        standardDV.Add("HDMI3");
+        standard["SDR"] = standardSDR;
+        standard["DV"] = standardDV;
+        context["Standard"] = standard;
+
+        JsonObject dolbyVisionIQ;
+        JsonArray dolbyVisionIQDV;
+        dolbyVisionIQDV.Add("IP");
+        dolbyVisionIQDV.Add("Tuner");
+        dolbyVisionIQDV.Add("HDMI1");
+        dolbyVisionIQDV.Add("HDMI2");
+        dolbyVisionIQDV.Add("HDMI3");
+        dolbyVisionIQ["DV"] = dolbyVisionIQDV;
+        context["Dolby Vision IQ"] = dolbyVisionIQ;
+
+        result["context"] = context;
+        response["result"] = result;
+
+        LOGINFO("Exit : getAISuperResolutionCaps successful");
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getMEMC(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int memc = 0;
+
+        if (parsingGetInputArgumentAdvanced(parameters, "MEMC",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if (getParamIndex("MEMC", inputInfo,indexInfo) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int err = getLocalparam("MEMC",indexInfo,memc, PQ_PARAM_MEMC);
+        if( err == 0 ) {
+            response["memc"] = memc;
+            LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,memc);
+            returnResponse(true);
+        }
+        else {
+            returnResponse(false);
+        }
+    }
+
+    uint32_t AVOutputTV::setMEMC(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        std::string value;
+        capDetails_t inputInfo;
+        int memc = 0;
+
+        value = parameters.HasLabel("memc") ? parameters["memc"].String() : "";
+        returnIfParamNotFound(parameters,"memc");
+        memc = stoi(value);
+
+        //Hardcoded value ranges
+        int from = 0, to = 3;
+
+        if (!validateIntegerInputParameterAdvanced(memc, from, to)) {
+            LOGERR("Failed in MEMC range validation:%s", __FUNCTION__);
+            returnResponse(false);
+        }
+        LOGINFO("%s value %d is in range", __FUNCTION__,  memc);
+
+        if (parsingSetInputArgumentAdvanced(parameters, "MEMC",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+	    LOGINFO("Proceed with %s \n",__FUNCTION__);
+	}
+
+	int retval= updateAVoutputTVParam("set","MEMC",inputInfo,PQ_PARAM_MEMC,memc);
+	if(retval != 0 ) {
+	    LOGERR("Failed to Save MEMC to ssm_data\n");
+	    returnResponse(false);
+	}
+
+        LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,memc);
+        returnResponse(true);
+    }
+
+
+    uint32_t AVOutputTV::resetMEMC(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        std::string value;
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int memc=0;
+        tvError_t ret = tvERROR_NONE;
+
+        if (parsingSetInputArgumentAdvanced(parameters, "MEMC",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int retval= updateAVoutputTVParam("reset","MEMC",inputInfo,PQ_PARAM_MEMC,memc);
+        if(retval != 0 ) {
+            LOGWARN("Failed to reset MEMC\n");
+            returnResponse(false);
+        }
+        else {
+            if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
+                inputInfo.pqmode = "Current";
+                inputInfo.source = "Current";
+                inputInfo.format = "Current";
+                getParamIndex("MEMC", inputInfo,indexInfo);
+                int err = getLocalparam("MEMC",indexInfo,memc, PQ_PARAM_MEMC);
+                if( err == 0 ) {
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,memc);
+                }
+                else {
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    ret = tvERROR_GENERAL;
+                }
+            }
+        }
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else {
+            LOGINFO("Exit : %s successful, Value: %d ",__FUNCTION__,memc);
+            returnResponse(true);
+        }
+
+    }
+
+    uint32_t AVOutputTV::getMEMCCaps(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        JsonObject result = JsonObject();
+        result["platformSupport"] = true;
+
+        JsonObject rangeInfo;
+        rangeInfo["from"] = 0;
+        rangeInfo["to"] = 3;
+        result["rangeInfo"] = rangeInfo;
+
+        JsonObject context;
+
+        JsonObject standard;
+        JsonArray standardSDR;
+        standardSDR.Add("IP");
+        standardSDR.Add("Tuner");
+        standardSDR.Add("HDMI1");
+        standardSDR.Add("HDMI2");
+        standardSDR.Add("HDMI3");
+        standardSDR.Add("Composite1");
+        JsonArray standardDV;
+        standardDV.Add("IP");
+        standardDV.Add("Tuner");
+        standardDV.Add("HDMI1");
+        standardDV.Add("HDMI2");
+        standardDV.Add("HDMI3");
+        standard["SDR"] = standardSDR;
+        standard["DV"] = standardDV;
+        context["Standard"] = standard;
+
+        JsonObject dolbyVisionIQ;
+        JsonArray dolbyVisionIQDV;
+        dolbyVisionIQDV.Add("IP");
+        dolbyVisionIQDV.Add("Tuner");
+        dolbyVisionIQDV.Add("HDMI1");
+        dolbyVisionIQDV.Add("HDMI2");
+        dolbyVisionIQDV.Add("HDMI3");
+        dolbyVisionIQ["DV"] = dolbyVisionIQDV;
+        context["Dolby Vision IQ"] = dolbyVisionIQ;
+
+        result["context"] = context;
+        response["result"] = result;
+
+        LOGINFO("Exit : getMEMCCaps successful");
+        returnResponse(true);
+    }
 
     uint32_t AVOutputTV::getVideoSource(const JsonObject& parameters,JsonObject& response)
     {
