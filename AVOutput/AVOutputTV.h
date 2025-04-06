@@ -74,6 +74,13 @@
 #define CREATE_DIRTY(__X__) (__X__+=STRING_DIRTY)
 #define CAPABLITY_FILE_NAME    "pq_capabilities.ini"
 
+typedef enum {
+    SDR_GAMMA_2_0 = 0,
+    SDR_GAMMA_2_2 = 1,
+    SDR_GAMMA_2_4 = 2,
+    SDR_GAMMA_BT1886 = 3,
+    SDR_GAMMA_UNKNOWN = -1
+} SDRGammaType;
 
 class CIniFile
 {
@@ -204,7 +211,13 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getHDRMode)
 		DECLARE_JSON_RPC_METHOD(get2PointWB)
 		DECLARE_JSON_RPC_METHOD(getAutoBacklightMode)
-
+		DECLARE_JSON_RPC_METHOD(getPrecisionDetail)
+		DECLARE_JSON_RPC_METHOD(getSDRGamma)
+		DECLARE_JSON_RPC_METHOD(getLocalContrastEnhancement)
+		DECLARE_JSON_RPC_METHOD(getMPEGNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(getDigitalNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(getAISuperResolution)
+		DECLARE_JSON_RPC_METHOD(getMEMC)
 
 		/*Get Capability API's*/
 		DECLARE_JSON_RPC_METHOD(getBacklightCaps)
@@ -227,6 +240,13 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(get2PointWBCaps)
 		DECLARE_JSON_RPC_METHOD(getHDRModeCaps)
 		DECLARE_JSON_RPC_METHOD(getAutoBacklightModeCaps)
+		DECLARE_JSON_RPC_METHOD(getPrecisionDetailCaps)
+		DECLARE_JSON_RPC_METHOD(getSDRGammaCaps)
+		DECLARE_JSON_RPC_METHOD(getLocalContrastEnhancementCaps)
+		DECLARE_JSON_RPC_METHOD(getMPEGNoiseReductionCaps)
+		DECLARE_JSON_RPC_METHOD(getDigitalNoiseReductionCaps)
+		DECLARE_JSON_RPC_METHOD(getAISuperResolutionCaps)
+		DECLARE_JSON_RPC_METHOD(getMEMCCaps)
 
 		/*Set API's*/
 		DECLARE_JSON_RPC_METHOD(setBacklight)
@@ -247,6 +267,13 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(set2PointWB )
  		DECLARE_JSON_RPC_METHOD(signalFilmMakerMode)
 		DECLARE_JSON_RPC_METHOD(setAutoBacklightMode)
+		DECLARE_JSON_RPC_METHOD(setPrecisionDetail)
+		DECLARE_JSON_RPC_METHOD(setSDRGamma)
+		DECLARE_JSON_RPC_METHOD(setLocalContrastEnhancement)
+		DECLARE_JSON_RPC_METHOD(setMPEGNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(setDigitalNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(setAISuperResolution)
+		DECLARE_JSON_RPC_METHOD(setMEMC)
 
 		/*Reset API's*/
 		DECLARE_JSON_RPC_METHOD(resetBacklight)
@@ -265,6 +292,13 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(resetCMS)
 		DECLARE_JSON_RPC_METHOD(reset2PointWB)
 		DECLARE_JSON_RPC_METHOD(resetAutoBacklightMode)
+		DECLARE_JSON_RPC_METHOD(resetPrecisionDetail)
+		DECLARE_JSON_RPC_METHOD(resetSDRGamma)
+		DECLARE_JSON_RPC_METHOD(resetLocalContrastEnhancement)
+		DECLARE_JSON_RPC_METHOD(resetMPEGNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(resetDigitalNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(resetAISuperResolution)
+		DECLARE_JSON_RPC_METHOD(resetMEMC)
 
     private:
 
@@ -372,6 +406,17 @@ class AVOutputTV : public AVOutputBase {
 		void broadcastLowLatencyModeChangeEvent(bool lowLatencyMode);
 		tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
 		tvError_t setDefaultAspectRatio(std::string pqmode="none",std::string format="none",std::string source="none");
+		bool validateIntegerInputParameterAdvanced(int inputValue, int fromValue, int toValue);
+		bool paramsInRangeCheck(const JsonObject& parameters);
+		int parsingGetInputArgumentAdvanced(const JsonObject& parameters, std::string pqparam, capDetails_t& info);
+		int parsingSetInputArgumentAdvanced(const JsonObject& parameters, std::string pqparam, capDetails_t& paramInfo);
+		bool validatePrecisionDetailString(const std::string& input);
+		int precisionDetailstringToInt(const std::string& input);
+		const char* precisionDetailIntToString(int value);
+		bool validateInputSDRGammaParameter(const std::string& input);
+		SDRGammaType getSDRGammaEnumFromString(const std::string& gammaOption);
+		const char* getSDRGammaStringFromEnum(SDRGammaType gammaType);
+		int convertToValidInputParameterAdvanced(std::string pqparam, capDetails_t& info);
 
 	public:
 		int m_currentHdmiInResoluton;
