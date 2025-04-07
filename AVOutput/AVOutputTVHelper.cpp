@@ -2349,9 +2349,11 @@ typedef std::map<tvVideoSrcType_t, std::string> VideoSrcMap;
 
 const std::map<int, std::string> AVOutputTV::pqModeMap = {
     {PQ_MODE_SPORTS, "Sports"},
+    {PQ_MODE_THEATER, "Theater"},
     {PQ_MODE_GAME, "Game"},
-    {PQ_MODE_DVIQ, "DV IQ"},
-    {PQ_MODE_DARK, "DV Dark"},
+    {PQ_MODE_DVIQ, "IQ"},
+    {PQ_MODE_DARK, "Dark"},
+    {PQ_MODE_BRIGHT, "Bright"},
     {PQ_MODE_AIPQ, "AI PQ"},
     {PQ_MODE_STANDARD, "Standard"},
     {PQ_MODE_VIVID, "Vivid"},
