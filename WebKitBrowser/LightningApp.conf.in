@@ -93,3 +93,6 @@ if ("@PLUGIN_LIGHTNING_APP_MEMORYPRESSURE_SERVICEWORKERPROCESS_SETTINGS_LIMIT@ A
 memory.add("serviceworkerprocesssettings", serviceworkerprocesssettings)
 
 configuration.add("memory", memory)
+
+configuration.add("gstquirks", "@PLUGIN_WEBKITBROWSER_GST_QUIRKS@")
+configuration.add("gstholepunchquirk", "@PLUGIN_WEBKITBROWSER_GST_HOLE_PUNCH_QUIRK@")

@@ -331,6 +331,8 @@ namespace Plugin {
                 , Testing(false)
                 , ServiceWorkerEnabled(false)
                 , ICECandidateFilteringEnabled()
+                , GstQuirks()
+                , GstHolePunchQuirk()
             {
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
@@ -400,6 +402,8 @@ namespace Plugin {
                 Add(_T("testing"), &Testing);
                 Add(_T("serviceworker"), &ServiceWorkerEnabled);
                 Add(_T("icecandidatefiltering"), &ICECandidateFilteringEnabled);
+                Add(_T("gstquirks"), &GstQuirks);
+                Add(_T("gstholepunchquirk"), &GstHolePunchQuirk);
             }
             ~Config()
             {
@@ -474,6 +478,8 @@ namespace Plugin {
             Core::JSON::Boolean Testing;
             Core::JSON::Boolean ServiceWorkerEnabled;
             Core::JSON::Boolean ICECandidateFilteringEnabled;
+            Core::JSON::String GstQuirks;
+            Core::JSON::String GstHolePunchQuirk;
         };
 
         class HangDetector
@@ -1856,6 +1862,14 @@ namespace Plugin {
 
             if (height.empty() == false) {
                 Core::SystemInfo::SetEnvironment(_T("GST_VIRTUAL_DISP_HEIGHT"), height, !environmentOverride);
+            }
+
+            if (_config.GstQuirks.IsSet() == true) {
+                Core::SystemInfo::SetEnvironment(_T("WEBKIT_GST_QUIRKS"), _config.GstQuirks.Value(), !environmentOverride);
+            }
+
+            if (_config.GstHolePunchQuirk.IsSet() == true) {
+                Core::SystemInfo::SetEnvironment(_T("WEBKIT_GST_HOLE_PUNCH_QUIRK"), _config.GstHolePunchQuirk.Value(), !environmentOverride);
             }
 
             for (auto environmentVariableIndex = 0; environmentVariableIndex < _config.EnvironmentVariables.Length(); environmentVariableIndex++) {
