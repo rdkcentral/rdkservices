@@ -2443,7 +2443,7 @@ static GSourceFuncs _handlerIntervention =
             constexpr const char* waylandWPEWebProcessName = "wayland-egl-WPEWebProcess";
             int isRegistered = 0;
             IARM_Result_t res = IARM_Bus_IsConnected(waylandWPEWebProcessName, &isRegistered);
-            if(isRegistered)
+            if (res == IARM_RESULT_SUCCESS && isRegistered)
             {
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, EventHandler) );
                 /*
@@ -3044,7 +3044,7 @@ static GSourceFuncs _handlerIntervention =
             IARM_Result_t res;
             int isRegistered = 0;
             res = IARM_Bus_IsConnected(waylandWPEWebProcessName, &isRegistered);
-            if(!isRegistered)
+            if (res != IARM_RESULT_SUCCESS && !isRegistered)
             {
                 TRACE_L1("Initializing IARM Bus");
                 err = IARM_Bus_Init(waylandWPEWebProcessName);
