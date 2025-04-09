@@ -711,7 +711,7 @@ namespace Plugin {
     }
 
     uint32_t AVOutputTV::getAspectRatioCapsV2(const JsonObject& parameters, JsonObject& response) {
-        tvAspectRatio_t* aspect_ratio = nullptr;
+        tvDisplayMode_t* aspect_ratio = nullptr;
         size_t num_aspect_ratio = 0;
         tvContextCaps_t* context_caps = nullptr;
 
@@ -725,13 +725,14 @@ namespace Plugin {
         JsonArray optionsArray;
         for (size_t i = 0; i < num_aspect_ratio; ++i) {
             switch (aspect_ratio[i]) {
-                case tvAspectRatio_Auto: optionsArray.Add("TV AUTO"); break;
-                case tvAspectRatio_Direct: optionsArray.Add("TV DIRECT"); break;
-                case tvAspectRatio_Normal: optionsArray.Add("TV NORMAL"); break;
-                case tvAspectRatio_16X9_Stretch: optionsArray.Add("TV 16X9 STRETCH"); break;
-                case tvAspectRatio_4X3_Pillarbox: optionsArray.Add("TV 4X3 PILLARBOX"); break;
-                case tvAspectRatio_Zoom: optionsArray.Add("TV ZOOM"); break;
-                default: break;
+                case tvDisplayMode_AUTO: optionsArray.Add("TV AUTO"); break;
+                case tvDisplayMode_DIRECT: optionsArray.Add("TV DIRECT"); break;
+                case tvDisplayMode_NORMAL: optionsArray.Add("TV NORMAL"); break;
+                case tvDisplayMode_16x9: optionsArray.Add("TV 16X9 STRETCH"); break;
+                case tvDisplayMode_4x3: optionsArray.Add("TV 4X3 PILLARBOX"); break;
+                case tvDisplayMode_ZOOM: optionsArray.Add("TV ZOOM"); break;
+                case tvDisplayMode_FULL: optionsArray.Add("TV FULL"); break;
+		default: break;
             }
         }
         rangeInfo["options"] = optionsArray;

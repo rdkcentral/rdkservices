@@ -410,7 +410,7 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t GetColorTemperatureCaps(tvColorTemp_t** color_temp, size_t* num_color_temp, tvContextCaps_t** context_caps);
 		tvError_t GetSdrGammaCaps(tvSdrGamma_t** sdr_gamma, size_t* num_sdr_gamma, tvContextCaps_t** context_caps);
 		tvError_t GetTVDimmingModeCaps(tvDimmingMode_t** dimming_mode, size_t* num_dimming_mode, tvContextCaps_t** context_caps);
-		tvError_t GetAspectRatioCaps(tvAspectRatio_t** aspect_ratio, size_t* num_aspect_ratio, tvContextCaps_t** context_caps);
+		tvError_t GetAspectRatioCaps(tvDisplayMode_t** aspect_ratio, size_t* num_aspect_ratio, tvContextCaps_t** context_caps);
 		tvError_t GetDVCalibrationCaps(tvDVCalibrationSettings_t **min_values, tvDVCalibrationSettings_t **max_values, tvContextCaps_t **context_caps);
 		tvError_t GetTVPictureModeCaps( tvContextCaps_t** context_caps);
 		uint32_t getCapsV2(

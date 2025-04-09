@@ -2697,7 +2697,7 @@ tvError_t AVOutputTV::GetTVDimmingModeCaps(tvDimmingMode_t** dimming_mode, size_
 
 }
 
-tvError_t AVOutputTV::GetAspectRatioCaps(tvAspectRatio_t** aspect_ratio, size_t* num_aspect_ratio, tvContextCaps_t** context_caps) {
+tvError_t AVOutputTV::GetAspectRatioCaps(tvDisplayMode_t** aspect_ratio, size_t* num_aspect_ratio, tvContextCaps_t** context_caps) {
     LOGINFO("Entry\n");
     JsonObject root;
     if (ReadJsonFile(root) != tvERROR_NONE) {
@@ -2720,7 +2720,7 @@ tvError_t AVOutputTV::GetAspectRatioCaps(tvAspectRatio_t** aspect_ratio, size_t*
     JsonArray optionsArray = rangeInfo["options"].Array();
 
     *num_aspect_ratio = optionsArray.Length();
-    *aspect_ratio = static_cast<tvAspectRatio_t*>(malloc(*num_aspect_ratio * sizeof(tvAspectRatio_t)));
+    *aspect_ratio = static_cast<tvDisplayMode_t*>(malloc(*num_aspect_ratio * sizeof(tvDisplayMode_t)));
     if (!(*aspect_ratio)) {
         return tvERROR_GENERAL;
     }
@@ -2734,7 +2734,7 @@ tvError_t AVOutputTV::GetAspectRatioCaps(tvAspectRatio_t** aspect_ratio, size_t*
         else if (aspectStr == "TV 16X9 STRETCH") (*aspect_ratio)[i] = tvDisplayMode_16x9;
         else if (aspectStr == "TV 4X3 PILLARBOX") (*aspect_ratio)[i] = tvDisplayMode_4x3;
         else if (aspectStr == "TV ZOOM") (*aspect_ratio)[i] = tvDisplayMode_ZOOM;
-        else (*aspect_ratio)[i] = tvAspectRatio_MAX;
+        else (*aspect_ratio)[i] = tvDisplayMode_MAX;
     }
 
     if (ExtractContextCaps(data, context_caps) != tvERROR_NONE) {
