@@ -2727,12 +2727,13 @@ tvError_t AVOutputTV::GetAspectRatioCaps(tvAspectRatio_t** aspect_ratio, size_t*
 
     for (size_t i = 0; i < *num_aspect_ratio; ++i) {
         std::string aspectStr = optionsArray[i].String();
-        if (aspectStr == "TV AUTO") (*aspect_ratio)[i] = tvAspectRatio_Auto;
-        else if (aspectStr == "TV DIRECT") (*aspect_ratio)[i] = tvAspectRatio_Direct;
-        else if (aspectStr == "TV NORMAL") (*aspect_ratio)[i] = tvAspectRatio_Normal;
-        else if (aspectStr == "TV 16X9 STRETCH") (*aspect_ratio)[i] = tvAspectRatio_16X9_Stretch;
-        else if (aspectStr == "TV 4X3 PILLARBOX") (*aspect_ratio)[i] = tvAspectRatio_4X3_Pillarbox;
-        else if (aspectStr == "TV ZOOM") (*aspect_ratio)[i] = tvAspectRatio_Zoom;
+        if (aspectStr == "TV AUTO") (*aspect_ratio)[i] = tvDisplayMode_AUTO;
+        else if (aspectStr == "TV DIRECT") (*aspect_ratio)[i] = tvDisplayMode_DIRECT;
+        else if (aspectStr == "TV FULL") (*aspect_ratio)[i] = tvDisplayMode_FULL;
+        else if (aspectStr == "TV NORMAL") (*aspect_ratio)[i] = tvDisplayMode_NORMAL;
+        else if (aspectStr == "TV 16X9 STRETCH") (*aspect_ratio)[i] = tvDisplayMode_16x9;
+        else if (aspectStr == "TV 4X3 PILLARBOX") (*aspect_ratio)[i] = tvDisplayMode_4x3;
+        else if (aspectStr == "TV ZOOM") (*aspect_ratio)[i] = tvDisplayMode_ZOOM;
         else (*aspect_ratio)[i] = tvAspectRatio_MAX;
     }
 
