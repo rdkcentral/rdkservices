@@ -88,6 +88,8 @@ set(PLUGIN_WEBKITBROWSER_THUNDER_DECRYPTOR_PREFERENCE "true" CACHE STRING "Enabl
 set(PLUGIN_WEBKITBROWSER_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
 set(PLUGIN_WEBKITBROWSER_PTSOFFSET "0" CACHE STRING "Set ptsoffset for webkit")
 set(PLUGIN_WEBKITBROWSER_USE_EXACT_PATHS "false" CACHE STRING "Use paths specified in configuration options without further modifying them") 
+set(PLUGIN_WEBKITBROWSER_GST_QUIRKS "" CACHE STRING "A list of GStreamer quirks to be used by the browser")
+set(PLUGIN_WEBKITBROWSER_GST_HOLE_PUNCH_QUIRK "" CACHE STRING "GStreamer hole punch quirk to be used by the browser")
 
 set(PLUGIN_YOUTUBE_AUTOSTART "false" CACHE STRING "Automatically start Youtube plugin")
 set(PLUGIN_YOUTUBE_STARTUPORDER "" CACHE STRING "To configure startup order of YouTube plugin")
@@ -270,10 +272,6 @@ add_library(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} SHARED
     Tags.cpp
     )
 
-if(NOT WEBKIT_GLIB_API)
-    target_sources(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE InjectedBundle/Utils.cpp)
-endif()
-
 # This is a temporary solution. Normally we should leave this to the framework.
 # Do not replicate for other plugins.
 target_link_options(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE "-Wl,-z,nodelete")
@@ -302,8 +300,7 @@ if (PLUGIN_WEBKITBROWSER_LOGGING_UTILS)
     target_sources(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE LoggingUtils.cpp)
 endif()
 
-if (PLUGIN_WEBKITBROWSER_TESTING AND WEBKIT_GLIB_API)
-    # Enable for GLIB Api only
+if (PLUGIN_WEBKITBROWSER_TESTING)
     target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE ENABLE_TESTING)
     include(Testing/CMakeLists.txt)
 endif()
@@ -312,9 +309,7 @@ if(WPE_WEBKIT_DEPRECATED_API)
     target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE WPE_WEBKIT_DEPRECATED_API)
 endif()
 
-if(WEBKIT_GLIB_API)
-    target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE WEBKIT_GLIB_API)
-endif()
+target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE WEBKIT_GLIB_API)
 
 if(PLUGIN_WEBKITBROWSER_USE_EXACT_PATHS)
     target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE USE_EXACT_PATHS)
@@ -335,12 +330,7 @@ install(
     DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins
     COMPONENT ${PROJECT_NAME})
 
-if(WEBKIT_GLIB_API)
-    add_subdirectory(Extension)
-else()
-    # also build injected bundle
-    add_subdirectory(InjectedBundle)
-endif()
+add_subdirectory(Extension)
 
 # resolution handling
 if(PLUGIN_WEBKITBROWSER_RESOLUTION EQUAL "720p")

@@ -32,6 +32,7 @@ namespace Plugin {
     private:
         struct Session {
             string ClientId;
+            string AppId;
             Exchange::IContentProtection::KeySystem KeySystem;
         };
 
@@ -165,8 +166,8 @@ namespace Plugin {
             SetPlaybackSessionStateParams()
             {
                 Add(_T("clientId"), &ClientId);
-                Add(_T("sessionid"), &SessionId);
-                Add(_T("sessionstate"), &SessionState);
+                Add(_T("sessionId"), &SessionId);
+                Add(_T("sessionState"), &SessionState);
             }
             Core::JSON::String ClientId;
             Core::JSON::DecUInt32 SessionId;
@@ -179,7 +180,7 @@ namespace Plugin {
             ClosePlaybackSessionParams()
             {
                 Add(_T("clientId"), &ClientId);
-                Add(_T("sessionid"), &SessionId);
+                Add(_T("sessionId"), &SessionId);
             }
             Core::JSON::String ClientId;
             Core::JSON::DecUInt32 SessionId;
@@ -188,7 +189,7 @@ namespace Plugin {
         struct SetPlaybackSpeedStateParams : public Core::JSON::Container {
             SetPlaybackSpeedStateParams()
             {
-                Add(_T("sessionid"), &SessionId);
+                Add(_T("sessionId"), &SessionId);
                 Add(_T("playbackSpeed"), &PlaybackSpeed);
                 Add(_T("playbackPosition"), &PlaybackPosition);
             }
@@ -226,8 +227,10 @@ namespace Plugin {
             ShowWatermarkParams()
             {
                 Add(_T("show"), &Show);
+                Add(_T("alpha"), &Alpha);
             }
             Core::JSON::Boolean Show;
+            Core::JSON::DecUInt8 Alpha;
         };
 
         struct CreateWatermarkParams : public Core::JSON::Container {
@@ -282,6 +285,7 @@ namespace Plugin {
 
     private:
         enum { Timeout = 1000 };
+        enum { OpenSessionTimeout = 5000 };
 
     private:
         using JSONRPCLink = WPEFramework::JSONRPC::SmartLinkType<
@@ -338,6 +342,7 @@ namespace Plugin {
             }
 
             uint32_t OpenDrmSession(const string& clientId,
+                const string& appId,
                 KeySystem keySystem, const string& licenseRequest,
                 const string& initData, uint32_t& sessionId, string& response)
                 override
@@ -351,7 +356,7 @@ namespace Plugin {
                 out["licenseRequest"] = licenseRequest;
                 JsonObject in;
                 result = _parent._secManager->Invoke<JsonObject, JsonObject>(
-                    Timeout, _T("openPlaybackSession"), out, in);
+                    OpenSessionTimeout, _T("openPlaybackSession"), out, in);
                 if (result == Core::ERROR_NONE) {
                     if (!in["success"].Boolean()) {
                         result = Core::ERROR_GENERAL;
@@ -360,7 +365,7 @@ namespace Plugin {
                         in.ToString(response);
 
                         _parent._sessionStorage.Set(sessionId,
-                            { clientId, keySystem });
+                            { clientId, appId, keySystem });
                     }
                 }
                 return result;
@@ -412,7 +417,7 @@ namespace Plugin {
                 JsonObject in;
                 result = _parent._secManager->Invoke<
                     JsonObject, JsonObject>(
-                    Timeout, _T("updatePlaybackSession"), out, in);
+                    OpenSessionTimeout, _T("updatePlaybackSession"), out, in);
                 if (result == Core::ERROR_NONE) {
                     if (!in["success"].Boolean()) {
                         result = Core::ERROR_GENERAL;
@@ -445,11 +450,12 @@ namespace Plugin {
             }
 
             uint32_t ShowWatermark(uint32_t /*sessionId*/,
-                bool show, bool /*localOverlay*/) override
+                bool show, const uint8_t opacityLevel) override
             {
                 uint32_t result;
                 ShowWatermarkParams out;
                 out.Show = show;
+                out.Alpha = opacityLevel;
                 JsonObject in;
                 result = _parent._watermark->Invoke<
                     ShowWatermarkParams, JsonObject>(
@@ -562,8 +568,14 @@ namespace Plugin {
             ASSERT(_secManager->Subscribe<OnWatermarkSessionParams>(
                        Timeout, _T("onWatermarkSession"),
                        [&](const OnWatermarkSessionParams& params) {
+                           auto session = _sessionStorage.Get(
+                               params.SessionId);
+                           if (!session.IsSet()) {
+                               return; // No such session
+                           }
                            WatermarkStatusChanged(
                                params.SessionId,
+                               session.Value().AppId,
                                { ((params.ConditionContext == 1)
                                          ? State::GRANTED
                                          : ((params.ConditionContext == 2)
@@ -713,8 +725,14 @@ namespace Plugin {
                            auto watermark = _watermarkStorage
                                                 .Get(params.Image);
                            if (watermark.IsSet()) {
+                               auto session = _sessionStorage.Get(
+                                   watermark.Value().SessionId);
+                               if (!session.IsSet()) {
+                                   return; // No such session
+                               }
                                WatermarkStatusChanged(
                                    watermark.Value().SessionId,
+                                   session.Value().AppId,
                                    { State::FAILED, 20001 });
                            }
                        })
@@ -731,14 +749,15 @@ namespace Plugin {
             _watermark->Unsubscribe(Timeout, _T("onWatermarkRenderFailed"));
         }
         void WatermarkStatusChanged(uint32_t sessionId,
+            const string& appId,
             const Exchange::IContentProtection::INotification::Status& status)
         {
             Exchange::JContentProtection::Event::WatermarkStatusChanged(
-                *this, sessionId, status);
+                *this, sessionId, appId, status);
 
             Core::SafeSyncType<Core::CriticalSection> lock(_clientLock);
             for (auto& i : _clients) {
-                i->WatermarkStatusChanged(sessionId, status);
+                i->WatermarkStatusChanged(sessionId, appId, status);
             }
         }
 
