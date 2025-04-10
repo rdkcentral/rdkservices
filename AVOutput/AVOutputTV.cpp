@@ -358,6 +358,24 @@ namespace Plugin {
         registerMethod("resetAutoBacklightMode", &AVOutputTV::resetAutoBacklightMode, this);
         registerMethod("getAutoBacklightModeCaps", &AVOutputTV::getAutoBacklightModeCaps, this);
 
+        registerMethod("setBacklightV2", &AVOutputTV::setBacklightV2, this);
+        registerMethod("getBacklightV2", &AVOutputTV::getBacklightV2, this);
+
+        registerMethod("getBacklightCapsV2", &AVOutputTV::getBacklightCapsV2, this);
+        registerMethod("getBrightnessCapsV2", &AVOutputTV::getBrightnessCapsV2, this);
+        registerMethod("getContrastCapsV2", &AVOutputTV::getContrastCapsV2, this);
+        registerMethod("getSharpnessCapsV2", &AVOutputTV::getSharpnessCapsV2, this);
+        registerMethod("getSaturationCapsV2", &AVOutputTV::getSaturationCapsV2, this);
+        registerMethod("getHueCapsV2", &AVOutputTV::getHueCapsV2, this);
+        registerMethod("getPrecisionDetailCapsV2", &AVOutputTV::getPrecisionDetailCapsV2, this);
+        registerMethod("getLowLatencyStateCapsV2", &AVOutputTV::getLowLatencyStateCapsV2, this);
+        registerMethod("getColorTemperatureCapsV2", &AVOutputTV::getColorTemperatureCapsV2, this);
+        registerMethod("getSdrGammaCapsV2", &AVOutputTV::getSdrGammaCapsV2, this);
+        registerMethod("getTVDimmingModeCapsV2", &AVOutputTV::getTVDimmingModeCapsV2, this);
+        registerMethod("getAspectRatioCapsV2", &AVOutputTV::getAspectRatioCapsV2, this);
+        registerMethod("getDVCalibrationCapsV2", &AVOutputTV::getDVCalibrationCapsV2, this);
+        registerMethod("getTVPictureModeCapsV2", &AVOutputTV::getTVPictureModeCapsV2, this);
+
         LOGINFO("Exit\n");
     }
     
@@ -457,6 +475,386 @@ namespace Plugin {
        }
 
        LOGINFO("Exit\n");
+    }
+    uint32_t AVOutputTV::getBacklightV2(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry: %s", __FUNCTION__);
+        std::vector<tvConfigContext_t> validContexts = getValidContextsFromParameters(parameters);
+        if (validContexts.empty()) {
+            LOGERR("%s: No valid context found for the given parameters", __FUNCTION__);
+            returnResponse(false);
+        }
+        // Only one valid context is expected in this simplified version
+        const auto& ctx = validContexts.front();
+        paramIndex_t indexInfo {
+            .sourceIndex = static_cast<uint8_t>(ctx.videoSrcType),
+            .pqmodeIndex = static_cast<uint8_t>(ctx.pq_mode),
+            .formatIndex = static_cast<uint8_t>(ctx.videoFormatType)
+        };
+        int backlight = 0;
+        int err = getLocalparam("Backlight", indexInfo, backlight, PQ_PARAM_BACKLIGHT);
+        if (err == tvERROR_NONE) {
+            response["backlight"] = backlight;
+            LOGINFO("Exit: Backlight Value: %d", backlight);
+            returnResponse(true);
+        } else {
+            LOGERR("Failed to get backlight. Error code: %d", err);
+            returnResponse(false);
+        }
+    }
+    uint32_t AVOutputTV::setBacklightV2(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        std::string value;
+        int backlight = 0;
+#define TODO_MOVE_TO_INIT 1
+    #if TODO_MOVE_TO_INIT
+        // Retrieve Backlight Caps (Initialization)
+        LOGINFO("Calling GetBacklightCaps\n");
+        tvError_t error = GetBacklightCaps(&m_maxBacklight, &m_backlightCaps);
+        if (error == tvERROR_NONE) {
+            LOGINFO("Backlight capabilities retrieved successfully. Max: %d\n", m_maxBacklight);
+        } else {
+            LOGERR("Failed to retrieve backlight capabilities. Error code: %d\n", error);
+            returnResponse(false);
+        }
+    #endif
+        // Input parameter validation
+        LOGINFO("InputParm validation\n");
+        value = parameters.HasLabel("backlight") ? parameters["backlight"].String() : "";
+        returnIfParamNotFound(parameters,"backlight");
+        try {
+            backlight = std::stoi(value);
+        } catch (const std::exception& e) {
+            LOGERR("Invalid backlight value: %s. Exception: %s", value.c_str(), e.what());
+            returnResponse(false);
+        }
+        if (backlight < 0 || backlight > m_maxBacklight) {
+            LOGERR("Input value %d is out of range (0 - %d)", backlight, m_maxBacklight);
+            returnResponse(false);
+        }
+        // Update the TV parameter
+        LOGINFO("Updating AVOutputTVParamV2\n");
+        int retval = updateAVoutputTVParamV2("set", "Backlight", parameters, PQ_PARAM_BACKLIGHT, backlight);
+        if (retval != 0) {
+            LOGERR("Failed to Save Backlight to ssm_data. retval: %d\n", retval);
+            returnResponse(false);
+        }
+        LOGINFO("Exit: setBacklight successful to value: %d\n", backlight);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getCapsV2(
+        const std::function<tvError_t( tvContextCaps_t**,int*)>& getCapsFunc,
+        const char* key,
+        const JsonObject& parameters,
+        JsonObject& response)
+    {
+        int max_value = 0;
+        tvContextCaps_t* context_caps = nullptr;
+        // Call the HAL function
+        tvError_t result = getCapsFunc( &context_caps, &max_value);
+        LOGWARN("AVOutputPlugins: %s: result: %d", __FUNCTION__, result);
+        if (result != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        JsonObject capsInfo;
+        JsonObject rangeInfo;
+        if (max_value){
+            rangeInfo["from"] = 0;
+            rangeInfo["to"] = max_value;
+            capsInfo["rangeInfo"] = rangeInfo;
+        }
+        capsInfo["platformSupport"] = true;
+        capsInfo["context"] = parseContextCaps(context_caps);
+        response[key] = capsInfo;
+        returnResponse(true);
+    }
+
+    JsonObject AVOutputTV::parseContextCaps(tvContextCaps_t* context_caps) {
+        JsonObject contextObj;
+        if (context_caps && context_caps->num_contexts > 0) {
+            for (size_t i = 0; i < context_caps->num_contexts; ++i) {
+                int pqMode = context_caps->contexts[i].pq_mode;
+                int videoFormat = context_caps->contexts[i].videoFormatType;
+                int videoSource = context_caps->contexts[i].videoSrcType;
+
+                auto pqModeIt = AVOutputTV::pqModeMap.find(pqMode);
+                auto videoFormatIt = AVOutputTV::videoFormatMap.find(videoFormat);
+                auto videoSrcIt = AVOutputTV::videoSrcMap.find(videoSource);
+
+                if (pqModeIt != AVOutputTV::pqModeMap.end() &&
+                    videoFormatIt != AVOutputTV::videoFormatMap.end() &&
+                    videoSrcIt != AVOutputTV::videoSrcMap.end()) {
+
+                    const char* pqModeStr = pqModeIt->second.c_str();
+                    const char* videoFormatStr = videoFormatIt->second.c_str();
+                    const char* videoSrcStr = videoSrcIt->second.c_str();
+
+                    if (!contextObj.HasLabel(pqModeStr)) {
+                        contextObj[pqModeStr] = JsonObject();
+                    }
+                    JsonObject pqModeObj = contextObj[pqModeStr].Object();
+
+                    if (!pqModeObj.HasLabel(videoFormatStr)) {
+                        pqModeObj[videoFormatStr] = JsonArray();
+                    }
+                    JsonArray formatArray = pqModeObj[videoFormatStr].Array();
+                    // **Manually check for existence before adding**
+                    bool exists = false;
+                    for (size_t j = 0; j < formatArray.Length(); ++j) {
+                        if (strcmp(formatArray[j].String().c_str(), videoSrcStr) == 0) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                    if (!exists) {
+                        formatArray.Add(videoSrcStr);
+                    }
+                    // Update objects
+                    pqModeObj[videoFormatStr] = formatArray;
+                    contextObj[pqModeStr] = pqModeObj;
+                }
+            }
+        }
+        return contextObj;
+    }
+
+    uint32_t AVOutputTV::getBacklightCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this]( tvContextCaps_t** context_caps, int* max_backlight) {
+            return this->GetBacklightCaps(max_backlight, context_caps);
+        }, "Backlight", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getBrightnessCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this]( tvContextCaps_t** context_caps, int* max_brightness) {
+            return this->GetBrightnessCaps(max_brightness, context_caps);
+        },
+        "Brightness", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getContrastCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_contrast) {
+            return this->GetContrastCaps(max_contrast, context_caps);
+        },
+        "Contrast", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getSharpnessCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_sharpness) {
+            return this->GetSharpnessCaps(max_sharpness, context_caps);
+        },
+        "Sharpness", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getSaturationCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_saturation) {
+            return this->GetSaturationCaps(max_saturation, context_caps);
+        },
+        "Saturation", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getHueCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this]( tvContextCaps_t** context_caps, int* max_hue) {
+            return this->GetHueCaps(max_hue, context_caps);
+        },
+        "Hue", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getPrecisionDetailCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_precision) {
+            return this->GetPrecisionDetailCaps(max_precision, context_caps);
+        },
+        "PrecisionDetails", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getLowLatencyStateCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_latency) {
+            return this->GetLowLatencyStateCaps(max_latency, context_caps);
+        },
+        "LowLatencyState", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getColorTemperatureCapsV2(const JsonObject& parameters, JsonObject& response) {
+        tvColorTemp_t* color_temp = nullptr;
+        size_t num_color_temp = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t err = GetColorTemperatureCaps(&color_temp, &num_color_temp, &context_caps);
+        if (err != tvERROR_NONE) {
+            return err;
+        }
+
+        JsonObject colorTempJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+        for (size_t i = 0; i < num_color_temp; ++i) {
+            switch (color_temp[i]) {
+                case tvColorTemp_STANDARD: optionsArray.Add("Standard"); break;
+                case tvColorTemp_WARM: optionsArray.Add("Warm"); break;
+                case tvColorTemp_COLD: optionsArray.Add("Cold"); break;
+                case tvColorTemp_USER: optionsArray.Add("UserDefined"); break;
+                case tvColorTemp_SUPERCOLD: optionsArray.Add("Supercold"); break;
+                case tvColorTemp_BOOST_STANDARD: optionsArray.Add("BoostStandard"); break;
+                case tvColorTemp_BOOST_WARM: optionsArray.Add("BoostWarm"); break;
+                case tvColorTemp_BOOST_COLD: optionsArray.Add("BoostCold"); break;
+                case tvColorTemp_BOOST_USER: optionsArray.Add("BoostUserDefined"); break;
+                case tvColorTemp_BOOST_SUPERCOLD: optionsArray.Add("BoostSupercold"); break;
+                default: break;
+            }
+        }
+        rangeInfo["options"] = optionsArray;
+        colorTempJson["rangeInfo"] = rangeInfo;
+        colorTempJson["platformSupport"] = true;
+        colorTempJson["context"] = parseContextCaps(context_caps);
+        response["ColorTemperature"] = colorTempJson;
+
+        free(color_temp); //revisit
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getSdrGammaCapsV2(const JsonObject& parameters, JsonObject& response) {
+        tvSdrGamma_t* sdr_gamma = nullptr;
+        size_t num_sdr_gamma = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t err = GetSdrGammaCaps(&sdr_gamma, &num_sdr_gamma, &context_caps);
+        if (err != tvERROR_NONE) {
+            return err;
+        }
+
+        JsonObject sdrGammaJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+        for (size_t i = 0; i < num_sdr_gamma; ++i) {
+            switch (sdr_gamma[i]) {
+                case tvSdrGamma_1_8: optionsArray.Add("1.8"); break;
+                case tvSdrGamma_1_9: optionsArray.Add("1.9"); break;
+                case tvSdrGamma_2_0: optionsArray.Add("2.0"); break;
+                case tvSdrGamma_2_1: optionsArray.Add("2.1"); break;
+                case tvSdrGamma_2_2: optionsArray.Add("2.2"); break;
+                case tvSdrGamma_2_3: optionsArray.Add("2.3"); break;
+                case tvSdrGamma_2_4: optionsArray.Add("2.4"); break;
+                case tvSdrGamma_BT_1886: optionsArray.Add("BT.1886"); break;
+                default: break;
+            }
+        }
+        rangeInfo["options"] = optionsArray;
+        sdrGammaJson["rangeInfo"] = rangeInfo;
+        sdrGammaJson["platformSupport"] = true;
+        sdrGammaJson["context"] = parseContextCaps(context_caps);
+        response["SDRGamma"] = sdrGammaJson;
+
+        free(sdr_gamma);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getTVDimmingModeCapsV2(const JsonObject& parameters, JsonObject& response) {
+        tvDimmingMode_t* dimming_mode = nullptr;
+        size_t num_dimming_mode = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t err = GetTVDimmingModeCaps(&dimming_mode, &num_dimming_mode, &context_caps);
+        if (err != tvERROR_NONE) {
+            return err;
+        }
+
+        JsonObject dimmingModeJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+        for (size_t i = 0; i < num_dimming_mode; ++i) {
+            switch (dimming_mode[i]) {
+                case tvDimmingMode_Fixed: optionsArray.Add("Fixed"); break;
+                case tvDimmingMode_Local: optionsArray.Add("Local"); break;
+                case tvDimmingMode_Global: optionsArray.Add("Global"); break;
+                default: break;
+            }
+        }
+        rangeInfo["options"] = optionsArray;
+        dimmingModeJson["rangeInfo"] = rangeInfo;
+        dimmingModeJson["platformSupport"] = true;
+        dimmingModeJson["context"] = parseContextCaps(context_caps);
+        response["DimmingMode"] = dimmingModeJson;
+
+        free(dimming_mode);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getAspectRatioCapsV2(const JsonObject& parameters, JsonObject& response) {
+        tvDisplayMode_t* aspect_ratio = nullptr;
+        size_t num_aspect_ratio = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t err = GetAspectRatioCaps(&aspect_ratio, &num_aspect_ratio, &context_caps);
+        if (err != tvERROR_NONE) {
+            return err;
+        }
+
+        JsonObject aspectRatioJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+        for (size_t i = 0; i < num_aspect_ratio; ++i) {
+            switch (aspect_ratio[i]) {
+                case tvDisplayMode_AUTO: optionsArray.Add("TV AUTO"); break;
+                case tvDisplayMode_DIRECT: optionsArray.Add("TV DIRECT"); break;
+                case tvDisplayMode_NORMAL: optionsArray.Add("TV NORMAL"); break;
+                case tvDisplayMode_16x9: optionsArray.Add("TV 16X9 STRETCH"); break;
+                case tvDisplayMode_4x3: optionsArray.Add("TV 4X3 PILLARBOX"); break;
+                case tvDisplayMode_ZOOM: optionsArray.Add("TV ZOOM"); break;
+                case tvDisplayMode_FULL: optionsArray.Add("TV FULL"); break;
+                default: break;
+            }
+        }
+        rangeInfo["options"] = optionsArray;
+        aspectRatioJson["rangeInfo"] = rangeInfo;
+        aspectRatioJson["platformSupport"] = true;
+        aspectRatioJson["context"] = parseContextCaps(context_caps);
+        response["AspectRatio"] = aspectRatioJson;
+
+        free(aspect_ratio);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getTVPictureModeCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* options_count) {
+            return this->GetTVPictureModeCaps(context_caps);
+        },
+        "PictureMode", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getDVCalibrationCapsV2(const JsonObject& parameters, JsonObject& response) {
+        tvDVCalibrationSettings_t *min_values = nullptr;
+        tvDVCalibrationSettings_t *max_values = nullptr;
+        tvContextCaps_t *context_caps = nullptr;
+
+        if (GetDVCalibrationCaps(&min_values, &max_values, &context_caps) != tvERROR_NONE) {
+            returnResponse(false);
+        }
+
+        JsonObject capsInfo;
+        JsonObject rangeInfo;
+
+        rangeInfo["Tmax"] = JsonObject({{"from", min_values->Tmax}, {"to", max_values->Tmax}});
+        rangeInfo["Tmin"] = JsonObject({{"from", min_values->Tmin}, {"to", max_values->Tmin}});
+        rangeInfo["Tgamma"] = JsonObject({{"from", min_values->Tgamma}, {"to", max_values->Tgamma}});
+        rangeInfo["Rx"] = JsonObject({{"from", min_values->Rx}, {"to", max_values->Rx}});
+        rangeInfo["Ry"] = JsonObject({{"from", min_values->Ry}, {"to", max_values->Ry}});
+        rangeInfo["Gx"] = JsonObject({{"from", min_values->Gx}, {"to", max_values->Gx}});
+        rangeInfo["Gy"] = JsonObject({{"from", min_values->Gy}, {"to", max_values->Gy}});
+        rangeInfo["Bx"] = JsonObject({{"from", min_values->Bx}, {"to", max_values->Bx}});
+        rangeInfo["By"] = JsonObject({{"from", min_values->By}, {"to", max_values->By}});
+        rangeInfo["Wx"] = JsonObject({{"from", min_values->Wx}, {"to", max_values->Wx}});
+        rangeInfo["Wy"] = JsonObject({{"from", min_values->Wy}, {"to", max_values->Wy}});
+
+        capsInfo["rangeInfo"] = rangeInfo;
+        capsInfo["platformSupport"] = true;
+        capsInfo["context"] = parseContextCaps(context_caps);
+
+        response["DolbyVisionCalibration"] = capsInfo;
+
+        delete min_values;
+        delete max_values;
+        returnResponse(true);
     }
 
     uint32_t AVOutputTV::getZoomModeCaps(const JsonObject& parameters, JsonObject& response)
