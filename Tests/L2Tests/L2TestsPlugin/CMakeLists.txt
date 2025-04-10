@@ -47,6 +47,10 @@ if(PLUGIN_USERSETTINGS)
     set(SRC_FILES ${SRC_FILES} tests/UserSettings_L2Test.cpp)
 endif()
 
+if(PLUGIN_USERPREFERENCES)
+    set(SRC_FILES ${SRC_FILES} tests/UserPreferences_L2Test.cpp) 
+endif()
+
 if(PLUGIN_SYSTEMMODE)
     set(SRC_FILES ${SRC_FILES} tests/SystemMode_L2Test.cpp)
 endif()

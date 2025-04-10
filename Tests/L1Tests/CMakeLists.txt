@@ -72,7 +72,7 @@ include_directories(../../LocationSync
         ../../UsbAccess
         ../../Timer
         ../../LoggingPreferences
-        ../../UserPreferences
+        #../../UserPreferences
         ../../Messenger
         ../../DeviceInfo
         ../../helpers
@@ -115,7 +115,7 @@ link_directories(../../LocationSync
         ../../Timer
         ../../LoggingPreferences
         ../../SystemServices
-        ../../UserPreferences
+        #../../UserPreferences
         ../../Messenger
         ../../DeviceInfo
         ../../HdmiInput
@@ -156,7 +156,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}Timer
         ${NAMESPACE}LoggingPreferences
         ${NAMESPACE}SystemServices
-        ${NAMESPACE}UserPreferences
+       # ${NAMESPACE}UserPreferences
         ${NAMESPACE}Messenger
         ${NAMESPACE}DeviceInfo
         ${NAMESPACE}HdmiInput

@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-
+#if 0
 #include "gtest/gtest.h"
 
 #include "UserPreferences.h"
@@ -87,3 +87,4 @@ TEST_F(UserPreferencesTest, setUILanguage)
 
     file.Destroy();
 }
+#endif
