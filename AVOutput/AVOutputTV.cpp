@@ -358,6 +358,9 @@ namespace Plugin {
         registerMethod("resetAutoBacklightMode", &AVOutputTV::resetAutoBacklightMode, this);
         registerMethod("getAutoBacklightModeCaps", &AVOutputTV::getAutoBacklightModeCaps, this);
 
+        registerMethod("setBacklightV2", &AVOutputTV::setBacklightV2, this);
+        registerMethod("getBacklightV2", &AVOutputTV::getBacklightV2, this);
+
         registerMethod("getBacklightCapsV2", &AVOutputTV::getBacklightCapsV2, this);
         registerMethod("getBrightnessCapsV2", &AVOutputTV::getBrightnessCapsV2, this);
         registerMethod("getContrastCapsV2", &AVOutputTV::getContrastCapsV2, this);
@@ -472,6 +475,73 @@ namespace Plugin {
        }
 
        LOGINFO("Exit\n");
+    }
+    uint32_t AVOutputTV::getBacklightV2(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry: %s", __FUNCTION__);
+        std::vector<tvConfigContext_t> validContexts = getValidContextsFromParameters(parameters);
+        if (validContexts.empty()) {
+            LOGERR("%s: No valid context found for the given parameters", __FUNCTION__);
+            returnResponse(false);
+        }
+        // Only one valid context is expected in this simplified version
+        const auto& ctx = validContexts.front();
+        paramIndex_t indexInfo {
+            .sourceIndex = static_cast<uint8_t>(ctx.videoSrcType),
+            .pqmodeIndex = static_cast<uint8_t>(ctx.pq_mode),
+            .formatIndex = static_cast<uint8_t>(ctx.videoFormatType)
+        };
+        int backlight = 0;
+        int err = getLocalparam("Backlight", indexInfo, backlight, PQ_PARAM_BACKLIGHT);
+        if (err == tvERROR_NONE) {
+            response["backlight"] = backlight;
+            LOGINFO("Exit: Backlight Value: %d", backlight);
+            returnResponse(true);
+        } else {
+            LOGERR("Failed to get backlight. Error code: %d", err);
+            returnResponse(false);
+        }
+    }
+    uint32_t AVOutputTV::setBacklightV2(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        std::string value;
+        int backlight = 0;
+#define TODO_MOVE_TO_INIT 1
+    #if TODO_MOVE_TO_INIT
+        // Retrieve Backlight Caps (Initialization)
+        LOGINFO("Calling GetBacklightCaps\n");
+        tvError_t error = GetBacklightCaps(&m_maxBacklight, &m_backlightCaps);
+        if (error == tvERROR_NONE) {
+            LOGINFO("Backlight capabilities retrieved successfully. Max: %d\n", m_maxBacklight);
+        } else {
+            LOGERR("Failed to retrieve backlight capabilities. Error code: %d\n", error);
+            returnResponse(false);
+        }
+    #endif
+        // Input parameter validation
+        LOGINFO("InputParm validation\n");
+        value = parameters.HasLabel("backlight") ? parameters["backlight"].String() : "";
+        returnIfParamNotFound(parameters,"backlight");
+        try {
+            backlight = std::stoi(value);
+        } catch (const std::exception& e) {
+            LOGERR("Invalid backlight value: %s. Exception: %s", value.c_str(), e.what());
+            returnResponse(false);
+        }
+        if (backlight < 0 || backlight > m_maxBacklight) {
+            LOGERR("Input value %d is out of range (0 - %d)", backlight, m_maxBacklight);
+            returnResponse(false);
+        }
+        // Update the TV parameter
+        LOGINFO("Updating AVOutputTVParamV2\n");
+        int retval = updateAVoutputTVParamV2("set", "Backlight", parameters, PQ_PARAM_BACKLIGHT, backlight);
+        if (retval != 0) {
+            LOGERR("Failed to Save Backlight to ssm_data. retval: %d\n", retval);
+            returnResponse(false);
+        }
+        LOGINFO("Exit: setBacklight successful to value: %d\n", backlight);
+        returnResponse(true);
     }
 
     uint32_t AVOutputTV::getCapsV2(
@@ -732,7 +802,7 @@ namespace Plugin {
                 case tvDisplayMode_4x3: optionsArray.Add("TV 4X3 PILLARBOX"); break;
                 case tvDisplayMode_ZOOM: optionsArray.Add("TV ZOOM"); break;
                 case tvDisplayMode_FULL: optionsArray.Add("TV FULL"); break;
-		default: break;
+                default: break;
             }
         }
         rangeInfo["options"] = optionsArray;

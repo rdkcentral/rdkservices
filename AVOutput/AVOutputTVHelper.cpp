@@ -2358,8 +2358,7 @@ const std::map<int, std::string> AVOutputTV::pqModeMap = {
     {PQ_MODE_STANDARD, "Standard"},
     {PQ_MODE_VIVID, "Vivid"},
     {PQ_MODE_ENERGY_SAVING, "EnergySaving"},
-    {PQ_MODE_CUSTOM, "Custom"},
-    {PQ_MODE_THEATER, "Movie"}
+    {PQ_MODE_CUSTOM, "Custom"}
 };
 
 const std::map<int, std::string> AVOutputTV::videoFormatMap = {
@@ -2379,6 +2378,246 @@ const std::map<int, std::string> AVOutputTV::videoSrcMap = {
     {VIDEO_SOURCE_IP, "IP"},
     {VIDEO_SOURCE_TUNER, "Tuner"}
 };
+
+template<typename T>
+std::vector<T> AVOutputTV::collectFieldFromCaps(std::function<T(const tvConfigContext_t&)> accessor) const {
+    std::set<T> uniqueValues;
+    if (!m_backlightCaps || m_backlightCaps->num_contexts <= 0) {
+        LOGERR("collectFieldFromCaps: Backlight capabilities are null or empty");
+        return {};
+    }
+
+    for (size_t i = 0; i < m_backlightCaps->num_contexts; ++i) {
+        uniqueValues.insert(accessor(m_backlightCaps->contexts[i]));
+    }
+
+    return std::vector<T>(uniqueValues.begin(), uniqueValues.end());
+}
+
+bool AVOutputTV::isGlobalParam(const JsonArray& arr) {
+    return (arr.Length() == 0) ||
+           (arr.Length() == 1 && (
+               arr[0].String() == "Global" || arr[0].String() == "none"));
+}
+
+
+// Modular helper functions
+std::vector<tvPQModeIndex_t> AVOutputTV::extractPQModes(const JsonObject& parameters, bool& isCurrent) {
+    std::vector<tvPQModeIndex_t> pqModes;
+    isCurrent = false;
+
+    if (!parameters.HasLabel("pictureMode")) return pqModes;
+
+    JsonArray pqmodeArray = parameters["pictureMode"].Array();
+    if (isGlobalParam(pqmodeArray)) {
+        pqModes = collectFieldFromCaps<tvPQModeIndex_t>([](const tvConfigContext_t& ctx) { return ctx.pq_mode; });
+    } else {
+        for (uint32_t i = 0; i < pqmodeArray.Length(); ++i) {
+            std::string modeStr = pqmodeArray[i].String();
+            if (modeStr == "Current") {
+                isCurrent = true;
+                char picMode[PIC_MODE_NAME_MAX] = {0};
+                if (getCurrentPictureMode(picMode)) {
+                    for (const auto& entry : pqModeMap) {
+                        if (entry.second == picMode) {
+                            pqModes.push_back(static_cast<tvPQModeIndex_t>(entry.first));
+                        }
+                    }
+                }
+            } else {
+                for (const auto& entry : pqModeMap) {
+                    if (entry.second == modeStr) {
+                        pqModes.push_back(static_cast<tvPQModeIndex_t>(entry.first));
+                    }
+                }
+            }
+        }
+    }
+
+    return pqModes;
+}
+
+std::vector<tvVideoSrcType_t> AVOutputTV::extractVideoSources(const JsonObject& parameters, bool& isCurrent) {
+    std::vector<tvVideoSrcType_t> sources;
+    isCurrent = false;
+
+    if (!parameters.HasLabel("videoSource")) return sources;
+
+    JsonArray sourceArray = parameters["videoSource"].Array();
+    if (isGlobalParam(sourceArray)) {
+        sources = collectFieldFromCaps<tvVideoSrcType_t>([](const tvConfigContext_t& ctx) { return ctx.videoSrcType; });
+    } else {
+        for (uint32_t i = 0; i < sourceArray.Length(); ++i) {
+            std::string srcStr = sourceArray[i].String();
+            if (srcStr == "Current") {
+                isCurrent = true;
+                tvVideoSrcType_t sourceIndex = VIDEO_SOURCE_IP;
+                if (GetCurrentVideoSource(&sourceIndex) == tvERROR_NONE) {
+                    sources.push_back(sourceIndex);
+                }
+            } else {
+                for (const auto& entry : videoSrcMap) {
+                    if (entry.second == srcStr) {
+                        sources.push_back(static_cast<tvVideoSrcType_t>(entry.first));
+                    }
+                }
+            }
+        }
+    }
+
+    return sources;
+}
+
+std::vector<tvVideoFormatType_t> AVOutputTV::extractVideoFormats(const JsonObject& parameters, bool& isCurrent) {
+    std::vector<tvVideoFormatType_t> formats;
+    isCurrent = false;
+
+    if (!parameters.HasLabel("videoFormat")) return formats;
+
+    JsonArray formatArray = parameters["videoFormat"].Array();
+    if (isGlobalParam(formatArray)) {
+        formats = collectFieldFromCaps<tvVideoFormatType_t>([](const tvConfigContext_t& ctx) { return ctx.videoFormatType; });
+    } else {
+        for (uint32_t i = 0; i < formatArray.Length(); ++i) {
+            std::string fmtStr = formatArray[i].String();
+            if (fmtStr == "Current") {
+                isCurrent = true;
+                tvVideoFormatType_t formatIndex = VIDEO_FORMAT_NONE;
+                GetCurrentVideoFormat(&formatIndex);
+                if (formatIndex == VIDEO_FORMAT_NONE) {
+                    formatIndex = VIDEO_FORMAT_SDR;
+                }
+                formats.push_back(formatIndex);
+            } else {
+                for (const auto& entry : videoFormatMap) {
+                    if (entry.second == fmtStr) {
+                        formats.push_back(static_cast<tvVideoFormatType_t>(entry.first));
+                    }
+                }
+            }
+        }
+    }
+
+    return formats;
+}
+
+
+std::vector<tvConfigContext_t> AVOutputTV::getValidContextsFromParameters(const JsonObject& parameters)
+{
+    std::vector<tvConfigContext_t> validContexts;
+
+    if (!m_backlightCaps || m_backlightCaps->num_contexts <= 0) {
+        LOGERR("Backlight capabilities unavailable or empty");
+        return validContexts;
+    }
+
+    bool pqCurrent = false, srcCurrent = false, fmtCurrent = false;
+
+    std::vector<tvPQModeIndex_t> pqModes = extractPQModes(parameters, pqCurrent);
+    std::vector<tvVideoSrcType_t> sources = extractVideoSources(parameters, srcCurrent);
+    std::vector<tvVideoFormatType_t> formats = extractVideoFormats(parameters, fmtCurrent);
+
+    if (pqModes.empty() || sources.empty() || formats.empty()) {
+        LOGWARN("One or more parameter vectors are empty: PQModes[%zu], Sources[%zu], Formats[%zu]",
+                pqModes.size(), sources.size(), formats.size());
+        return validContexts;
+    }
+
+    std::set<std::tuple<int, int, int>> seenContexts;
+
+    for (const auto& pq : pqModes) {
+        for (const auto& fmt : formats) {
+            for (const auto& src : sources) {
+                tvConfigContext_t testCtx = { pq, fmt, src };
+                for (size_t i = 0; i < m_backlightCaps->num_contexts; ++i) {
+                    const tvConfigContext_t& available = m_backlightCaps->contexts[i];
+                    if (available.pq_mode == testCtx.pq_mode &&
+                        available.videoFormatType == testCtx.videoFormatType &&
+                        available.videoSrcType == testCtx.videoSrcType) {
+                        std::tuple<int, int, int> key = std::make_tuple(pq, fmt, src);
+                        if (seenContexts.find(key) == seenContexts.end()) {
+                            validContexts.push_back(testCtx);
+                            seenContexts.insert(key);
+                        }
+                    }
+                }
+            }
+        }
+    }
+// std::tie(...) creates a tuple of values from struct a and b.
+// The < operator for tuples performs lexicographic comparison, like dictionary order:
+// It compares the first elements;If they're equal, it compares the second;If still equal, it compares the third.
+    std::sort(validContexts.begin(), validContexts.end(), [](const tvConfigContext_t& a, const tvConfigContext_t& b) {
+        return std::tie(a.pq_mode, a.videoFormatType, a.videoSrcType) <
+               std::tie(b.pq_mode, b.videoFormatType, b.videoSrcType);
+    });
+
+#if DEBUG
+    for (const auto& ctx : validContexts) {
+        std::string pqStr = pqModeMap.count(ctx.pq_mode) ? pqModeMap.at(ctx.pq_mode) : std::to_string(ctx.pq_mode);
+        std::string fmtStr = videoFormatMap.count(ctx.videoFormatType) ? videoFormatMap.at(ctx.videoFormatType) : std::to_string(ctx.videoFormatType);
+        std::string srcStr = videoSrcMap.count(ctx.videoSrcType) ? videoSrcMap.at(ctx.videoSrcType) : std::to_string(ctx.videoSrcType);
+        LOGINFO("Valid Context - PQMode: %s, Format: %s, Source: %s", pqStr.c_str(), fmtStr.c_str(), srcStr.c_str());
+    }
+#endif
+
+    return validContexts;
+}
+
+int AVOutputTV::updateAVoutputTVParamV2(std::string action, std::string tr181ParamName,
+                                        const JsonObject& parameters,
+                                        tvPQParameterIndex_t pqParamIndex, int level)
+{
+    LOGINFO("Entry: %s", __FUNCTION__);
+    int ret = 0;
+    const bool isSet = (action == "set");
+
+    std::vector<tvConfigContext_t> validContexts = getValidContextsFromParameters(parameters);
+    LOGINFO("%s: Action: %s, Param: %s, Level: %d", __FUNCTION__, action.c_str(), tr181ParamName.c_str(), level);
+
+    if (validContexts.empty()) {
+        LOGWARN("%s: No valid contexts found for parameters", __FUNCTION__);
+        return ret;
+    }
+
+    for (const auto& ctx : validContexts) {
+        paramIndex_t paramIndex {
+            .sourceIndex = static_cast<uint8_t>(ctx.videoSrcType),
+            .pqmodeIndex = static_cast<uint8_t>(ctx.pq_mode),
+            .formatIndex = static_cast<uint8_t>(ctx.videoFormatType)
+        };
+
+        if (isSet) {
+            ret |= updateAVoutputTVParamToHAL(tr181ParamName, paramIndex, level, true);
+            ret |= SaveBacklight(static_cast<tvVideoSrcType_t>(paramIndex.sourceIndex),
+                                 paramIndex.pqmodeIndex,
+                                 static_cast<tvVideoFormatType_t>(paramIndex.formatIndex),
+                                 level);
+
+            std::string pqStr = pqModeMap.count(ctx.pq_mode) ? pqModeMap.at(ctx.pq_mode) : std::to_string(ctx.pq_mode);
+            std::string fmtStr = videoFormatMap.count(ctx.videoFormatType) ? videoFormatMap.at(ctx.videoFormatType) : std::to_string(ctx.videoFormatType);
+            std::string srcStr = videoSrcMap.count(ctx.videoSrcType) ? videoSrcMap.at(ctx.videoSrcType) : std::to_string(ctx.videoSrcType);
+
+            LOGINFO("Checking Context to SetBacklight - PQMode: %s, Format: %s, Source: %s", pqStr.c_str(), fmtStr.c_str(), srcStr.c_str());
+
+            if (isSetRequired(pqStr, srcStr, fmtStr)) {
+                LOGINFO("Proceed with SetBacklight: %d", level);
+                int setRet = SetBacklight(level);
+                ret |= setRet;
+
+                if (setRet != tvERROR_NONE) {
+                    LOGERR("SetBacklight failed: %d", setRet);
+                    return ret;
+                }
+            } else {
+                LOGINFO("SetBacklight not required for this context.");
+            }
+        }
+    }
+
+    LOGINFO("Exit: %s, Return Value: %d", __FUNCTION__, ret);
+    return ret;
+}
 
 
 tvError_t AVOutputTV::ReadJsonFile(JsonObject& root) {

@@ -182,6 +182,7 @@ class AVOutputTV : public AVOutputBase {
 		AVOutputTV& operator=(const AVOutputTV&) = delete;
     public:
 		/*Get API's*/
+		DECLARE_JSON_RPC_METHOD(getBacklightV2)
 		DECLARE_JSON_RPC_METHOD(getBacklight)
 		DECLARE_JSON_RPC_METHOD(getBrightness )
 		DECLARE_JSON_RPC_METHOD(getContrast )
@@ -244,6 +245,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getTVPictureModeCapsV2)
 
 		/*Set API's*/
+		DECLARE_JSON_RPC_METHOD(setBacklightV2)
 		DECLARE_JSON_RPC_METHOD(setBacklight)
 		DECLARE_JSON_RPC_METHOD(setBrightness)
 		DECLARE_JSON_RPC_METHOD(setContrast )
@@ -419,6 +421,17 @@ class AVOutputTV : public AVOutputBase {
 			const JsonObject& parameters,
 			JsonObject& response);
 		JsonObject parseContextCaps(tvContextCaps_t* context_caps);
+		// Helper functions to extract modes/sources/formats from parameters
+		std::vector<tvPQModeIndex_t> extractPQModes(const JsonObject& parameters, bool& isCurrent);
+		std::vector<tvVideoSrcType_t> extractVideoSources(const JsonObject& parameters, bool& isCurrent);
+		std::vector<tvVideoFormatType_t> extractVideoFormats(const JsonObject& parameters, bool& isCurrent);		// Checks if the given context matches the system's current context
+		bool isCurrentContext(const tvConfigContext_t& ctx) const;
+		template<typename T>
+		std::vector<T> collectFieldFromCaps(std::function<T(const tvConfigContext_t&)> accessor) const;
+		static bool isGlobalParam(const JsonArray& arr);
+		int updateAVoutputTVParamV2(std::string action, std::string tr181ParamName,
+			const JsonObject& parameters, tvPQParameterIndex_t pqParamIndex, int level);
+		std::vector<tvConfigContext_t> getValidContextsFromParameters(const JsonObject& parameters);
 
 
 	public:
@@ -428,6 +441,8 @@ class AVOutputTV : public AVOutputBase {
 		char rfc_caller_id[RFC_BUFF_MAX];
 		bool appUsesGlobalBackLightFactor;
 		int pic_mode_index[PIC_MODES_SUPPORTED_MAX];
+        int m_maxBacklight = 0;
+        tvContextCaps_t *m_backlightCaps = nullptr;
 
 		static const std::map<int, std::string> pqModeMap;
 		static const std::map<int, std::string> videoFormatMap;
