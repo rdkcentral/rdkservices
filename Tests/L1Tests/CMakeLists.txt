@@ -35,7 +35,6 @@ add_executable(${PROJECT_NAME}
         ../mocks/Iarm.cpp
         ../mocks/RBus.cpp
         ../mocks/MotionDetection.cpp
-        ../mocks/Telemetry.cpp
         ../mocks/Udev.cpp
         ../mocks/devicesettings.cpp
         ../mocks/HdmiCec.cpp
@@ -66,7 +65,6 @@ include_directories(../../LocationSync
         ../../DeviceDiagnostics
         ../../FrameRate
         ../../AVInput
-        ../../Telemetry
         ../../ScreenCapture
         ../../DataCapture
         ../../UsbAccess
@@ -108,7 +106,6 @@ link_directories(../../LocationSync
         ../../DeviceDiagnostics
         ../../FrameRate
         ../../AVInput
-        ../../Telemetry
         ../../ScreenCapture
         ../../DataCapture
         ../../UsbAccess
@@ -151,7 +148,6 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}FrameRate
         ${NAMESPACE}AVInput
         ${NAMESPACE}ScreenCapture
-        ${NAMESPACE}Telemetry
         ${NAMESPACE}UsbAccess
         ${NAMESPACE}Timer
         ${NAMESPACE}LoggingPreferences

@@ -21,6 +21,10 @@
 
 #include "Module.h"
 
+#ifdef HAS_RBUS
+#include <interfaces/IUserSettings.h>
+#endif
+
 namespace WPEFramework {
 
     namespace Plugin {
@@ -41,6 +45,33 @@ namespace WPEFramework {
         class Telemetry : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         private:
 
+#ifdef HAS_RBUS
+            class UserSettingsNotification : public Exchange::IUserSettings::INotification {
+            private:
+                UserSettingsNotification(const UserSettingsNotification&) = delete;
+                UserSettingsNotification& operator=(const UserSettingsNotification&) = delete;
+
+            public:
+                explicit UserSettingsNotification(Telemetry& parent)
+                    : _parent(parent)
+                {
+                }
+
+                ~UserSettingsNotification() override = default;
+
+                void OnPrivacyModeChanged(const string& privacyMode)
+                {
+                    _parent.notifyT2PrivacyMode(privacyMode);
+                }
+
+                BEGIN_INTERFACE_MAP(UserSettingsNotification)
+                INTERFACE_ENTRY(Exchange::IUserSettings::INotification)
+                END_INTERFACE_MAP
+
+            private:
+                Telemetry& _parent;
+            };
+#endif
             // We do not allow this plugin to be copied !!
             Telemetry(const Telemetry&) = delete;
             Telemetry& operator=(const Telemetry&) = delete;
@@ -80,6 +111,10 @@ namespace WPEFramework {
             static Telemetry* _instance;
         private:
             std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> m_systemServiceConnection;
+#ifdef HAS_RBUS
+            Exchange::IUserSettings* _userSettingsPlugin;
+            Core::Sink<UserSettingsNotification> _userSettingsNotification;
+#endif
         };
     } // namespace Plugin
 } // namespace WPEFramework
