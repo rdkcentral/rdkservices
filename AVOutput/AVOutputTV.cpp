@@ -374,7 +374,7 @@ namespace Plugin {
         registerMethod("getTVDimmingModeCapsV2", &AVOutputTV::getTVDimmingModeCapsV2, this);
         registerMethod("getAspectRatioCapsV2", &AVOutputTV::getAspectRatioCapsV2, this);
         registerMethod("getDVCalibrationCapsV2", &AVOutputTV::getDVCalibrationCapsV2, this);
-        registerMethod("getTVPictureModeCapsV2", &AVOutputTV::getTVPictureModeCapsV2, this);
+        registerMethod("getPictureModeCapsV2", &AVOutputTV::getPictureModeCapsV2, this);
 
         LOGINFO("Exit\n");
     }
@@ -815,7 +815,7 @@ namespace Plugin {
         returnResponse(true);
     }
 
-    uint32_t AVOutputTV::getTVPictureModeCapsV2(const JsonObject& parameters, JsonObject& response) {
+    uint32_t AVOutputTV::getPictureModeCapsV2(const JsonObject& parameters, JsonObject& response) {
         return getCapsV2([this](tvContextCaps_t** context_caps, int* options_count) {
             return this->GetTVPictureModeCaps(context_caps);
         },
