@@ -334,11 +334,17 @@ namespace WPEFramework {
             LOGINFO("Presentation language changed to: %s", language.c_str());
             string uiLanguage;
             if (ConvertToUserPrefsFormat(language, uiLanguage)) {
-                g_autoptr(GKeyFile) file = g_key_file_new();
-                g_key_file_set_string(file, SETTINGS_FILE_GROUP, SETTINGS_FILE_KEY, (gchar *)uiLanguage.c_str());
-                g_autoptr(GError) error = nullptr;
-                if (!g_key_file_save_to_file(file, SETTINGS_FILE_NAME, &error)) {
-                    LOGERR("Error saving file '%s': %s", SETTINGS_FILE_NAME, error->message);
+                if (uiLanguage != _lastUILanguage) {
+                    g_autoptr(GKeyFile) file = g_key_file_new();
+                    g_key_file_set_string(file, SETTINGS_FILE_GROUP, SETTINGS_FILE_KEY, (gchar *)uiLanguage.c_str());
+                    g_autoptr(GError) error = nullptr;
+                    if (g_key_file_save_to_file(file, SETTINGS_FILE_NAME, &error)) {
+                        _lastUILanguage = uiLanguage;
+                    } else {
+                        LOGERR("Error saving file '%s': %s", SETTINGS_FILE_NAME, error->message);
+                    }
+                } else {
+                    LOGINFO("UI language '%s' is already set, no file update needed", uiLanguage.c_str());
                 }
             } else {
                 LOGERR("Invalid presentation language format: %s", language.c_str());
