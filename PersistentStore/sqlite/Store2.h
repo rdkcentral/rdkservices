@@ -100,13 +100,16 @@ namespace Plugin {
         private:
             void TempDirectoryCheck()
             {
-                auto journalPath = _path + "-journal";
-                Core::Directory journal(journalPath.c_str());
-                if (journal.Exists()) {
-                    if (Core::File(_path).Size() == 0) { // No db
-                        journal.Destroy(); // Clear
+                Core::File file(_path + "-journal");
+                if (file.IsDirectory()) { // It's supposed to be a file
+                    TRACE(Trace::Error, (_T("file system corruption")));
+                    if (!file.Move(file.Name() + "-old")) {
+                        perror("rename failed");
                     }
-                    Core::File(journalPath).Destroy(); // Destroy if empty
+                    Core::Directory(file.Name().c_str()).Destroy();
+                    if (!file.Destroy()) {
+                        perror("remove failed");
+                    }
                 }
             }
             void IntegrityCheck()
