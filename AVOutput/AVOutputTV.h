@@ -414,7 +414,7 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t GetTVDimmingModeCaps(tvDimmingMode_t** dimming_mode, size_t* num_dimming_mode, tvContextCaps_t** context_caps);
 		tvError_t GetAspectRatioCaps(tvDisplayMode_t** aspect_ratio, size_t* num_aspect_ratio, tvContextCaps_t** context_caps);
 		tvError_t GetDVCalibrationCaps(tvDVCalibrationSettings_t **min_values, tvDVCalibrationSettings_t **max_values, tvContextCaps_t **context_caps);
-		tvError_t GetTVPictureModeCaps( tvContextCaps_t** context_caps);
+		tvError_t GetTVPictureModeCaps(tvPQModeIndex_t** mode, size_t* num_pic_modes, tvContextCaps_t** context_caps);
 		uint32_t getCapsV2(
 			const std::function<tvError_t(tvContextCaps_t**, int*)>& getCapsFunc,
 			const char* key,

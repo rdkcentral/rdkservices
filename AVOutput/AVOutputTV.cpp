@@ -479,6 +479,18 @@ namespace Plugin {
     uint32_t AVOutputTV::getBacklightV2(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry: %s", __FUNCTION__);
+        #define TODO_MOVE_TO_INIT 1
+    #if TODO_MOVE_TO_INIT
+        // Retrieve Backlight Caps (Initialization)
+        LOGINFO("Calling GetBacklightCaps\n");
+        tvError_t error = GetBacklightCaps(&m_maxBacklight, &m_backlightCaps);
+        if (error == tvERROR_NONE) {
+            LOGINFO("Backlight capabilities retrieved successfully. Max: %d\n", m_maxBacklight);
+        } else {
+            LOGERR("Failed to retrieve backlight capabilities. Error code: %d\n", error);
+            returnResponse(false);
+        }
+    #endif
         std::vector<tvConfigContext_t> validContexts = getValidContextsFromParameters(parameters);
         if (validContexts.empty()) {
             LOGERR("%s: No valid context found for the given parameters", __FUNCTION__);
@@ -816,10 +828,45 @@ namespace Plugin {
     }
 
     uint32_t AVOutputTV::getPictureModeCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* options_count) {
-            return this->GetTVPictureModeCaps(context_caps);
-        },
-        "PictureMode", parameters, response);
+        tvPQModeIndex_t* modes = nullptr;
+        size_t num_pic_modes = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t err = GetTVPictureModeCaps(&modes, &num_pic_modes, &context_caps);
+        if (err != tvERROR_NONE) {
+            return err;
+        }
+
+        JsonObject pictureModeJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+
+        for (size_t i = 0; i < num_pic_modes; ++i) {
+            switch (modes[i]) {
+                case PQ_MODE_STANDARD: optionsArray.Add("Standard"); break;
+                case PQ_MODE_VIVID: optionsArray.Add("Vivid"); break;
+                case PQ_MODE_ENERGY_SAVING: optionsArray.Add("EnergySaving"); break;
+                case PQ_MODE_CUSTOM: optionsArray.Add("Custom"); break;
+                case PQ_MODE_THEATER: optionsArray.Add("Theater"); break;
+                case PQ_MODE_GAME: optionsArray.Add("Game"); break;
+                case PQ_MODE_SPORTS: optionsArray.Add("Sports"); break;
+                case PQ_MODE_AIPQ: optionsArray.Add("AI PQ"); break;
+                case PQ_MODE_DARK: optionsArray.Add("Dark"); break;
+                case PQ_MODE_BRIGHT: optionsArray.Add("Bright"); break;
+                case PQ_MODE_DVIQ: optionsArray.Add("IQ"); break;
+                default: break; // Skip invalid/unsupported modes
+            }
+        }
+
+        rangeInfo["options"] = optionsArray;
+        pictureModeJson["rangeInfo"] = rangeInfo;
+        pictureModeJson["platformSupport"] = true;
+        pictureModeJson["context"] = parseContextCaps(context_caps);  // Assuming same parser works
+
+        response["PictureMode"] = pictureModeJson;
+
+        free(modes);
+        returnResponse(true);
     }
 
     uint32_t AVOutputTV::getDVCalibrationCapsV2(const JsonObject& parameters, JsonObject& response) {

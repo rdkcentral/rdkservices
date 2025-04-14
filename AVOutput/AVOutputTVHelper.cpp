@@ -2984,9 +2984,56 @@ tvError_t AVOutputTV::GetAspectRatioCaps(tvDisplayMode_t** aspect_ratio, size_t*
     return tvERROR_NONE;
 }
 
-tvError_t AVOutputTV::GetTVPictureModeCaps( tvContextCaps_t** context_caps){
-    int* options_count = nullptr;
-    return GetCaps("PictureMode", options_count, context_caps);
+tvError_t AVOutputTV::GetTVPictureModeCaps(tvPQModeIndex_t** mode, size_t* num_pic_modes, tvContextCaps_t** context_caps) {
+    LOGINFO("Entry\n");
+    JsonObject root;
+    if (ReadJsonFile(root) != tvERROR_NONE) {
+        return tvERROR_GENERAL;
+    }
+
+    std::string key = "PictureMode";
+    if (!root.HasLabel(key.c_str())) {
+        LOGWARN("AVOutputPlugins: %s: Missing '%s' label", __FUNCTION__, key.c_str());
+        return tvERROR_GENERAL;
+    }
+
+    JsonObject data = root[key.c_str()].Object();
+    if (!data.HasLabel("platformSupport") || !data["platformSupport"].Boolean()) {
+        LOGWARN("AVOutputPlugins: %s: Platform support is false", __FUNCTION__);
+        return tvERROR_OPERATION_NOT_SUPPORTED;
+    }
+
+    JsonObject rangeInfo = data["rangeInfo"].Object();
+    JsonArray optionsArray = rangeInfo["options"].Array();
+
+    *num_pic_modes = optionsArray.Length();
+    *mode = static_cast<tvPQModeIndex_t*>(malloc(*num_pic_modes * sizeof(tvPQModeIndex_t)));
+    if (!(*mode)) {
+        return tvERROR_GENERAL;
+    }
+
+    for (size_t i = 0; i < *num_pic_modes; ++i) {
+        std::string modeStr = optionsArray[i].String();
+
+        if (modeStr == "Standard") (*mode)[i] = PQ_MODE_STANDARD;
+        else if (modeStr == "Vivid") (*mode)[i] = PQ_MODE_VIVID;
+        else if (modeStr == "EnergySaving" || modeStr == "Energy Saving") (*mode)[i] = PQ_MODE_ENERGY_SAVING;
+        else if (modeStr == "Theater") (*mode)[i] = PQ_MODE_THEATER;
+        else if (modeStr == "Game") (*mode)[i] = PQ_MODE_GAME;
+        else if (modeStr == "Sports") (*mode)[i] = PQ_MODE_SPORTS;
+        else if (modeStr == "AI PQ") (*mode)[i] = PQ_MODE_AIPQ;
+        else if (modeStr == "Dark") (*mode)[i] = PQ_MODE_DARK;
+        else if (modeStr == "Bright") (*mode)[i] = PQ_MODE_BRIGHT;
+        else if (modeStr == "IQ") (*mode)[i] = PQ_MODE_DVIQ;
+        else (*mode)[i] = PQ_MODE_INVALID;
+    }
+
+    if (ExtractContextCaps(data, context_caps) != tvERROR_NONE) {
+        free(*mode);
+        return tvERROR_GENERAL;
+    }
+
+    return tvERROR_NONE;
 }
 
 /*
