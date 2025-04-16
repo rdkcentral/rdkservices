@@ -201,10 +201,6 @@ if(PLUGIN_LOCATIONSYNC)
     add_subdirectory(LocationSync)
 endif()
 
-if(PLUGIN_DEVICEIDENTIFICATION)
-    add_subdirectory(DeviceIdentification)
-endif()
-
 if(PLUGIN_DEVICEINFO)
     add_subdirectory(DeviceInfo)
 endif()
