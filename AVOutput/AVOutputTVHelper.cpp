@@ -32,36 +32,6 @@ static bool m_isDalsEnabled = false;
 namespace WPEFramework {
 namespace Plugin {
 
-    tvContentFormatType_t AVOutputTV::getContentFormatIndex(tvVideoHDRFormat_t formatToConvert)
-    {
-        /* default to SDR always*/
-        tvContentFormatType_t ret = tvContentFormatType_NONE;
-        switch(formatToConvert) {
-            case tvVideoHDRFormat_HLG:
-                ret = tvContentFormatType_HLG;
-                break;
-
-            case tvVideoHDRFormat_HDR10:
-                ret = tvContentFormatType_HDR10;
-                break;
-
-            case tvVideoHDRFormat_HDR10PLUS:
-                ret =  tvContentFormatType_HDR10PLUS;
-                break;
-
-            case tvVideoHDRFormat_DV:
-                ret = tvContentFormatType_DOVI;
-                break;
-
-            case tvVideoHDRFormat_SDR:
-            case tvVideoHDRFormat_NONE:
-            default:
-                ret  = tvContentFormatType_SDR;
-                break;
-        }
-        return ret;
-    }
-
     int AVOutputTV::getPictureModeIndex(std::string pqparam)
     {
         int index = -1;
@@ -265,14 +235,19 @@ namespace Plugin {
     int AVOutputTV::getDolbyModeIndex(const char * dolbyMode)
     {
         int mode = 0;
-        tvDolbyMode_t dolbyModes[tvMode_Max];
-        tvDolbyMode_t *dolbyModesPtr = dolbyModes; // Pointer to statically allocated tvDolbyMode_t array
+        tvDolbyMode_t dolbyModes[tvMode_Max] = { tvDolbyMode_Invalid };
+        tvDolbyMode_t *dolbyModesPtr[tvMode_Max] = { 0 };
         unsigned short totalAvailable = 0;
+
+        for (int i = 0; i < tvMode_Max; i++)
+        {
+            dolbyModesPtr[i] = &dolbyModes[i];
+        }
 
         // Set an initial value to indicate the mode type
         dolbyModes[0] = tvDolbyMode_Dark;
 
-        tvError_t ret = GetTVSupportedDolbyVisionModes(&dolbyModesPtr, &totalAvailable);
+        tvError_t ret = GetTVSupportedDolbyVisionModes(dolbyModesPtr, &totalAvailable);
         if (ret == tvERROR_NONE) {
             for (int count = 0; count < totalAvailable; count++) {
 		        if(strncasecmp(dolbyMode, getDolbyModeStringFromEnum(dolbyModes[count]).c_str(), strlen(dolbyMode))==0) {
@@ -321,13 +296,13 @@ namespace Plugin {
     {
         tvDimmingMode_t index = tvDimmingMode_MAX;
 
-        if(mode.compare("local") == 0 ) {
+        if(mode.compare("Local") == 0 ) {
             index=tvDimmingMode_Local;
 	}
-        else if(mode.compare("fixed") == 0 ) {
+        else if(mode.compare("Fixed") == 0 ) {
             index=tvDimmingMode_Fixed;
 	}
-        else if(mode.compare("global") == 0 ) {
+        else if(mode.compare("Global") == 0 ) {
             index=tvDimmingMode_Global;
 	}
         else {
@@ -925,26 +900,6 @@ namespace Plugin {
         return ret;
     }
 
-    tvContentFormatType_t AVOutputTV::convertFormatStringToTVContentFormat(const char *format)
-    {
-        tvContentFormatType_t ret = tvContentFormatType_SDR;
-
-        if( strncmp(format,"sdr",strlen(format)) == 0 || strncmp(format,"SDR",strlen(format)) == 0 ) {
-            ret = tvContentFormatType_SDR;
-	}
-        else if( strncmp(format,"hdr10",strlen(format)) == 0 || strncmp(format,"HDR10",strlen(format))==0 ) {
-            ret = tvContentFormatType_HDR10;
-	}
-        else if( strncmp(format,"hlg",strlen(format)) == 0 || strncmp(format,"HLG",strlen(format)) == 0 ) {
-            ret = tvContentFormatType_HLG;
-	}
-        else if( strncmp(format,"dolby",strlen(format)) == 0 || strncmp(format,"DOLBY",strlen(format)) == 0 ) {
-            ret=tvContentFormatType_DOVI;
-	}
-
-        return ret;
-    }
-
     tvError_t AVOutputTV::updateAVoutputTVParamToHAL(std::string forParam, paramIndex_t indexInfo, int value,bool setNotDelete)
     {
         tvError_t ret = tvERROR_NONE;
@@ -1514,13 +1469,13 @@ namespace Plugin {
                 return 0;
             }
            else if( forParam.compare("DimmingMode") == 0 ) {
-               if (strncmp(param.value, "fixed", strlen(param.value))==0) {
+               if (strncmp(param.value, "Fixed", strlen(param.value))==0) {
                    value=tvDimmingMode_Fixed;
 	           }
-               else if (strncmp(param.value, "local", strlen(param.value))==0) {
+               else if (strncmp(param.value, "Local", strlen(param.value))==0) {
                    value=tvDimmingMode_Local;
 	           }
-               else if (strncmp(param.value, "global", strlen(param.value))==0) {
+               else if (strncmp(param.value, "Global", strlen(param.value))==0) {
                    value=tvDimmingMode_Global;
 	           }
                return 0;
@@ -1654,38 +1609,12 @@ namespace Plugin {
         return 0;
     }
 
-    int AVOutputTV::ConvertHDRFormatToContentFormat(tvhdr_type_t hdrFormat)
-    {
-        int ret=tvContentFormatType_SDR;
-        switch(hdrFormat)
-        {
-            case HDR_TYPE_SDR:
-                ret=tvContentFormatType_SDR;
-                break;
-            case HDR_TYPE_HDR10:
-                ret=tvContentFormatType_HDR10;
-                break;
-            case HDR_TYPE_HDR10PLUS:
-                ret=tvContentFormatType_HDR10PLUS;
-                break;
-            case HDR_TYPE_DOVI:
-                ret=tvContentFormatType_DOVI;
-                break;
-            case HDR_TYPE_HLG:
-                ret=tvContentFormatType_HLG;
-                break;
-            default:
-                break;
-        }
-        return ret;
-    }
-
     void AVOutputTV::getDimmingModeStringFromEnum(int value, std::string &toStore)
     {
         const char *color_temp_string[] = {
-                    [tvDimmingMode_Fixed] = "fixed",
-                    [tvDimmingMode_Local] = "local",
-                    [tvDimmingMode_Global] = "global",
+                    [tvDimmingMode_Fixed] = "Fixed",
+                    [tvDimmingMode_Local] = "Local",
+                    [tvDimmingMode_Global] = "Global",
                 };
         toStore.clear();
         toStore+=color_temp_string[value];
