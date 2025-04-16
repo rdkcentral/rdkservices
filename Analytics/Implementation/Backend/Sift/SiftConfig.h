@@ -98,6 +98,7 @@ namespace WPEFramework
             bool GetAttributes(Attributes &attributes);
             bool GetStoreConfig(StoreConfig &config);
             bool GetUploaderConfig(UploaderConfig &config);
+            bool GetCetList(std::list<std::string> &cetList);
 
         private:
             class MonitorKeys : public Exchange::IStore::INotification {
@@ -147,6 +148,7 @@ namespace WPEFramework
             std::map<std::string, std::map<std::string, std::string*>> mKeysMap;
             SystemTimePtr mSystemTime;
             std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> mAuthServiceLink;
+            std::unordered_map<std::string, std::string> mCetMap;
         };
 
         typedef std::unique_ptr<SiftConfig> SiftConfigPtr;

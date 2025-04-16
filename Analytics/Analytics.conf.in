@@ -26,4 +26,5 @@ if boolean("@PLUGIN_ANALYTICS_SIFT_BACKEND_ENABLED@"):
     sift.add("storepath", "@PLUGIN_ANALYTICS_SIFT_STORE_PATH@")
     sift.add("eventslimit", "@PLUGIN_ANALYTICS_SIFT_STORE_EVENTS_LIMIT@")
     sift.add("url", "@PLUGIN_ANALYTICS_SIFT_URL@")
+    sift.add("cetmap", @PLUGIN_ANALYTICS_SIFT_CET_MAP@)
     configuration.add("sift", sift)
