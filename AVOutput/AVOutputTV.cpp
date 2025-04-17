@@ -367,13 +367,13 @@ namespace Plugin {
         registerMethod("getSharpnessCapsV2", &AVOutputTV::getSharpnessCapsV2, this);
         registerMethod("getSaturationCapsV2", &AVOutputTV::getSaturationCapsV2, this);
         registerMethod("getHueCapsV2", &AVOutputTV::getHueCapsV2, this);
-        registerMethod("getPrecisionDetailCapsV2", &AVOutputTV::getPrecisionDetailCapsV2, this);
+        registerMethod("getPrecisionDetailCaps", &AVOutputTV::getPrecisionDetailCaps, this);
         registerMethod("getLowLatencyStateCapsV2", &AVOutputTV::getLowLatencyStateCapsV2, this);
         registerMethod("getColorTemperatureCapsV2", &AVOutputTV::getColorTemperatureCapsV2, this);
-        registerMethod("getSdrGammaCapsV2", &AVOutputTV::getSdrGammaCapsV2, this);
-        registerMethod("getTVDimmingModeCapsV2", &AVOutputTV::getTVDimmingModeCapsV2, this);
-        registerMethod("getAspectRatioCapsV2", &AVOutputTV::getAspectRatioCapsV2, this);
-        registerMethod("getDVCalibrationCapsV2", &AVOutputTV::getDVCalibrationCapsV2, this);
+        registerMethod("getSdrGammaCaps", &AVOutputTV::getSdrGammaCaps, this);
+        registerMethod("getBacklightDimmingModeCapsV2", &AVOutputTV::getBacklightDimmingModeCapsV2, this);
+        registerMethod("getZoomModeCapsV2", &AVOutputTV::getZoomModeCapsV2, this);
+        registerMethod("getDVCalibrationCaps", &AVOutputTV::getDVCalibrationCaps, this);
         registerMethod("getPictureModeCapsV2", &AVOutputTV::getPictureModeCapsV2, this);
 
         LOGINFO("Exit\n");
@@ -673,7 +673,7 @@ namespace Plugin {
         "Hue", parameters, response);
     }
 
-    uint32_t AVOutputTV::getPrecisionDetailCapsV2(const JsonObject& parameters, JsonObject& response) {
+    uint32_t AVOutputTV::getPrecisionDetailCaps(const JsonObject& parameters, JsonObject& response) {
         return getCapsV2([this](tvContextCaps_t** context_caps, int* max_precision) {
             return this->GetPrecisionDetailCaps(max_precision, context_caps);
         },
@@ -725,7 +725,7 @@ namespace Plugin {
         returnResponse(true);
     }
 
-    uint32_t AVOutputTV::getSdrGammaCapsV2(const JsonObject& parameters, JsonObject& response) {
+    uint32_t AVOutputTV::getSdrGammaCaps(const JsonObject& parameters, JsonObject& response) {
         tvSdrGamma_t* sdr_gamma = nullptr;
         size_t num_sdr_gamma = 0;
         tvContextCaps_t* context_caps = nullptr;
@@ -761,7 +761,7 @@ namespace Plugin {
         returnResponse(true);
     }
 
-    uint32_t AVOutputTV::getTVDimmingModeCapsV2(const JsonObject& parameters, JsonObject& response) {
+    uint32_t AVOutputTV::getBacklightDimmingModeCapsV2(const JsonObject& parameters, JsonObject& response) {
         tvDimmingMode_t* dimming_mode = nullptr;
         size_t num_dimming_mode = 0;
         tvContextCaps_t* context_caps = nullptr;
@@ -792,7 +792,7 @@ namespace Plugin {
         returnResponse(true);
     }
 
-    uint32_t AVOutputTV::getAspectRatioCapsV2(const JsonObject& parameters, JsonObject& response) {
+    uint32_t AVOutputTV::getZoomModeCapsV2(const JsonObject& parameters, JsonObject& response) {
         tvDisplayMode_t* aspect_ratio = nullptr;
         size_t num_aspect_ratio = 0;
         tvContextCaps_t* context_caps = nullptr;
@@ -869,7 +869,7 @@ namespace Plugin {
         returnResponse(true);
     }
 
-    uint32_t AVOutputTV::getDVCalibrationCapsV2(const JsonObject& parameters, JsonObject& response) {
+    uint32_t AVOutputTV::getDVCalibrationCaps(const JsonObject& parameters, JsonObject& response) {
         tvDVCalibrationSettings_t *min_values = nullptr;
         tvDVCalibrationSettings_t *max_values = nullptr;
         tvContextCaps_t *context_caps = nullptr;
