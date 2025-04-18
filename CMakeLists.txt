@@ -373,6 +373,10 @@ if(PLUGIN_PERFORMANCEMETRICS)
     add_subdirectory(PerformanceMetrics)
 endif()
 
+if(PLUGIN_CRYPTOGRAPHY)
+    add_subdirectory(Cryptography)
+endif()
+
 if(PLUGIN_UNIFIEDCASMANAGEMENT)
     add_subdirectory(UnifiedCASManagement)
 endif()
