@@ -21,12 +21,11 @@
 
 #include <bcm_host.h>
 #include <fstream>
-#include <interfaces/IDeviceIdentification.h>
 
 namespace WPEFramework {
 namespace Plugin {
 
-    class DeviceImplementation : public Exchange::IDeviceIdentification, public PluginHost::ISubSystem::IIdentifier {
+    class DeviceImplementation : public PluginHost::ISubSystem::IIdentifier {
     private:
         static constexpr const TCHAR* SerialInfoPath = "/sys/firmware/devicetree/base/serial-number";
 
@@ -72,28 +71,8 @@ namespace Plugin {
             return _firmwareVersion;
         }
 
-        // IDeviceIdentification interface
-
-        Core::hresult Identification(DeviceInfo& info) const override
-        {
-            info.deviceID = "";
-            uint8_t myBuffer[64];
-
-            myBuffer[0] = Identifier(sizeof(myBuffer) - 1, &(myBuffer[1]));
-
-            if (myBuffer[0] != 0) {
-                info.deviceID = Core::SystemInfo::Instance().Id(myBuffer, ~0);
-            }
-
-            info.firmwareVersion = FirmwareVersion();
-            info.chipset = Chipset();
-
-            return Core::ERROR_NONE;
-        }
-
         BEGIN_INTERFACE_MAP(DeviceImplementation)
         INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
-        INTERFACE_ENTRY(Exchange::IDeviceIdentification)
         END_INTERFACE_MAP
 
     private:

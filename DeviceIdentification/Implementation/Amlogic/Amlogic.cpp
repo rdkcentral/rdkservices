@@ -1,11 +1,10 @@
 #include "../../Module.h"
-#include <interfaces/IDeviceIdentification.h>
 
 #include <fstream>
 
 namespace WPEFramework {
 namespace Plugin {
-    class DeviceImplementation  : public Exchange::IDeviceIdentification , public PluginHost::ISubSystem::IIdentifier {
+    class DeviceImplementation : public PluginHost::ISubSystem::IIdentifier {
 	    static constexpr const TCHAR* ChipsetInfo= _T("T962X3");
         static constexpr const TCHAR* VERSIONFile = _T("/version.txt");
 
@@ -52,28 +51,8 @@ namespace Plugin {
             return _firmwareVersion;
         }
 
-        // IDeviceIdentification interface
-
-        Core::hresult Identification(DeviceInfo& info) const override
-        {
-            info.deviceID = "";
-            uint8_t myBuffer[64];
-
-            myBuffer[0] = Identifier(sizeof(myBuffer) - 1, &(myBuffer[1]));
-
-            if (myBuffer[0] != 0) {
-                info.deviceID = Core::SystemInfo::Instance().Id(myBuffer, ~0);
-            }
-
-            info.firmwareVersion = FirmwareVersion();
-            info.chipset = Chipset();
-
-            return Core::ERROR_NONE;
-        }
-
         BEGIN_INTERFACE_MAP(DeviceImplementation)
         INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
-        INTERFACE_ENTRY(Exchange::IDeviceIdentification)
         END_INTERFACE_MAP
 
     private:

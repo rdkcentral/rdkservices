@@ -45,7 +45,6 @@ namespace Plugin {
         Property<SupportedaudioportsData>(_T("supportedaudioports"), &DeviceInfo::get_supportedaudioports, nullptr, this);
         Property<SupportedvideodisplaysData>(_T("supportedvideodisplays"), &DeviceInfo::get_supportedvideodisplays, nullptr, this);
         Property<HostedidData>(_T("hostedid"), &DeviceInfo::get_hostedid, nullptr, this);
-        Property<ChipsetData>(_T("chipset"), &DeviceInfo::get_chipset, nullptr, this);
         Register<SupportedresolutionsParamsInfo, DefaultresolutionResultData>(_T("defaultresolution"), &DeviceInfo::endpoint_defaultresolution, this);
         Register<SupportedresolutionsParamsInfo, SupportedresolutionsResultData>(_T("supportedresolutions"), &DeviceInfo::endpoint_supportedresolutions, this);
         Register<SupportedresolutionsParamsInfo, SupportedhdcpResultData>(_T("supportedhdcp"), &DeviceInfo::endpoint_supportedhdcp, this);
@@ -70,7 +69,6 @@ namespace Plugin {
         Unregister(_T("supportedaudioports"));
         Unregister(_T("supportedvideodisplays"));
         Unregister(_T("hostedid"));
-        Unregister(_T("chipset"));
         Unregister(_T("defaultresolution"));
         Unregister(_T("supportedresolutions"));
         Unregister(_T("supportedhdcp"));
@@ -340,31 +338,6 @@ namespace Plugin {
 
         return result;
     }
-
-    // Property: chipset - Chipset used for this device
-    // Return codes:
-    //  - ERROR_NONE: Success
-    //  - ERROR_GENERAL: General error
-    uint32_t DeviceInfo::get_chipset(JsonData::DeviceInfo::ChipsetData& response) const
-    {
-        uint32_t result = Core::ERROR_NONE ;
-        Exchange::IDeviceIdentification::DeviceInfo info;
-        if(_device)
-        {
-            result = _device->Identification (info);
-
-            if (result == Core::ERROR_NONE) {
-                response.Chipset = info.chipset;
-            }
-        }
-        else
-        {
-            LOGERR("Failed to get _device object\n");
-            result = Core::ERROR_GENERAL ;
-        }
-        return result;
-    }
-
 
     // Method: defaultresolution - Default resolution on the selected video display port
     // Return codes:
