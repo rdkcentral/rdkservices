@@ -6114,7 +6114,14 @@ void DisplaySettings::sendMsgThread()
 				if (isDisplayConnected(strVideoPort))
 				{
 					bool enable = (newState == "GAME") ? true : false;
-					vPort.setAllmEnabled(enable);
+					vPort.getDisplay().setAllmEnabled(enable);
+					if(enable){ // Game mode
+					    vPort.getDisplay().setAVIContentType(dsAVICONTENT_TYPE_GAME);
+					    vPort.getDisplay().setAVIScanInformation(dsAVI_SCAN_TYPE_UNDERSCAN);
+					}else{ // video mode
+					    vPort.getDisplay().setAVIContentType(dsAVICONTENT_TYPE_NOT_SIGNALLED);
+					    vPort.getDisplay().setAVIScanInformation(dsAVI_SCAN_TYPE_NO_DATA);
+					}
 				}
 				else
 				{
