@@ -1186,92 +1186,97 @@ namespace Plugin {
         return ret;
     }
 
-    tvError_t AVOutputTV::syncAvoutputTVParamsToHAL(std::string pqmode,std::string source,std::string format)
+    tvError_t AVOutputTV::syncAvoutputTVParamsToHAL(std::string pqmode, std::string source, std::string format)
     {
-        int level={0};
+        int level = {0};
         capDetails_t info;
         info.pqmode = pqmode;
         info.source = source;
         info.format = format;
 
-        LOGINFO("Entry %s : pqmode : %s source : %s format : %s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
+        JsonObject paramJson;
+        paramJson["pictureMode"] = info.pqmode;
+        paramJson["videoSource"] = info.source;
+        paramJson["videoFormat"] = info.format;
 
-        if( !updateAVoutputTVParam("sync","Brightness",info,PQ_PARAM_BRIGHTNESS,level)) {
-            LOGINFO("Brightness Successfully sync to Drive Cache\n");
-        }
-        else {
-            LOGERR("Brightness Sync to cache Failed !!!\n");
-        }
+        LOGINFO("Entry %s : pqmode : %s source : %s format : %s\n", __FUNCTION__, pqmode.c_str(), source.c_str(), format.c_str());
 
-        if( !updateAVoutputTVParam("sync","Contrast",info,PQ_PARAM_CONTRAST,level)) {
-            LOGINFO("Contrast Successfully Synced to Drive Cache\n");
-        }
-        else {
-            LOGERR("Contrast Sync to cache Failed !!!\n");
-        }
-
-        if( !updateAVoutputTVParam("sync","Sharpness",info,PQ_PARAM_SHARPNESS,level)) {
-            LOGINFO("Sharpness Successfully Synced to Drive Cache\n");
-        }
-        else {
-            LOGERR("Sharpness Sync to cache Failed !!!\n");
+        // Brightness
+        m_brightnessStatus = GetBrightnessCaps(&m_maxBrightness, &m_brightnessCaps);
+        if (m_brightnessStatus == tvERROR_OPERATION_NOT_SUPPORTED) {
+            updateAVoutputTVParam("sync", "Brightness", info, PQ_PARAM_BRIGHTNESS, level);
+        } else {
+            updateAVoutputTVParamV2("sync", "Brightness", paramJson, PQ_PARAM_BRIGHTNESS, level);
         }
 
-        if( !updateAVoutputTVParam("sync","Saturation",info,PQ_PARAM_SATURATION,level)) {
-            LOGINFO("Saturation Successfully Synced to Drive Cache\n");
-        }
-        else {
-            LOGERR("Saturation Sync to cache Failed !!!\n");
-        }
-
-        if( !updateAVoutputTVParam("sync","Hue",info,PQ_PARAM_HUE,level)) {
-            LOGINFO("Hue Successfully Synced to Drive Cache\n");
-        }
-        else {
-            LOGERR("Hue Sync to cache Failed !!!\n");
+        // Contrast
+        m_contrastStatus = GetContrastCaps(&m_maxContrast, &m_contrastCaps);
+        if (m_contrastStatus == tvERROR_OPERATION_NOT_SUPPORTED) {
+            updateAVoutputTVParam("sync", "Contrast", info, PQ_PARAM_CONTRAST, level);
+        } else {
+            updateAVoutputTVParamV2("sync", "Contrast", paramJson, PQ_PARAM_CONTRAST, level);
         }
 
-        if( !updateAVoutputTVParam("sync","ColorTemp",info,PQ_PARAM_COLOR_TEMPERATURE,level)) {
-            LOGINFO("ColorTemp Successfully Synced to Drive Cache\n");
-        }
-        else {
-            LOGERR("ColorTemp Sync to cache Failed !!!\n");
-        }
-        if( !updateAVoutputTVParam("sync","HDRMode",info,PQ_PARAM_DOLBY_MODE,level)) {
-            LOGINFO("HDRmode Successfully Synced to Drive Cache\n");
-        }
-        else {
-            LOGERR("HDRmode Sync to cache Failed !!!\n");
+        // Sharpness
+        m_sharpnessStatus = GetSharpnessCaps(&m_maxSharpness, &m_sharpnessCaps);
+        if (m_sharpnessStatus == tvERROR_OPERATION_NOT_SUPPORTED) {
+            updateAVoutputTVParam("sync", "Sharpness", info, PQ_PARAM_SHARPNESS, level);
+        } else {
+            updateAVoutputTVParamV2("sync", "Sharpness", paramJson, PQ_PARAM_SHARPNESS, level);
         }
 
-        if( !updateAVoutputTVParam("sync","DimmingMode",info,PQ_PARAM_DIMMINGMODE,level)) {
-            LOGINFO("dimmingmode Successfully Synced to Drive Cache\n");
-        }
-        else {
-            LOGERR("dimmingmode Sync to cache Failed !!!\n");
-        }
-
-        if( !updateAVoutputTVParam("sync","Backlight",info,PQ_PARAM_BACKLIGHT,level) ) {
-            LOGINFO("Backlight Successfully Synced to Drive Cache\n");
-        }
-        else {
-            LOGERR("Backlight Sync to cache Failed !!!\n");
+        // Saturation
+        m_saturationStatus = GetSaturationCaps(&m_maxSaturation, &m_saturationCaps);
+        if (m_saturationStatus == tvERROR_OPERATION_NOT_SUPPORTED) {
+            updateAVoutputTVParam("sync", "Saturation", info, PQ_PARAM_SATURATION, level);
+        } else {
+            updateAVoutputTVParamV2("sync", "Saturation", paramJson, PQ_PARAM_SATURATION, level);
         }
 
-        syncCMSParams(); //sync CMS 
-        
+        // Hue
+        m_hueStatus = GetHueCaps(&m_maxHue, &m_hueCaps);
+        if (m_hueStatus == tvERROR_OPERATION_NOT_SUPPORTED) {
+            updateAVoutputTVParam("sync", "Hue", info, PQ_PARAM_HUE, level);
+        } else {
+            updateAVoutputTVParamV2("sync", "Hue", paramJson, PQ_PARAM_HUE, level);
+        }
+
+        // ColorTemperature
+        m_colorTempStatus = GetColorTemperatureCaps(&m_colortemp, &m_numColortemp, &m_colortempCaps);
+        if (m_colorTempStatus == tvERROR_OPERATION_NOT_SUPPORTED) {
+            updateAVoutputTVParam("sync", "ColorTemp", info, PQ_PARAM_COLOR_TEMPERATURE, level);
+        } else {
+            updateAVoutputTVParamV2("sync", "ColorTemp", paramJson, PQ_PARAM_COLOR_TEMPERATURE, level);
+        }
+
+        // HDRMode
+        updateAVoutputTVParam("sync", "HDRMode", info, PQ_PARAM_DOLBY_MODE, level);
+
+        // DimmingMode
+        m_dimmingModeStatus = GetTVDimmingModeCaps(&m_dimmingModes, &m_numdimmingModes, &m_dimmingModeCaps);
+        if (m_dimmingModeStatus == tvERROR_OPERATION_NOT_SUPPORTED) {
+            updateAVoutputTVParam("sync", "DimmingMode", info, PQ_PARAM_DIMMINGMODE, level);
+        } else {
+            updateAVoutputTVParamV2("sync", "DimmingMode", paramJson, PQ_PARAM_DIMMINGMODE, level);
+        }
+
+        // Backlight
+        m_backlightStatus = GetBacklightCaps(&m_maxBacklight, &m_backlightCaps);
+        if (m_backlightStatus == tvERROR_OPERATION_NOT_SUPPORTED) {
+            updateAVoutputTVParam("sync", "Backlight", info, PQ_PARAM_BACKLIGHT, level);
+        } else {
+            updateAVoutputTVParamV2("sync", "Backlight", paramJson, PQ_PARAM_BACKLIGHT, level);
+        }
+
+        // Sync CMS and WB
+        syncCMSParams();
         syncWBParams();
 
-        info.format = "DV";//Sync only for Dolby
+        // Dolby Vision Mode
+        info.format = "DV"; // Sync only for Dolby
+        updateAVoutputTVParam("sync", "DolbyVisionMode", info, PQ_PARAM_DOLBY_MODE, level);
 
-        if( !updateAVoutputTVParam("sync","DolbyVisionMode",info,PQ_PARAM_DOLBY_MODE,level)) {
-            LOGINFO("dvmode Successfully Synced to Drive Cache\n");
-        }
-        else {
-            LOGERR("dvmode Sync to cache Failed !!!\n");
-        }
-
-        LOGINFO("Exit %s : pqmode : %s source : %s format : %s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
+        LOGINFO("Exit %s : pqmode : %s source : %s format : %s\n", __FUNCTION__, pqmode.c_str(), source.c_str(), format.c_str());
         return tvERROR_NONE;
     }
 
@@ -2379,21 +2384,6 @@ const std::map<int, std::string> AVOutputTV::videoSrcMap = {
     {VIDEO_SOURCE_TUNER, "Tuner"}
 };
 
-template<typename T>
-std::vector<T> AVOutputTV::collectFieldFromCaps(std::function<T(const tvConfigContext_t&)> accessor) const {
-    std::set<T> uniqueValues;
-    if (!m_backlightCaps || m_backlightCaps->num_contexts <= 0) {
-        LOGERR("collectFieldFromCaps: Backlight capabilities are null or empty");
-        return {};
-    }
-
-    for (size_t i = 0; i < m_backlightCaps->num_contexts; ++i) {
-        uniqueValues.insert(accessor(m_backlightCaps->contexts[i]));
-    }
-
-    return std::vector<T>(uniqueValues.begin(), uniqueValues.end());
-}
-
 bool AVOutputTV::isGlobalParam(const JsonArray& arr) {
     return (arr.Length() == 0) ||
            (arr.Length() == 1 && (
@@ -2402,120 +2392,137 @@ bool AVOutputTV::isGlobalParam(const JsonArray& arr) {
 
 
 // Modular helper functions
-std::vector<tvPQModeIndex_t> AVOutputTV::extractPQModes(const JsonObject& parameters, bool& isCurrent) {
+std::vector<tvPQModeIndex_t> AVOutputTV::extractPQModes(const JsonObject& parameters)
+{
     std::vector<tvPQModeIndex_t> pqModes;
-    isCurrent = false;
-
-    if (!parameters.HasLabel("pictureMode")) return pqModes;
-
+    if (!parameters.HasLabel("pictureMode"))
+    {
+        return pqModes;
+    }
     JsonArray pqmodeArray = parameters["pictureMode"].Array();
-    if (isGlobalParam(pqmodeArray)) {
-        pqModes = collectFieldFromCaps<tvPQModeIndex_t>([](const tvConfigContext_t& ctx) { return ctx.pq_mode; });
-    } else {
-        for (uint32_t i = 0; i < pqmodeArray.Length(); ++i) {
-            std::string modeStr = pqmodeArray[i].String();
-            if (modeStr == "Current") {
-                isCurrent = true;
-                char picMode[PIC_MODE_NAME_MAX] = {0};
-                if (getCurrentPictureMode(picMode)) {
-                    for (const auto& entry : pqModeMap) {
-                        if (entry.second == picMode) {
-                            pqModes.push_back(static_cast<tvPQModeIndex_t>(entry.first));
-                        }
-                    }
-                }
-            } else {
+    for (uint32_t i = 0; i < pqmodeArray.Length(); ++i) {
+        std::string modeStr = pqmodeArray[i].String();
+        if (modeStr == "Current") {
+            char picMode[PIC_MODE_NAME_MAX] = {0};
+            if (getCurrentPictureMode(picMode)) {
                 for (const auto& entry : pqModeMap) {
-                    if (entry.second == modeStr) {
+                    if (entry.second == picMode) {
                         pqModes.push_back(static_cast<tvPQModeIndex_t>(entry.first));
                     }
                 }
             }
+        } else {
+            for (const auto& entry : pqModeMap) {
+                if (entry.second == modeStr) {
+                    pqModes.push_back(static_cast<tvPQModeIndex_t>(entry.first));
+                }
+            }
         }
     }
-
     return pqModes;
 }
 
-std::vector<tvVideoSrcType_t> AVOutputTV::extractVideoSources(const JsonObject& parameters, bool& isCurrent) {
+std::vector<tvVideoSrcType_t> AVOutputTV::extractVideoSources(const JsonObject& parameters)
+{
     std::vector<tvVideoSrcType_t> sources;
-    isCurrent = false;
-
-    if (!parameters.HasLabel("videoSource")) return sources;
-
+    if (!parameters.HasLabel("videoSource"))
+    {
+         return sources;
+    }
     JsonArray sourceArray = parameters["videoSource"].Array();
-    if (isGlobalParam(sourceArray)) {
-        sources = collectFieldFromCaps<tvVideoSrcType_t>([](const tvConfigContext_t& ctx) { return ctx.videoSrcType; });
-    } else {
-        for (uint32_t i = 0; i < sourceArray.Length(); ++i) {
-            std::string srcStr = sourceArray[i].String();
-            if (srcStr == "Current") {
-                isCurrent = true;
-                tvVideoSrcType_t sourceIndex = VIDEO_SOURCE_IP;
-                if (GetCurrentVideoSource(&sourceIndex) == tvERROR_NONE) {
-                    sources.push_back(sourceIndex);
-                }
-            } else {
-                for (const auto& entry : videoSrcMap) {
-                    if (entry.second == srcStr) {
-                        sources.push_back(static_cast<tvVideoSrcType_t>(entry.first));
-                    }
+    for (uint32_t i = 0; i < sourceArray.Length(); ++i) {
+        std::string srcStr = sourceArray[i].String();
+        if (srcStr == "Current") {
+            tvVideoSrcType_t sourceIndex = VIDEO_SOURCE_IP;
+            if (GetCurrentVideoSource(&sourceIndex) == tvERROR_NONE) {
+                LOGINFO("Current Video source Index: %d\n", sourceIndex);
+                sources.push_back(sourceIndex);
+            }
+        } else {
+            for (const auto& entry : videoSrcMap) {
+                if (entry.second == srcStr) {
+                    sources.push_back(static_cast<tvVideoSrcType_t>(entry.first));
                 }
             }
         }
     }
-
     return sources;
 }
 
-std::vector<tvVideoFormatType_t> AVOutputTV::extractVideoFormats(const JsonObject& parameters, bool& isCurrent) {
+std::vector<tvVideoFormatType_t> AVOutputTV::extractVideoFormats(const JsonObject& parameters)
+{
     std::vector<tvVideoFormatType_t> formats;
-    isCurrent = false;
-
-    if (!parameters.HasLabel("videoFormat")) return formats;
-
+    if (!parameters.HasLabel("videoFormat"))
+    {
+        return formats;
+    }
     JsonArray formatArray = parameters["videoFormat"].Array();
-    if (isGlobalParam(formatArray)) {
-        formats = collectFieldFromCaps<tvVideoFormatType_t>([](const tvConfigContext_t& ctx) { return ctx.videoFormatType; });
-    } else {
-        for (uint32_t i = 0; i < formatArray.Length(); ++i) {
-            std::string fmtStr = formatArray[i].String();
-            if (fmtStr == "Current") {
-                isCurrent = true;
-                tvVideoFormatType_t formatIndex = VIDEO_FORMAT_NONE;
-                GetCurrentVideoFormat(&formatIndex);
-                if (formatIndex == VIDEO_FORMAT_NONE) {
-                    formatIndex = VIDEO_FORMAT_SDR;
-                }
-                formats.push_back(formatIndex);
-            } else {
-                for (const auto& entry : videoFormatMap) {
-                    if (entry.second == fmtStr) {
-                        formats.push_back(static_cast<tvVideoFormatType_t>(entry.first));
-                    }
+    for (uint32_t i = 0; i < formatArray.Length(); ++i) {
+        std::string fmtStr = formatArray[i].String();
+        if (fmtStr == "Current") {
+            tvVideoFormatType_t formatIndex = VIDEO_FORMAT_NONE;
+            GetCurrentVideoFormat(&formatIndex);
+            LOGINFO("Current Video Format Index: %d\n", formatIndex);
+            if (formatIndex == VIDEO_FORMAT_NONE) {
+                formatIndex = VIDEO_FORMAT_SDR;
+            }
+            formats.push_back(formatIndex);
+        } else {
+            for (const auto& entry : videoFormatMap) {
+                if (entry.second == fmtStr) {
+                    formats.push_back(static_cast<tvVideoFormatType_t>(entry.first));
                 }
             }
         }
     }
-
     return formats;
 }
-
-
-std::vector<tvConfigContext_t> AVOutputTV::getValidContextsFromParameters(const JsonObject& parameters)
+std::vector<tvConfigContext_t> AVOutputTV::getValidContextsFromParameters(const JsonObject& parameters, const std::string& tr181ParamName)
 {
     std::vector<tvConfigContext_t> validContexts;
+    tvContextCaps_t* caps = nullptr;
 
-    if (!m_backlightCaps || m_backlightCaps->num_contexts <= 0) {
-        LOGERR("Backlight capabilities unavailable or empty");
+    if (tr181ParamName == "Backlight") {
+        caps = m_backlightCaps;
+    } else if (tr181ParamName == "Brightness") {
+        caps = m_brightnessCaps;
+    } else if (tr181ParamName == "Contrast") {
+        caps = m_contrastCaps;
+    } else if (tr181ParamName == "Sharpness") {
+        caps = m_sharpnessCaps;
+    } else if (tr181ParamName == "Saturation") {
+        caps = m_saturationCaps;
+    } else if (tr181ParamName == "Hue") {
+        caps = m_hueCaps;
+    } else if (tr181ParamName == "ColorTemp") {
+        caps = m_colortempCaps;
+    } else if (tr181ParamName == "DimmingMode") {
+        caps = m_dimmingModeCaps;
+    } else {
+        LOGERR("Unknown tr181ParamName: %s", tr181ParamName.c_str());
         return validContexts;
     }
 
-    bool pqCurrent = false, srcCurrent = false, fmtCurrent = false;
-
-    std::vector<tvPQModeIndex_t> pqModes = extractPQModes(parameters, pqCurrent);
-    std::vector<tvVideoSrcType_t> sources = extractVideoSources(parameters, srcCurrent);
-    std::vector<tvVideoFormatType_t> formats = extractVideoFormats(parameters, fmtCurrent);
+    JsonArray pqmodeArray = parameters["pictureMode"].Array();
+    if (isGlobalParam(pqmodeArray))
+    {
+        LOGINFO("%s Global Parameter", tr181ParamName.c_str());
+        if (GetTVPictureModeCaps(&m_pictureModes, &m_numPictureModes, &m_pictureModeCaps) == tvERROR_NONE && m_pictureModeCaps && m_pictureModeCaps->num_contexts > 0)
+        {
+            for (size_t i = 0; i < m_pictureModeCaps->num_contexts; ++i)
+            {
+                validContexts.push_back(m_pictureModeCaps->contexts[i]);
+            }
+        }
+        else
+        {
+            LOGERR("PictureMode capabilities unavailable or empty");
+        }
+        return validContexts;
+    }
+    std::vector<tvPQModeIndex_t> pqModes = extractPQModes(parameters);
+    std::vector<tvVideoSrcType_t> sources = extractVideoSources(parameters);
+    std::vector<tvVideoFormatType_t> formats = extractVideoFormats(parameters);
 
     if (pqModes.empty() || sources.empty() || formats.empty()) {
         LOGWARN("One or more parameter vectors are empty: PQModes[%zu], Sources[%zu], Formats[%zu]",
@@ -2529,8 +2536,8 @@ std::vector<tvConfigContext_t> AVOutputTV::getValidContextsFromParameters(const 
         for (const auto& fmt : formats) {
             for (const auto& src : sources) {
                 tvConfigContext_t testCtx = { pq, fmt, src };
-                for (size_t i = 0; i < m_backlightCaps->num_contexts; ++i) {
-                    const tvConfigContext_t& available = m_backlightCaps->contexts[i];
+                for (size_t i = 0; i < caps->num_contexts; ++i) {
+                    const tvConfigContext_t& available = caps->contexts[i];
                     if (available.pq_mode == testCtx.pq_mode &&
                         available.videoFormatType == testCtx.videoFormatType &&
                         available.videoSrcType == testCtx.videoSrcType) {
@@ -2551,74 +2558,135 @@ std::vector<tvConfigContext_t> AVOutputTV::getValidContextsFromParameters(const 
         return std::tie(a.pq_mode, a.videoFormatType, a.videoSrcType) <
                std::tie(b.pq_mode, b.videoFormatType, b.videoSrcType);
     });
+    return validContexts;
+}
 
-#if DEBUG
+int AVOutputTV::updateAVoutputTVParamV2(std::string action, std::string tr181ParamName,
+    const JsonObject& parameters,
+    tvPQParameterIndex_t pqParamIndex, int level)
+{
+    LOGINFO("Entry %s: Action: %s, Param: %s, Level: %d", __FUNCTION__, action.c_str(), tr181ParamName.c_str(), level);
+    int ret = 0;
+    const bool isSet = (action == "set");
+    const bool isReset = (action == "reset");
+    const bool isSync = (action == "sync");
+
+    std::vector<tvConfigContext_t> validContexts = getValidContextsFromParameters(parameters, tr181ParamName);
+#if 0
     for (const auto& ctx : validContexts) {
+
         std::string pqStr = pqModeMap.count(ctx.pq_mode) ? pqModeMap.at(ctx.pq_mode) : std::to_string(ctx.pq_mode);
         std::string fmtStr = videoFormatMap.count(ctx.videoFormatType) ? videoFormatMap.at(ctx.videoFormatType) : std::to_string(ctx.videoFormatType);
         std::string srcStr = videoSrcMap.count(ctx.videoSrcType) ? videoSrcMap.at(ctx.videoSrcType) : std::to_string(ctx.videoSrcType);
         LOGINFO("Valid Context - PQMode: %s, Format: %s, Source: %s", pqStr.c_str(), fmtStr.c_str(), srcStr.c_str());
     }
 #endif
-
-    return validContexts;
-}
-
-int AVOutputTV::updateAVoutputTVParamV2(std::string action, std::string tr181ParamName,
-                                        const JsonObject& parameters,
-                                        tvPQParameterIndex_t pqParamIndex, int level)
-{
-    LOGINFO("Entry: %s", __FUNCTION__);
-    int ret = 0;
-    const bool isSet = (action == "set");
-
-    std::vector<tvConfigContext_t> validContexts = getValidContextsFromParameters(parameters);
-    LOGINFO("%s: Action: %s, Param: %s, Level: %d", __FUNCTION__, action.c_str(), tr181ParamName.c_str(), level);
-
     if (validContexts.empty()) {
         LOGWARN("%s: No valid contexts found for parameters", __FUNCTION__);
         return ret;
     }
 
-    for (const auto& ctx : validContexts) {
+    for (const auto& ctx : validContexts)
+    {
         paramIndex_t paramIndex {
-            .sourceIndex = static_cast<uint8_t>(ctx.videoSrcType),
-            .pqmodeIndex = static_cast<uint8_t>(ctx.pq_mode),
-            .formatIndex = static_cast<uint8_t>(ctx.videoFormatType)
+        .sourceIndex = static_cast<uint8_t>(ctx.videoSrcType),
+        .pqmodeIndex = static_cast<uint8_t>(ctx.pq_mode),
+        .formatIndex = static_cast<uint8_t>(ctx.videoFormatType)
         };
-
-        if (isSet) {
+        if (isSet)
+        {
             ret |= updateAVoutputTVParamToHAL(tr181ParamName, paramIndex, level, true);
-            ret |= SaveBacklight(static_cast<tvVideoSrcType_t>(paramIndex.sourceIndex),
-                                 paramIndex.pqmodeIndex,
-                                 static_cast<tvVideoFormatType_t>(paramIndex.formatIndex),
-                                 level);
-
-            std::string pqStr = pqModeMap.count(ctx.pq_mode) ? pqModeMap.at(ctx.pq_mode) : std::to_string(ctx.pq_mode);
-            std::string fmtStr = videoFormatMap.count(ctx.videoFormatType) ? videoFormatMap.at(ctx.videoFormatType) : std::to_string(ctx.videoFormatType);
-            std::string srcStr = videoSrcMap.count(ctx.videoSrcType) ? videoSrcMap.at(ctx.videoSrcType) : std::to_string(ctx.videoSrcType);
-
-            LOGINFO("Checking Context to SetBacklight - PQMode: %s, Format: %s, Source: %s", pqStr.c_str(), fmtStr.c_str(), srcStr.c_str());
-
-            if (isSetRequired(pqStr, srcStr, fmtStr)) {
-                LOGINFO("Proceed with SetBacklight: %d", level);
-                int setRet = SetBacklight(level);
-                ret |= setRet;
-
-                if (setRet != tvERROR_NONE) {
-                    LOGERR("SetBacklight failed: %d", setRet);
-                    return ret;
-                }
-            } else {
-                LOGINFO("SetBacklight not required for this context.");
+        }
+        else
+        {
+            if (isReset)
+            {
+                ret |= updateAVoutputTVParamToHAL(tr181ParamName, paramIndex, level, false);
+            }
+            if(getLocalparam(tr181ParamName,paramIndex,level,pqParamIndex,isSync))
+            {
+                continue;
             }
         }
-    }
+        switch (pqParamIndex)
+        {
+            case PQ_PARAM_BRIGHTNESS:
+                ret |= SaveBrightness((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
+                break;
+            case PQ_PARAM_CONTRAST:
+                ret |= SaveContrast((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
+                break;
+            case PQ_PARAM_SHARPNESS:
+                ret |= SaveSharpness((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
+                break;
+            case PQ_PARAM_HUE:
+                ret |= SaveHue((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
+                break;
+            case PQ_PARAM_SATURATION:
+                ret |= SaveSaturation((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
+                break;
+            case PQ_PARAM_COLOR_TEMPERATURE:
+                ret |= SaveColorTemperature((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvColorTemp_t)level);
+                break;
+            case PQ_PARAM_BACKLIGHT:
+                ret |= SaveBacklight((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
+                break;
+            case PQ_PARAM_DIMMINGMODE:
+                ret |= SaveTVDimmingMode((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvDimmingMode_t)level);
+                break;
+            case PQ_PARAM_LOWLATENCY_STATE:
+                ret |= SaveLowLatencyState((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
+                break;
+            case PQ_PARAM_DOLBY_MODE:
+                 ret |= SaveTVDolbyVisionMode((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvDolbyMode_t)level);
+                 break;
+            case PQ_PARAM_ASPECT_RATIO:
+                 ret |= SaveAspectRatio((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvDisplayMode_t)level);
+                 break;
 
+            case PQ_PARAM_HDR10_MODE:
+            case PQ_PARAM_HLG_MODE:
+            case PQ_PARAM_LDIM:
+            case PQ_PARAM_LOCALDIMMING_LEVEL:
+            case PQ_PARAM_CMS:
+            case PQ_PARAM_CMS_STATE:
+            case PQ_PARAM_CMS_SATURATION_RED:
+            case PQ_PARAM_CMS_SATURATION_BLUE:
+            case PQ_PARAM_CMS_SATURATION_GREEN:
+            case PQ_PARAM_CMS_SATURATION_YELLOW:
+            case PQ_PARAM_CMS_SATURATION_CYAN:
+            case PQ_PARAM_CMS_SATURATION_MAGENTA:
+            case PQ_PARAM_CMS_HUE_RED:
+            case PQ_PARAM_CMS_HUE_BLUE:
+            case PQ_PARAM_CMS_HUE_GREEN:
+            case PQ_PARAM_CMS_HUE_YELLOW:
+            case PQ_PARAM_CMS_HUE_CYAN:
+            case PQ_PARAM_CMS_HUE_MAGENTA:
+            case PQ_PARAM_CMS_LUMA_RED:
+            case PQ_PARAM_CMS_LUMA_BLUE:
+            case PQ_PARAM_CMS_LUMA_GREEN:
+            case PQ_PARAM_CMS_LUMA_YELLOW:
+            case PQ_PARAM_CMS_LUMA_CYAN:
+            case PQ_PARAM_CMS_LUMA_MAGENTA:
+            case PQ_PARAM_WB_GAIN_RED:
+            case PQ_PARAM_WB_GAIN_GREEN:
+            case PQ_PARAM_WB_GAIN_BLUE:
+            case PQ_PARAM_WB_OFFSET_RED:
+            case PQ_PARAM_WB_OFFSET_GREEN:
+            case PQ_PARAM_WB_OFFSET_BLUE:
+            case PQ_PARAM_PRECISION_DETAIL:
+                // TODO: Add implementation
+                break;
+
+            default:
+                // Prevent compiler warning for unhandled enums
+                LOGWARN("Unhandled PQ parameter index: %d", pqParamIndex);
+                break;
+        }
+    }
     LOGINFO("Exit: %s, Return Value: %d", __FUNCTION__, ret);
     return ret;
 }
-
 
 tvError_t AVOutputTV::ReadJsonFile(JsonObject& root) {
     std::ifstream file(CAPABLITY_FILE_NAMEV2);
