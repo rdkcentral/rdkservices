@@ -220,6 +220,21 @@ namespace Plugin {
         END_INTERFACE_MAP
 
     private:
+
+        Exchange::CryptographyVault VaultId(std::string vault)
+        {
+            if (vault == "platform")
+                return Exchange::CRYPTOGRAPHY_VAULT_PLATFORM;
+
+            if (vault == "provisioning")
+                return Exchange::CRYPTOGRAPHY_VAULT_PROVISIONING;
+
+            if (vault == "netflix")
+                return Exchange::CRYPTOGRAPHY_VAULT_NETFLIX;
+
+            return Exchange::CRYPTOGRAPHY_VAULT_DEFAULT;
+        }
+
         uint16_t ImportObjects(const string& path)
         {
             // Preload ICryptography vaults with named device-bound objects (encryption keys or other secret data).
@@ -245,9 +260,8 @@ namespace Plugin {
                 if (file.Open(true) == true) {
                     ObjectFile obj;
                     obj.IElement::FromFile(file);
-
-                    //const Exchange::CryptographyVault vaultId = Cryptography::VaultId(obj.Vault.Value());
-                    const Exchange::CryptographyVault vaultId = WPEFramework::Exchange::CRYPTOGRAPHY_VAULT_PLATFORM;
+                    
+                    const Exchange::CryptographyVault vaultId = VaultId(obj.Vault.Value());
 
                     if ((vaultId != static_cast<Exchange::CryptographyVault>(~0))
                             && (obj.Data.Value().empty() == false) && (obj.Data.Value().size() <= ((0xFFFF * 4) / 3))) {
