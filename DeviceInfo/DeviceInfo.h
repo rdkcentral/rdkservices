@@ -27,7 +27,6 @@
 #include <interfaces/IDeviceInfo2.h>
 #endif /* USE_THUNDER_R4 */
 #include <interfaces/IFirmwareVersion.h>
-#include <interfaces/IDeviceIdentification.h>
 #include <interfaces/json/JsonData_DeviceInfo.h>
 
 namespace WPEFramework {
@@ -74,9 +73,6 @@ namespace Plugin {
             , _deviceAudioCapabilities(nullptr)
             , _deviceVideoCapabilities(nullptr)
             , _firmwareVersion(nullptr)
-            , _deviceId()
-            , _identifier(nullptr)
-            , _device(nullptr)
         {
             RegisterAll();
         }
@@ -94,7 +90,6 @@ namespace Plugin {
         INTERFACE_AGGREGATE(Exchange::IDeviceAudioCapabilities, _deviceAudioCapabilities)
         INTERFACE_AGGREGATE(Exchange::IDeviceVideoCapabilities, _deviceVideoCapabilities)
         INTERFACE_AGGREGATE(Exchange::IFirmwareVersion, _firmwareVersion)
-        INTERFACE_AGGREGATE(Exchange::IDeviceIdentification, _device)
         END_INTERFACE_MAP
 
     public:
@@ -128,7 +123,6 @@ namespace Plugin {
         uint32_t get_supportedaudioports(JsonData::DeviceInfo::SupportedaudioportsData& response) const;
         uint32_t get_supportedvideodisplays(JsonData::DeviceInfo::SupportedvideodisplaysData& response) const;
         uint32_t get_hostedid(JsonData::DeviceInfo::HostedidData& response) const;
-        uint32_t get_chipset(JsonData::DeviceInfo::ChipsetData& response) const;
         uint32_t endpoint_defaultresolution(const JsonData::DeviceInfo::SupportedresolutionsParamsInfo& params, JsonData::DeviceInfo::DefaultresolutionResultData& response) const;
         uint32_t endpoint_supportedresolutions(const JsonData::DeviceInfo::SupportedresolutionsParamsInfo& params, JsonData::DeviceInfo::SupportedresolutionsResultData& response) const;
         uint32_t endpoint_supportedhdcp(const JsonData::DeviceInfo::SupportedresolutionsParamsInfo& params, JsonData::DeviceInfo::SupportedhdcpResultData& response) const;
@@ -139,8 +133,6 @@ namespace Plugin {
         void SysInfo(JsonData::DeviceInfo::SysteminfoData& systemInfo) const;
         void AddressInfo(Core::JSON::ArrayType<JsonData::DeviceInfo::AddressesData>& addressInfo) const;
         void SocketPortInfo(JsonData::DeviceInfo::SocketinfoData& socketPortInfo) const;
-        string GetDeviceId() const;
-        string RetrieveSerialNumberThroughCOMRPC() const;
 
     private:
         uint8_t _skipURL;
@@ -151,10 +143,6 @@ namespace Plugin {
         Exchange::IDeviceAudioCapabilities* _deviceAudioCapabilities;
         Exchange::IDeviceVideoCapabilities* _deviceVideoCapabilities;
         Exchange::IFirmwareVersion* _firmwareVersion;
-        string _deviceId;
-        PluginHost::ISubSystem::IIdentifier* _identifier;
-        Exchange::IDeviceIdentification* _device;
-
     };
 
 } // namespace Plugin
