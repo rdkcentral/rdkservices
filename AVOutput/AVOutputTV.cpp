@@ -358,6 +358,21 @@ namespace Plugin {
         registerMethod("resetAutoBacklightMode", &AVOutputTV::resetAutoBacklightMode, this);
         registerMethod("getAutoBacklightModeCaps", &AVOutputTV::getAutoBacklightModeCaps, this);
 
+        registerMethod("getBacklightCapsV2", &AVOutputTV::getBacklightCapsV2, this);
+        registerMethod("getBrightnessCapsV2", &AVOutputTV::getBrightnessCapsV2, this);
+        registerMethod("getContrastCapsV2", &AVOutputTV::getContrastCapsV2, this);
+        registerMethod("getSharpnessCapsV2", &AVOutputTV::getSharpnessCapsV2, this);
+        registerMethod("getSaturationCapsV2", &AVOutputTV::getSaturationCapsV2, this);
+        registerMethod("getHueCapsV2", &AVOutputTV::getHueCapsV2, this);
+        registerMethod("getPrecisionDetailCaps", &AVOutputTV::getPrecisionDetailCaps, this);
+        registerMethod("getLowLatencyStateCapsV2", &AVOutputTV::getLowLatencyStateCapsV2, this);
+        registerMethod("getColorTemperatureCapsV2", &AVOutputTV::getColorTemperatureCapsV2, this);
+        registerMethod("getSdrGammaCaps", &AVOutputTV::getSdrGammaCaps, this);
+        registerMethod("getBacklightDimmingModeCapsV2", &AVOutputTV::getBacklightDimmingModeCapsV2, this);
+        registerMethod("getZoomModeCapsV2", &AVOutputTV::getZoomModeCapsV2, this);
+        registerMethod("getDVCalibrationCaps", &AVOutputTV::getDVCalibrationCaps, this);
+        registerMethod("getPictureModeCapsV2", &AVOutputTV::getPictureModeCapsV2, this);
+
         LOGINFO("Exit\n");
     }
     
@@ -457,6 +472,421 @@ namespace Plugin {
        }
 
        LOGINFO("Exit\n");
+    }
+    bool AVOutputTV::getPQParamV2(const JsonObject& parameters,
+        JsonObject& response,
+        const std::string& paramName,
+        tvContextCaps_t*& capStore,
+        int& maxCap,
+        tvPQParameterIndex_t paramType)
+    {
+        std::vector<tvConfigContext_t> validContexts = getValidContextsFromParameters(parameters, paramName);
+        if (validContexts.empty())
+        {
+            LOGERR("%s: No valid context found for the given parameters", __FUNCTION__);
+            return false;
+        }
+
+        const auto& ctx = validContexts.front();
+        paramIndex_t indexInfo
+        {
+            .sourceIndex = static_cast<uint8_t>(ctx.videoSrcType),
+            .pqmodeIndex = static_cast<uint8_t>(ctx.pq_mode),
+            .formatIndex = static_cast<uint8_t>(ctx.videoFormatType)
+        };
+
+        int value = 0;
+        tvError_t err = static_cast<tvError_t>(getLocalparam(paramName.c_str(), indexInfo, value, paramType));
+        if (err == tvERROR_NONE) {
+            response[paramName.c_str()] = value;
+            return true;
+        }
+
+        LOGERR("getLocalparam failed for %s with error code %d", paramName.c_str(), err);
+        return false;
+    }
+
+    uint32_t AVOutputTV::setPQParamV2(const JsonObject& parameters, JsonObject& response, const std::string& paramName, tvPQParameterIndex_t pqType, tvSetFunction setFunc, int maxCap)
+    {
+        LOGINFO("Entry: %s\n", paramName.c_str());
+        int paramValue = 0;
+
+        std::string value = "";
+        std::string lowerParamName = paramName;
+        std::transform(lowerParamName.begin(), lowerParamName.end(), lowerParamName.begin(), ::tolower);
+        if (parameters.HasLabel(lowerParamName.c_str())) {
+            value = parameters[lowerParamName.c_str()].String();
+        }
+        returnIfParamNotFound(parameters, lowerParamName.c_str());
+
+        try {
+            paramValue = std::stoi(value);
+        } catch (const std::exception& e) {
+            LOGERR("Invalid %s value: %s. Exception: %s", paramName.c_str(), value.c_str(), e.what());
+            returnResponse(false);
+        }
+        if (paramValue < 0 || paramValue > maxCap) {
+            LOGERR("Input value %d is out of range (0 - %d) for %s", paramValue, maxCap, paramName.c_str());
+            returnResponse(false);
+        }
+
+        // Update the TV parameter
+        LOGINFO("Updating AVOutputTVParamV2 for %s\n", paramName.c_str());
+        int retval = updateAVoutputTVParamV2("set", paramName, parameters, pqType, paramValue);
+        if (retval != 0) {
+            LOGERR("Failed to Save %s to ssm_data. retval: %d\n", paramName.c_str(), retval);
+            returnResponse(false);
+        }
+        LOGINFO("Exit: set%s successful to value: %d\n", paramName.c_str(), paramValue);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getCapsV2(
+        const std::function<tvError_t( tvContextCaps_t**,int*)>& getCapsFunc,
+        const char* key,
+        const JsonObject& parameters,
+        JsonObject& response)
+    {
+        int max_value = 0;
+        tvContextCaps_t* context_caps = nullptr;
+        // Call the HAL function
+        tvError_t result = getCapsFunc( &context_caps, &max_value);
+        LOGWARN("AVOutputPlugins: %s: result: %d", __FUNCTION__, result);
+        if (result != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        JsonObject capsInfo;
+        JsonObject rangeInfo;
+        if (max_value){
+            rangeInfo["from"] = 0;
+            rangeInfo["to"] = max_value;
+            capsInfo["rangeInfo"] = rangeInfo;
+        }
+        capsInfo["platformSupport"] = true;
+        capsInfo["context"] = parseContextCaps(context_caps);
+        response[key] = capsInfo;
+        returnResponse(true);
+    }
+
+    JsonObject AVOutputTV::parseContextCaps(tvContextCaps_t* context_caps) {
+        JsonObject contextObj;
+        if (context_caps && context_caps->num_contexts > 0) {
+            for (size_t i = 0; i < context_caps->num_contexts; ++i) {
+                int pqMode = context_caps->contexts[i].pq_mode;
+                int videoFormat = context_caps->contexts[i].videoFormatType;
+                int videoSource = context_caps->contexts[i].videoSrcType;
+
+                auto pqModeIt = AVOutputTV::pqModeMap.find(pqMode);
+                auto videoFormatIt = AVOutputTV::videoFormatMap.find(videoFormat);
+                auto videoSrcIt = AVOutputTV::videoSrcMap.find(videoSource);
+
+                if (pqModeIt != AVOutputTV::pqModeMap.end() &&
+                    videoFormatIt != AVOutputTV::videoFormatMap.end() &&
+                    videoSrcIt != AVOutputTV::videoSrcMap.end()) {
+
+                    const char* pqModeStr = pqModeIt->second.c_str();
+                    const char* videoFormatStr = videoFormatIt->second.c_str();
+                    const char* videoSrcStr = videoSrcIt->second.c_str();
+
+                    if (!contextObj.HasLabel(pqModeStr)) {
+                        contextObj[pqModeStr] = JsonObject();
+                    }
+                    JsonObject pqModeObj = contextObj[pqModeStr].Object();
+
+                    if (!pqModeObj.HasLabel(videoFormatStr)) {
+                        pqModeObj[videoFormatStr] = JsonArray();
+                    }
+                    JsonArray formatArray = pqModeObj[videoFormatStr].Array();
+                    // **Manually check for existence before adding**
+                    bool exists = false;
+                    for (size_t j = 0; j < formatArray.Length(); ++j) {
+                        if (strcmp(formatArray[j].String().c_str(), videoSrcStr) == 0) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                    if (!exists) {
+                        formatArray.Add(videoSrcStr);
+                    }
+                    // Update objects
+                    pqModeObj[videoFormatStr] = formatArray;
+                    contextObj[pqModeStr] = pqModeObj;
+                }
+            }
+        }
+        return contextObj;
+    }
+
+    uint32_t AVOutputTV::getBacklightCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this]( tvContextCaps_t** context_caps, int* max_backlight) {
+            return this->GetBacklightCaps(max_backlight, context_caps);
+        }, "Backlight", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getBrightnessCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this]( tvContextCaps_t** context_caps, int* max_brightness) {
+            return this->GetBrightnessCaps(max_brightness, context_caps);
+        },
+        "Brightness", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getContrastCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_contrast) {
+            return this->GetContrastCaps(max_contrast, context_caps);
+        },
+        "Contrast", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getSharpnessCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_sharpness) {
+            return this->GetSharpnessCaps(max_sharpness, context_caps);
+        },
+        "Sharpness", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getSaturationCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_saturation) {
+            return this->GetSaturationCaps(max_saturation, context_caps);
+        },
+        "Saturation", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getHueCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this]( tvContextCaps_t** context_caps, int* max_hue) {
+            return this->GetHueCaps(max_hue, context_caps);
+        },
+        "Hue", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getPrecisionDetailCaps(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_precision) {
+            return this->GetPrecisionDetailCaps(max_precision, context_caps);
+        },
+        "PrecisionDetails", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getLowLatencyStateCapsV2(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_latency) {
+            return this->GetLowLatencyStateCaps(max_latency, context_caps);
+        },
+        "LowLatencyState", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getColorTemperatureCapsV2(const JsonObject& parameters, JsonObject& response) {
+        tvColorTemp_t* color_temp = nullptr;
+        size_t num_color_temp = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t err = GetColorTemperatureCaps(&color_temp, &num_color_temp, &context_caps);
+        if (err != tvERROR_NONE) {
+            return err;
+        }
+
+        JsonObject colorTempJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+        for (size_t i = 0; i < num_color_temp; ++i) {
+            switch (color_temp[i]) {
+                case tvColorTemp_STANDARD: optionsArray.Add("Standard"); break;
+                case tvColorTemp_WARM: optionsArray.Add("Warm"); break;
+                case tvColorTemp_COLD: optionsArray.Add("Cold"); break;
+                case tvColorTemp_USER: optionsArray.Add("UserDefined"); break;
+                case tvColorTemp_SUPERCOLD: optionsArray.Add("Supercold"); break;
+                case tvColorTemp_BOOST_STANDARD: optionsArray.Add("BoostStandard"); break;
+                case tvColorTemp_BOOST_WARM: optionsArray.Add("BoostWarm"); break;
+                case tvColorTemp_BOOST_COLD: optionsArray.Add("BoostCold"); break;
+                case tvColorTemp_BOOST_USER: optionsArray.Add("BoostUserDefined"); break;
+                case tvColorTemp_BOOST_SUPERCOLD: optionsArray.Add("BoostSupercold"); break;
+                default: break;
+            }
+        }
+        rangeInfo["options"] = optionsArray;
+        colorTempJson["rangeInfo"] = rangeInfo;
+        colorTempJson["platformSupport"] = true;
+        colorTempJson["context"] = parseContextCaps(context_caps);
+        response["ColorTemperature"] = colorTempJson;
+
+        free(color_temp); //revisit
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getSdrGammaCaps(const JsonObject& parameters, JsonObject& response) {
+        tvSdrGamma_t* sdr_gamma = nullptr;
+        size_t num_sdr_gamma = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t err = GetSdrGammaCaps(&sdr_gamma, &num_sdr_gamma, &context_caps);
+        if (err != tvERROR_NONE) {
+            return err;
+        }
+
+        JsonObject sdrGammaJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+        for (size_t i = 0; i < num_sdr_gamma; ++i) {
+            switch (sdr_gamma[i]) {
+                case tvSdrGamma_1_8: optionsArray.Add("1.8"); break;
+                case tvSdrGamma_1_9: optionsArray.Add("1.9"); break;
+                case tvSdrGamma_2_0: optionsArray.Add("2.0"); break;
+                case tvSdrGamma_2_1: optionsArray.Add("2.1"); break;
+                case tvSdrGamma_2_2: optionsArray.Add("2.2"); break;
+                case tvSdrGamma_2_3: optionsArray.Add("2.3"); break;
+                case tvSdrGamma_2_4: optionsArray.Add("2.4"); break;
+                case tvSdrGamma_BT_1886: optionsArray.Add("BT.1886"); break;
+                default: break;
+            }
+        }
+        rangeInfo["options"] = optionsArray;
+        sdrGammaJson["rangeInfo"] = rangeInfo;
+        sdrGammaJson["platformSupport"] = true;
+        sdrGammaJson["context"] = parseContextCaps(context_caps);
+        response["SDRGamma"] = sdrGammaJson;
+
+        free(sdr_gamma);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getBacklightDimmingModeCapsV2(const JsonObject& parameters, JsonObject& response) {
+        tvDimmingMode_t* dimming_mode = nullptr;
+        size_t num_dimming_mode = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t err = GetTVDimmingModeCaps(&dimming_mode, &num_dimming_mode, &context_caps);
+        if (err != tvERROR_NONE) {
+            return err;
+        }
+
+        JsonObject dimmingModeJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+        for (size_t i = 0; i < num_dimming_mode; ++i) {
+            switch (dimming_mode[i]) {
+                case tvDimmingMode_Fixed: optionsArray.Add("Fixed"); break;
+                case tvDimmingMode_Local: optionsArray.Add("Local"); break;
+                case tvDimmingMode_Global: optionsArray.Add("Global"); break;
+                default: break;
+            }
+        }
+        rangeInfo["options"] = optionsArray;
+        dimmingModeJson["rangeInfo"] = rangeInfo;
+        dimmingModeJson["platformSupport"] = true;
+        dimmingModeJson["context"] = parseContextCaps(context_caps);
+        response["DimmingMode"] = dimmingModeJson;
+
+        free(dimming_mode);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getZoomModeCapsV2(const JsonObject& parameters, JsonObject& response) {
+        tvDisplayMode_t* aspect_ratio = nullptr;
+        size_t num_aspect_ratio = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t err = GetAspectRatioCaps(&aspect_ratio, &num_aspect_ratio, &context_caps);
+        if (err != tvERROR_NONE) {
+            return err;
+        }
+
+        JsonObject aspectRatioJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+        for (size_t i = 0; i < num_aspect_ratio; ++i) {
+            switch (aspect_ratio[i]) {
+                case tvDisplayMode_AUTO: optionsArray.Add("TV AUTO"); break;
+                case tvDisplayMode_DIRECT: optionsArray.Add("TV DIRECT"); break;
+                case tvDisplayMode_NORMAL: optionsArray.Add("TV NORMAL"); break;
+                case tvDisplayMode_16x9: optionsArray.Add("TV 16X9 STRETCH"); break;
+                case tvDisplayMode_4x3: optionsArray.Add("TV 4X3 PILLARBOX"); break;
+                case tvDisplayMode_ZOOM: optionsArray.Add("TV ZOOM"); break;
+                case tvDisplayMode_FULL: optionsArray.Add("TV FULL"); break;
+                default: break;
+            }
+        }
+        rangeInfo["options"] = optionsArray;
+        aspectRatioJson["rangeInfo"] = rangeInfo;
+        aspectRatioJson["platformSupport"] = true;
+        aspectRatioJson["context"] = parseContextCaps(context_caps);
+        response["AspectRatio"] = aspectRatioJson;
+
+        free(aspect_ratio);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getPictureModeCapsV2(const JsonObject& parameters, JsonObject& response) {
+        tvPQModeIndex_t* modes = nullptr;
+        size_t num_pic_modes = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t err = GetTVPictureModeCaps(&modes, &num_pic_modes, &context_caps);
+        if (err != tvERROR_NONE) {
+            return err;
+        }
+
+        JsonObject pictureModeJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+
+        for (size_t i = 0; i < num_pic_modes; ++i) {
+            switch (modes[i]) {
+                case PQ_MODE_STANDARD: optionsArray.Add("Standard"); break;
+                case PQ_MODE_VIVID: optionsArray.Add("Vivid"); break;
+                case PQ_MODE_ENERGY_SAVING: optionsArray.Add("EnergySaving"); break;
+                case PQ_MODE_CUSTOM: optionsArray.Add("Custom"); break;
+                case PQ_MODE_THEATER: optionsArray.Add("Theater"); break;
+                case PQ_MODE_GAME: optionsArray.Add("Game"); break;
+                case PQ_MODE_SPORTS: optionsArray.Add("Sports"); break;
+                case PQ_MODE_AIPQ: optionsArray.Add("AI PQ"); break;
+                case PQ_MODE_DARK: optionsArray.Add("Dark"); break;
+                case PQ_MODE_BRIGHT: optionsArray.Add("Bright"); break;
+                case PQ_MODE_DVIQ: optionsArray.Add("IQ"); break;
+                default: break; // Skip invalid/unsupported modes
+            }
+        }
+
+        rangeInfo["options"] = optionsArray;
+        pictureModeJson["rangeInfo"] = rangeInfo;
+        pictureModeJson["platformSupport"] = true;
+        pictureModeJson["context"] = parseContextCaps(context_caps);  // Assuming same parser works
+
+        response["PictureMode"] = pictureModeJson;
+
+        free(modes);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getDVCalibrationCaps(const JsonObject& parameters, JsonObject& response) {
+        tvDVCalibrationSettings_t *min_values = nullptr;
+        tvDVCalibrationSettings_t *max_values = nullptr;
+        tvContextCaps_t *context_caps = nullptr;
+
+        if (GetDVCalibrationCaps(&min_values, &max_values, &context_caps) != tvERROR_NONE) {
+            returnResponse(false);
+        }
+
+        JsonObject capsInfo;
+        JsonObject rangeInfo;
+
+        rangeInfo["Tmax"] = JsonObject({{"from", min_values->Tmax}, {"to", max_values->Tmax}});
+        rangeInfo["Tmin"] = JsonObject({{"from", min_values->Tmin}, {"to", max_values->Tmin}});
+        rangeInfo["Tgamma"] = JsonObject({{"from", min_values->Tgamma}, {"to", max_values->Tgamma}});
+        rangeInfo["Rx"] = JsonObject({{"from", min_values->Rx}, {"to", max_values->Rx}});
+        rangeInfo["Ry"] = JsonObject({{"from", min_values->Ry}, {"to", max_values->Ry}});
+        rangeInfo["Gx"] = JsonObject({{"from", min_values->Gx}, {"to", max_values->Gx}});
+        rangeInfo["Gy"] = JsonObject({{"from", min_values->Gy}, {"to", max_values->Gy}});
+        rangeInfo["Bx"] = JsonObject({{"from", min_values->Bx}, {"to", max_values->Bx}});
+        rangeInfo["By"] = JsonObject({{"from", min_values->By}, {"to", max_values->By}});
+        rangeInfo["Wx"] = JsonObject({{"from", min_values->Wx}, {"to", max_values->Wx}});
+        rangeInfo["Wy"] = JsonObject({{"from", min_values->Wy}, {"to", max_values->Wy}});
+
+        capsInfo["rangeInfo"] = rangeInfo;
+        capsInfo["platformSupport"] = true;
+        capsInfo["context"] = parseContextCaps(context_caps);
+
+        response["DolbyVisionCalibration"] = capsInfo;
+
+        delete min_values;
+        delete max_values;
+        returnResponse(true);
     }
 
     uint32_t AVOutputTV::getZoomModeCaps(const JsonObject& parameters, JsonObject& response)
@@ -717,141 +1147,212 @@ namespace Plugin {
     uint32_t AVOutputTV::getBacklight(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
+        if(m_backlightStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            std::string key;
+            paramIndex_t indexInfo;
+            int backlight = 0,err = 0;
 
-        capDetails_t inputInfo;
-        std::string key;
-        paramIndex_t indexInfo;
-        int backlight = 0,err = 0;
+            if (parsingGetInputArgument(parameters, "Backlight",inputInfo) != 0) {
+                LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingGetInputArgument(parameters, "Backlight",inputInfo) != 0) {
-            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
-            returnResponse(false);
+            if (isPlatformSupport("Backlight") != 0) {
+                returnResponse(false);
+            }
+
+            if (getParamIndex("Backlight", inputInfo,indexInfo) == -1) {
+                LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            err = getLocalparam("Backlight",indexInfo,backlight, PQ_PARAM_BACKLIGHT);
+            if( err == 0 ) {
+                response["backlight"] = backlight;
+                LOGINFO("Exit : Backlight Value: %d \n", backlight);
+                returnResponse(true);
+            }
+            else {
+                returnResponse(false);
+            }
         }
-
-        if (isPlatformSupport("Backlight") != 0) {
-            returnResponse(false);
-        }
-
-        if (getParamIndex("Backlight", inputInfo,indexInfo) == -1) {
-            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        err = getLocalparam("Backlight",indexInfo,backlight, PQ_PARAM_BACKLIGHT);
-        if( err == 0 ) {
-            response["backlight"] = backlight;
-            LOGINFO("Exit : Backlight Value: %d \n", backlight);
-            returnResponse(true);
-        }
-        else {
-            returnResponse(false);
+        else
+        {
+            returnResponse(getPQParamV2(parameters, response,
+                "Backlight", m_backlightCaps, m_maxBacklight,
+                PQ_PARAM_BACKLIGHT));
         }
     }
 
     uint32_t AVOutputTV::setBacklight(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
+        if(m_backlightStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            std::string value;
+            capDetails_t inputInfo;
+            int backlight = 0;
+            tvError_t ret  = tvERROR_NONE;
 
-        std::string value;
-        capDetails_t inputInfo;
-        int backlight = 0;
-        tvError_t ret  = tvERROR_NONE;
+            value = parameters.HasLabel("backlight") ? parameters["backlight"].String() : "";
+            returnIfParamNotFound(parameters,"backlight");
+            backlight = std::stoi(value);
 
-        value = parameters.HasLabel("backlight") ? parameters["backlight"].String() : "";
-        returnIfParamNotFound(parameters,"backlight");
-        backlight = std::stoi(value);
-
-        if (validateIntegerInputParameter("Backlight",backlight) != 0) {
-            LOGERR("Failed in Backlight range validation:%s", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if (parsingSetInputArgument(parameters,"Backlight",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if (isPlatformSupport("Backlight") != 0 ) {
-            returnResponse(false);
-        }
-
-        if( !isCapablityCheckPassed( "Backlight" , inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
-            LOGINFO("Proceed with setBacklight\n");
-            ret = SetBacklight(backlight);
-        }
-
-        if(ret != tvERROR_NONE) {
-            LOGERR("Failed to set Backlight\n");
-            returnResponse(false);
-        }
-        else {
-            int retval= updateAVoutputTVParam("set","Backlight",inputInfo,PQ_PARAM_BACKLIGHT,backlight);
-            if(retval != 0 ) {
-                LOGERR("Failed to Save Backlight to ssm_data\n");
+            if (validateIntegerInputParameter("Backlight",backlight) != 0) {
+                LOGERR("Failed in Backlight range validation:%s", __FUNCTION__);
                 returnResponse(false);
             }
-            LOGINFO("Exit : setBacklight successful to value: %d\n", backlight);
-            returnResponse(true);
+
+            if (parsingSetInputArgument(parameters,"Backlight",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if (isPlatformSupport("Backlight") != 0 ) {
+                returnResponse(false);
+            }
+
+            if( !isCapablityCheckPassed( "Backlight" , inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+                LOGINFO("Proceed with setBacklight\n");
+                ret = SetBacklight(backlight);
+            }
+
+            if(ret != tvERROR_NONE) {
+                LOGERR("Failed to set Backlight\n");
+                returnResponse(false);
+            }
+            else {
+                int retval= updateAVoutputTVParam("set","Backlight",inputInfo,PQ_PARAM_BACKLIGHT,backlight);
+                if(retval != 0 ) {
+                    LOGERR("Failed to Save Backlight to ssm_data\n");
+                    returnResponse(false);
+                }
+                LOGINFO("Exit : setBacklight successful to value: %d\n", backlight);
+                returnResponse(true);
+            }
+        }
+        else
+        {
+            return setPQParamV2(parameters, response, "Backlight", PQ_PARAM_BACKLIGHT, SetBacklight, m_maxBacklight);
         }
 
+    }
+    uint32_t AVOutputTV::resetPQParamV2(const JsonObject& parameters, JsonObject& response,
+        const std::string& paramName,
+        tvPQParameterIndex_t pqIndex,
+        std::function<tvError_t(int)> halSetter)
+    {
+        LOGINFO("Entry: %s\n", paramName.c_str());
+
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int level = 0;
+        tvError_t ret = tvERROR_NONE;
+
+        // Save reset state using V2 path
+        LOGINFO("Updating AVOutputTVParamV2 for: %s\n", paramName.c_str());
+        int retval = updateAVoutputTVParamV2("reset", paramName, parameters, pqIndex, level);
+        if (retval != 0)
+        {
+            LOGERR("Failed to update %s via updateAVoutputTVParamV2. retval: %d\n", paramName.c_str(), retval);
+            returnResponse(false);
+        }
+        // If update succeeded, apply value from local config to HAL
+        if (isSetRequired(inputInfo.pqmode, inputInfo.source, inputInfo.format))
+        {
+            inputInfo.pqmode = "Current";
+            inputInfo.source = "Current";
+            inputInfo.format = "Current";
+
+            if (getParamIndex(paramName, inputInfo, indexInfo) == 0 &&
+            getLocalparam(paramName, indexInfo, level, pqIndex) == 0)
+            {
+                LOGINFO("%s: getLocalparam success for %s: format=%d, source=%d, mode=%d, value=%d\n",
+                __FUNCTION__, paramName.c_str(), indexInfo.formatIndex,
+                indexInfo.sourceIndex, indexInfo.pqmodeIndex, level);
+                ret = halSetter(level);
+            }
+            else
+            {
+                LOGERR("%s: Failed to get local param for %s\n", __FUNCTION__, paramName.c_str());
+                ret = tvERROR_GENERAL;
+            }
+        }
+
+        if (ret != tvERROR_NONE)
+        {
+            returnResponse(false);
+        }
+
+        LOGINFO("Exit: reset%s successful to value: %d\n", paramName.c_str(), level);
+        returnResponse(true);
     }
 
     uint32_t AVOutputTV::resetBacklight(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-        capDetails_t inputInfo;
-        int backlight=0;
-        paramIndex_t indexInfo;
-        tvError_t ret = tvERROR_NONE;
+        if(m_backlightStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            int backlight=0;
+            paramIndex_t indexInfo;
+            tvError_t ret = tvERROR_NONE;
 
-        if (parsingSetInputArgument(parameters, "Backlight",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if (parsingSetInputArgument(parameters, "Backlight",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (isPlatformSupport("Backlight") != 0) {
-            returnResponse(false);
-        }
+            if (isPlatformSupport("Backlight") != 0) {
+                returnResponse(false);
+            }
 
-        if( !isCapablityCheckPassed( "Backlight",inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if( !isCapablityCheckPassed( "Backlight",inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        int retval= updateAVoutputTVParam("reset","Backlight",inputInfo,PQ_PARAM_BACKLIGHT,backlight);
-        if(retval != 0 ) {
-            LOGERR("Failed to reset Backlight\n");
-            returnResponse(false);
-        }
-        else {
-            if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
-                inputInfo.pqmode = "Current";
-                inputInfo.source = "Current";
-                inputInfo.format = "Current";
-                getParamIndex("Backlight", inputInfo,indexInfo);
-                int err = getLocalparam("Backlight",indexInfo,backlight, PQ_PARAM_BACKLIGHT);
-                if( err == 0 ) {
-                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,backlight);
-                    ret = SetBacklight(backlight);
-                }
-                else {
-                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
-                    ret = tvERROR_GENERAL;
+            int retval= updateAVoutputTVParam("reset","Backlight",inputInfo,PQ_PARAM_BACKLIGHT,backlight);
+            if(retval != 0 ) {
+                LOGERR("Failed to reset Backlight\n");
+                returnResponse(false);
+            }
+            else {
+                if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
+                    inputInfo.pqmode = "Current";
+                    inputInfo.source = "Current";
+                    inputInfo.format = "Current";
+                    getParamIndex("Backlight", inputInfo,indexInfo);
+                    int err = getLocalparam("Backlight",indexInfo,backlight, PQ_PARAM_BACKLIGHT);
+                    if( err == 0 ) {
+                        LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,backlight);
+                        ret = SetBacklight(backlight);
+                    }
+                    else {
+                        LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+                        ret = tvERROR_GENERAL;
+                    }
                 }
             }
-        }
 
-        if(ret != tvERROR_NONE) {
-            returnResponse(false);
+            if(ret != tvERROR_NONE) {
+                returnResponse(false);
+            }
+            else {
+                LOGINFO("Exit : resetBacklight Successful to value : %d \n",backlight);
+                returnResponse(true);
+            }
         }
-        else {
-            LOGINFO("Exit : resetBacklight Successful to value : %d \n",backlight);
-            returnResponse(true);
+        else
+        {
+            return resetPQParamV2(parameters, response, "Backlight", PQ_PARAM_BACKLIGHT, SetBacklight);
         }
     }
 
@@ -904,79 +1405,92 @@ namespace Plugin {
     uint32_t AVOutputTV::getBrightness(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
+        if(m_brightnessStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            paramIndex_t indexInfo;
+            int brightness = 0;
 
-        capDetails_t inputInfo;
-        paramIndex_t indexInfo;
-        int brightness = 0;
+            if (parsingGetInputArgument(parameters, "Brightness",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse argument\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingGetInputArgument(parameters, "Brightness",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse argument\n", __FUNCTION__);
-            returnResponse(false);
+            if (getParamIndex("Brightness", inputInfo,indexInfo) == -1) {
+                LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            int err = getLocalparam("Brightness",indexInfo,brightness, PQ_PARAM_BRIGHTNESS);
+            if( err == 0 ) {
+                response["brightness"] = brightness;
+                LOGINFO("Exit : Brightness Value: %d \n", brightness);
+                returnResponse(true);
+            }
+            else {
+                returnResponse(false);
+            }
         }
-
-        if (getParamIndex("Brightness", inputInfo,indexInfo) == -1) {
-            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        int err = getLocalparam("Brightness",indexInfo,brightness, PQ_PARAM_BRIGHTNESS);
-        if( err == 0 ) {
-            response["brightness"] = brightness;
-            LOGINFO("Exit : Brightness Value: %d \n", brightness);
-            returnResponse(true);
-        }
-        else {
-            returnResponse(false);
+        else
+        {
+            returnResponse(getPQParamV2(parameters, response,
+                "Brightness", m_brightnessCaps, m_maxBrightness,
+                PQ_PARAM_BRIGHTNESS));
         }
     }
 
     uint32_t AVOutputTV::setBrightness(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
+        if(m_brightnessStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            std::string value;
+            capDetails_t inputInfo;
+            int brightness = 0;
+            tvError_t ret = tvERROR_NONE;
 
-        std::string value;
-        capDetails_t inputInfo;
-        int brightness = 0;
-        tvError_t ret = tvERROR_NONE;
+            value = parameters.HasLabel("brightness") ? parameters["brightness"].String() : "";
+            returnIfParamNotFound(parameters,"brightness");
+            brightness = stoi(value);
 
-        value = parameters.HasLabel("brightness") ? parameters["brightness"].String() : "";
-        returnIfParamNotFound(parameters,"brightness");
-        brightness = stoi(value);
-
-        if (validateIntegerInputParameter("Brightness",brightness) != 0) {
-            LOGERR("Failed in Brightness range validation:%s", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if (parsingSetInputArgument(parameters, "Brightness",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if( !isCapablityCheckPassed( "Brightness",inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for Brightness\n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
-             LOGINFO("Proceed with %s \n",__FUNCTION__);
-             ret = SetBrightness(brightness);
-        }
-
-        if(ret != tvERROR_NONE) {
-            LOGERR("Failed to set Brightness\n");
-            returnResponse(false);
-        }
-        else {
-            int retval= updateAVoutputTVParam("set","Brightness",inputInfo,PQ_PARAM_BRIGHTNESS,brightness);
-            if(retval != 0 ) {
-                LOGERR("Failed to Save Brightness to ssm_data\n");
+            if (validateIntegerInputParameter("Brightness",brightness) != 0) {
+                LOGERR("Failed in Brightness range validation:%s", __FUNCTION__);
                 returnResponse(false);
             }
-            LOGINFO("Exit : setBrightness successful to value: %d\n", brightness);
-            returnResponse(true);
-        }
 
+            if (parsingSetInputArgument(parameters, "Brightness",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( !isCapablityCheckPassed( "Brightness",inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for Brightness\n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+                LOGINFO("Proceed with %s \n",__FUNCTION__);
+                ret = SetBrightness(brightness);
+            }
+
+            if(ret != tvERROR_NONE) {
+                LOGERR("Failed to set Brightness\n");
+                returnResponse(false);
+            }
+            else {
+                int retval= updateAVoutputTVParam("set","Brightness",inputInfo,PQ_PARAM_BRIGHTNESS,brightness);
+                if(retval != 0 ) {
+                    LOGERR("Failed to Save Brightness to ssm_data\n");
+                    returnResponse(false);
+                }
+                LOGINFO("Exit : setBrightness successful to value: %d\n", brightness);
+                returnResponse(true);
+            }
+        }
+        else
+        {
+            return setPQParamV2(parameters, response, "Brightness", PQ_PARAM_BRIGHTNESS, SetBrightness, m_maxBrightness);
+        }
     }
 
 
@@ -984,54 +1498,59 @@ namespace Plugin {
     {
 
         LOGINFO("Entry\n");
+        if(m_brightnessStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            std::string value;
+            capDetails_t inputInfo;
+            paramIndex_t indexInfo;
+            int brightness=0;
+            tvError_t ret = tvERROR_NONE;
 
-        std::string value;
-        capDetails_t inputInfo;
-        paramIndex_t indexInfo;
-        int brightness=0;
-        tvError_t ret = tvERROR_NONE;
+            if (parsingSetInputArgument(parameters, "Brightness",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingSetInputArgument(parameters, "Brightness",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if( !isCapablityCheckPassed( "Brightness",inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for Brightness\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if( !isCapablityCheckPassed( "Brightness",inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for Brightness\n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        int retval= updateAVoutputTVParam("reset","Brightness",inputInfo,PQ_PARAM_BRIGHTNESS,brightness);
-        if(retval != 0 ) {
-            LOGWARN("Failed to reset Brightness\n");
-            returnResponse(false);
-        }
-        else {
-            if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
-                inputInfo.pqmode = "Current";
-                inputInfo.source = "Current";
-                inputInfo.format = "Current";
-                getParamIndex("Brightness", inputInfo,indexInfo);
-                int err = getLocalparam("Brightness",indexInfo,brightness, PQ_PARAM_BRIGHTNESS);
-                if( err == 0 ) {
-                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,brightness);
-                    ret = SetBrightness(brightness);
-                }
-                else {
-                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
-                    ret = tvERROR_GENERAL;
+            int retval= updateAVoutputTVParam("reset","Brightness",inputInfo,PQ_PARAM_BRIGHTNESS,brightness);
+            if(retval != 0 ) {
+                LOGWARN("Failed to reset Brightness\n");
+                returnResponse(false);
+            }
+            else {
+                if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
+                    inputInfo.pqmode = "Current";
+                    inputInfo.source = "Current";
+                    inputInfo.format = "Current";
+                    getParamIndex("Brightness", inputInfo,indexInfo);
+                    int err = getLocalparam("Brightness",indexInfo,brightness, PQ_PARAM_BRIGHTNESS);
+                    if( err == 0 ) {
+                        LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,brightness);
+                        ret = SetBrightness(brightness);
+                    }
+                    else {
+                        LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+                        ret = tvERROR_GENERAL;
+                    }
                 }
             }
-        }
 
-        if(ret != tvERROR_NONE) {
-            returnResponse(false);
+            if(ret != tvERROR_NONE) {
+                returnResponse(false);
+            }
+            else {
+                LOGINFO("Exit : resetBrightness Successful to value : %d \n",brightness);
+                returnResponse(true);
+            }
         }
-        else {
-            LOGINFO("Exit : resetBrightness Successful to value : %d \n",brightness);
-            returnResponse(true);
+        else
+        {
+            return resetPQParamV2(parameters, response, "Brightness", PQ_PARAM_BRIGHTNESS, SetBrightness);
         }
-
     }
 
     uint32_t AVOutputTV::getBrightnessCaps(const JsonObject& parameters, JsonObject& response)
@@ -1082,133 +1601,151 @@ namespace Plugin {
     uint32_t AVOutputTV::getContrast(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
+        if(m_contrastStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            paramIndex_t indexInfo;
+            int contrast = 0;
 
-        capDetails_t inputInfo;
-        paramIndex_t indexInfo;
-        int contrast = 0;
+            if (parsingGetInputArgument(parameters, "Contrast",inputInfo) != 0) {
+                LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingGetInputArgument(parameters, "Contrast",inputInfo) != 0) {
-            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
-            returnResponse(false);
+            if (getParamIndex("Contrast",inputInfo,indexInfo) == -1) {
+                LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            int err = getLocalparam("Contrast",indexInfo,contrast, PQ_PARAM_CONTRAST);
+            if( err == 0 ) {
+                response["contrast"] = contrast;
+                LOGINFO("Exit : Contrast Value: %d \n", contrast);
+                returnResponse(true);
+            }
+            else {
+                returnResponse(false);
+            }
         }
-
-        if (getParamIndex("Contrast",inputInfo,indexInfo) == -1) {
-            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        int err = getLocalparam("Contrast",indexInfo,contrast, PQ_PARAM_CONTRAST);
-        if( err == 0 ) {
-            response["contrast"] = contrast;
-            LOGINFO("Exit : Contrast Value: %d \n", contrast);
-            returnResponse(true);
-        }
-        else {
-            returnResponse(false);
+        else
+        {
+            returnResponse(getPQParamV2(parameters, response,
+                "Contrast", m_contrastCaps, m_maxContrast,
+                PQ_PARAM_CONTRAST));
         }
     }
 
     uint32_t AVOutputTV::setContrast(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
+        if(m_contrastStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            int contrast = 0;
+            tvError_t ret = tvERROR_NONE;
+            std::string value;
 
-        capDetails_t inputInfo;
-        int contrast = 0;
-        tvError_t ret = tvERROR_NONE;
-        std::string value;
+            value = parameters.HasLabel("contrast") ? parameters["contrast"].String() : "";
+            returnIfParamNotFound(parameters,"contrast");
+            contrast = std::stoi(value);
 
-        value = parameters.HasLabel("contrast") ? parameters["contrast"].String() : "";
-        returnIfParamNotFound(parameters,"contrast");
-        contrast = std::stoi(value);
-
-        if (validateIntegerInputParameter("Contrast", contrast) != 0) {
-            LOGERR("Failed in contrast range validation:%s", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if (parsingSetInputArgument(parameters, "Contrast",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if( !isCapablityCheckPassed( "Contrast" , inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for Contrast\n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
-             LOGINFO("Proceed with %s \n",__FUNCTION__);
-             ret = SetContrast(contrast);
-        }
-
-        if(ret != tvERROR_NONE) {
-            LOGERR("Failed to set Contrast\n");
-            returnResponse(false);
-        }
-        else {
-            int retval= updateAVoutputTVParam("set","Contrast",inputInfo,PQ_PARAM_CONTRAST,contrast);
-            if(retval != 0 ) {
-                LOGERR("Failed to Save Contrast to ssm_data\n");
+            if (validateIntegerInputParameter("Contrast", contrast) != 0) {
+                LOGERR("Failed in contrast range validation:%s", __FUNCTION__);
                 returnResponse(false);
             }
-            LOGINFO("Exit : setContrast successful to value: %d\n", contrast);
-            returnResponse(true);
-        }
 
+            if (parsingSetInputArgument(parameters, "Contrast",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( !isCapablityCheckPassed( "Contrast" , inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for Contrast\n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+                LOGINFO("Proceed with %s \n",__FUNCTION__);
+                ret = SetContrast(contrast);
+            }
+
+            if(ret != tvERROR_NONE) {
+                LOGERR("Failed to set Contrast\n");
+                returnResponse(false);
+            }
+            else {
+                int retval= updateAVoutputTVParam("set","Contrast",inputInfo,PQ_PARAM_CONTRAST,contrast);
+                if(retval != 0 ) {
+                    LOGERR("Failed to Save Contrast to ssm_data\n");
+                    returnResponse(false);
+                }
+                LOGINFO("Exit : setContrast successful to value: %d\n", contrast);
+                returnResponse(true);
+            }
+        }
+        else
+        {
+            return setPQParamV2(parameters, response, "Contrast", PQ_PARAM_CONTRAST, SetContrast, m_maxContrast);
+        }
     }
 
     uint32_t AVOutputTV::resetContrast(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry\n");
+        if(m_contrastStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            paramIndex_t indexInfo;
+            int contrast=0;
+            tvError_t ret = tvERROR_NONE;
 
-        capDetails_t inputInfo;
-        paramIndex_t indexInfo;
-        int contrast=0;
-        tvError_t ret = tvERROR_NONE;
+            if (parsingSetInputArgument(parameters, "Contrast",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingSetInputArgument(parameters, "Contrast",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if( !isCapablityCheckPassed( "Contrast" , inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for Contrast\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if( !isCapablityCheckPassed( "Contrast" , inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for Contrast\n", __FUNCTION__);
-            returnResponse(false);
-        }
+            int retval= updateAVoutputTVParam("reset","Contrast",inputInfo,PQ_PARAM_CONTRAST,contrast);
 
-        int retval= updateAVoutputTVParam("reset","Contrast",inputInfo,PQ_PARAM_CONTRAST,contrast);
-
-        if(retval != 0 ) {
-            LOGWARN("Failed to reset Contrast\n");
-            returnResponse(false);
-        }
-        else {
-            if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
-                inputInfo.pqmode = "Current";
-                inputInfo.source = "Current";
-                inputInfo.format = "Current";
-                getParamIndex("Contrast", inputInfo,indexInfo);
-                int err = getLocalparam("Contrast",indexInfo,contrast, PQ_PARAM_CONTRAST);
-                if( err == 0 ) {
-                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,contrast);
-                    ret = SetContrast(contrast);
-                }
-                else {
-                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
-                    ret = tvERROR_GENERAL;
+            if(retval != 0 ) {
+                LOGWARN("Failed to reset Contrast\n");
+                returnResponse(false);
+            }
+            else {
+                if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
+                    inputInfo.pqmode = "Current";
+                    inputInfo.source = "Current";
+                    inputInfo.format = "Current";
+                    getParamIndex("Contrast", inputInfo,indexInfo);
+                    int err = getLocalparam("Contrast",indexInfo,contrast, PQ_PARAM_CONTRAST);
+                    if( err == 0 ) {
+                        LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,contrast);
+                        ret = SetContrast(contrast);
+                    }
+                    else {
+                        LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+                        ret = tvERROR_GENERAL;
+                    }
                 }
             }
-        }
 
-        if(ret != tvERROR_NONE) {
-            returnResponse(false);
+            if(ret != tvERROR_NONE) {
+                returnResponse(false);
+            }
+            else {
+                LOGINFO("Exit : resetContrast Successful to value : %d \n",contrast);
+                returnResponse(true);
+            }
         }
-        else {
-            LOGINFO("Exit : resetContrast Successful to value : %d \n",contrast);
-            returnResponse(true);
+        else
+        {
+            return resetPQParamV2(parameters, response, "Contrast", PQ_PARAM_CONTRAST, SetContrast);
         }
-
     }
 
     uint32_t AVOutputTV::getContrastCaps(const JsonObject& parameters, JsonObject& response)
@@ -1260,133 +1797,150 @@ namespace Plugin {
     uint32_t AVOutputTV::getSaturation(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
+        if(m_saturationStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            paramIndex_t indexInfo;
+            int saturation = 0;
 
-        capDetails_t inputInfo;
-        paramIndex_t indexInfo;
-        int saturation = 0;
+            if (parsingGetInputArgument(parameters, "Saturation",inputInfo) != 0) {
+                LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingGetInputArgument(parameters, "Saturation",inputInfo) != 0) {
-            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
-            returnResponse(false);
+            if (getParamIndex("Saturation", inputInfo,indexInfo) == -1) {
+                LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            int err = getLocalparam("Saturation",indexInfo,saturation, PQ_PARAM_SATURATION);
+            if( err == 0 ) {
+                response["saturation"] = saturation;
+                LOGINFO("Exit : Saturation Value: %d \n", saturation);
+                returnResponse(true);
+            }
+            else {
+                returnResponse(false);
+            }
         }
-
-        if (getParamIndex("Saturation", inputInfo,indexInfo) == -1) {
-            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        int err = getLocalparam("Saturation",indexInfo,saturation, PQ_PARAM_SATURATION);
-        if( err == 0 ) {
-            response["saturation"] = saturation;
-            LOGINFO("Exit : Saturation Value: %d \n", saturation);
-            returnResponse(true);
-        }
-        else {
-            returnResponse(false);
+        else
+        {
+            returnResponse(getPQParamV2(parameters, response,
+                "saturation", m_saturationCaps, m_maxSaturation,
+                PQ_PARAM_SATURATION));
         }
     }
 
     uint32_t AVOutputTV::setSaturation(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
+        if(m_saturationStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            std::string value;
+            int saturation = 0;
+            tvError_t ret = tvERROR_NONE;
 
-        capDetails_t inputInfo;
-        std::string value;
-        int saturation = 0;
-        tvError_t ret = tvERROR_NONE;
+            value = parameters.HasLabel("saturation") ? parameters["saturation"].String() : "";
+            returnIfParamNotFound(parameters,"saturation");
+            saturation = std::stoi(value);
 
-        value = parameters.HasLabel("saturation") ? parameters["saturation"].String() : "";
-        returnIfParamNotFound(parameters,"saturation");
-        saturation = std::stoi(value);
-
-        if (validateIntegerInputParameter("Saturation",saturation) != 0) {
-            LOGERR("Failed in saturation range validation:%s", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if (parsingSetInputArgument(parameters, "Saturation",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if( !isCapablityCheckPassed( "Saturation" , inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for Saturation\n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
-             LOGINFO("Proceed with %s\n",__FUNCTION__);
-             ret = SetSaturation(saturation);
-        }
-
-        if(ret != tvERROR_NONE) {
-            LOGERR("Failed to set Saturation\n");
-            returnResponse(false);
-        }
-        else {
-            int retval= updateAVoutputTVParam("set","Saturation",inputInfo,PQ_PARAM_SATURATION,saturation);
-            if(retval != 0 ) {
-                LOGERR("Failed to Save Saturation to ssm_data\n");
+            if (validateIntegerInputParameter("Saturation",saturation) != 0) {
+                LOGERR("Failed in saturation range validation:%s", __FUNCTION__);
                 returnResponse(false);
             }
-            LOGINFO("Exit : setSaturation successful to value: %d\n", saturation);
-            returnResponse(true);
-        }
 
+            if (parsingSetInputArgument(parameters, "Saturation",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( !isCapablityCheckPassed( "Saturation" , inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for Saturation\n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+                LOGINFO("Proceed with %s\n",__FUNCTION__);
+                ret = SetSaturation(saturation);
+            }
+
+            if(ret != tvERROR_NONE) {
+                LOGERR("Failed to set Saturation\n");
+                returnResponse(false);
+            }
+            else {
+                int retval= updateAVoutputTVParam("set","Saturation",inputInfo,PQ_PARAM_SATURATION,saturation);
+                if(retval != 0 ) {
+                    LOGERR("Failed to Save Saturation to ssm_data\n");
+                    returnResponse(false);
+                }
+                LOGINFO("Exit : setSaturation successful to value: %d\n", saturation);
+                returnResponse(true);
+            }
+        }
+        else
+        {
+            return setPQParamV2(parameters, response, "Saturation", PQ_PARAM_SATURATION, SetSaturation, m_maxSaturation);
+        }
     }
 
     uint32_t AVOutputTV::resetSaturation(const JsonObject& parameters, JsonObject& response)
     {
-
         LOGINFO("Entry\n");
+        if(m_saturationStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            paramIndex_t indexInfo;
+            int saturation=0;
+            tvError_t ret = tvERROR_NONE;
 
-        capDetails_t inputInfo;
-        paramIndex_t indexInfo;
-        int saturation=0;
-        tvError_t ret = tvERROR_NONE;
+            if (parsingSetInputArgument(parameters, "Saturation", inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingSetInputArgument(parameters, "Saturation", inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if( !isCapablityCheckPassed( "Saturation", inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for Saturation\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if( !isCapablityCheckPassed( "Saturation", inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for Saturation\n", __FUNCTION__);
-            returnResponse(false);
-        }
+            int retval= updateAVoutputTVParam("reset","Saturation",inputInfo,PQ_PARAM_SATURATION,saturation);
 
-        int retval= updateAVoutputTVParam("reset","Saturation",inputInfo,PQ_PARAM_SATURATION,saturation);
-
-        if(retval != 0 ) {
-            LOGERR("Failed to reset Saturation\n");
-            returnResponse(false);
-        }
-        else {
-            if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
-                inputInfo.pqmode = "Current";
-                inputInfo.source = "Current";
-                inputInfo.format = "Current";
-                getParamIndex("Saturation",inputInfo,indexInfo);
-                int err = getLocalparam("Saturation",indexInfo, saturation, PQ_PARAM_SATURATION);
-                if( err == 0 ) {
-                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,saturation);
-                    ret = SetSaturation(saturation);
-                }
-                else {
-                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
-                    ret = tvERROR_GENERAL;
+            if(retval != 0 ) {
+                LOGERR("Failed to reset Saturation\n");
+                returnResponse(false);
+            }
+            else {
+                if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
+                    inputInfo.pqmode = "Current";
+                    inputInfo.source = "Current";
+                    inputInfo.format = "Current";
+                    getParamIndex("Saturation",inputInfo,indexInfo);
+                    int err = getLocalparam("Saturation",indexInfo, saturation, PQ_PARAM_SATURATION);
+                    if( err == 0 ) {
+                        LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,saturation);
+                        ret = SetSaturation(saturation);
+                    }
+                    else {
+                        LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+                        ret = tvERROR_GENERAL;
+                    }
                 }
             }
-        }
 
-        if(ret != tvERROR_NONE) {
-            returnResponse(false);
+            if(ret != tvERROR_NONE) {
+                returnResponse(false);
+            }
+            else {
+                LOGINFO("Exit : resetSaturation Successful to value : %d \n",saturation);
+                returnResponse(true);
+            }
         }
-        else {
-            LOGINFO("Exit : resetSaturation Successful to value : %d \n",saturation);
-            returnResponse(true);
+        else
+        {
+            return resetPQParamV2(parameters, response, "Saturation", PQ_PARAM_SATURATION, SetSaturation);
         }
-
     }
 
     uint32_t AVOutputTV::getSaturationCaps(const JsonObject& parameters, JsonObject& response)
@@ -1439,131 +1993,150 @@ namespace Plugin {
     uint32_t AVOutputTV::getSharpness(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
+        if(m_sharpnessStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            paramIndex_t indexInfo;
+            int sharpness = 0;
 
-        capDetails_t inputInfo;
-        paramIndex_t indexInfo;
-        int sharpness = 0;
+            if (parsingGetInputArgument(parameters, "Sharpness",inputInfo) != 0) {
+                LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingGetInputArgument(parameters, "Sharpness",inputInfo) != 0) {
-            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
-            returnResponse(false);
+            if (getParamIndex("Sharpness",inputInfo,indexInfo) == -1) {
+                LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            int err = getLocalparam("Sharpness",indexInfo,sharpness, PQ_PARAM_SHARPNESS);
+            if( err == 0 ) {
+                response["sharpness"] = sharpness;
+                LOGINFO("Exit : Sharpness Value: %d \n", sharpness);
+                returnResponse(true);
+            }
+            else {
+                returnResponse(false);
+            }
         }
-
-        if (getParamIndex("Sharpness",inputInfo,indexInfo) == -1) {
-            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        int err = getLocalparam("Sharpness",indexInfo,sharpness, PQ_PARAM_SHARPNESS);
-        if( err == 0 ) {
-            response["sharpness"] = sharpness;
-            LOGINFO("Exit : Sharpness Value: %d \n", sharpness);
-            returnResponse(true);
-        }
-        else {
-            returnResponse(false);
+        else
+        {
+            returnResponse(getPQParamV2(parameters, response,
+                "Sharpness", m_sharpnessCaps, m_maxSharpness,
+                PQ_PARAM_SHARPNESS));
         }
     }
 
     uint32_t AVOutputTV::setSharpness(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
+        if(m_sharpnessStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            int sharpness = 0;
+            tvError_t ret = tvERROR_NONE;
+            std::string value;
 
-        capDetails_t inputInfo;
-        int sharpness = 0;
-        tvError_t ret = tvERROR_NONE;
-        std::string value;
+            value = parameters.HasLabel("sharpness") ? parameters["sharpness"].String() : "";
+            returnIfParamNotFound(parameters,"sharpness");
+            sharpness = std::stoi(value);
 
-        value = parameters.HasLabel("sharpness") ? parameters["sharpness"].String() : "";
-        returnIfParamNotFound(parameters,"sharpness");
-        sharpness = std::stoi(value);
-
-        if (validateIntegerInputParameter("Sharpness",sharpness) != 0) {
-            LOGERR("Failed in sharpness range validation:%s", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if (parsingSetInputArgument(parameters, "Sharpness", inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if( !isCapablityCheckPassed( "Sharpness", inputInfo  )) {
-            LOGERR("%s: CapablityCheck failed for Sharpness\n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
-             LOGINFO("Proceed with %s\n",__FUNCTION__);
-             ret = SetSharpness(sharpness);
-        }
-
-        if(ret != tvERROR_NONE) {
-            LOGERR("Failed to set Sharpness\n");
-            returnResponse(false);
-        }
-        else {
-            int retval= updateAVoutputTVParam("set","Sharpness",inputInfo,PQ_PARAM_SHARPNESS,sharpness);
-            if(retval != 0 ) {
-                LOGERR("Failed to Save Sharpness to ssm_data\n");
+            if (validateIntegerInputParameter("Sharpness",sharpness) != 0) {
+                LOGERR("Failed in sharpness range validation:%s", __FUNCTION__);
                 returnResponse(false);
             }
-            LOGINFO("Exit : setSharpness successful to value: %d\n", sharpness);
-            returnResponse(true);
-        }
 
+            if (parsingSetInputArgument(parameters, "Sharpness", inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( !isCapablityCheckPassed( "Sharpness", inputInfo  )) {
+                LOGERR("%s: CapablityCheck failed for Sharpness\n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+                LOGINFO("Proceed with %s\n",__FUNCTION__);
+                ret = SetSharpness(sharpness);
+            }
+
+            if(ret != tvERROR_NONE) {
+                LOGERR("Failed to set Sharpness\n");
+                returnResponse(false);
+            }
+            else {
+                int retval= updateAVoutputTVParam("set","Sharpness",inputInfo,PQ_PARAM_SHARPNESS,sharpness);
+                if(retval != 0 ) {
+                    LOGERR("Failed to Save Sharpness to ssm_data\n");
+                    returnResponse(false);
+                }
+                LOGINFO("Exit : setSharpness successful to value: %d\n", sharpness);
+                returnResponse(true);
+            }
+        }
+        else
+        {
+            return setPQParamV2(parameters, response, "Sharpness", PQ_PARAM_SHARPNESS, SetSharpness, m_maxSharpness);
+        }
     }
 
     uint32_t AVOutputTV::resetSharpness(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry\n");
+        if(m_sharpnessStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            paramIndex_t indexInfo;
+            int sharpness=0;
+            tvError_t ret = tvERROR_NONE;
 
-        capDetails_t inputInfo;
-        paramIndex_t indexInfo;
-        int sharpness=0;
-        tvError_t ret = tvERROR_NONE;
+            if (parsingSetInputArgument(parameters, "Sharpness",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingSetInputArgument(parameters, "Sharpness",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if( !isCapablityCheckPassed( "Sharpness" , inputInfo)) {
+                LOGERR("%s: CapablityCheck failed for Sharpness\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if( !isCapablityCheckPassed( "Sharpness" , inputInfo)) {
-            LOGERR("%s: CapablityCheck failed for Sharpness\n", __FUNCTION__);
-            returnResponse(false);
-        }
+            int retval= updateAVoutputTVParam("reset","Sharpness", inputInfo,PQ_PARAM_SHARPNESS,sharpness);
 
-        int retval= updateAVoutputTVParam("reset","Sharpness", inputInfo,PQ_PARAM_SHARPNESS,sharpness);
-
-        if(retval != 0 ) {
-            LOGERR("Failed to reset Sharpness\n");
-            returnResponse(false);
-        }
-        else {
-            if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
-                inputInfo.pqmode = "Current";
-                inputInfo.source = "Current";
-                inputInfo.format = "Current";
-                getParamIndex("Sharpness",inputInfo,indexInfo);
-                int err = getLocalparam("Sharpness",indexInfo, sharpness, PQ_PARAM_SHARPNESS);
-                if( err == 0 ) {
-                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,sharpness);
-                    ret = SetSharpness(sharpness);
-                }
-                else {
-                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
-                    ret = tvERROR_GENERAL;
+            if(retval != 0 ) {
+                LOGERR("Failed to reset Sharpness\n");
+                returnResponse(false);
+            }
+            else {
+                if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
+                    inputInfo.pqmode = "Current";
+                    inputInfo.source = "Current";
+                    inputInfo.format = "Current";
+                    getParamIndex("Sharpness",inputInfo,indexInfo);
+                    int err = getLocalparam("Sharpness",indexInfo, sharpness, PQ_PARAM_SHARPNESS);
+                    if( err == 0 ) {
+                        LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,sharpness);
+                        ret = SetSharpness(sharpness);
+                    }
+                    else {
+                        LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+                        ret = tvERROR_GENERAL;
+                    }
                 }
             }
-        }
 
-        if(ret != tvERROR_NONE) {
-            returnResponse(false);
+            if(ret != tvERROR_NONE) {
+                returnResponse(false);
+            }
+            else {
+                LOGINFO("Exit : resetSharpness Successful to value : %d \n",sharpness);
+                returnResponse(true);
+            }
         }
-        else {
-            LOGINFO("Exit : resetSharpness Successful to value : %d \n",sharpness);
-            returnResponse(true);
+        else
+        {
+            return resetPQParamV2(parameters, response, "Sharpness", PQ_PARAM_SHARPNESS, SetSharpness);
         }
 
     }
@@ -1617,131 +2190,150 @@ namespace Plugin {
     uint32_t AVOutputTV::getHue(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
+        if(m_hueStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            paramIndex_t indexInfo;
+            int hue = 0;
 
-        capDetails_t inputInfo;
-        paramIndex_t indexInfo;
-        int hue = 0;
+            if (parsingGetInputArgument(parameters, "Hue", inputInfo) != 0) {
+                LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingGetInputArgument(parameters, "Hue", inputInfo) != 0) {
-            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
-            returnResponse(false);
+            if (getParamIndex("Hue",inputInfo,indexInfo) == -1) {
+                LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            int err = getLocalparam("Hue",indexInfo,hue, PQ_PARAM_HUE);
+            if( err == 0 ) {
+                response["hue"] = hue;
+                LOGINFO("Exit : Hue Value: %d \n", hue);
+                returnResponse(true);
+            }
+            else {
+                returnResponse(false);
+            }
         }
-
-        if (getParamIndex("Hue",inputInfo,indexInfo) == -1) {
-            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        int err = getLocalparam("Hue",indexInfo,hue, PQ_PARAM_HUE);
-        if( err == 0 ) {
-            response["hue"] = hue;
-            LOGINFO("Exit : Hue Value: %d \n", hue);
-            returnResponse(true);
-        }
-        else {
-            returnResponse(false);
+        else
+        {
+            returnResponse(getPQParamV2(parameters, response,
+                "Hue", m_hueCaps, m_maxHue,
+                PQ_PARAM_HUE));
         }
     }
 
     uint32_t AVOutputTV::setHue(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
+        if(m_hueStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            int hue = 0;
+            tvError_t ret = tvERROR_NONE;
+            std::string value;
 
-        capDetails_t inputInfo;
-        int hue = 0;
-        tvError_t ret = tvERROR_NONE;
-        std::string value;
+            value = parameters.HasLabel("hue") ? parameters["hue"].String() : "";
+            returnIfParamNotFound(parameters,"hue");
+            hue = std::stoi(value);
 
-        value = parameters.HasLabel("hue") ? parameters["hue"].String() : "";
-        returnIfParamNotFound(parameters,"hue");
-        hue = std::stoi(value);
-
-        if (validateIntegerInputParameter("Hue",hue) != 0) {
-            LOGERR("Failed in hue range validation:%s", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if (parsingSetInputArgument(parameters, "Hue",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if( !isCapablityCheckPassed( "Hue", inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for Hue\n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
-             LOGINFO("Proceed with %s\n",__FUNCTION__);
-             ret = SetHue(hue);
-        }
-
-        if(ret != tvERROR_NONE) {
-            LOGERR("Failed to set Hue\n");
-            returnResponse(false);
-        }
-        else {
-            int retval= updateAVoutputTVParam("set","Hue",inputInfo,PQ_PARAM_HUE,hue);
-            if(retval != 0 ) {
-                LOGERR("Failed to Save Hue to ssm_data\n");
+            if (validateIntegerInputParameter("Hue",hue) != 0) {
+                LOGERR("Failed in hue range validation:%s", __FUNCTION__);
                 returnResponse(false);
             }
-            LOGINFO("Exit : setHue successful to value: %d\n", hue);
-            returnResponse(true);
-        }
 
+            if (parsingSetInputArgument(parameters, "Hue",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( !isCapablityCheckPassed( "Hue", inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for Hue\n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+                LOGINFO("Proceed with %s\n",__FUNCTION__);
+                ret = SetHue(hue);
+            }
+
+            if(ret != tvERROR_NONE) {
+                LOGERR("Failed to set Hue\n");
+                returnResponse(false);
+            }
+            else {
+                int retval= updateAVoutputTVParam("set","Hue",inputInfo,PQ_PARAM_HUE,hue);
+                if(retval != 0 ) {
+                    LOGERR("Failed to Save Hue to ssm_data\n");
+                    returnResponse(false);
+                }
+                LOGINFO("Exit : setHue successful to value: %d\n", hue);
+                returnResponse(true);
+            }
+        }
+        else
+        {
+            return setPQParamV2(parameters, response, "Hue", PQ_PARAM_HUE, SetHue, m_maxHue);
+        }
     }
 
     uint32_t AVOutputTV::resetHue(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry\n");
+        if(m_hueStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            paramIndex_t indexInfo;
+            int hue=0;
+            tvError_t ret = tvERROR_NONE;
 
-        capDetails_t inputInfo;
-        paramIndex_t indexInfo;
-        int hue=0;
-        tvError_t ret = tvERROR_NONE;
+            if (parsingSetInputArgument(parameters, "Hue",inputInfo)!= 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingSetInputArgument(parameters, "Hue",inputInfo)!= 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if( !isCapablityCheckPassed( "Hue" , inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for Hue\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if( !isCapablityCheckPassed( "Hue" , inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for Hue\n", __FUNCTION__);
-            returnResponse(false);
-        }
+            int retval= updateAVoutputTVParam("reset","Hue", inputInfo,PQ_PARAM_HUE,hue);
 
-        int retval= updateAVoutputTVParam("reset","Hue", inputInfo,PQ_PARAM_HUE,hue);
-
-        if(retval != 0 ) {
-            LOGERR("Failed to reset Hue\n");
-            returnResponse(false);
-        }
-        else {
-            if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
-                inputInfo.pqmode = "Current";
-                inputInfo.source = "Current";
-                inputInfo.format = "Current";
-                getParamIndex("Hue",inputInfo,indexInfo);
-                int err = getLocalparam("Hue",indexInfo, hue, PQ_PARAM_HUE);
-                if( err == 0 ) {
-                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,hue);
-                    ret = SetHue(hue);
-                }
-                else {
-                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
-                    ret = tvERROR_GENERAL;
+            if(retval != 0 ) {
+                LOGERR("Failed to reset Hue\n");
+                returnResponse(false);
+            }
+            else {
+                if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
+                    inputInfo.pqmode = "Current";
+                    inputInfo.source = "Current";
+                    inputInfo.format = "Current";
+                    getParamIndex("Hue",inputInfo,indexInfo);
+                    int err = getLocalparam("Hue",indexInfo, hue, PQ_PARAM_HUE);
+                    if( err == 0 ) {
+                        LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,hue);
+                        ret = SetHue(hue);
+                    }
+                    else {
+                        LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+                        ret = tvERROR_GENERAL;
+                    }
                 }
             }
-        }
 
-        if(ret != tvERROR_NONE) {
-            returnResponse(false);
+            if(ret != tvERROR_NONE) {
+                returnResponse(false);
+            }
+            else {
+                LOGINFO("Exit : resetHue Successful to value : %d \n",hue);
+                returnResponse(true);
+            }
         }
-        else {
-            LOGINFO("Exit : resetHue Successful to value : %d \n",hue);
-            returnResponse(true);
+        else
+        {
+            return resetPQParamV2(parameters, response, "Hue", PQ_PARAM_HUE, SetHue);
         }
 
     }
@@ -1849,57 +2441,63 @@ namespace Plugin {
     uint32_t AVOutputTV::setColorTemperature(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
+        if(m_colorTempStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            std::string value;
+            tvColorTemp_t colortemp = tvColorTemp_MAX;
+            tvError_t ret = tvERROR_NONE;
 
-        capDetails_t inputInfo;
-        std::string value;
-        tvColorTemp_t colortemp = tvColorTemp_MAX;
-        tvError_t ret = tvERROR_NONE;
-
-        value = parameters.HasLabel("colorTemperature") ? parameters["colorTemperature"].String() : "";
-        returnIfParamNotFound(parameters,"colorTemperature");
-        if(!value.compare("Standard")) {
-            colortemp = tvColorTemp_STANDARD;
-        }
-        else if (!value.compare("Warm")) {
-            colortemp = tvColorTemp_WARM;
-        }
-        else if (!value.compare("Cold")) {
-            colortemp = tvColorTemp_COLD;
-        }
-        else if (!value.compare("UserDefined")) {
-            colortemp = tvColorTemp_USER;
-        }
-        else {
-            returnResponse(false);
-        }
-
-        if (parsingSetInputArgument(parameters, "ColorTemperature",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if( !isCapablityCheckPassed( "ColorTemperature", inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for colorTemperature\n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
-             LOGINFO("Proceed with %s\n",__FUNCTION__);
-             ret = SetColorTemperature((tvColorTemp_t)colortemp);
-        }
-
-        if(ret != tvERROR_NONE) {
-            LOGERR("Failed to set ColorTemperature\n");
-            returnResponse(false);
-        }
-        else {
-            int retval= updateAVoutputTVParam("set","ColorTemp", inputInfo,PQ_PARAM_COLOR_TEMPERATURE,(int)colortemp);
-            if(retval != 0 ) {
-                LOGERR("Failed to Save ColorTemperature to ssm_data\n");
+            value = parameters.HasLabel("colorTemperature") ? parameters["colorTemperature"].String() : "";
+            returnIfParamNotFound(parameters,"colorTemperature");
+            if(!value.compare("Standard")) {
+                colortemp = tvColorTemp_STANDARD;
+            }
+            else if (!value.compare("Warm")) {
+                colortemp = tvColorTemp_WARM;
+            }
+            else if (!value.compare("Cold")) {
+                colortemp = tvColorTemp_COLD;
+            }
+            else if (!value.compare("UserDefined")) {
+                colortemp = tvColorTemp_USER;
+            }
+            else {
                 returnResponse(false);
             }
-            LOGINFO("Exit : setColorTemperature successful to value: %d\n", colortemp);
-            returnResponse(true);
+
+            if (parsingSetInputArgument(parameters, "ColorTemperature",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( !isCapablityCheckPassed( "ColorTemperature", inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for colorTemperature\n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+                LOGINFO("Proceed with %s\n",__FUNCTION__);
+                ret = SetColorTemperature((tvColorTemp_t)colortemp);
+            }
+
+            if(ret != tvERROR_NONE) {
+                LOGERR("Failed to set ColorTemperature\n");
+                returnResponse(false);
+            }
+            else {
+                int retval= updateAVoutputTVParam("set","ColorTemp", inputInfo,PQ_PARAM_COLOR_TEMPERATURE,(int)colortemp);
+                if(retval != 0 ) {
+                    LOGERR("Failed to Save ColorTemperature to ssm_data\n");
+                    returnResponse(false);
+                }
+                LOGINFO("Exit : setColorTemperature successful to value: %d\n", colortemp);
+                returnResponse(true);
+            }
+        }
+        else
+        {
+            returnResponse(false);
         }
     }
 
