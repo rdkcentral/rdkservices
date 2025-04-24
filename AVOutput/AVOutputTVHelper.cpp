@@ -2420,7 +2420,6 @@ bool AVOutputTV::isGlobalParam(const JsonArray& arr) {
                arr[0].String() == "Global" || arr[0].String() == "none"));
 }
 
-
 // Modular helper functions
 std::vector<tvPQModeIndex_t> AVOutputTV::extractPQModes(const JsonObject& parameters)
 {
@@ -2532,27 +2531,44 @@ std::vector<tvConfigContext_t> AVOutputTV::getValidContextsFromParameters(const 
         LOGERR("Unknown tr181ParamName: %s", tr181ParamName.c_str());
         return validContexts;
     }
-
-    JsonArray pqmodeArray = parameters["pictureMode"].Array();
-    if (isGlobalParam(pqmodeArray))
-    {
-        LOGINFO("%s Global Parameter", tr181ParamName.c_str());
-        if (GetTVPictureModeCaps(&m_pictureModes, &m_numPictureModes, &m_pictureModeCaps) == tvERROR_NONE && m_pictureModeCaps && m_pictureModeCaps->num_contexts > 0)
-        {
-            for (size_t i = 0; i < m_pictureModeCaps->num_contexts; ++i)
-            {
-                validContexts.push_back(m_pictureModeCaps->contexts[i]);
-            }
-        }
-        else
-        {
-            LOGERR("PictureMode capabilities unavailable or empty");
-        }
-        return validContexts;
+    if (caps && caps->num_contexts == 0) {
+        caps = m_pictureModeCaps;
     }
+    JsonArray pqmodeArray = parameters["pictureMode"].Array();
+    JsonArray sourceArray = parameters["videoSource"].Array();
+    JsonArray formatArray = parameters["videoFormat"].Array();
+
     std::vector<tvPQModeIndex_t> pqModes = extractPQModes(parameters);
     std::vector<tvVideoSrcType_t> sources = extractVideoSources(parameters);
     std::vector<tvVideoFormatType_t> formats = extractVideoFormats(parameters);
+    // "Global" indicates that the setting applies to all valid entries from the capability list
+    if (isGlobalParam(pqmodeArray)) {
+        if (caps != nullptr && caps->contexts != nullptr) {
+            for (size_t i = 0; i < caps->num_contexts; ++i) {
+                pqModes.push_back(caps->contexts[i].pq_mode);
+            }
+        } else {
+            LOGWARN("Caps or contexts is null while assigning global pqModes.");
+        }
+    }
+    if (isGlobalParam(sourceArray)) {
+        if (caps != nullptr && caps->contexts != nullptr) {
+            for (size_t i = 0; i < caps->num_contexts; ++i) {
+                sources.push_back(caps->contexts[i].videoSrcType);
+            }
+        } else {
+            LOGWARN("Caps or contexts is null while assigning global sources.");
+        }
+    }
+    if (isGlobalParam(formatArray)) {
+        if (caps != nullptr && caps->contexts != nullptr) {
+            for (size_t i = 0; i < caps->num_contexts; ++i) {
+                formats.push_back(caps->contexts[i].videoFormatType);
+            }
+        } else {
+            LOGWARN("Caps or contexts is null while assigning global formats.");
+        }
+    }
 
     if (pqModes.empty() || sources.empty() || formats.empty()) {
         LOGWARN("One or more parameter vectors are empty: PQModes[%zu], Sources[%zu], Formats[%zu]",
