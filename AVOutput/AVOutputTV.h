@@ -423,8 +423,6 @@ class AVOutputTV : public AVOutputBase {
 		std::vector<tvPQModeIndex_t> extractPQModes(const JsonObject& parameters);
 		std::vector<tvVideoSrcType_t> extractVideoSources(const JsonObject& parameters);
 		std::vector<tvVideoFormatType_t> extractVideoFormats(const JsonObject& parameters);
-		// Checks if the given context matches the system's current context
-		bool isCurrentContext(const tvConfigContext_t& ctx) const;
 		static bool isGlobalParam(const JsonArray& arr);
 		int updateAVoutputTVParamV2(std::string action, std::string tr181ParamName,
 			const JsonObject& parameters, tvPQParameterIndex_t pqParamIndex, int level);
@@ -475,10 +473,43 @@ class AVOutputTV : public AVOutputBase {
 		tvContextCaps_t* m_hueCaps = nullptr;
 		tvError_t m_hueStatus = tvERROR_NONE;
 
+		int m_maxLatency = 0;
+		tvContextCaps_t* m_latencyCaps = nullptr;
+		tvError_t m_latencyStatus = tvERROR_NONE;
+
+		int m_maxPrecision = 0;
+		tvContextCaps_t* m_presicionCaps = nullptr;
+		tvError_t m_presicionStatus = tvERROR_NONE;
+
+		int m_maxLocalContrastEnhancement = 0;
+		tvContextCaps_t* m_localContrastEnhancementCaps = nullptr;
+		tvError_t m_localContrastEnhancementStatus = tvERROR_NONE;
+
+		int m_maxMPEGNoiseReduction = 0;
+		tvContextCaps_t* m_MPEGNoiseReductionCaps = nullptr;
+		tvError_t m_MPEGNoiseReductionStatus = tvERROR_NONE;
+
+		int m_maxDigitalNoiseReduction = 0;
+		tvContextCaps_t* m_digitalNoiseReductionCaps = nullptr;
+		tvError_t m_digitalNoiseReductionStatus = tvERROR_NONE;
+
+		int m_maxAISuperResolution = 0;
+		tvContextCaps_t* m_AISuperResolutionCaps = nullptr;
+		tvError_t m_AISuperResolutionStatus = tvERROR_NONE;
+
+		int m_maxMEMC = 0;
+		tvContextCaps_t* m_MEMCCaps = nullptr;
+		tvError_t m_MEMCStatus = tvERROR_NONE;
+
 		tvColorTemp_t* m_colortemp = nullptr;
         size_t m_numColortemp = 0;
         tvContextCaps_t* m_colortempCaps = nullptr;
 		tvError_t m_colorTempStatus = tvERROR_NONE;
+
+		tvDisplayMode_t* m_aspectRatio = nullptr;
+		size_t m_numAspectRatio = 0;
+		tvContextCaps_t* m_aspectRatioCaps = nullptr;
+		tvError_t m_aspectRatioStatus = tvERROR_NONE;
 
 		tvDimmingMode_t* m_dimmingModes = nullptr;
         size_t m_numdimmingModes = 0;
@@ -488,6 +519,25 @@ class AVOutputTV : public AVOutputBase {
         tvPQModeIndex_t* m_pictureModes = nullptr;
         size_t m_numPictureModes = 0;
         tvContextCaps_t* m_pictureModeCaps = nullptr;
+		tvError_t m_pictureModeStatus = tvERROR_NONE;
+
+		tvSdrGamma_t* m_sdrGammaModes = nullptr;
+		size_t m_numsdrGammaModes = 0;
+		tvContextCaps_t* m_sdrGammaModeCaps = nullptr;
+		tvError_t m_sdrGammaModeStatus = tvERROR_NONE;
+
+		int m_numHalMatrixPoints = 0;
+		int m_rgbMin = 0;
+		int m_rgbMax = 0;
+		int m_numUiMatrixPoints = 0;
+		double* m_uiMatrixPositions = nullptr;
+		tvContextCaps_t* m_multiPointWBCaps = nullptr;
+		tvError_t m_multiPointWBStatus = tvERROR_NONE;
+
+		tvDVCalibrationSettings_t* m_minValues;
+		tvDVCalibrationSettings_t* m_maxValues;
+		tvContextCaps_t* m_DVCalibrationCaps = nullptr;
+		tvError_t m_DVCalibrationStatus = tvERROR_NONE;
 
 		static const std::map<int, std::string> pqModeMap;
 		static const std::map<int, std::string> videoFormatMap;

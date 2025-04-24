@@ -1203,6 +1203,7 @@ namespace Plugin {
 
         // Brightness
         m_brightnessStatus = GetBrightnessCaps(&m_maxBrightness, &m_brightnessCaps);
+        LOGINFO("GetBrightnessCaps returned status: %d, max: %d", m_brightnessStatus, m_maxBrightness);
         if (m_brightnessStatus == tvERROR_OPERATION_NOT_SUPPORTED) {
             updateAVoutputTVParam("sync", "Brightness", info, PQ_PARAM_BRIGHTNESS, level);
         } else {
@@ -1211,6 +1212,7 @@ namespace Plugin {
 
         // Contrast
         m_contrastStatus = GetContrastCaps(&m_maxContrast, &m_contrastCaps);
+        LOGINFO("GetContrastCaps returned status: %d, max: %d", m_contrastStatus, m_maxContrast);
         if (m_contrastStatus == tvERROR_OPERATION_NOT_SUPPORTED) {
             updateAVoutputTVParam("sync", "Contrast", info, PQ_PARAM_CONTRAST, level);
         } else {
@@ -1219,6 +1221,7 @@ namespace Plugin {
 
         // Sharpness
         m_sharpnessStatus = GetSharpnessCaps(&m_maxSharpness, &m_sharpnessCaps);
+        LOGINFO("GetSharpnessCaps returned status: %d, max: %d", m_sharpnessStatus, m_maxSharpness);
         if (m_sharpnessStatus == tvERROR_OPERATION_NOT_SUPPORTED) {
             updateAVoutputTVParam("sync", "Sharpness", info, PQ_PARAM_SHARPNESS, level);
         } else {
@@ -1227,6 +1230,7 @@ namespace Plugin {
 
         // Saturation
         m_saturationStatus = GetSaturationCaps(&m_maxSaturation, &m_saturationCaps);
+        LOGINFO("GetSaturationCaps returned status: %d, max: %d", m_saturationStatus, m_maxSaturation);
         if (m_saturationStatus == tvERROR_OPERATION_NOT_SUPPORTED) {
             updateAVoutputTVParam("sync", "Saturation", info, PQ_PARAM_SATURATION, level);
         } else {
@@ -1235,6 +1239,7 @@ namespace Plugin {
 
         // Hue
         m_hueStatus = GetHueCaps(&m_maxHue, &m_hueCaps);
+        LOGINFO("GetHueCaps returned status: %d, max: %d", m_hueStatus, m_maxHue);
         if (m_hueStatus == tvERROR_OPERATION_NOT_SUPPORTED) {
             updateAVoutputTVParam("sync", "Hue", info, PQ_PARAM_HUE, level);
         } else {
@@ -1243,6 +1248,7 @@ namespace Plugin {
 
         // ColorTemperature
         m_colorTempStatus = GetColorTemperatureCaps(&m_colortemp, &m_numColortemp, &m_colortempCaps);
+        LOGINFO("GetColorTemperatureCaps returned status: %d, numColortemp: %d", m_colorTempStatus, m_numColortemp);
         if (m_colorTempStatus == tvERROR_OPERATION_NOT_SUPPORTED) {
             updateAVoutputTVParam("sync", "ColorTemp", info, PQ_PARAM_COLOR_TEMPERATURE, level);
         } else {
@@ -1254,6 +1260,7 @@ namespace Plugin {
 
         // DimmingMode
         m_dimmingModeStatus = GetTVDimmingModeCaps(&m_dimmingModes, &m_numdimmingModes, &m_dimmingModeCaps);
+        LOGINFO("GetTVDimmingModeCaps returned status: %d, numdimmingModes: %d", m_dimmingModeStatus, m_numdimmingModes);
         if (m_dimmingModeStatus == tvERROR_OPERATION_NOT_SUPPORTED) {
             updateAVoutputTVParam("sync", "DimmingMode", info, PQ_PARAM_DIMMINGMODE, level);
         } else {
@@ -1261,7 +1268,30 @@ namespace Plugin {
         }
 
         // Backlight
+        LOGINFO("Calling GetBacklightCaps...");
         m_backlightStatus = GetBacklightCaps(&m_maxBacklight, &m_backlightCaps);
+        LOGINFO("GetBacklightCaps returned status: %d, maxBacklight: %d", m_backlightStatus, m_maxBacklight);
+#if DEBUG
+        if (m_backlightCaps)
+        {
+            LOGINFO("Backlight caps pointer is valid. Num contexts: %zu", m_backlightCaps->num_contexts);
+            for (size_t i = 0; i < m_backlightCaps->num_contexts; ++i) {
+                const auto& context = m_backlightCaps->contexts[i];
+                std::string pqModeStr = AVOutputTV::pqModeMap.count(context.pq_mode) ?
+                                        AVOutputTV::pqModeMap.at(context.pq_mode) : "Unknown";
+                std::string formatStr = AVOutputTV::videoFormatMap.count(context.videoFormatType) ?
+                                        AVOutputTV::videoFormatMap.at(context.videoFormatType) : "Unknown";
+                std::string srcStr = AVOutputTV::videoSrcMap.count(context.videoSrcType) ?
+                                     AVOutputTV::videoSrcMap.at(context.videoSrcType) : "Unknown";
+                LOGINFO("Context[%zu]: PQMode = %s (%d), Format = %s (%d), Source = %s (%d)",
+                        i, pqModeStr.c_str(), context.pq_mode,
+                        formatStr.c_str(), context.videoFormatType,
+                        srcStr.c_str(), context.videoSrcType);
+            }
+        } else {
+            LOGWARN("Backlight caps pointer is null.");
+        }
+#endif
         if (m_backlightStatus == tvERROR_OPERATION_NOT_SUPPORTED) {
             updateAVoutputTVParam("sync", "Backlight", info, PQ_PARAM_BACKLIGHT, level);
         } else {
@@ -2572,7 +2602,7 @@ int AVOutputTV::updateAVoutputTVParamV2(std::string action, std::string tr181Par
     const bool isSync = (action == "sync");
 
     std::vector<tvConfigContext_t> validContexts = getValidContextsFromParameters(parameters, tr181ParamName);
-#if 0
+#if DEBUG
     for (const auto& ctx : validContexts) {
 
         std::string pqStr = pqModeMap.count(ctx.pq_mode) ? pqModeMap.at(ctx.pq_mode) : std::to_string(ctx.pq_mode);

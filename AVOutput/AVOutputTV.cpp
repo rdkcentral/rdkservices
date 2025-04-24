@@ -510,14 +510,15 @@ namespace Plugin {
     {
         LOGINFO("Entry: %s\n", paramName.c_str());
         int paramValue = 0;
+
         std::string value = "";
         std::string lowerParamName = paramName;
         std::transform(lowerParamName.begin(), lowerParamName.end(), lowerParamName.begin(), ::tolower);
-        
         if (parameters.HasLabel(lowerParamName.c_str())) {
             value = parameters[lowerParamName.c_str()].String();
-        }      
+        }
         returnIfParamNotFound(parameters, lowerParamName.c_str());
+
         try {
             paramValue = std::stoi(value);
         } catch (const std::exception& e) {
