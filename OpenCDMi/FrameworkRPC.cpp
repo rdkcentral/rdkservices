@@ -1144,6 +1144,24 @@ namespace Plugin {
                 return Exchange::OCDM_RESULT::OCDM_S_FALSE;
             }
 
+            Exchange::OCDM_RESULT InitializeCtx(const std::string& keySystem) override
+            {
+                CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
+                if (systemExt) {
+                    return (Exchange::OCDM_RESULT)systemExt->InitializeCtx(keySystem);
+                }
+                return Exchange::OCDM_RESULT::OCDM_S_FALSE;
+            }
+
+            Exchange::OCDM_RESULT DeinitializeCtx(const std::string& keySystem, bool cleanOnDestroy) override
+            {
+                CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
+                if (systemExt) {
+                    return (Exchange::OCDM_RESULT)systemExt->DeinitializeCtx(keySystem, cleanOnDestroy);
+                }
+                return Exchange::OCDM_RESULT::OCDM_S_FALSE;
+            }
+
             Exchange::OCDM_RESULT CleanSecureStore(const std::string& keySystem) override
             {
                 Exchange::OCDM_RESULT result = Exchange::OCDM_RESULT::OCDM_S_FALSE;
