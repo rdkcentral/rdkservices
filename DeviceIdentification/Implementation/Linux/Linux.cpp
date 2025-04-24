@@ -16,18 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "../../Module.h"
 #include <interfaces/IConfiguration.h>
-#include <interfaces/IDeviceIdentification.h>
 
 #include <fstream>
 #include <sys/utsname.h>
 
 namespace WPEFramework {
 namespace Plugin {
-
-    class DeviceImplementation : public Exchange::IDeviceIdentification , public PluginHost::ISubSystem::IIdentifier, public Exchange::IConfiguration {
-        static constexpr const TCHAR* VERSIONFile = _T("/version.txt");
+    class DeviceImplementation : public PluginHost::ISubSystem::IIdentifier, public Exchange::IConfiguration {
     private:
         static uint8_t constexpr MacSize = 6;
 
@@ -147,13 +145,9 @@ namespace Plugin {
             Core::AdapterObserver _observer;
             uint8_t _MACAddressBuffer[Core::AdapterIterator::MacSize];
         };
-
     public:
-        DeviceImplementation()
-        {
-            UpdateFirmwareVersion(_firmwareVersion);
-        }
-		virtual ~DeviceImplementation() = default;
+        DeviceImplementation() = default;
+        virtual ~DeviceImplementation() = default;
 
         DeviceImplementation(const DeviceImplementation&) = delete;
         DeviceImplementation& operator=(const DeviceImplementation&) = delete;
@@ -172,9 +166,6 @@ namespace Plugin {
             return Core::ERROR_NONE;
         }
 
-        // Device Propertirs interface
-
-        // Identifier interface
         uint8_t Identifier(const uint8_t length, uint8_t* buffer) const override
         {
             uint8_t ret = 0;
@@ -194,28 +185,8 @@ namespace Plugin {
         }
         string FirmwareVersion() const override
         {
-            return _firmwareVersion;
+            return Core::SystemInfo::Instance().FirmwareVersion();
         }
-        
-        // IDeviceIdentification interface
-
-        Core::hresult Identification(DeviceInfo& info) const override
-        {
-            info.deviceID = "";
-            uint8_t myBuffer[64];
-
-            myBuffer[0] = Identifier(sizeof(myBuffer) - 1, &(myBuffer[1]));
-
-            if (myBuffer[0] != 0) {
-                info.deviceID = Core::SystemInfo::Instance().Id(myBuffer, ~0);
-            }
-
-            info.firmwareVersion = FirmwareVersion();
-            info.chipset = Chipset();
-
-            return Core::ERROR_NONE;
-        }
-
 
     private:
         void UpdateDeviceId()
@@ -228,37 +199,19 @@ namespace Plugin {
                 TRACE(Trace::Error, (_T("There is no any valid physical interface available")));
             }
         }
-        inline void UpdateFirmwareVersion(string& firmwareVersion) const
-        {
-            string line;
-            std::ifstream file(VERSIONFile);
-            if (file.is_open()) {
-                while (getline(file, line)) {
-                    if (line.find("SDK_VERSION") != std::string::npos) {
-                        std::size_t position = line.find('=');
-                        if (position != std::string::npos) {
-                            firmwareVersion.assign(line.substr(position + 1, string::npos));
-                            break;
-                        }
-                    }
-                }
-                file.close();
-            }
-        }
 
     public:
         BEGIN_INTERFACE_MAP(DeviceImplementation)
         INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
         INTERFACE_ENTRY(Exchange::IConfiguration)
-        INTERFACE_ENTRY(Exchange::IDeviceIdentification)
         END_INTERFACE_MAP
 
     private:
-        string _firmwareVersion;
         string _interface;
         string _identifier;
     };
 
     SERVICE_REGISTRATION(DeviceImplementation, 1, 0);
+
 }
 }

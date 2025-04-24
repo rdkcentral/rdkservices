@@ -141,7 +141,6 @@ jobs:
         run: |
           cd ThunderInterfaces
           patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/DeviceInfo_brand_R2_L1tests.patch
-          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/RDKTV-35484-DeviceIdentification.patch
           cd ..
 
       - name: Build ThunderInterfaces
@@ -269,6 +268,7 @@ jobs:
           -DPLUGIN_LOCATIONSYNC=ON
           -DPLUGIN_TIMER=ON
           -DPLUGIN_SECURITYAGENT=ON
+          -DPLUGIN_DEVICEIDENTIFICATION=ON
           -DPLUGIN_FRAMERATE=ON
           -DPLUGIN_AVINPUT=ON
           -DPLUGIN_TELEMETRY=ON
