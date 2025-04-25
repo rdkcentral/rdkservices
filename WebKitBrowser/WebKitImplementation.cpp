@@ -663,9 +663,11 @@ static GSourceFuncs _handlerIntervention =
                 MemorySettings()
                     : Core::JSON::Container()
                     , WebProcessLimit()
+                    , WebProcessKillThreshold()
                     , NetworkProcessLimit()
                 {
                     Add(_T("webprocesslimit"), &WebProcessLimit);
+                    Add(_T("webprocesskillthreshold"), &WebProcessKillThreshold);
                     Add(_T("networkprocesslimit"), &NetworkProcessLimit);
                 }
                 ~MemorySettings()
@@ -674,6 +676,7 @@ static GSourceFuncs _handlerIntervention =
 
             public:
                 Core::JSON::DecUInt32 WebProcessLimit;
+                Core::JSON::Double WebProcessKillThreshold;
                 Core::JSON::DecUInt32 NetworkProcessLimit;
             };
 
@@ -3666,6 +3669,13 @@ static GSourceFuncs _handlerIntervention =
                 break;
             case WEBKIT_WEB_PROCESS_EXCEEDED_MEMORY_LIMIT:
                 SYSLOG_GLOBAL(Logging::Fatal, (_T("CRASH: WebProcess terminated due to memory limit: exiting ...")));
+                ODH_ERROR(
+                        "WPE0050",
+                        WPE_CONTEXT_WITH_URL(browser->urlValue().c_str()),
+                        "WPEWebProcess memory exceeded: URL(%s), limit(%u MB), kill threshold(%.2f), mem used(%.0f MB)",
+                        browser->urlValue().c_str(), browser->_config.Memory.WebProcessLimit.Value(),
+                        browser->_config.Memory.WebProcessKillThreshold.Value(),
+                        browser->_config.Memory.WebProcessLimit.Value() * browser->_config.Memory.WebProcessKillThreshold.Value());
                 break;
             case WEBKIT_WEB_PROCESS_TERMINATED_BY_API:
                 SYSLOG_GLOBAL(Logging::Fatal, (_T("CRASH: WebProcess terminated by API")));
@@ -3813,6 +3823,9 @@ static GSourceFuncs _handlerIntervention =
                 if ((_config.Memory.IsSet() == true) && (_config.Memory.WebProcessLimit.IsSet() == true)) {
                     WebKitMemoryPressureSettings* memoryPressureSettings = webkit_memory_pressure_settings_new();
                     webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, _config.Memory.WebProcessLimit.Value());
+                    if (_config.Memory.WebProcessKillThreshold.IsSet() == true) {
+                        webkit_memory_pressure_settings_set_kill_threshold(memoryPressureSettings, _config.Memory.WebProcessKillThreshold.Value());
+                    }
                     // Pass web process memory pressure settings to WebKitWebContext constructor
                     wkContext = WEBKIT_WEB_CONTEXT(g_object_new(WEBKIT_TYPE_WEB_CONTEXT, "website-data-manager", websiteDataManager, "memory-pressure-settings", memoryPressureSettings, nullptr));
                     webkit_memory_pressure_settings_free(memoryPressureSettings);
