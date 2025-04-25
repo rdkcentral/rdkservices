@@ -182,6 +182,7 @@ namespace WPEFramework {
 	    void onCecEnabledEventHandler(const JsonObject& parameters);
             void onAudioDevicePowerStatusEventHandler(const JsonObject& parameters);
 	    bool isDisplayConnected (std::string port);
+	    void resetToVideoMode();
             //End events
         public:
             DisplaySettings();
