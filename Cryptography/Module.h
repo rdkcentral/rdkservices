@@ -20,7 +20,7 @@
 #pragma once
 
 #ifndef MODULE_NAME
-#define MODULE_NAME CryptoTP
+#define MODULE_NAME CryptographyDeviceObjects
 #endif
 
 #include <plugins/plugins.h>
