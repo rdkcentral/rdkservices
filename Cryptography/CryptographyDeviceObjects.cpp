@@ -17,14 +17,14 @@
  * limitations under the License.
  */
 
-#include "CryptoTP.h"
+#include "CryptographyDeviceObjects.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
     namespace {
 
-        static Metadata<CryptoTP> metadata(
+        static Metadata<CryptographyDeviceObjects> metadata(
             // Version
             1, 0, 0,
             // Preconditions
@@ -38,27 +38,27 @@ namespace Plugin {
         );
     }
 
-    const string CryptoTP::Initialize(PluginHost::IShell* service) /* override */
+    const string CryptographyDeviceObjects::Initialize(PluginHost::IShell* service) /* override */
     {
         string message;
 
         ASSERT(service != nullptr);
         ASSERT(_service == nullptr);
-        ASSERT(_CryptoTP == nullptr);
+        ASSERT(_CryptographyDeviceObjects == nullptr);
         ASSERT(_connectionId == 0);
 
         _service = service;
         _service->AddRef();
 
         _service->Register(&_notification);
-        _CryptoTP = _service->Root<Exchange::IConfiguration>(_connectionId, Core::infinite, _T("CryptographyImplementation"));
+        _CryptographyDeviceObjects = _service->Root<Exchange::IConfiguration>(_connectionId, Core::infinite, _T("CryptographyImplementation"));
 
-        if (_CryptoTP == nullptr) {
-            message = _T("CryptoTP could not be instantiated.");
+        if (_CryptographyDeviceObjects == nullptr) {
+            message = _T("CryptographyDeviceObjects could not be instantiated.");
         }
         else {
-            _CryptoTP->Configure(_service);
-            /*if (_CryptoTP->Configure(_service) == Core::ERROR_NONE) {
+            _CryptographyDeviceObjects->Configure(_service);
+            /*if (_CryptographyDeviceObjects->Configure(_service) == Core::ERROR_NONE) {
                 PluginHost::ISubSystem* const subSystems = service->SubSystems();
                 ASSERT(subSystems != nullptr);
 
@@ -72,7 +72,7 @@ namespace Plugin {
         return message;
     }
 
-    void CryptoTP::Deinitialize(PluginHost::IShell* service) /* override */
+    void CryptographyDeviceObjects::Deinitialize(PluginHost::IShell* service) /* override */
     {
         ASSERT(service != nullptr);
 
@@ -81,15 +81,15 @@ namespace Plugin {
 
             _service->Unregister(&_notification);
 
-            if (_CryptoTP != nullptr) {
+            if (_CryptographyDeviceObjects != nullptr) {
                 RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
 
-                VARIABLE_IS_NOT_USED uint32_t result = _CryptoTP->Release();
-                _CryptoTP = nullptr;
+                VARIABLE_IS_NOT_USED uint32_t result = _CryptographyDeviceObjects->Release();
+                _CryptographyDeviceObjects = nullptr;
                 ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
                 if (connection != nullptr) {
-                    TRACE(Trace::Error, (_T("CryptoTP is not properly destructed. %d"), _connectionId));
+                    TRACE(Trace::Error, (_T("CryptographyDeviceObjects is not properly destructed. %d"), _connectionId));
 
                     connection->Terminate();
                     connection->Release();
@@ -102,12 +102,12 @@ namespace Plugin {
         }
     }
 
-    string CryptoTP::Information() const /* override */
+    string CryptographyDeviceObjects::Information() const /* override */
     {
         return string();
     }
 
-    void CryptoTP::Deactivated(RPC::IRemoteConnection* connection)
+    void CryptographyDeviceObjects::Deactivated(RPC::IRemoteConnection* connection)
     {
         if (connection->Id() == _connectionId) {
 

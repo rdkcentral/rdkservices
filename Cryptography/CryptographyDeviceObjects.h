@@ -26,7 +26,7 @@
 namespace WPEFramework {
 namespace Plugin {
 
-    class CryptoTP : public PluginHost::IPlugin {
+    class CryptographyDeviceObjects : public PluginHost::IPlugin {
     private:
         class Notification : public RPC::IRemoteConnection::INotification {
         public:
@@ -34,7 +34,7 @@ namespace Plugin {
             Notification(const Notification&) = delete;
             Notification& operator=(const Notification&) = delete;
 
-            explicit Notification(CryptoTP& parent)
+            explicit Notification(CryptographyDeviceObjects& parent)
                 : _parent(parent) {
             }
             ~Notification() override = default;
@@ -53,26 +53,26 @@ namespace Plugin {
             END_INTERFACE_MAP
 
         private:
-            CryptoTP& _parent;
+            CryptographyDeviceObjects& _parent;
         };
 
     public:
-        CryptoTP(const CryptoTP&) = delete;
-        CryptoTP& operator=(const CryptoTP&) = delete;
+        CryptographyDeviceObjects(const CryptographyDeviceObjects&) = delete;
+        CryptographyDeviceObjects& operator=(const CryptographyDeviceObjects&) = delete;
 
 PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
-        CryptoTP()
+        CryptographyDeviceObjects()
             : _connectionId(0)
             , _service(nullptr)
-            , _CryptoTP(nullptr)
+            , _CryptographyDeviceObjects(nullptr)
             , _notification(*this) {
         }
 POP_WARNING()
-        ~CryptoTP() override = default;
+        ~CryptographyDeviceObjects() override = default;
 
-        BEGIN_INTERFACE_MAP(CryptoTP)
+        BEGIN_INTERFACE_MAP(CryptographyDeviceObjects)
             INTERFACE_ENTRY(PluginHost::IPlugin)
-            INTERFACE_AGGREGATE(Exchange::IDeviceObjects, _CryptoTP)
+            INTERFACE_AGGREGATE(Exchange::IDeviceObjects, _CryptographyDeviceObjects)
         END_INTERFACE_MAP
 
     public:
@@ -88,8 +88,7 @@ POP_WARNING()
     private:
         uint32_t _connectionId;
         PluginHost::IShell* _service;
-        Exchange::IConfiguration* _CryptoTP;
-        //Core::SinkType<Notification> _notification;
+        Exchange::IConfiguration* _CryptographyDeviceObjects;
         Core::Sink<Notification> _notification;
     };
 

@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(PLUGIN_NAME CryptoTP)
+set(PLUGIN_NAME CryptographyDeviceObjects)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_CRYPTOGRAPTHY_LOCATION "objects" CACHE STRING "Location within VaultProvisioning persistent path to look for provisioned objects")
@@ -27,7 +27,7 @@ find_package(${NAMESPACE}Cryptography CONFIG REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
     Module.cpp
-    CryptoTP.cpp
+    CryptographyDeviceObjects.cpp
     CryptographyRPC.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
