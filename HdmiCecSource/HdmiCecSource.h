@@ -30,6 +30,8 @@
 #include "ccec/MessageDecoder.hpp"
 #include "ccec/MessageProcessor.hpp"
 #include <thread>
+#include <chrono>
+#include <atomic>
 
 #undef Assert // this define from Connection.hpp conflicts with WPEFramework
 
@@ -256,6 +258,10 @@ namespace WPEFramework {
             std::mutex m_sendKeyEventMutex;
             std::queue<SendKeyInfo> m_SendKeyQueue;
             std::condition_variable m_sendKeyCV;
+	    bool m_retryOTP;
+	    Utils::ThreadRAII m_retryOTPThread;
+	    std::mutex m_retryOTPMutex;
+	    std::condition_variable m_retryOTPCV;
 		
             HdmiCecSourceProcessor *msgProcessor;
             HdmiCecSourceFrameListener *msgFrameListener;
@@ -277,6 +283,8 @@ namespace WPEFramework {
             void setOTPEnabled(bool enabled);
             bool getOTPEnabled();
             bool performOTPAction();
+	    void sendOTPMsg();
+	    bool cecOTPExceptionHandler();
             void CECEnable(void);
             void CECDisable(void);
             void getPhysicalAddress();
@@ -290,10 +298,11 @@ namespace WPEFramework {
             void requestCecDevDetails(const int logicalAddress);
             static void threadRun();
             static void threadUpdateCheck();
-	        static void  threadSendKeyEvent();
-                static void threadHotPlugEventHandler(int data);
-                static void threadCecDaemonInitHandler();
-                static void threadCecStatusUpdateHandler(int data);
+	    static void  threadSendKeyEvent();
+            static void threadHotPlugEventHandler(int data);
+            static void threadCecDaemonInitHandler();
+            static void threadCecStatusUpdateHandler(int data);
+	    static void threadRetryOTP();
         };
 	} // namespace Plugin
 } // namespace WPEFramework
