@@ -110,7 +110,6 @@ namespace WPEFramework {
         public:
             static Telemetry* _instance;
         private:
-            std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> m_systemServiceConnection;
 #ifdef HAS_RBUS
             Exchange::IUserSettings* _userSettingsPlugin;
             Core::Sink<UserSettingsNotification> _userSettingsNotification;
