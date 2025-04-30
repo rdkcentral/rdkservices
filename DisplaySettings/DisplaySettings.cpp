@@ -6092,9 +6092,9 @@ void DisplaySettings::sendMsgThread()
             else if(strcmp(strFormat,"DV")== 0)
                     mode = dsHDRSTANDARD_DolbyVision;
             else if(strcmp(strFormat,"HLG")== 0)
-                    mode = dsHDRSTANDARD_TechnicolorPrime;
+                    mode = dsHDRSTANDARD_HLG;
             else if(strcmp(strFormat,"TechnicolorPrime")== 0)
-                    mode = dsHDRSTANDARD_NONE;
+                    mode = dsHDRSTANDARD_TechnicolorPrime;
 	    else
 		    mode = dsHDRSTANDARD_Invalid;
 
