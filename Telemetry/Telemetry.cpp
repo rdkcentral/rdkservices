@@ -124,13 +124,30 @@ namespace WPEFramework
 
             if ((Utils::getServiceState(service, USERSETTINGS_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
                 Utils::activatePlugin(service, USERSETTINGS_CALLSIGN);
-            
+
             if ((Utils::getServiceState(service, USERSETTINGS_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
             {
                 ASSERT(service != nullptr);
 
                 _userSettingsPlugin = service->QueryInterfaceByCallsign<WPEFramework::Exchange::IUserSettings>(USERSETTINGS_CALLSIGN);
-                _userSettingsPlugin->Register(&_userSettingsNotification);
+                if (_userSettingsPlugin)
+                {
+                    _userSettingsPlugin->Register(&_userSettingsNotification);
+
+                    std::string privacyMode;
+                    if (_userSettingsPlugin->GetPrivacyMode(privacyMode) == Core::ERROR_NONE)
+                    {
+                        notifyT2PrivacyMode(privacyMode);
+                    }
+                    else
+                    {
+                        LOGERR("Failed to get privacy mode");
+                    }
+                }
+            }
+            else
+            {
+                LOGERR("Failed to activate %s", USERSETTINGS_CALLSIGN);
             }
 #endif
 
