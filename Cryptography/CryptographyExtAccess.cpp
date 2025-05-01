@@ -17,79 +17,69 @@
  * limitations under the License.
  */
 
-#include "CryptographyDeviceObjects.h"
+#include "CryptographyExtAccess.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
     namespace {
 
-        static Metadata<CryptographyDeviceObjects> metadata(
+        static Metadata<CryptographyExtAccess> metadata(
             // Version
             1, 0, 0,
             // Preconditions
-            //{ subsystem::PLATFORM, subsystem::PROVISIONING },
             { subsystem::PLATFORM },
             // Terminations
             {},
             // Controls
-            //{ subsystem::CRYPTOGRAPHY }
-            { }
+            {}
         );
     }
 
-    const string CryptographyDeviceObjects::Initialize(PluginHost::IShell* service) /* override */
+
+    const string CryptographyExtAccess::Initialize(PluginHost::IShell* service) /* override */ 
     {
         string message;
 
         ASSERT(service != nullptr);
         ASSERT(_service == nullptr);
-        ASSERT(_CryptographyDeviceObjects == nullptr);
+        ASSERT(_implementation == nullptr);
         ASSERT(_connectionId == 0);
 
         _service = service;
         _service->AddRef();
 
         _service->Register(&_notification);
-        _CryptographyDeviceObjects = _service->Root<Exchange::IConfiguration>(_connectionId, Core::infinite, _T("CryptographyImplementation"));
+        _implementation = _service->Root<Exchange::IConfiguration>(_connectionId, Core::infinite, _T("CryptographyImplementation"));
 
-        if (_CryptographyDeviceObjects == nullptr) {
-            message = _T("CryptographyDeviceObjects could not be instantiated.");
-        }
-        else {
-            _CryptographyDeviceObjects->Configure(_service);
-            /*if (_CryptographyDeviceObjects->Configure(_service) == Core::ERROR_NONE) {
-                PluginHost::ISubSystem* const subSystems = service->SubSystems();
-                ASSERT(subSystems != nullptr);
-
-                if (subSystems != nullptr) {
-                    subSystems->Set(PluginHost::ISubSystem::CRYPTOGRAPHY, nullptr);
-                    subSystems->Release();
-                }
-            }*/
+        if (_implementation == nullptr) {
+            message = _T("CryptographyExtAccess could not be instantiated.");
+        } else {
+            printf("CryptographyExtAccess - Connection Id - %u\n",_connectionId);
+            _implementation->Configure(_service);
         }
 
         return message;
     }
 
-    void CryptographyDeviceObjects::Deinitialize(PluginHost::IShell* service) /* override */
+    void CryptographyExtAccess::Deinitialize(PluginHost::IShell* service)  /* override */
     {
-        ASSERT(service != nullptr);
-
         if (_service != nullptr) {
             ASSERT(_service == service);
 
             _service->Unregister(&_notification);
 
-            if (_CryptographyDeviceObjects != nullptr) {
-                RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+            if (_implementation != nullptr) {
 
-                VARIABLE_IS_NOT_USED uint32_t result = _CryptographyDeviceObjects->Release();
-                _CryptographyDeviceObjects = nullptr;
+                RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+                printf("CryptographyExtAccess - Remote Connection  - %p\n",connection);
+
+                VARIABLE_IS_NOT_USED uint32_t result = _implementation->Release();
+                _implementation = nullptr;
                 ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
                 if (connection != nullptr) {
-                    TRACE(Trace::Error, (_T("CryptographyDeviceObjects is not properly destructed. %d"), _connectionId));
+                    TRACE(Trace::Error, (_T("CryptographyExtAccess is not properly destructed. %d"), _connectionId));
 
                     connection->Terminate();
                     connection->Release();
@@ -100,14 +90,15 @@ namespace Plugin {
             _service->Release();
             _service = nullptr;
         }
+
     }
 
-    string CryptographyDeviceObjects::Information() const /* override */
+    string CryptographyExtAccess::Information() const /* override */
     {
         return string();
     }
 
-    void CryptographyDeviceObjects::Deactivated(RPC::IRemoteConnection* connection)
+    void CryptographyExtAccess::Deactivated(RPC::IRemoteConnection* connection)
     {
         if (connection->Id() == _connectionId) {
 
@@ -118,6 +109,5 @@ namespace Plugin {
                 PluginHost::IShell::FAILURE));
         }
     }
-
 } // namespace Plugin
-} // namespace
+} // namespace WPEFramework
