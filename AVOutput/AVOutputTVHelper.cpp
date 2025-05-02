@@ -985,7 +985,6 @@ namespace Plugin {
             if (it != fnMap.end()) {
                 it->second(value, toStore);
             }
-            LOGINFO("%s Calling setLocalParam toStore %s\n", __FUNCTION__,toStore.c_str());
             // Set the value using TR-181
             err = setLocalParam(rfc_caller_id, key.c_str(), toStore.c_str());
         }
@@ -2508,7 +2507,6 @@ namespace Plugin {
             STRING_PICMODE + convertPictureIndexToStringV2(info.pqmodeIndex) + "." +
             STRING_FORMAT + convertVideoFormatToStringV2(info.formatIndex) + "." +
             forParam;
-        LOGINFO(" %s key %s\n", __FUNCTION__, key.c_str());
         return tvERROR_NONE;
     }
 
@@ -2763,7 +2761,6 @@ namespace Plugin {
             if (isSetRequired(pqStr, srcStr, fmtStr)) {
                 setRequired = true;
             }
-            LOGINFO("%s: updateAVoutputTVParamToHALV2 ret %d \n", __FUNCTION__, ret);
             switch (pqParamIndex)
             {
                 case PQ_PARAM_BRIGHTNESS:
