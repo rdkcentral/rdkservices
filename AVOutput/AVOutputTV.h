@@ -392,7 +392,11 @@ class AVOutputTV : public AVOutputBase {
 		void broadcastLowLatencyModeChangeEvent(bool lowLatencyMode);
 		tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
 		tvError_t setDefaultAspectRatio(std::string pqmode="none",std::string format="none",std::string source="none");
-
+		template <typename T>
+		static int getEnumFromString(const std::map<std::string, int>& reverseMap, const std::string& key, T defaultVal) {
+			auto it = reverseMap.find(key);
+			return (it != reverseMap.end()) ? it->second : defaultVal;
+		}
 		tvError_t ReadJsonFile(JsonObject& root);
 		tvError_t ExtractContextCaps(const JsonObject& data, tvContextCaps_t** context_caps);
 		tvError_t ExtractRangeInfo(const JsonObject& data, int* max_value);
@@ -424,21 +428,24 @@ class AVOutputTV : public AVOutputBase {
 		std::vector<tvVideoSrcType_t> extractVideoSources(const JsonObject& parameters);
 		std::vector<tvVideoFormatType_t> extractVideoFormats(const JsonObject& parameters);
 		static bool isGlobalParam(const JsonArray& arr);
+		typedef tvError_t (*tvSetFunction)(int);
 		int updateAVoutputTVParamV2(std::string action, std::string tr181ParamName,
-			const JsonObject& parameters, tvPQParameterIndex_t pqParamIndex, int level);
+			const JsonObject& parameters, tvPQParameterIndex_t pqParamIndex, bool &setRequired, int level);
 		std::vector<tvConfigContext_t> getValidContextsFromParameters(const JsonObject& parameters,const std::string& tr181ParamName );
 		uint32_t resetPQParamV2(const JsonObject& parameters, JsonObject& response,
 			const std::string& paramName,
 			tvPQParameterIndex_t pqIndex,
-			std::function<tvError_t(int)> halSetter);
+			tvSetFunction halSetter);
 		bool getPQParamV2(const JsonObject& parameters,
 				JsonObject& response,
 				const std::string& paramName,
 				tvContextCaps_t*& capStore,
 				int& maxCap,
 				tvPQParameterIndex_t paramType);
-		typedef tvError_t (*tvSetFunction)(int);
-		uint32_t setPQParamV2(const JsonObject& parameters, JsonObject& response, const std::string& paramName, tvPQParameterIndex_t pqType, tvSetFunction setFunc, int maxCap);
+		uint32_t setPQParamV2(const JsonObject& parameters, JsonObject& response, const std::string& paramName, tvPQParameterIndex_t pqType, tvSetFunction halSetter, int maxCap);
+		uint32_t setPictureModeV2(const JsonObject& parameters, JsonObject& response);
+		tvError_t updateAVoutputTVParamToHALV2(std::string forParam, paramIndex_t indexInfo, int value, bool setNotDelete);
+
 
 	public:
 		int m_currentHdmiInResoluton;
@@ -542,6 +549,18 @@ class AVOutputTV : public AVOutputBase {
 		static const std::map<int, std::string> pqModeMap;
 		static const std::map<int, std::string> videoFormatMap;
 		static const std::map<int, std::string> videoSrcMap;
+		// Reverse maps
+		static const std::map<std::string, int> pqModeReverseMap;
+		static const std::map<std::string, int> videoFormatReverseMap;
+		static const std::map<std::string, int> videoSrcReverseMap;
+
+		std::string convertPictureIndexToStringV2(int pqmode);
+		std::string convertVideoFormatToStringV2(int format);
+		std::string convertSourceIndexToStringV2(int source);
+
+		uint32_t generateStorageIdentifierV2(std::string &key, std::string forParam, paramIndex_t info);
+		void generateStorageIdentifierCMSV2(std::string &key, std::string forParam, paramIndex_t info);
+		void generateStorageIdentifierWBV2(std::string &key, std::string forParam, paramIndex_t info);
 		
 		AVOutputTV();
 		~AVOutputTV();
