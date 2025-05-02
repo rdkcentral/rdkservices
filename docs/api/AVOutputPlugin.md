@@ -22,7 +22,7 @@ A org.rdk.AVOutput plugin for Thunder framework.
 <a name="Description"></a>
 # Description
 
-The AVOutput plugin lets you control the picture properties. It provides flexibility to modify picture properties per picture mode, source and format to the application.The `AVOutput` API replaces `ControlSettings` plugin.
+The AVOutput plugin lets you control the picture properties. It provides flexibility to modify picture properties per picture mode, source and format to the application. The `AVOutput` plugin replaces `ControlSettings` plugin.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 

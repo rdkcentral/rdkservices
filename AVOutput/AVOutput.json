@@ -4,7 +4,7 @@
     "info": {
         "title": "AVOutput API",
         "class": "AVOutput",
-        "description": "The AVOutput plugin lets you control the picture properties. It provides flexibility to modify picture properties per picture mode, source and format to the application.The `AVOutput` API replaces `ControlSettings` plugin."
+        "description": "The AVOutput plugin lets you control the picture properties. It provides flexibility to modify picture properties per picture mode, source and format to the application. The `AVOutput` plugin replaces `ControlSettings` plugin."
     },
     "common": {
         "$ref": "../common/common.json"
