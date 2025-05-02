@@ -3395,7 +3395,7 @@ namespace Plugin {
     uint32_t AVOutputTV::setPictureMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-        if (1) //(m_pictureModeStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        if (m_pictureModeStatus == tvERROR_OPERATION_NOT_SUPPORTED)
         {
             capDetails_t inputInfo;
             char prevmode[PIC_MODE_NAME_MAX]={0};
@@ -3482,10 +3482,7 @@ namespace Plugin {
         }
         else
         {
-#if REVIEW_PENDING
-            setPictureModeV2(parameters, response);
-#endif
-            returnResponse(true);
+            return setPictureModeV2(parameters, response);
         }
     }
 
