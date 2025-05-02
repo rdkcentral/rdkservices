@@ -64,7 +64,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 42
+#define API_VERSION_NUMBER_PATCH 43
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 #define PROC_DIR "/proc"
@@ -2263,8 +2263,8 @@ namespace WPEFramework
          */
         bool MaintenanceManager::stopMaintenanceTasks()
         {
-	    MM_LOGINFO("Request for stopMaintenance()");
-	    string codeDLtask;
+            MM_LOGINFO("Request for stopMaintenance()");
+            string codeDLtask;
             int k_ret = EINVAL;
             int i = 0;
             bool task_status[3] = {false};
@@ -2275,6 +2275,7 @@ namespace WPEFramework
             m_statusMutex.lock();
             if (MAINTENANCE_STARTED == m_notify_status)
             {
+                MM_LOGINFO("Stopping maintenance activities");
                 // Set the condition flag m_abort_flag to true
                 m_abort_flag = true;
 
@@ -2286,55 +2287,55 @@ namespace WPEFramework
                 task_status[1] = task_status_FWDLD->second;
                 task_status[2] = task_status_LOGUPLD->second;
 
-                for (i=0; i<3; i++)
+                for (i = 0; i < 3; i++)
                 {
-                    MM_LOGINFO("Task status [%d]  = %s Task Name %s",i,(task_status[i])? "true":"false",task_names[i].c_str());
+                    MM_LOGINFO("Task status [%d]  = %s Task Name %s", i, (task_status[i]) ? "true" : "false", task_names[i].c_str());
                 }
-                for (i=0; i<3; i++)
+                for (i = 0; i < 3; i++)
                 {
-                    if(task_status[i])
+                    if (task_status[i])
                     {
-                        k_ret = abortTask(task_names[i].c_str() ); // default signal is SIGABRT
-                        if( k_ret == 0 ) 
-                        {   // if task(s) was(were) killed successfully ...                    
-                            m_task_map[task_names_foreground[i].c_str()]=false; // set it to false 
+                        k_ret = abortTask(task_names[i].c_str()); // default signal is SIGABRT
+                        if (k_ret == 0)
+                        {                                                         // if task(s) was(were) killed successfully ...
+                            m_task_map[task_names_foreground[i].c_str()] = false; // set it to false
                         }
                         /* No need to loop again */
                         break;
                     }
                     else
                     {
-                        MM_LOGINFO("Task[%d] is false",i);
+                        MM_LOGINFO("Task[%d] is false", i);
                     }
                 }
-                result=true;
-            }
-            else
-            {
-                MM_LOGERR("Failed to stopMaintenance without starting maintenance");
-            }
-	    if (task_stopTimer())
-            {
-                MM_LOGINFO("Stopped Timer Successfully");
-            }
-            else
-            {
-                MM_LOGERR("task_stopTimer() did not stop the Timer");
-            }
-            task_thread.notify_one();
-            if(m_thread.joinable())
-            {
-                m_thread.join();
-                MM_LOGINFO("Thread joined successfully");
-            }
+                result = true;
+                if (task_stopTimer())
+                {
+                    MM_LOGINFO("Stopped Timer Successfully");
+                }
+                else
+                {
+                    MM_LOGERR("task_stopTimer() did not stop the Timer");
+                }
+                task_thread.notify_one();
+                if (m_thread.joinable())
+                {
+                    m_thread.join();
+                    MM_LOGINFO("Thread joined successfully");
+                }
 
-            if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete)
-            {
-                g_unsolicited_complete = true;
+                if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete)
+                {
+                    g_unsolicited_complete = true;
+                }
+
+                MM_LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR");
+                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
             }
-            
-            MM_LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR");
-            MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
+            else
+            {
+                MM_LOGINFO("Maintenance Status is not MAINTENANCE_STARTED, Hence can not stop the Maintenance execution");
+            }
             m_statusMutex.unlock();
             return result;
         }
