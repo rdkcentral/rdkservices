@@ -242,6 +242,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getZoomModeCapsV2)
 		DECLARE_JSON_RPC_METHOD(getDVCalibrationCaps)
 		DECLARE_JSON_RPC_METHOD(getPictureModeCapsV2)
+		DECLARE_JSON_RPC_METHOD(getAutoBacklightModeCapsV2)
 
 		/*Set API's*/
 		DECLARE_JSON_RPC_METHOD(setBacklight)
@@ -417,6 +418,8 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t GetAspectRatioCaps(tvDisplayMode_t** aspect_ratio, size_t* num_aspect_ratio, tvContextCaps_t** context_caps);
 		tvError_t GetDVCalibrationCaps(tvDVCalibrationSettings_t **min_values, tvDVCalibrationSettings_t **max_values, tvContextCaps_t **context_caps);
 		tvError_t GetTVPictureModeCaps(tvPQModeIndex_t** mode, size_t* num_pic_modes, tvContextCaps_t** context_caps);
+		tvError_t GetBacklightModeCaps(tvBacklightMode_t** backlight_mode, size_t* num_backlight_mode, tvContextCaps_t** context_caps);
+
 		uint32_t getCapsV2(
 			const std::function<tvError_t(tvContextCaps_t**, int*)>& getCapsFunc,
 			const char* key,
@@ -527,6 +530,11 @@ class AVOutputTV : public AVOutputBase {
         size_t m_numPictureModes = 0;
         tvContextCaps_t* m_pictureModeCaps = nullptr;
 		tvError_t m_pictureModeStatus = tvERROR_NONE;
+
+        tvBacklightMode_t* m_backlightModes = nullptr;
+        size_t m_numBacklightModes = 0;
+        tvContextCaps_t* m_backlightModeCaps = nullptr;
+		tvError_t m_backlightModeStatus = tvERROR_NONE;
 
 		tvSdrGamma_t* m_sdrGammaModes = nullptr;
 		size_t m_numsdrGammaModes = 0;

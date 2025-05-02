@@ -372,6 +372,7 @@ namespace Plugin {
         registerMethod("getZoomModeCapsV2", &AVOutputTV::getZoomModeCapsV2, this);
         registerMethod("getDVCalibrationCaps", &AVOutputTV::getDVCalibrationCaps, this);
         registerMethod("getPictureModeCapsV2", &AVOutputTV::getPictureModeCapsV2, this);
+        registerMethod("getAutoBacklightModeCapsV2", &AVOutputTV::getAutoBacklightModeCapsV2, this);
 
         LOGINFO("Exit\n");
     }
@@ -853,44 +854,59 @@ namespace Plugin {
     }
 
     uint32_t AVOutputTV::getPictureModeCapsV2(const JsonObject& parameters, JsonObject& response) {
-        tvPQModeIndex_t* modes = nullptr;
-        size_t num_pic_modes = 0;
-        tvContextCaps_t* context_caps = nullptr;
-
-        tvError_t err = GetTVPictureModeCaps(&modes, &num_pic_modes, &context_caps);
-        if (err != tvERROR_NONE) {
-            return err;
-        }
-
         JsonObject pictureModeJson;
         JsonObject rangeInfo;
         JsonArray optionsArray;
 
-        for (size_t i = 0; i < num_pic_modes; ++i) {
-            switch (modes[i]) {
-                case PQ_MODE_STANDARD: optionsArray.Add("Standard"); break;
-                case PQ_MODE_VIVID: optionsArray.Add("Vivid"); break;
-                case PQ_MODE_ENERGY_SAVING: optionsArray.Add("EnergySaving"); break;
-                case PQ_MODE_CUSTOM: optionsArray.Add("Custom"); break;
-                case PQ_MODE_THEATER: optionsArray.Add("Theater"); break;
-                case PQ_MODE_GAME: optionsArray.Add("Game"); break;
-                case PQ_MODE_SPORTS: optionsArray.Add("Sports"); break;
-                case PQ_MODE_AIPQ: optionsArray.Add("AI PQ"); break;
-                case PQ_MODE_DARK: optionsArray.Add("Dark"); break;
-                case PQ_MODE_BRIGHT: optionsArray.Add("Bright"); break;
-                case PQ_MODE_DVIQ: optionsArray.Add("IQ"); break;
-                default: break; // Skip invalid/unsupported modes
+        for (size_t i = 0; i < m_numPictureModes; ++i) {
+            auto it = pqModeMap.find(m_pictureModes[i]);
+            if (it != pqModeMap.end()) {
+                optionsArray.Add(it->second);
             }
         }
 
         rangeInfo["options"] = optionsArray;
         pictureModeJson["rangeInfo"] = rangeInfo;
         pictureModeJson["platformSupport"] = true;
-        pictureModeJson["context"] = parseContextCaps(context_caps);  // Assuming same parser works
-
+        pictureModeJson["context"] = parseContextCaps(m_pictureModeCaps);
         response["PictureMode"] = pictureModeJson;
 
-        free(modes);
+        free(m_pictureModes);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getAutoBacklightModeCapsV2(const JsonObject& parameters, JsonObject& response)
+    {
+        JsonObject backlightModeJson;
+        JsonObject rangeInfo;
+        JsonArray optionsArray;
+
+        for (size_t i = 0; i < m_numBacklightModes; ++i) {
+            switch (m_backlightModes[i]) {
+                case tvBacklightMode_MANUAL:
+                    optionsArray.Add("Manual");
+                    break;
+                case tvBacklightMode_AMBIENT:
+                    optionsArray.Add("Ambient");
+                    break;
+                case tvBacklightMode_ECO:
+                    optionsArray.Add("Eco");
+                    break;
+                default:
+                    LOGINFO("Unknown backlightMode option \n");
+                    break;
+            }
+        }
+
+        rangeInfo["options"] = optionsArray;
+        backlightModeJson["rangeInfo"] = rangeInfo;
+        backlightModeJson["platformSupport"] = true;
+
+        // parseContextCaps is assumed to convert tvContextCaps_t* to JsonObject
+        backlightModeJson["context"] = parseContextCaps(m_backlightModeCaps);
+        response["BacklightMode"] = backlightModeJson;
+
+        free(m_backlightModes);
         returnResponse(true);
     }
 

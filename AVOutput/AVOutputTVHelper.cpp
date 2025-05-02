@@ -952,7 +952,6 @@ namespace Plugin {
     {
         tvError_t ret = tvERROR_NONE;
         std::string key;
-        LOGINFO("%s Entry\n", __FUNCTION__);
 
         // Generate storage key based on parameter type
         if (forParam == "CMS")
@@ -1355,6 +1354,8 @@ namespace Plugin {
 
         //PictureMode
         m_pictureModeStatus = GetTVPictureModeCaps(&m_pictureModes, &m_numPictureModes, &m_pictureModeCaps);
+        //Ambient Bakclight Mode
+        m_backlightModeStatus = GetBacklightModeCaps(&m_backlightModes, &m_numBacklightModes, &m_backlightModeCaps);
         //AspectRatio
         m_aspectRatioStatus = GetAspectRatioCaps(&m_aspectRatio, &m_numAspectRatio, &m_aspectRatioCaps);
 
@@ -2439,7 +2440,7 @@ namespace Plugin {
         {PQ_MODE_SPORTS, "Sports"},
         {PQ_MODE_THEATER, "Theater"},
         {PQ_MODE_GAME, "Game"},
-        {PQ_MODE_DVIQ, "IQ"},
+        {PQ_MODE_IQ, "IQ"},
         {PQ_MODE_DARK, "Dark"},
         {PQ_MODE_BRIGHT, "Bright"},
         {PQ_MODE_AIPQ, "AI PQ"},
@@ -3249,7 +3250,7 @@ tvError_t AVOutputTV::GetTVPictureModeCaps(tvPQModeIndex_t** mode, size_t* num_p
         else if (modeStr == "AI PQ") (*mode)[i] = PQ_MODE_AIPQ;
         else if (modeStr == "Dark") (*mode)[i] = PQ_MODE_DARK;
         else if (modeStr == "Bright") (*mode)[i] = PQ_MODE_BRIGHT;
-        else if (modeStr == "IQ") (*mode)[i] = PQ_MODE_DVIQ;
+        else if (modeStr == "IQ") (*mode)[i] = PQ_MODE_IQ;
         else (*mode)[i] = PQ_MODE_INVALID;
     }
 
@@ -3260,6 +3261,57 @@ tvError_t AVOutputTV::GetTVPictureModeCaps(tvPQModeIndex_t** mode, size_t* num_p
 
     return tvERROR_NONE;
 }
+tvError_t AVOutputTV::GetBacklightModeCaps(tvBacklightMode_t** backlight_mode, size_t* num_backlight_mode, tvContextCaps_t** context_caps)
+{
+    LOGINFO("Entry\n");
+
+    JsonObject root;
+    if (ReadJsonFile(root) != tvERROR_NONE) {
+        return tvERROR_GENERAL;
+    }
+
+    std::string key = "BacklightMode";
+    if (!root.HasLabel(key.c_str())) {
+        LOGWARN("AVOutputPlugins: %s: Missing '%s' label", __FUNCTION__, key.c_str());
+        return tvERROR_GENERAL;
+    }
+
+    JsonObject data = root[key.c_str()].Object();
+    if (!data.HasLabel("platformSupport") || !data["platformSupport"].Boolean()) {
+        LOGWARN("AVOutputPlugins: %s: Platform support is false", __FUNCTION__);
+        return tvERROR_OPERATION_NOT_SUPPORTED;
+    }
+
+    JsonObject rangeInfo = data["rangeInfo"].Object();
+    JsonArray optionsArray = rangeInfo["options"].Array();
+
+    *num_backlight_mode = optionsArray.Length();
+    *backlight_mode = static_cast<tvBacklightMode_t*>(malloc(*num_backlight_mode * sizeof(tvBacklightMode_t)));
+    if (!(*backlight_mode)) {
+        return tvERROR_GENERAL;
+    }
+
+    for (size_t i = 0; i < *num_backlight_mode; ++i) {
+        std::string modeStr = optionsArray[i].String();
+        if (modeStr == "Manual") {
+            (*backlight_mode)[i] = tvBacklightMode_MANUAL;
+        } else if (modeStr == "Ambient") {
+            (*backlight_mode)[i] = tvBacklightMode_AMBIENT;
+        } else if (modeStr == "Eco") {
+            (*backlight_mode)[i] = tvBacklightMode_ECO;
+        }else {
+            (*backlight_mode)[i] = tvBacklightMode_INVALID;
+        }
+    }
+
+    if (ExtractContextCaps(data, context_caps) != tvERROR_NONE) {
+        free(*backlight_mode);
+        return tvERROR_GENERAL;
+    }
+
+    return tvERROR_NONE;
+}
+
 
 /*
 tvError_t GetColorTemperatureCaps(char*** options, size_t* options_count, tvContextCaps_t** context_caps);
