@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.1] - 2025-03-25
+### Added
+- Correct array of pointers usage in GetTVSupported API
+
 ## [1.1.0] - 2025-03-14
 ### Added
 - Add additional features on AVOutput
