@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.42] - 2025-04-15
+### Added
+- Added streamlined logging to journal from MaintenanceManager using Systemd journal API.
+
 ## [1.0.41] - 2025-03-06
 ### Added
 - Added reliable Maintenance Task Status handling and reporting
