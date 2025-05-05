@@ -363,6 +363,8 @@ class AVOutputTV : public AVOutputBase {
 
 		void getDimmingModeStringFromEnum(int value, std::string &toStore);
 		void getColorTempStringFromEnum(int value, std::string &toStore);
+		void getDisplayModeStringFromEnum(int value, std::string &toStore);
+
 		int getCurrentPictureMode(char *picMode);
 		int getDolbyParamToSync(int sourceIndex, int formatIndex, int& value);
 		tvDolbyMode_t GetDolbyVisionEnumFromModeString(const char* modeString);
@@ -432,13 +434,15 @@ class AVOutputTV : public AVOutputBase {
 		std::vector<tvVideoFormatType_t> extractVideoFormats(const JsonObject& parameters);
 		static bool isGlobalParam(const JsonArray& arr);
 		typedef tvError_t (*tvSetFunction)(int);
-		int updateAVoutputTVParamV2(std::string action, std::string tr181ParamName,
-			const JsonObject& parameters, tvPQParameterIndex_t pqParamIndex, bool &setRequired, int level);
+		JsonArray getJsonArrayIfArray(const JsonObject& obj, const std::string& key);
+			int updateAVoutputTVParamV2(std::string action, std::string tr181ParamName,
+			const JsonObject& parameters, tvPQParameterIndex_t pqParamIndex, int level);
 		std::vector<tvConfigContext_t> getValidContextsFromParameters(const JsonObject& parameters,const std::string& tr181ParamName );
 		uint32_t resetPQParamV2(const JsonObject& parameters, JsonObject& response,
 			const std::string& paramName,
 			tvPQParameterIndex_t pqIndex,
 			tvSetFunction halSetter);
+		tvConfigContext_t getValidContextFromGetParameters(const JsonObject& parameters, const std::string& paramName);
 		bool getPQParamV2(const JsonObject& parameters,
 				JsonObject& response,
 				const std::string& paramName,
@@ -447,6 +451,12 @@ class AVOutputTV : public AVOutputBase {
 				tvPQParameterIndex_t paramType);
 		uint32_t setPQParamV2(const JsonObject& parameters, JsonObject& response, const std::string& paramName, tvPQParameterIndex_t pqType, tvSetFunction halSetter, int maxCap);
 		uint32_t setPictureModeV2(const JsonObject& parameters, JsonObject& response);
+		std::string getCurrentPictureModeAsString();
+		std::string getCurrentVideoFormatAsString();
+		std::string getCurrentVideoSourceAsString();
+		std::vector<std::string> resolveValue(const std::string& val, std::string (AVOutputTV::*resolver)());
+		bool isSetRequiredForParam(const std::string& paramName, const JsonObject& parameters);
+		tvContextCaps_t* getCapsForParam(const std::string& paramName);
 		tvError_t updateAVoutputTVParamToHALV2(std::string forParam, paramIndex_t indexInfo, int value, bool setNotDelete);
 
 

@@ -512,19 +512,19 @@ namespace Plugin {
         int& maxCap,
         tvPQParameterIndex_t paramType)
     {
-        std::vector<tvConfigContext_t> validContexts = getValidContextsFromParameters(parameters, paramName);
-        if (validContexts.empty())
+        tvConfigContext_t validContext = getValidContextFromGetParameters(parameters, paramName);
+        if ((validContext.videoSrcType == VIDEO_SOURCE_ALL &&
+            validContext.videoFormatType == VIDEO_FORMAT_NONE &&
+            validContext.pq_mode == PQ_MODE_INVALID))
         {
-            LOGERR("%s: No valid context found for the given parameters", __FUNCTION__);
+            LOGWARN("No Valid context for get %s",paramName.c_str());
             return false;
         }
-
-        const auto& ctx = validContexts.front();
         paramIndex_t indexInfo
         {
-            .sourceIndex = static_cast<uint8_t>(ctx.videoSrcType),
-            .pqmodeIndex = static_cast<uint8_t>(ctx.pq_mode),
-            .formatIndex = static_cast<uint8_t>(ctx.videoFormatType)
+            .sourceIndex = static_cast<uint8_t>(validContext.videoSrcType),
+            .pqmodeIndex = static_cast<uint8_t>(validContext.pq_mode),
+            .formatIndex = static_cast<uint8_t>(validContext.videoFormatType)
         };
 
         int value = 0;
@@ -533,7 +533,6 @@ namespace Plugin {
             response[paramName.c_str()] = value;
             return true;
         }
-
         LOGERR("getLocalparam failed for %s with error code %d", paramName.c_str(), err);
         return false;
     }
@@ -542,8 +541,7 @@ namespace Plugin {
     {
         LOGINFO("Entry: %s\n", paramName.c_str());
         int paramValue = 0;
-        bool setRequired = false;
-
+        tvError_t ret = tvERROR_NONE;
         std::string value = "";
         std::string lowerParamName = paramName;
         std::transform(lowerParamName.begin(), lowerParamName.end(), lowerParamName.begin(), ::tolower);
@@ -562,23 +560,27 @@ namespace Plugin {
             LOGERR("Input value %d is out of range (0 - %d) for %s", paramValue, maxCap, paramName.c_str());
             returnResponse(false);
         }
-
-        // Update the TV parameter
-        LOGINFO("Updating AVOutputTVParamV2 for %s\n", paramName.c_str());
-        int retval = updateAVoutputTVParamV2("set", paramName, parameters, pqType,setRequired, paramValue);
-        if (retval != 0) {
-            LOGERR("Failed to Save %s to ssm_data. retval: %d\n", paramName.c_str(), retval);
+        if( isSetRequiredForParam(paramName, parameters) ) {
+            LOGINFO("Proceed with set%s\n", paramName.c_str());
+            ret = halSetter(paramValue);
+        }
+        if(ret != tvERROR_NONE) {
+            LOGERR("Failed to set set%s\n", paramName.c_str());
             returnResponse(false);
         }
-        if(setRequired)
+        else
         {
-            tvError_t ret = halSetter(paramValue);
-            if (ret != tvERROR_NONE) {
+            LOGINFO("Updating AVOutputTVParamV2 for %s\n", paramName.c_str());
+            int retval = updateAVoutputTVParamV2("set", paramName, parameters, pqType, paramValue);
+            if(retval != 0 )
+            {
+                LOGERR("Failed to Save %s to ssm_data. retval: %d\n", paramName.c_str(), retval);
                 returnResponse(false);
             }
+            LOGINFO("Exit: set%s successful to value: %d\n", paramName.c_str(), paramValue);
+            returnResponse(true);
         }
-        LOGINFO("Exit: set%s successful to value: %d\n", paramName.c_str(), paramValue);
-        returnResponse(true);
+
     }
 
     uint32_t AVOutputTV::getCapsV2(
@@ -902,7 +904,6 @@ namespace Plugin {
         backlightModeJson["rangeInfo"] = rangeInfo;
         backlightModeJson["platformSupport"] = true;
 
-        // parseContextCaps is assumed to convert tvContextCaps_t* to JsonObject
         backlightModeJson["context"] = parseContextCaps(m_backlightModeCaps);
         response["BacklightMode"] = backlightModeJson;
 
@@ -1079,29 +1080,28 @@ namespace Plugin {
                 returnResponse(false);
             }
             tvDisplayMode_t mode = it->second;
-            bool setRequired = false;
-            // Save DisplayMode to local store and ssm_data
-            int retval = updateAVoutputTVParamV2("set", "AspectRatio", parameters, PQ_PARAM_ASPECT_RATIO,setRequired, mode);
-            if (retval != 0) {
-                LOGERR("Failed to Save DisplayMode to ssm_data\n");
+            tvError_t ret = setAspectRatioZoomSettings(mode);
+            if (ret != tvERROR_NONE) {
                 returnResponse(false);
             }
-            if(setRequired)
+            else
             {
-                tvError_t ret = setAspectRatioZoomSettings(mode);
-                if (ret != tvERROR_NONE) {
+                // Save DisplayMode to local store and ssm_data
+                int retval = updateAVoutputTVParamV2("set", "AspectRatio", parameters, PQ_PARAM_ASPECT_RATIO, mode);
+                if (retval != 0) {
+                    LOGERR("Failed to Save DisplayMode to ssm_data\n");
                     returnResponse(false);
                 }
+                tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_ASPECTRATIO_RFC_PARAM, value.c_str());
+                if (err != tr181Success) {
+                    LOGERR("setLocalParam for %s Failed : %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
+                    returnResponse(false);
+                } else {
+                    LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, value.c_str());
+                }
+                LOGINFO("Exit : SetAspectRatio() value : %s\n", value.c_str());
+                returnResponse(true);
             }
-            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_ASPECTRATIO_RFC_PARAM, value.c_str());
-            if (err != tr181Success) {
-                LOGERR("setLocalParam for %s Failed : %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
-                returnResponse(false);
-            } else {
-                LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, value.c_str());
-            }
-            LOGINFO("Exit : SetAspectRatio() value : %s\n", value.c_str());
-            returnResponse(true);
         }
     }
 
@@ -1348,17 +1348,17 @@ namespace Plugin {
         paramIndex_t indexInfo;
         int level = 0;
         tvError_t ret = tvERROR_NONE;
-        bool setRequired = false;
+
         // Save reset state using V2 path
         LOGINFO("Updating AVOutputTVParamV2 for: %s\n", paramName.c_str());
-        int retval = updateAVoutputTVParamV2("reset", paramName, parameters, pqIndex, setRequired,level);
+        int retval = updateAVoutputTVParamV2("reset", paramName, parameters, pqIndex, level);
         if (retval != 0)
         {
             LOGERR("Failed to update %s via updateAVoutputTVParamV2. retval: %d\n", paramName.c_str(), retval);
             returnResponse(false);
         }
         // If update succeeded, apply value from local config to HAL
-        if (setRequired)
+        if (isSetRequiredForParam(paramName, parameters))
         {
             inputInfo.pqmode = "Current";
             inputInfo.source = "Current";
@@ -2591,37 +2591,42 @@ namespace Plugin {
         else
         {
             LOGINFO("Entry: setColorTemperatureV2\n");
+            tvError_t ret = tvERROR_NONE;
             std::string key = "colorTemperature";
             if (!parameters.HasLabel(key.c_str())) {
                 LOGERR("Missing parameter: %s", key.c_str());
                 returnResponse(false);
             }
-
             std::string value = parameters[key.c_str()].String();
             auto it = colorTempMap.find(value);
             if (it == colorTempMap.end()) {
                 LOGERR("Invalid colorTemperature: %s", value.c_str());
                 returnResponse(false);
             }
-
             int colorTempValue = it->second;
-            bool setRequired = false;
-            // Update the TV parameter
-            LOGINFO("Updating AVOutputTVParamV2 for ColorTemperature %d", colorTempValue);
-            int retval = updateAVoutputTVParamV2("set", "ColorTemp", parameters, PQ_PARAM_COLOR_TEMPERATURE,setRequired, colorTempValue);
-            if (retval != 0) {
-                LOGERR("Failed to Save ColorTemperature to ssm_data\n");
+            if( isSetRequiredForParam("ColorTemp", parameters))
+            {
+                LOGINFO("Proceed with %s\n",__FUNCTION__);
+                ret = SetColorTemperature((tvColorTemp_t)colorTempValue);
+            }
+            if(ret != tvERROR_NONE)
+            {
+                LOGERR("Failed to set ColorTemperature\n");
                 returnResponse(false);
             }
-            if(setRequired)
+            else
             {
-                tvError_t ret = SetColorTemperature((tvColorTemp_t)colorTempValue);
-                if (ret != tvERROR_NONE) {
+                // Update the TV parameter
+                LOGINFO("Updating AVOutputTVParamV2 for ColorTemperature %d", colorTempValue);
+                int retval = updateAVoutputTVParamV2("set", "ColorTemp", parameters, PQ_PARAM_COLOR_TEMPERATURE, colorTempValue);
+                if (retval != 0)
+                {
+                    LOGERR("Failed to Save ColorTemperature to ssm_data\n");
                     returnResponse(false);
                 }
+                LOGINFO("Exit : setColorTemperature successful to value: %d\n", colorTempValue);
+                returnResponse(true);
             }
-            LOGINFO("Exit : setColorTemperature successful to value: %d\n", colorTempValue);
-            returnResponse(true);
         }
     }
 
@@ -2835,24 +2840,25 @@ namespace Plugin {
                 LOGERR("Input value %d is out of range (0 - %d) for DimmingMode", dimmingMode, tvDimmingMode_MAX);
                 returnResponse(false);
             }
-
-            // Update the TV parameter
-            bool setRequired = false;
-            int retval = updateAVoutputTVParamV2("set", "DimmingMode", parameters, PQ_PARAM_DIMMINGMODE,setRequired, (int)dimmingMode);
-            if (retval != 0) {
-                LOGERR("Failed to Save DimmingMode to ssm_data. retval: %d \n", retval);
+            if( isSetRequiredForParam("DimmingMode", parameters) ) {
+                LOGINFO("Proceed with %s\n",__FUNCTION__);
+                ret = SetTVDimmingMode(value.c_str());
+            }
+            if(ret != tvERROR_NONE) {
+                LOGERR("Failed to set DimmingMode\n");
                 returnResponse(false);
             }
-            if(setRequired)
+            else
             {
-                ret = SetTVDimmingMode(value.c_str());
-                if (ret != tvERROR_NONE) {
-                    LOGERR("Failed halSetter SetTVDimmingMode \n");
+                // Update the TV parameter
+                int retval = updateAVoutputTVParamV2("set", "DimmingMode", parameters, PQ_PARAM_DIMMINGMODE, (int)dimmingMode);
+                if (retval != 0) {
+                    LOGERR("Failed to Save DimmingMode to ssm_data. retval: %d \n", retval);
                     returnResponse(false);
                 }
+                LOGINFO("Exit : setDimmingMode successful to value: %d \n", dimmingMode);
+                returnResponse(true);
             }
-            LOGINFO("Exit : setDimmingMode successful to value: %d \n", dimmingMode);
-            returnResponse(true);
         }
     }
 
@@ -3321,35 +3327,81 @@ namespace Plugin {
     uint32_t AVOutputTV::getPictureMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-        capDetails_t inputInfo;
-        paramIndex_t indexInfo;
-        std::string tr181_param_name;
-        TR181_ParamData_t param = {0};
-        tr181ErrorCode_t err = tr181Success;
+        if (m_pictureModeStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            paramIndex_t indexInfo;
+            std::string tr181_param_name;
+            TR181_ParamData_t param = {0};
+            tr181ErrorCode_t err = tr181Success;
 
-        if (parsingGetInputArgument(parameters, "PictureMode",inputInfo) != 0) {
-            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
-            returnResponse(false);
+            if (parsingGetInputArgument(parameters, "PictureMode",inputInfo) != 0) {
+                LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if (getParamIndex("PictureMode",inputInfo,indexInfo) == -1) {
+                LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+            tr181_param_name += "." + convertSourceIndexToString(indexInfo.sourceIndex) + "." + "Format."+convertVideoFormatToString(indexInfo.formatIndex)+"."+"PictureModeString";
+            err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
+
+            if ( tr181Success != err ) {
+                returnResponse(false);
+            }
+            else {
+                std::string s;
+                s+=param.value;
+                response["pictureMode"] = s;
+                LOGINFO("Exit : getPictureMode() : %s\n",s.c_str());
+                returnResponse(true);
+            }
         }
+        else
+        {
+            std::vector<tvConfigContext_t> validContexts = getValidContextsFromParameters(parameters, "PictureMode");
+            if (validContexts.empty())
+            {
+                LOGERR("%s: No valid context found for the given parameters", __FUNCTION__);
+                return false;
+            }
 
-        if (getParamIndex("PictureMode",inputInfo,indexInfo) == -1) {
-            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
-            returnResponse(false);
-        }
+            const auto& ctx = validContexts.front();
+            paramIndex_t indexInfo
+            {
+                .sourceIndex = static_cast<uint8_t>(ctx.videoSrcType),
+                .pqmodeIndex = static_cast<uint8_t>(ctx.pq_mode),
+                .formatIndex = static_cast<uint8_t>(ctx.videoFormatType)
+            };
+            std::string tr181_param_name;
+            TR181_ParamData_t param = {0};
+            tr181ErrorCode_t err = tr181Success;
 
-        tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-        tr181_param_name += "." + convertSourceIndexToString(indexInfo.sourceIndex) + "." + "Format."+convertVideoFormatToString(indexInfo.formatIndex)+"."+"PictureModeString";
-        err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
+            tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+            tr181_param_name += "." + convertSourceIndexToString(indexInfo.sourceIndex) + "." + "Format."+convertVideoFormatToString(indexInfo.formatIndex)+"."+"PictureModeString";
+            LOGINFO("Context: Source=%s, Format=%s",
+                convertSourceIndexToString(indexInfo.sourceIndex).c_str(),
+                convertVideoFormatToString(indexInfo.formatIndex).c_str());
+            LOGINFO("TR181 Param Name = %s", tr181_param_name.c_str());
+            LOGINFO("Calling getLocalParam...");
 
-        if ( tr181Success != err ) {
-            returnResponse(false);
-        }
-        else {
-            std::string s;
-            s+=param.value;
-            response["pictureMode"] = s;
-            LOGINFO("Exit : getPictureMode() : %s\n",s.c_str());
-            returnResponse(true);
+            err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
+            LOGINFO("getLocalParam returned: %d, value: %s", err, param.value);
+
+            if ( tr181Success != err ) {
+                returnResponse(false);
+            }
+            else {
+                std::string s;
+                s+=param.value;
+                response["pictureMode"] = s;
+                LOGINFO("Exit : getPictureMode() : %s\n",s.c_str());
+                returnResponse(true);
+            }
+
         }
     }
     uint32_t AVOutputTV::setPictureModeV2(const JsonObject& parameters, JsonObject& response)
@@ -3674,22 +3726,22 @@ namespace Plugin {
                 LOGERR("Input value %d is out of range (0 - %d) for LowLatencyState", lowLatencyIndex, m_maxLatency);
                 returnResponse(false);
             }
-            bool setRequired = false;
-            int retval= updateAVoutputTVParamV2("set","LowLatencyState",parameters,PQ_PARAM_LOWLATENCY_STATE,setRequired,lowLatencyIndex);
+
+            int retval= updateAVoutputTVParamV2("set","LowLatencyState",parameters,PQ_PARAM_LOWLATENCY_STATE,lowLatencyIndex);
             if(retval != 0 ) {
                 LOGERR("Failed to SaveLowLatency to ssm_data\n");
                 returnResponse(false);
             }
             else
             {
-                if(setRequired) {
-                LOGINFO("Proceed with setLowLatencyState\n");
-                ret = SetLowLatencyState( lowLatencyIndex );
+                if(isSetRequiredForParam("LowLatencyState",parameters))
+                {
+                    LOGINFO("Proceed with setLowLatencyState\n");
+                    ret = SetLowLatencyState( lowLatencyIndex );
                 }
-
                 if(ret != tvERROR_NONE) {
                     LOGERR("Failed to set low latency. Fallback to previous state %d\n", prevLowLatencyIndex);
-                    retval=updateAVoutputTVParamV2("set","LowLatencyState",parameters,PQ_PARAM_LOWLATENCY_STATE,setRequired, prevLowLatencyIndex);
+                    retval=updateAVoutputTVParamV2("set","LowLatencyState",parameters,PQ_PARAM_LOWLATENCY_STATE, prevLowLatencyIndex);
                     if(retval != 0 ){
                         LOGERR("Fallback to previous low latency state %d failed.\n", prevLowLatencyIndex);
                     }
