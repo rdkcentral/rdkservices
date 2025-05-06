@@ -1355,6 +1355,8 @@ namespace Plugin {
         m_backlightModeStatus = GetBacklightModeCaps(&m_backlightModes, &m_numBacklightModes, &m_backlightModeCaps);
         //AspectRatio
         m_aspectRatioStatus = GetAspectRatioCaps(&m_aspectRatio, &m_numAspectRatio, &m_aspectRatioCaps);
+        //LowLatencyState
+        m_lowLatencyStateStatus = GetLowLatencyStateCaps(&m_maxlowLatencyState, &m_lowLatencyStateCaps);
 
         // Sync CMS and WB
         syncCMSParams();
@@ -1779,13 +1781,13 @@ namespace Plugin {
 
     void AVOutputTV::getDimmingModeStringFromEnum(int value, std::string &toStore)
     {
-        const char *color_temp_string[] = {
+        const char *dimmingmode_string[] = {
                     [tvDimmingMode_Fixed] = "fixed",
                     [tvDimmingMode_Local] = "local",
                     [tvDimmingMode_Global] = "global",
                 };
         toStore.clear();
-        toStore+=color_temp_string[value];
+        toStore+=dimmingmode_string[value];
     }
 
     void AVOutputTV::getColorTempStringFromEnum(int value, std::string &toStore)
@@ -1815,7 +1817,7 @@ namespace Plugin {
         if (value >= 0 && value < tvDisplayMode_MAX && display_mode_string[value]) {
             toStore += display_mode_string[value];
         } else {
-            toStore += "Unknown";
+            toStore += "TV AUTO";
         }
     }
 
@@ -2394,7 +2396,7 @@ namespace Plugin {
             case tvColorTemp_WARM: return "Warm";
             case tvColorTemp_COLD: return "Cold";
 	    case tvColorTemp_USER : return "UserDefined";
-            default : return "Max";
+            default : return "Standard";
         }
     }
 
@@ -2483,6 +2485,11 @@ namespace Plugin {
         {VIDEO_SOURCE_HDMI3, "HDMI3"},
         {VIDEO_SOURCE_IP, "IP"},
         {VIDEO_SOURCE_TUNER, "Tuner"}
+    };
+    static const std::unordered_map<std::string, tvBacklightMode_t> backlightModeMap = {
+        { "Manual",  tvBacklightMode_MANUAL },
+        { "Ambient", tvBacklightMode_AMBIENT },
+        { "Eco",     tvBacklightMode_ECO }
     };
 
     const std::map<std::string, int> AVOutputTV::pqModeReverseMap = []{
@@ -2711,6 +2718,7 @@ namespace Plugin {
         else if (paramName == "DimmingMode") caps = m_dimmingModeCaps;
         else if (paramName == "PictureMode") caps = m_pictureModeCaps;
         else if (paramName == "AspectRatio") caps = m_aspectRatioCaps;
+        else if (paramName == "LowLatencyState") caps = m_lowLatencyStateCaps;
         else {
             LOGERR("Unknown tr181ParamName: %s", paramName.c_str());
             return nullptr;
@@ -3469,13 +3477,10 @@ tvError_t AVOutputTV::GetBacklightModeCaps(tvBacklightMode_t** backlight_mode, s
 
     for (size_t i = 0; i < *num_backlight_mode; ++i) {
         std::string modeStr = optionsArray[i].String();
-        if (modeStr == "Manual") {
-            (*backlight_mode)[i] = tvBacklightMode_MANUAL;
-        } else if (modeStr == "Ambient") {
-            (*backlight_mode)[i] = tvBacklightMode_AMBIENT;
-        } else if (modeStr == "Eco") {
-            (*backlight_mode)[i] = tvBacklightMode_ECO;
-        }else {
+        auto it = backlightModeMap.find(modeStr);
+        if (it != backlightModeMap.end()) {
+            (*backlight_mode)[i] = it->second;
+        } else {
             (*backlight_mode)[i] = tvBacklightMode_INVALID;
         }
     }

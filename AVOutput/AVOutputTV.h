@@ -438,19 +438,23 @@ class AVOutputTV : public AVOutputBase {
 			int updateAVoutputTVParamV2(std::string action, std::string tr181ParamName,
 			const JsonObject& parameters, tvPQParameterIndex_t pqParamIndex, int level);
 		std::vector<tvConfigContext_t> getValidContextsFromParameters(const JsonObject& parameters,const std::string& tr181ParamName );
-		uint32_t resetPQParamV2(const JsonObject& parameters, JsonObject& response,
+		bool resetPQParamV2(const JsonObject& parameters,
 			const std::string& paramName,
 			tvPQParameterIndex_t pqIndex,
 			tvSetFunction halSetter);
 		tvConfigContext_t getValidContextFromGetParameters(const JsonObject& parameters, const std::string& paramName);
 		bool getPQParamV2(const JsonObject& parameters,
-				JsonObject& response,
-				const std::string& paramName,
-				tvContextCaps_t*& capStore,
-				int& maxCap,
-				tvPQParameterIndex_t paramType);
-		uint32_t setPQParamV2(const JsonObject& parameters, JsonObject& response, const std::string& paramName, tvPQParameterIndex_t pqType, tvSetFunction halSetter, int maxCap);
-		uint32_t setPictureModeV2(const JsonObject& parameters, JsonObject& response);
+			const std::string& paramName,
+			tvContextCaps_t*& capStore,
+			int& maxCap,
+			tvPQParameterIndex_t paramType,
+			int& outValue);
+		bool setPQParamV2(const JsonObject& parameters, const std::string& paramName,
+					tvPQParameterIndex_t pqType, tvSetFunction halSetter, int maxCap);
+		bool setPictureModeV2(const JsonObject& parameters);
+		bool getBacklightDimmingModeV2(const JsonObject& parameters, std::string& outMode);
+		bool getColorTemperatureV2(const JsonObject& parameters, std::string& outMode);
+		bool getPictureModeV2(const JsonObject& parameters, std::string& outMode);
 		std::string getCurrentPictureModeAsString();
 		std::string getCurrentVideoFormatAsString();
 		std::string getCurrentVideoSourceAsString();
@@ -493,9 +497,9 @@ class AVOutputTV : public AVOutputBase {
 		tvContextCaps_t* m_hueCaps = nullptr;
 		tvError_t m_hueStatus = tvERROR_NONE;
 
-		int m_maxLatency = 0;
-		tvContextCaps_t* m_latencyCaps = nullptr;
-		tvError_t m_latencyStatus = tvERROR_NONE;
+		int m_maxlowLatencyState = 0;
+		tvContextCaps_t* m_lowLatencyStateCaps = nullptr;
+		tvError_t m_lowLatencyStateStatus = tvERROR_NONE;
 
 		int m_maxPrecision = 0;
 		tvContextCaps_t* m_presicionCaps = nullptr;
