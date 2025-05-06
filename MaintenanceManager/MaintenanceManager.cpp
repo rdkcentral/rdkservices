@@ -272,7 +272,11 @@ namespace WPEFramework
         bool MaintenanceManager::g_task_timerCreated = false;
 
         string task_names_foreground[] = {
+#ifdef ENABLE_RFC_MANAGER
+            "/usr/bin/rfcMgr >> /opt/logs/rfcscript.log",
+#else
             "/lib/rdk/Start_RFC.sh",
+#endif
             "/lib/rdk/swupdate_utility.sh",
             "/lib/rdk/Start_uploadSTBLogs.sh"
         };
@@ -292,7 +296,11 @@ namespace WPEFramework
         };
 
         string task_names[]={
+#ifdef ENABLE_RFC_MANAGER
+            "rfcMgr",
+#else
             "RFCbase.sh",
+#endif
             "swupdate_utility.sh",
             "uploadSTBLogs.sh"
         };
@@ -1049,14 +1057,13 @@ namespace WPEFramework
              MM_LOGINFO("Starting Critical Tasks");
              int rfc_task_status = -1;
              int xconf_imagecheck_status = -1;
- 
-             MM_LOGINFO("Starting /lib/rdk/Start_RFC.sh");
-             rfc_task_status = system("/lib/rdk/Start_RFC.sh &");
-             if (rfc_task_status != 0)
-             {
-                 MM_LOGINFO("Failed to run Start_RFC.sh with %d", WEXITSTATUS(rfc_task_status));
-             }
- 
+ #ifdef ENABLE_RFC_MANAGER
+            MM_LOGINFO("Starting Script /usr/bin/rfcMgr");
+            v_secure_system("/usr/bin/rfcMgr >> /opt/logs/rfcscript.log &");
+#else
+            MM_LOGINFO("Starting Script /lib/rdk/RFCbase.sh");
+            v_secure_system("/lib/rdk/RFCbase.sh &");
+#endif
              MM_LOGINFO("Starting /lib/rdk/xconfImageCheck.sh");
              xconf_imagecheck_status = system("/lib/rdk/xconfImageCheck.sh &");
              if (xconf_imagecheck_status != 0)
@@ -2389,6 +2396,12 @@ namespace WPEFramework
             MM_LOGINFO("PID of %s is %d", taskname , (int)pid_num);
             if(pid_num != -1)
             {
+#if defined(ENABLE_RFC_MANAGER)
+	        if (strstr(taskname, "rfcMgr")) {
+                    MM_LOGINFO("Sending SIGUSR1 signal to %s\n", taskname);
+                    k_ret = kill( pid_num, SIGUSR1 );
+		}
+#endif  		    
                 /* send the signal to task to terminate */
                 k_ret = kill( pid_num, sig_to_send );
                 MM_LOGINFO(" %s sent signal %d", taskname, sig_to_send);
