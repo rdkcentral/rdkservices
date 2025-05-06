@@ -20,7 +20,7 @@
 #pragma once
 
 #ifndef MODULE_NAME
-#define MODULE_NAME CryptographyDeviceObjects
+#define MODULE_NAME Plugin_CryptographyExtAccess
 #endif
 
 #include <plugins/plugins.h>

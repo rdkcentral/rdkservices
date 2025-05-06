@@ -26,7 +26,7 @@
 namespace WPEFramework {
 namespace Plugin {
 
-    class CryptographyDeviceObjects : public PluginHost::IPlugin {
+    class CryptographyExtAccess : public PluginHost::IPlugin {
     private:
         class Notification : public RPC::IRemoteConnection::INotification {
         public:
@@ -34,7 +34,7 @@ namespace Plugin {
             Notification(const Notification&) = delete;
             Notification& operator=(const Notification&) = delete;
 
-            explicit Notification(CryptographyDeviceObjects& parent)
+            explicit Notification(CryptographyExtAccess& parent)
                 : _parent(parent) {
             }
             ~Notification() override = default;
@@ -53,26 +53,25 @@ namespace Plugin {
             END_INTERFACE_MAP
 
         private:
-            CryptographyDeviceObjects& _parent;
+            CryptographyExtAccess& _parent;
         };
 
     public:
-        CryptographyDeviceObjects(const CryptographyDeviceObjects&) = delete;
-        CryptographyDeviceObjects& operator=(const CryptographyDeviceObjects&) = delete;
+        CryptographyExtAccess(const CryptographyExtAccess&) = delete;
+        CryptographyExtAccess& operator=(const CryptographyExtAccess&) = delete;
 
 PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
-        CryptographyDeviceObjects()
+        CryptographyExtAccess()
             : _connectionId(0)
             , _service(nullptr)
-            , _CryptographyDeviceObjects(nullptr)
+            , _implementation(nullptr)
             , _notification(*this) {
         }
 POP_WARNING()
-        ~CryptographyDeviceObjects() override = default;
+        ~CryptographyExtAccess() override = default;
 
-        BEGIN_INTERFACE_MAP(CryptographyDeviceObjects)
+        BEGIN_INTERFACE_MAP(CryptographyExtAccess)
             INTERFACE_ENTRY(PluginHost::IPlugin)
-            INTERFACE_AGGREGATE(Exchange::IDeviceObjects, _CryptographyDeviceObjects)
         END_INTERFACE_MAP
 
     public:
@@ -88,7 +87,7 @@ POP_WARNING()
     private:
         uint32_t _connectionId;
         PluginHost::IShell* _service;
-        Exchange::IConfiguration* _CryptographyDeviceObjects;
+        Exchange::IConfiguration* _implementation;
         Core::Sink<Notification> _notification;
     };
 
