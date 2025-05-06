@@ -461,7 +461,10 @@ class AVOutputTV : public AVOutputBase {
 		std::vector<std::string> resolveValue(const std::string& val, std::string (AVOutputTV::*resolver)());
 		bool isSetRequiredForParam(const std::string& paramName, const JsonObject& parameters);
 		tvContextCaps_t* getCapsForParam(const std::string& paramName);
+		bool isValidSource(const std::vector<std::string>& sourceArray, tvVideoSrcType_t sourceIndex);
+		bool isValidFormat(const std::vector<std::string>& formatArray, tvVideoFormatType_t formatIndex);
 		tvError_t updateAVoutputTVParamToHALV2(std::string forParam, paramIndex_t indexInfo, int value, bool setNotDelete);
+		bool resetPictureModeV2(const JsonObject& parameters);
 
 
 	public:

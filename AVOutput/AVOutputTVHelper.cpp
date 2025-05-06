@@ -948,6 +948,35 @@ namespace Plugin {
 
         return ret;
     }
+    // Helper to validate if the source is in the provided sourceArray
+    bool AVOutputTV::isValidSource(const std::vector<std::string>& sourceArray, tvVideoSrcType_t sourceIndex)
+    {
+        if (std::find(sourceArray.begin(), sourceArray.end(), "Current") != sourceArray.end()) {
+            return true; // If "Current" is passed, match the current source
+        }
+    
+        for (const auto& source : sourceArray) {
+            if (source == convertSourceIndexToString(sourceIndex)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    // Helper to validate if the format is in the provided formatArray
+    bool AVOutputTV::isValidFormat(const std::vector<std::string>& formatArray, tvVideoFormatType_t formatIndex)
+    {
+        if (std::find(formatArray.begin(), formatArray.end(), "Current") != formatArray.end()) {
+            return true; // If "Current" is passed, match the current format
+        }
+    
+        for (const auto& format : formatArray) {
+            if (format == convertVideoFormatToString(formatIndex)) {
+                return true;
+            }
+        }
+        return false;
+    }
     tvError_t AVOutputTV::updateAVoutputTVParamToHALV2(std::string forParam, paramIndex_t indexInfo, int value, bool setNotDelete)
     {
         tvError_t ret = tvERROR_NONE;

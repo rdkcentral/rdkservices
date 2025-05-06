@@ -3705,77 +3705,181 @@ namespace Plugin {
         }
     }
 
-    uint32_t AVOutputTV::resetPictureMode(const JsonObject& parameters, JsonObject& response)
+    bool AVOutputTV::resetPictureModeV2(const JsonObject& parameters)
     {
         LOGINFO("Entry\n");
+
         tr181ErrorCode_t err = tr181Success;
         TR181_ParamData_t param = {0};
 
-        valueVectors_t values;
-        capDetails_t inputInfo;
-
-        // As only source need to validate, so pqmode and formate passing as currrent
-        if (parsingSetInputArgument(parameters, "PictureMode",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
+        // Initialize videoSource and videoFormat arrays with "Current" if not provided
+        std::vector<std::string> sourceArray;
+        if (parameters.HasLabel("videoSource")) {
+            const JsonArray& sourceParam = parameters["videoSource"].Array();
+            for (uint32_t i = 0; i < sourceParam.Length(); ++i) {
+                sourceArray.push_back(sourceParam[i].Value());
+            }
+        } else {
+            sourceArray.push_back("Current");
         }
 
-        if( !isCapablityCheckPassed( "PictureMode",inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for PictureMode\n", __FUNCTION__);
-            returnResponse(false);
+        std::vector<std::string> formatArray;
+        if (parameters.HasLabel("videoFormat")) {
+            const JsonArray& formatParam = parameters["videoFormat"].Array();
+            for (uint32_t i = 0; i < formatParam.Length(); ++i) {
+                formatArray.push_back(formatParam[i].Value());
+            }
+        } else {
+            formatArray.push_back("Current");
         }
-        inputInfo.pqmode = "Current";
-        getSaveConfig("PictureMode", inputInfo, values);
 
-        for (int source : values.sourceValues) {
-            tvVideoSrcType_t sourceType = (tvVideoSrcType_t)source;
-            for (int format : values.formatValues) {
-                tvVideoFormatType_t formatType = (tvVideoFormatType_t)format;
-                std::string tr181_param_name = "";
-                tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-                tr181_param_name += "."+convertSourceIndexToString(sourceType)+"."+"Format."+
-                                   convertVideoFormatToString(formatType)+"."+"PictureModeString";
+        bool contextHandled = false;
 
-                err = clearLocalParam(rfc_caller_id, tr181_param_name.c_str());
-                if ( err != tr181Success ) {
-                    LOGWARN("clearLocalParam for %s Failed : %s\n", tr181_param_name.c_str(), getTR181ErrorString(err));
-                    returnResponse(false);
+        // Loop through all the contexts in m_pictureModeCaps
+        for (size_t i = 0; i < m_pictureModeCaps->num_contexts; ++i) {
+            const tvConfigContext_t& ctx = m_pictureModeCaps->contexts[i];
+
+            // Check if the current context matches the requested videoSource
+            if (!isValidSource(sourceArray, ctx.videoSrcType)) {
+                continue; // Skip if the source doesn't match
+            }
+
+            // Check if the current context matches the requested videoFormat
+            if (!isValidFormat(formatArray, ctx.videoFormatType)) {
+                continue; // Skip if the format doesn't match
+            }
+
+            std::string tr181_param_name = AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM;
+            tr181_param_name += "." + convertSourceIndexToString(ctx.videoSrcType);
+            tr181_param_name += ".Format." + convertVideoFormatToString(ctx.videoFormatType);
+            tr181_param_name += ".PictureModeString";
+
+            err = clearLocalParam(rfc_caller_id, tr181_param_name.c_str());
+            if (err != tr181Success) {
+                LOGWARN("clearLocalParam failed for %s: %s\n", tr181_param_name.c_str(), getTR181ErrorString(err));
+                continue;
+            }
+
+            err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
+            if (err != tr181Success) {
+#if DEBUG
+                LOGWARN("getLocalParam failed for %s\n", tr181_param_name.c_str());
+#endif
+                continue;
+            }
+
+            // Get the current video source and format
+            tvVideoSrcType_t current_source = VIDEO_SOURCE_IP;
+            tvVideoFormatType_t current_format = VIDEO_FORMAT_NONE;
+            GetCurrentVideoSource(&current_source);
+            GetCurrentVideoFormat(&current_format);
+            if (current_format == VIDEO_FORMAT_NONE)
+                current_format = VIDEO_FORMAT_SDR;
+
+            // If current source and format match the context, apply the picture mode
+            if (current_source == ctx.videoSrcType && current_format == ctx.videoFormatType) {
+                tvError_t ret = SetTVPictureMode(param.value);
+                if (ret != tvERROR_NONE) {
+                    LOGWARN("SetTVPictureMode failed: %s\n", getErrorString(ret).c_str());
+                    continue;
+                } else {
+                    LOGINFO("PictureMode applied to current context: %s\n", param.value);
                 }
-                else {
-                    err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
-                    if ( tr181Success == err ) {
-                        //get curren source and if matches save for that alone
-                        tvVideoSrcType_t current_source = VIDEO_SOURCE_IP;
-                        GetCurrentVideoSource(&current_source);
+            }
 
-                        tvVideoFormatType_t current_format = VIDEO_FORMAT_NONE;
-                        GetCurrentVideoFormat(&current_format);
-                        if( current_format == VIDEO_FORMAT_NONE) {
-                            current_format = VIDEO_FORMAT_SDR;
-                        }
+            int pqmodeindex = getPictureModeIndex(param.value);
+            SaveSourcePictureMode(ctx.videoSrcType, ctx.videoFormatType, pqmodeindex);
+            contextHandled = true;
+        }
 
-                        if (current_source == sourceType && current_format == formatType) {
+        if (!contextHandled) {
+            LOGWARN("No applicable contexts handled for PictureMode reset\n");
+            return false;
+        }
 
-                            tvError_t ret = SetTVPictureMode(param.value);
-                            if(ret != tvERROR_NONE) {
-                                LOGWARN("Picture Mode set failed: %s\n",getErrorString(ret).c_str());
-                                returnResponse(false);
-                            }
-                            else {
-                                LOGINFO("Exit : Picture Mode reset successfully, value: %s\n", param.value);
-                            }
-                        }
-                        int pqmodeindex = (int)getPictureModeIndex(param.value);
-                        SaveSourcePictureMode(sourceType, formatType, pqmodeindex);
+        LOGINFO("Exit: PictureMode reset completed for all matching contexts.\n");
+        return true;
+    }
+
+    uint32_t AVOutputTV::resetPictureMode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        if (m_pictureModeStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            tr181ErrorCode_t err = tr181Success;
+            TR181_ParamData_t param = {0};
+
+            valueVectors_t values;
+            capDetails_t inputInfo;
+
+            // As only source need to validate, so pqmode and formate passing as currrent
+            if (parsingSetInputArgument(parameters, "PictureMode",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( !isCapablityCheckPassed( "PictureMode",inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for PictureMode\n", __FUNCTION__);
+                returnResponse(false);
+            }
+            inputInfo.pqmode = "Current";
+            getSaveConfig("PictureMode", inputInfo, values);
+
+            for (int source : values.sourceValues) {
+                tvVideoSrcType_t sourceType = (tvVideoSrcType_t)source;
+                for (int format : values.formatValues) {
+                    tvVideoFormatType_t formatType = (tvVideoFormatType_t)format;
+                    std::string tr181_param_name = "";
+                    tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+                    tr181_param_name += "."+convertSourceIndexToString(sourceType)+"."+"Format."+
+                                    convertVideoFormatToString(formatType)+"."+"PictureModeString";
+
+                    err = clearLocalParam(rfc_caller_id, tr181_param_name.c_str());
+                    if ( err != tr181Success ) {
+                        LOGWARN("clearLocalParam for %s Failed : %s\n", tr181_param_name.c_str(), getTR181ErrorString(err));
+                        returnResponse(false);
                     }
                     else {
-                        LOGWARN("getLocalParam for %s failed\n", AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-                        returnResponse(false);
+                        err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
+                        if ( tr181Success == err ) {
+                            //get curren source and if matches save for that alone
+                            tvVideoSrcType_t current_source = VIDEO_SOURCE_IP;
+                            GetCurrentVideoSource(&current_source);
+
+                            tvVideoFormatType_t current_format = VIDEO_FORMAT_NONE;
+                            GetCurrentVideoFormat(&current_format);
+                            if( current_format == VIDEO_FORMAT_NONE) {
+                                current_format = VIDEO_FORMAT_SDR;
+                            }
+
+                            if (current_source == sourceType && current_format == formatType) {
+
+                                tvError_t ret = SetTVPictureMode(param.value);
+                                if(ret != tvERROR_NONE) {
+                                    LOGWARN("Picture Mode set failed: %s\n",getErrorString(ret).c_str());
+                                    returnResponse(false);
+                                }
+                                else {
+                                    LOGINFO("Exit : Picture Mode reset successfully, value: %s\n", param.value);
+                                }
+                            }
+                            int pqmodeindex = (int)getPictureModeIndex(param.value);
+                            SaveSourcePictureMode(sourceType, formatType, pqmodeindex);
+                        }
+                        else {
+                            LOGWARN("getLocalParam for %s failed\n", AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+                            returnResponse(false);
+                        }
                     }
                 }
             }
+            returnResponse(true);
         }
-        returnResponse(true)
+        else
+        {
+            bool success = resetPictureModeV2(parameters);
+            returnResponse(success);
+        }
     }
 
     uint32_t AVOutputTV::signalFilmMakerMode(const JsonObject& parameters, JsonObject& response)
