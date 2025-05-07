@@ -4671,6 +4671,19 @@ namespace WPEFramework {
             DisplaySettings::_instance->InitAudioPorts();
             audioPortInitActive = false;
         }
+	void DisplaySettings::resetToVideoMode(void)
+	{
+            if(!DisplaySettings::_instance)
+                 return;
+	    try{
+	        std::string mode = "VIDEO";
+	        DisplaySettings::_instance->Request(mode); //reset to video mode
+	        Utils::String::updateSystemModeFile("DEVICE_OPTIMIZE","currentstate",mode,"add");
+	    }catch (...)
+	    {
+		LOGWARN("Exception occurred during video mode reset...");
+	    }
+	}
 
         void DisplaySettings::powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
@@ -4704,6 +4717,8 @@ namespace WPEFramework {
                     {
                         LOGERR("exception in thread creation : %s", e.what());
                     }
+                    // Reset video mode or disable allm during power mode change.
+	            DisplaySettings::_instance->resetToVideoMode();
                 }
 
 		else {
