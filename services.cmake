@@ -297,3 +297,7 @@ add_definitions(-DRDK_LOG_MILESTONE)
 add_definitions (-DPLUGIN_LEDCONTROL)
 option(PLUGIN_LEDCONTROL "PLUGIN_LEDCONTROL" ON)
 
+if (ENABLE_RFC_MANAGER)
+    message("Using binary for RFC Maintenance task")
+    add_definitions (-DENABLE_RFC_MANAGER=ON)
+endif()
