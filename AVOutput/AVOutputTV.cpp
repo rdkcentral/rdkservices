@@ -3552,31 +3552,63 @@ namespace Plugin {
     {
         LOGINFO("Entry %s\n", __FUNCTION__);
 
+        // Validate pictureMode
         if (!parameters.HasLabel("pictureMode")) {
-            LOGERR("Parameter 'pictureMode' not found in the request.\n");
+            LOGERR("Missing 'pictureMode' in parameters.\n");
             return false;
         }
 
         std::string mode = parameters["pictureMode"].String();
-
         std::vector<std::string> validOptions;
-        for (size_t i = 0; i < m_numPictureModes ; ++i) {
+        for (size_t i = 0; i < m_numPictureModes; ++i)
             validOptions.emplace_back(pqModeMap.at(m_pictureModes[i]));
-        }
 
-        auto it = std::find(validOptions.begin(), validOptions.end(), mode);
-        if (it == validOptions.end()) {
-            LOGERR("Invalid picture mode: %s. Not in supported options.", mode.c_str());
+        if (std::find(validOptions.begin(), validOptions.end(), mode) == validOptions.end()) {
+            LOGERR("Invalid pictureMode: %s", mode.c_str());
             return false;
         }
 
-        std::vector<tvConfigContext_t> validContexts = getValidContextsFromParameters(parameters, "PictureMode");
-        if (validContexts.empty()) {
-            LOGERR("No valid context found for PictureMode: %s", mode.c_str());
-            return false;
+        // Extract and normalize videoSource array
+        std::vector<std::string> sources;
+        if (parameters.HasLabel("videoSource")) {
+            const JsonArray& sourceParam = parameters["videoSource"].Array();
+            for (uint32_t i = 0; i < sourceParam.Length(); ++i)
+                sources.push_back(sourceParam[i].Value());
+        } else {
+            sources.push_back("Global");
         }
 
-        for (const auto& ctx : validContexts) {
+        // Extract and normalize videoFormat array
+        std::vector<std::string> formats;
+        if (parameters.HasLabel("videoFormat")) {
+            const JsonArray& formatParam = parameters["videoFormat"].Array();
+            for (uint32_t i = 0; i < formatParam.Length(); ++i)
+                formats.push_back(formatParam[i].Value());
+        } else {
+            formats.push_back("Global");
+        }
+
+        // Get current source/format
+        tvVideoSrcType_t currentSrc = VIDEO_SOURCE_IP;
+        tvVideoFormatType_t currentFmt = VIDEO_FORMAT_SDR;
+        GetCurrentVideoSource(&currentSrc);
+        GetCurrentVideoFormat(&currentFmt);
+        if (currentFmt == VIDEO_FORMAT_NONE)
+            currentFmt = VIDEO_FORMAT_SDR;
+
+        bool contextHandled = false;
+
+        for (size_t i = 0; i < m_pictureModeCaps->num_contexts; ++i) {
+            const tvConfigContext_t& ctx = m_pictureModeCaps->contexts[i];
+
+            // Match source
+            if (!isValidSource(sources, ctx.videoSrcType))
+                continue;
+
+            // Match format
+            if (!isValidFormat(formats, ctx.videoFormatType))
+                continue;
+
             std::string tr181Param = std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM) + "." +
                 convertSourceIndexToString(ctx.videoSrcType) + ".Format." +
                 convertVideoFormatToString(ctx.videoFormatType) + ".PictureModeString";
@@ -3584,29 +3616,29 @@ namespace Plugin {
             tr181ErrorCode_t err = setLocalParam(rfc_caller_id, tr181Param.c_str(), mode.c_str());
             if (err != tr181Success) {
                 LOGERR("setLocalParam failed for %s: %s", tr181Param.c_str(), getTR181ErrorString(err));
-                return false;
+                continue;
             }
 
-            int modeIndex = (int)getPictureModeIndex(mode);
+            int modeIndex = getPictureModeIndex(mode);
             SaveSourcePictureMode(ctx.videoSrcType, ctx.videoFormatType, modeIndex);
 
-            std::string srcStr = videoSrcMap.count(ctx.videoSrcType) ? videoSrcMap.at(ctx.videoSrcType) : std::to_string(ctx.videoSrcType);
-            std::string fmtStr = videoFormatMap.count(ctx.videoFormatType) ? videoFormatMap.at(ctx.videoFormatType) : std::to_string(ctx.videoFormatType);
-#if DEBUG
-            LOGINFO("Context - Format: %s, Source: %s", fmtStr.c_str(), srcStr.c_str());
-#endif
-            if(isSetRequired("Current", srcStr, fmtStr)) {
-                LOGINFO("Applying SetTVPictureMode to hardware\n");
+            if (ctx.videoSrcType == currentSrc && ctx.videoFormatType == currentFmt) {
+                LOGINFO("Applying SetTVPictureMode to hardware for current context.\n");
                 if (SetTVPictureMode(mode.c_str()) != tvERROR_NONE) {
-                    LOGERR("Failed to apply mode to TV: %s", mode.c_str());
-                    return false;
+                    LOGERR("SetTVPictureMode failed: %s\n", mode.c_str());
+                    continue;
                 }
             }
 
+            contextHandled = true;
         }
 
-        // TODO:: Handle telemetry/notifications
-        LOGINFO("Exit : Value : %s \n", mode.c_str());
+        if (!contextHandled) {
+            LOGERR("No matching context found to apply pictureMode: %s", mode.c_str());
+            return false;
+        }
+
+        LOGINFO("Exit: PictureMode '%s' applied successfully.\n", mode.c_str());
         return true;
     }
 
@@ -3712,42 +3744,65 @@ namespace Plugin {
         tr181ErrorCode_t err = tr181Success;
         TR181_ParamData_t param = {0};
 
-        // Initialize videoSource and videoFormat arrays with "Current" if not provided
+        auto isExplicitGlobal = [](const JsonArray& arr) {
+            return arr.Length() == 1 && arr[0].Value() == "Global";
+        };
+
+        bool hasSource = parameters.HasLabel("videoSource");
+        bool hasFormat = parameters.HasLabel("videoFormat");
+
         std::vector<std::string> sourceArray;
-        if (parameters.HasLabel("videoSource")) {
+        if (hasSource) {
             const JsonArray& sourceParam = parameters["videoSource"].Array();
-            for (uint32_t i = 0; i < sourceParam.Length(); ++i) {
-                sourceArray.push_back(sourceParam[i].Value());
+
+            if (isExplicitGlobal(sourceParam)) {
+                hasSource = false; // Treat as global
+            } else {
+                for (uint32_t i = 0; i < sourceParam.Length(); ++i) {
+                    std::string val = sourceParam[i].Value();
+                    if (val == "Global") {
+                        LOGWARN("Invalid videoSource array: 'Global' cannot be combined with other values.\n");
+                        return false;
+                    }
+                    sourceArray.push_back(val);
+                }
             }
-        } else {
-            sourceArray.push_back("Current");
         }
 
         std::vector<std::string> formatArray;
-        if (parameters.HasLabel("videoFormat")) {
+        if (hasFormat) {
             const JsonArray& formatParam = parameters["videoFormat"].Array();
-            for (uint32_t i = 0; i < formatParam.Length(); ++i) {
-                formatArray.push_back(formatParam[i].Value());
+
+            if (isExplicitGlobal(formatParam)) {
+                hasFormat = false; // Treat as global
+            } else {
+                for (uint32_t i = 0; i < formatParam.Length(); ++i) {
+                    std::string val = formatParam[i].Value();
+                    if (val == "Global") {
+                        LOGWARN("Invalid videoFormat array: 'Global' cannot be combined with other values.\n");
+                        return false;
+                    }
+                    formatArray.push_back(val);
+                }
             }
-        } else {
-            formatArray.push_back("Current");
         }
+
+        // Get current source and format
+        tvVideoSrcType_t current_source = VIDEO_SOURCE_IP;
+        tvVideoFormatType_t current_format = VIDEO_FORMAT_NONE;
+        GetCurrentVideoSource(&current_source);
+        GetCurrentVideoFormat(&current_format);
+        if (current_format == VIDEO_FORMAT_NONE)
+            current_format = VIDEO_FORMAT_SDR;
 
         bool contextHandled = false;
 
-        // Loop through all the contexts in m_pictureModeCaps
         for (size_t i = 0; i < m_pictureModeCaps->num_contexts; ++i) {
             const tvConfigContext_t& ctx = m_pictureModeCaps->contexts[i];
 
-            // Check if the current context matches the requested videoSource
-            if (!isValidSource(sourceArray, ctx.videoSrcType)) {
-                continue; // Skip if the source doesn't match
-            }
-
-            // Check if the current context matches the requested videoFormat
-            if (!isValidFormat(formatArray, ctx.videoFormatType)) {
-                continue; // Skip if the format doesn't match
-            }
+            // Apply filtering only if source/format not global
+            if (hasSource && !isValidSource(sourceArray, ctx.videoSrcType)) continue;
+            if (hasFormat && !isValidFormat(formatArray, ctx.videoFormatType)) continue;
 
             std::string tr181_param_name = AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM;
             tr181_param_name += "." + convertSourceIndexToString(ctx.videoSrcType);
@@ -3762,22 +3817,14 @@ namespace Plugin {
 
             err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
             if (err != tr181Success) {
-#if DEBUG
+    #if DEBUG
                 LOGWARN("getLocalParam failed for %s\n", tr181_param_name.c_str());
-#endif
+    #endif
                 continue;
             }
 
-            // Get the current video source and format
-            tvVideoSrcType_t current_source = VIDEO_SOURCE_IP;
-            tvVideoFormatType_t current_format = VIDEO_FORMAT_NONE;
-            GetCurrentVideoSource(&current_source);
-            GetCurrentVideoFormat(&current_format);
-            if (current_format == VIDEO_FORMAT_NONE)
-                current_format = VIDEO_FORMAT_SDR;
-
-            // If current source and format match the context, apply the picture mode
-            if (current_source == ctx.videoSrcType && current_format == ctx.videoFormatType) {
+            // Apply PictureMode only to current context
+            if (ctx.videoSrcType == current_source && ctx.videoFormatType == current_format) {
                 tvError_t ret = SetTVPictureMode(param.value);
                 if (ret != tvERROR_NONE) {
                     LOGWARN("SetTVPictureMode failed: %s\n", getErrorString(ret).c_str());
