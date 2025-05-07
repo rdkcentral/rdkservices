@@ -3788,50 +3788,45 @@ namespace Plugin {
             returnResponse(success);
         }
     }
-
     bool AVOutputTV::resetPictureModeV2(const JsonObject& parameters)
     {
         LOGINFO("Entry %s\n", __FUNCTION__);
 
-        // Extract videoSource (default: "Global" if not provided)
-        std::vector<std::string> sources;
-        if (parameters.HasLabel("videoSource")) {
-            const JsonArray& sourceParam = parameters["videoSource"].Array();
-            for (uint32_t i = 0; i < sourceParam.Length(); ++i)
-                sources.push_back(sourceParam[i].Value());
-        } else {
-            sources.push_back("Global");
-        }
-
-        // Extract videoFormat (default: "Global" if not provided)
-        std::vector<std::string> formats;
-        if (parameters.HasLabel("videoFormat")) {
-            const JsonArray& formatParam = parameters["videoFormat"].Array();
-            for (uint32_t i = 0; i < formatParam.Length(); ++i)
-                formats.push_back(formatParam[i].Value());
-        } else {
-            formats.push_back("Global");
-        }
-
-        // Expand Global sources if "Global" is set in the parameters
-        if (std::find(sources.begin(), sources.end(), "Global") != sources.end()) {
-            std::unordered_set<std::string> sourceSet;
-            for (size_t j = 0; j < m_pictureModeCaps->num_contexts; ++j) {
-                sourceSet.insert(convertSourceIndexToStringV2(m_pictureModeCaps->contexts[j].videoSrcType));
+        auto extractList = [](const JsonObject& params, const std::string& key) -> std::vector<std::string> {
+            std::vector<std::string> result;
+            if (params.HasLabel(key.c_str())) {
+                const JsonArray& array = params[key.c_str()].Array();
+                for (uint32_t i = 0; i < array.Length(); ++i) {
+                    result.push_back(array[i].Value());
+                }
+            } else {
+                result.push_back("Global");
             }
-            sources.insert(sources.end(), sourceSet.begin(), sourceSet.end());
-        }
+            return result;
+        };
 
-        // Expand Global formats if "Global" is set in the parameters
-        if (std::find(formats.begin(), formats.end(), "Global") != formats.end()) {
-            std::unordered_set<std::string> formatSet;
-            for (size_t j = 0; j < m_pictureModeCaps->num_contexts; ++j) {
-                formatSet.insert(convertVideoFormatToStringV2(m_pictureModeCaps->contexts[j].videoFormatType));
+        std::vector<std::string> sources = extractList(parameters, "videoSource");
+        std::vector<std::string> formats = extractList(parameters, "videoFormat");
+
+        auto expandGlobal = [](std::vector<std::string>& vec, const std::unordered_set<std::string>& fullSet) {
+            if (std::find(vec.begin(), vec.end(), "Global") != vec.end()) {
+                vec.erase(std::remove(vec.begin(), vec.end(), "Global"), vec.end());
+                vec.insert(vec.end(), fullSet.begin(), fullSet.end());
             }
-            formats.insert(formats.end(), formatSet.begin(), formatSet.end());
-        }
+            std::unordered_set<std::string> unique(vec.begin(), vec.end());
+            vec.assign(unique.begin(), unique.end());
+        };
 
-        // Get current context
+        // Expand "Global" values
+        std::unordered_set<std::string> allSources, allFormats;
+        for (size_t j = 0; j < m_pictureModeCaps->num_contexts; ++j) {
+            allSources.insert(convertSourceIndexToStringV2(m_pictureModeCaps->contexts[j].videoSrcType));
+            allFormats.insert(convertVideoFormatToStringV2(m_pictureModeCaps->contexts[j].videoFormatType));
+        }
+        expandGlobal(sources, allSources);
+        expandGlobal(formats, allFormats);
+
+        // Get current source & format
         tvVideoSrcType_t currentSrc = VIDEO_SOURCE_IP;
         tvVideoFormatType_t currentFmt = VIDEO_FORMAT_SDR;
         GetCurrentVideoSource(&currentSrc);
@@ -3841,45 +3836,62 @@ namespace Plugin {
 
         bool contextHandled = false;
 
-        // Iterate through contexts and apply picture mode reset based on the video source and format
         for (size_t i = 0; i < m_pictureModeCaps->num_contexts; ++i) {
             const tvConfigContext_t& ctx = m_pictureModeCaps->contexts[i];
 
-            // Validate by source and format
-            if (!isValidSource(sources, ctx.videoSrcType))
-                continue;
-            if (!isValidFormat(formats, ctx.videoFormatType))
+            if (!isValidSource(sources, ctx.videoSrcType) || !isValidFormat(formats, ctx.videoFormatType))
                 continue;
 
-            // Apply reset to hardware if the current context matches
-            if (ctx.videoSrcType == currentSrc && ctx.videoFormatType == currentFmt) {
-                LOGINFO("Applying resetPictureMode to hardware for current context.\n");
-                if (SetTVPictureMode("") != tvERROR_NONE) { // Reset to default mode (empty string or default value)
-                    LOGERR("resetPictureMode failed for %s\n", convertSourceIndexToStringV2(ctx.videoSrcType).c_str());
-                    continue;  // Skip TR181 write if hardware apply fails
-                }
-            }
-
-            // Update TR181 to reflect reset, even if HAL apply fails
             std::string tr181Param = std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM) + "." +
                 convertSourceIndexToString(ctx.videoSrcType) + ".Format." +
                 convertVideoFormatToString(ctx.videoFormatType) + ".PictureModeString";
 
-            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, tr181Param.c_str(), "");  // Reset mode to default (empty string)
+            // Clear override
+            tr181ErrorCode_t err = clearLocalParam(rfc_caller_id, tr181Param.c_str());
             if (err != tr181Success) {
-                LOGERR("setLocalParam failed for %s: %s", tr181Param.c_str(), getTR181ErrorString(err));
+                LOGERR("clearLocalParam failed for %s: %s", tr181Param.c_str(), getTR181ErrorString(err));
                 continue;
             }
+
+            // Read saved TR-181 value
+            TR181_ParamData_t param = {0};
+            err = getLocalParam(rfc_caller_id, tr181Param.c_str(), &param);
+            if (err != tr181Success || strlen(param.value) == 0) {
+                LOGWARN("getLocalParam failed or empty for %s", tr181Param.c_str());
+                continue;
+            }
+
+            // Apply to hardware if current context matches
+            if (ctx.videoSrcType == currentSrc && ctx.videoFormatType == currentFmt) {
+                LOGINFO("resetPictureModeV2: Applying PictureMode %s for current Src=%s Format=%s",
+                        param.value,
+                        convertSourceIndexToString(currentSrc).c_str(),
+                        convertVideoFormatToString(currentFmt).c_str());
+
+                tvError_t ret = SetTVPictureMode(param.value);
+                if (ret != tvERROR_NONE) {
+                    LOGERR("SetTVPictureMode failed for %s", param.value);
+                    continue;
+                }
+            }
+
+            // Save to internal config
+            int pqmodeIndex = static_cast<int>(getPictureModeIndex(param.value));
+            SaveSourcePictureMode(ctx.videoSrcType, ctx.videoFormatType, pqmodeIndex);
+
+            LOGINFO("resetPictureModeV2: Reset done for Src=%s Format=%s\n",
+                    convertSourceIndexToString(ctx.videoSrcType).c_str(),
+                    convertVideoFormatToString(ctx.videoFormatType).c_str());
 
             contextHandled = true;
         }
 
         if (!contextHandled) {
-            LOGERR("No matching context found to reset pictureMode.\n");
+            LOGERR("No valid pictureMode context matched to reset.\n");
             return false;
         }
 
-        LOGINFO("Exit: PictureMode reset successfully.\n");
+        LOGINFO("resetPictureModeV2: Exit - PictureMode reset successfully.\n");
         return true;
     }
 

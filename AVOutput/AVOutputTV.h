@@ -465,7 +465,7 @@ class AVOutputTV : public AVOutputBase {
 		bool isValidFormat(const std::vector<std::string>& formatArray, tvVideoFormatType_t formatIndex);
 		tvError_t updateAVoutputTVParamToHALV2(std::string forParam, paramIndex_t indexInfo, int value, bool setNotDelete);
 		bool resetPictureModeV2(const JsonObject& parameters);
-
+		int syncAvoutputTVPQModeParamsToHALV2(std::string pqmode, std::string source, std::string format);
 
 	public:
 		int m_currentHdmiInResoluton;

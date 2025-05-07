@@ -1370,50 +1370,128 @@ namespace Plugin {
         LOGINFO("Exit %s : pqmode : %s source : %s format : %s\n", __FUNCTION__, pqmode.c_str(), source.c_str(), format.c_str());
         return tvERROR_NONE;
     }
+    int AVOutputTV::syncAvoutputTVPQModeParamsToHALV2(std::string pqmode, std::string source, std::string format)
+    {
+        tr181ErrorCode_t err = tr181Success;
+        TR181_ParamData_t param = {0};
+        bool contextSynced = false;
+
+        // Treat "none" as "Global"
+        if (source == "none")
+            source = "Global";
+        if (format == "none")
+            format = "Global";
+
+        // Handle "Current" source/format substitution
+        if (source == "Current" || format == "Current") {
+            tvVideoSrcType_t currentSrc = VIDEO_SOURCE_IP;
+            tvVideoFormatType_t currentFmt = VIDEO_FORMAT_SDR;
+            GetCurrentVideoSource(&currentSrc);
+            GetCurrentVideoFormat(&currentFmt);
+            if (currentFmt == VIDEO_FORMAT_NONE)
+                currentFmt = VIDEO_FORMAT_SDR;
+
+            if (source == "Current")
+                source = convertSourceIndexToString(currentSrc);
+            if (format == "Current")
+                format = convertVideoFormatToString(currentFmt);
+        }
+
+        for (size_t i = 0; i < m_pictureModeCaps->num_contexts; ++i) {
+            const tvConfigContext_t& ctx = m_pictureModeCaps->contexts[i];
+
+            std::string sourceStr = convertSourceIndexToString(ctx.videoSrcType);
+            std::string formatStr = convertVideoFormatToString(ctx.videoFormatType);
+
+            // Filter by provided source/format
+            if (source != "Global" && source != sourceStr)
+                continue;
+            if (format != "Global" && format != formatStr)
+                continue;
+
+            std::string tr181Param = std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM) +
+                                     "." + sourceStr + ".Format." + formatStr + ".PictureModeString";
+
+            err = getLocalParam(rfc_caller_id, tr181Param.c_str(), &param);
+            if (err != tr181Success) {
+                LOGWARN("Failed to getLocalParam for %s\n", tr181Param.c_str());
+                continue;
+            }
+
+            std::string modeStr = param.value;
+            int modeIndex = static_cast<int>(getPictureModeIndex(modeStr));
+            if (modeIndex == -1) {
+                LOGWARN("Invalid pictureMode from TR181: %s\n", modeStr.c_str());
+                continue;
+            }
+
+            tvError_t tv_err = SaveSourcePictureMode(ctx.videoSrcType, ctx.videoFormatType, modeIndex);
+            if (tv_err != tvERROR_NONE) {
+                LOGWARN("Failed SaveSourcePictureMode for %s / %s\n", sourceStr.c_str(), formatStr.c_str());
+                continue;
+            }
+
+            contextSynced = true;
+        }
+
+        if (!contextSynced) {
+            LOGWARN("No matching context synced for pqmode=%s source=%s format=%s\n",
+                    pqmode.c_str(), source.c_str(), format.c_str());
+            return -1;
+        }
+        return 0;
+    }
 
     int AVOutputTV::syncAvoutputTVPQModeParamsToHAL(std::string pqmode, std::string source, std::string format)
     {
-        capDetails_t inputInfo;
-        valueVectors_t valueVectors;
-        tr181ErrorCode_t err = tr181Success;
-        TR181_ParamData_t param = {0};
-        int ret = 0;
+        if (m_pictureModeStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            valueVectors_t valueVectors;
+            tr181ErrorCode_t err = tr181Success;
+            TR181_ParamData_t param = {0};
+            int ret = 0;
 
-        inputInfo.pqmode = pqmode;
-        inputInfo.source = source;
-        inputInfo.format = format;
+            inputInfo.pqmode = pqmode;
+            inputInfo.source = source;
+            inputInfo.format = format;
 
-        ret = getSaveConfig("PictureMode", inputInfo, valueVectors);
+            ret = getSaveConfig("PictureMode", inputInfo, valueVectors);
 
-        if (ret == 0 ) {
-            for (int source : valueVectors.sourceValues ) {
-                tvVideoSrcType_t sourceType = (tvVideoSrcType_t)source;
-                for (int format : valueVectors.formatValues ) {
-                    tvVideoFormatType_t formatType = (tvVideoFormatType_t)format;
-                    std::string tr181_param_name = "";
-                    tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-                    tr181_param_name += "."+convertSourceIndexToString(sourceType)+"."+"Format."+
-                                         convertVideoFormatToString(formatType)+"."+"PictureModeString";
+            if (ret == 0 ) {
+                for (int source : valueVectors.sourceValues ) {
+                    tvVideoSrcType_t sourceType = (tvVideoSrcType_t)source;
+                    for (int format : valueVectors.formatValues ) {
+                        tvVideoFormatType_t formatType = (tvVideoFormatType_t)format;
+                        std::string tr181_param_name = "";
+                        tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+                        tr181_param_name += "."+convertSourceIndexToString(sourceType)+"."+"Format."+
+                                            convertVideoFormatToString(formatType)+"."+"PictureModeString";
 
-                    err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
-                    if ( tr181Success == err ) {
-                        std::string local = param.value;
-                        int pqmodeindex = (int)getPictureModeIndex(local);
+                        err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
+                        if ( tr181Success == err ) {
+                            std::string local = param.value;
+                            int pqmodeindex = (int)getPictureModeIndex(local);
 
-                        tvError_t tv_err = SaveSourcePictureMode(sourceType, formatType, pqmodeindex);
-                        if (tv_err != tvERROR_NONE) {
-                            LOGWARN("failed to SaveSourcePictureMode \n");
+                            tvError_t tv_err = SaveSourcePictureMode(sourceType, formatType, pqmodeindex);
+                            if (tv_err != tvERROR_NONE) {
+                                LOGWARN("failed to SaveSourcePictureMode \n");
+                                return -1;
+                            }
+                        }
+                        else {
+                            LOGWARN("Failed to get the getLocalParam \n");
                             return -1;
                         }
                     }
-                    else {
-                        LOGWARN("Failed to get the getLocalParam \n");
-                        return -1;
-                    }
                 }
             }
+            return ret;
         }
-        return ret;
+        else
+        {
+            return syncAvoutputTVPQModeParamsToHALV2(pqmode,source,format);
+        }
    }
 
     uint32_t AVOutputTV::generateStorageIdentifier(std::string &key, std::string forParam, paramIndex_t info)
