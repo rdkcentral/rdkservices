@@ -948,35 +948,7 @@ namespace Plugin {
 
         return ret;
     }
-    // Helper to validate if the source is in the provided sourceArray
-    bool AVOutputTV::isValidSource(const std::vector<std::string>& sourceArray, tvVideoSrcType_t sourceIndex)
-    {
-        if (std::find(sourceArray.begin(), sourceArray.end(), "Current") != sourceArray.end()) {
-            return true; // If "Current" is passed, match the current source
-        }
-    
-        for (const auto& source : sourceArray) {
-            if (source == convertSourceIndexToString(sourceIndex)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    // Helper to validate if the format is in the provided formatArray
-    bool AVOutputTV::isValidFormat(const std::vector<std::string>& formatArray, tvVideoFormatType_t formatIndex)
-    {
-        if (std::find(formatArray.begin(), formatArray.end(), "Current") != formatArray.end()) {
-            return true; // If "Current" is passed, match the current format
-        }
-    
-        for (const auto& format : formatArray) {
-            if (format == convertVideoFormatToString(formatIndex)) {
-                return true;
-            }
-        }
-        return false;
-    }
+
     tvError_t AVOutputTV::updateAVoutputTVParamToHALV2(std::string forParam, paramIndex_t indexInfo, int value, bool setNotDelete)
     {
         tvError_t ret = tvERROR_NONE;
@@ -2562,6 +2534,35 @@ namespace Plugin {
             forParam;
         return tvERROR_NONE;
     }
+
+    bool AVOutputTV::isValidSource(const std::vector<std::string>& sourceArray, tvVideoSrcType_t sourceIndex)
+    {
+        // If "Current" is passed, match the current source
+        if (std::find(sourceArray.begin(), sourceArray.end(), "Current") != sourceArray.end()) {
+            tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
+            GetCurrentVideoSource(&currentSource);
+            return (sourceIndex == currentSource);
+        }
+
+        // Match against specific source strings
+        const std::string srcStr = convertSourceIndexToStringV2(sourceIndex);
+        return std::find(sourceArray.begin(), sourceArray.end(), srcStr) != sourceArray.end();
+    }
+
+    bool AVOutputTV::isValidFormat(const std::vector<std::string>& formatArray, tvVideoFormatType_t formatIndex)
+    {
+        // If "Current" is passed, match the current format
+        if (std::find(formatArray.begin(), formatArray.end(), "Current") != formatArray.end()) {
+            tvVideoFormatType_t currentFormat = VIDEO_FORMAT_NONE;
+            GetCurrentVideoFormat(&currentFormat);
+            return (formatIndex == currentFormat);
+        }
+
+        // Match against specific format strings
+        const std::string fmtStr = convertVideoFormatToStringV2(formatIndex);
+        return std::find(formatArray.begin(), formatArray.end(), fmtStr) != formatArray.end();
+    }
+
     tvConfigContext_t AVOutputTV::getValidContextFromGetParameters(const JsonObject& parameters, const std::string& paramName)
     {
         tvConfigContext_t validContext = {PQ_MODE_INVALID, VIDEO_FORMAT_NONE, VIDEO_SOURCE_ALL};
@@ -2632,7 +2633,11 @@ namespace Plugin {
                 }
             }
         }
-        LOGWARN("No valid context found for %s with provided parameters", paramName.c_str());
+        else
+        {
+            LOGWARN("No valid context found for %s with provided parameters", paramName.c_str());
+            validContext = {PQ_MODE_INVALID, VIDEO_FORMAT_NONE, VIDEO_SOURCE_ALL};
+        }
         return validContext;
     }
 
