@@ -41,6 +41,8 @@ namespace WPEFramework
             , mStorePtr(nullptr)
             , mUploaderPtr(nullptr)
             , mSessionId()
+            , mCetList()
+            , mCetListCached(false)
         {
             mThread = std::thread(&SiftBackend::ActionLoop, this);
         }
@@ -108,6 +110,11 @@ namespace WPEFramework
                         mQueueCondition.wait_for(lock, queueTimeout, [this]
                                                  { return !mActionQueue.empty(); });
                     }
+
+                    // TODO: To limit the nbr of calls to mConfigPtr->GetCetList
+                    // the mCetList is cached for burst of events.
+                    // Here clear the cache if no new events are sent
+                    mCetListCached = false;
                 }
 
                 Action action = {ACTION_TYPE_UNDEF, nullptr};
@@ -244,6 +251,16 @@ namespace WPEFramework
                 {
                     JsonArray cetList = JsonArray();
                     for (const std::string &cet : event.cetList)
+                    {
+                        cetList.Add(cet);
+                    }
+                    eventJson["cet_list"] = cetList;
+                }
+                else if (mCetListCached || (mConfigPtr && mConfigPtr->GetCetList(mCetList)))
+                {
+                    mCetListCached = true;
+                    JsonArray cetList = JsonArray();
+                    for (const std::string &cet : mCetList)
                     {
                         cetList.Add(cet);
                     }

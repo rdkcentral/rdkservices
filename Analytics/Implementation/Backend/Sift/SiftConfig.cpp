@@ -19,6 +19,8 @@
 #include "SiftConfig.h"
 #include "UtilsLogging.h"
 
+#include "interfaces/IPrivacy.h"
+
 #include <algorithm>
 #include <cctype> 
 #include <fstream>
@@ -26,6 +28,7 @@
 #define AUTHSERVICE_CALLSIGN "org.rdk.AuthService"
 #define SYSTEM_CALLSIGN "org.rdk.System"
 #define PERSISTENT_STORE_CALLSIGN "org.rdk.PersistentStore"
+#define PRIVACY_CALLSIGN "org.rdk.Privacy"
 #define PERSISTENT_STORE_ANALYTICS_NAMESPACE "Analytics"
 #define PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE "accountProfile"
 #define JSONRPC_THUNDER_TIMEOUT 20000
@@ -66,6 +69,7 @@ namespace WPEFramework
                     , StorePath()
                     , EventsLimit(1000)
                     , Url()
+                    , CetMap()
 
                 {
                     Add(_T("schema2"), &Schema2);
@@ -84,6 +88,7 @@ namespace WPEFramework
                     Add(_T("storepath"), &StorePath);
                     Add(_T("eventslimit"), &EventsLimit);
                     Add(_T("url"), &Url);
+                    Add(_T("cetmap"), &CetMap);
                 }
                 ~SiftConfig() = default;
 
@@ -104,6 +109,7 @@ namespace WPEFramework
                 Core::JSON::String StorePath;
                 Core::JSON::DecUInt32 EventsLimit;
                 Core::JSON::String Url;
+                Core::JSON::VariantContainer CetMap;
             };
 
            
@@ -315,7 +321,8 @@ namespace WPEFramework
                                                             mUploaderConfig(),
                                                             mShell(shell),
                                                             mSystemTime(systemTime),
-                                                            mAuthServiceLink(nullptr)
+                                                            mAuthServiceLink(nullptr),
+                                                            mCetMap()
         {
             ASSERT(shell != nullptr);
             ParsePluginConfig();
@@ -444,6 +451,38 @@ namespace WPEFramework
             return valid;
         }
 
+        bool SiftConfig::GetCetList(std::list<std::string> &cetList)
+        {
+            if (mCetMap.empty())
+            {
+                return false;
+            }
+
+            //TODO: this should be kept in sync with notifications
+            auto privacy = mShell->QueryInterfaceByCallsign<Exchange::IPrivacy>(PRIVACY_CALLSIGN);
+            Exchange::IPrivacy::IPrivacySettingInfoIterator *settings = nullptr;
+            if (privacy)
+            {
+                if(privacy->GetAllPrivacySettings(settings) == Core::ERROR_NONE)
+                {
+                    if (settings != nullptr)
+                    {
+                        Exchange::IPrivacy::PrivacySettingInfo info;
+                        while (settings->Next(info))
+                        {
+                            if (info.allowed && mCetMap.find(info.settingName) != mCetMap.end())
+                            {
+                                cetList.push_back(mCetMap[info.settingName]);
+                            }
+                        }
+                        settings->Release();
+                    }
+                }
+                privacy->Release();
+            }
+            return !cetList.empty();
+        }
+
         void SiftConfig::TriggerInitialization()
         {
             mInitializationThread = std::thread(&SiftConfig::Initialize, this);
@@ -519,7 +558,7 @@ namespace WPEFramework
                 mUploaderConfig.minRetryPeriod = config.Sift.MinRetryPeriod.Value();
                 mUploaderConfig.maxRetryPeriod = config.Sift.MaxRetryPeriod.Value();
                 mUploaderConfig.exponentialPeriodicFactor = config.Sift.ExponentialPeriodicFactor.Value();
-                
+
                 SYSLOG(Logging::Startup, (_T("Parsed Analytics config: '%s', '%s', '%s', '%s', '%s', '%s', '%s'."),
                                           mAttributes.commonSchema.c_str(),
                                           mAttributes.env.c_str(),
@@ -529,6 +568,18 @@ namespace WPEFramework
                                           mAttributes.platform.c_str(),
                                           mAttributes.deviceOsName.c_str()
                     ));
+
+                // Set CetMap
+                auto cetMapIter = config.Sift.CetMap.Variants();
+
+                while (cetMapIter.Next())
+                {
+                    if (cetMapIter.Current().Content() == WPEFramework::Core::JSON::Variant::type::STRING)
+                    {
+                        mCetMap[cetMapIter.Label()] = cetMapIter.Current().String();
+                        SYSLOG(Logging::Startup, ("Sift CetMap: \"%s\" : \"%s\"", cetMapIter.Label(), mCetMap[cetMapIter.Label()].c_str()));
+                    }
+                }
             }
         }
 
