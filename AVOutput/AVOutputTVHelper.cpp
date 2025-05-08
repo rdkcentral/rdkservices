@@ -1359,6 +1359,24 @@ namespace Plugin {
         //LowLatencyState
         m_lowLatencyStateStatus = GetLowLatencyStateCaps(&m_maxlowLatencyState, &m_lowLatencyStateCaps);
 
+        // PrecisionDetail
+        m_presicionStatus = GetPrecisionDetailCaps(&m_maxPrecision, &m_presicionDetailCaps);
+
+        // LocalContrastEnhancement
+        m_localContrastEnhancementStatus = GetLocalContrastEnhancementCaps(&m_maxLocalContrastEnhancement, &m_localContrastEnhancementCaps);
+
+        // MPEGNoiseReduction
+        m_MPEGNoiseReductionStatus = GetMPEGNoiseReductionCaps(&m_maxMPEGNoiseReduction, &m_MPEGNoiseReductionCaps);
+
+        // DigitalNoiseReduction
+        m_digitalNoiseReductionStatus = GetDigitalNoiseReductionCaps(&m_maxDigitalNoiseReduction, &m_digitalNoiseReductionCaps);
+
+        // AISuperResolution
+        m_AISuperResolutionStatus = GetAISuperResolutionCaps(&m_maxAISuperResolution, &m_AISuperResolutionCaps);
+
+        // MEMC
+        m_MEMCStatus = GetMEMCCaps(&m_maxMEMC, &m_MEMCCaps);
+
         // Sync CMS and WB
         syncCMSParams();
         syncWBParams();
@@ -2831,6 +2849,12 @@ namespace Plugin {
         else if (paramName == "PictureMode") caps = m_pictureModeCaps;
         else if (paramName == "AspectRatio") caps = m_aspectRatioCaps;
         else if (paramName == "LowLatencyState") caps = m_lowLatencyStateCaps;
+        else if (paramName == "PrecisionDetail") caps = m_presicionDetailCaps;
+        else if (paramName == "LocalContrastEnhancement") caps = m_localContrastEnhancementCaps;
+        else if (paramName == "MPEGNoiseReduction") caps = m_MPEGNoiseReductionCaps;
+        else if (paramName == "DigitalNoiseReduction") caps = m_digitalNoiseReductionCaps;
+        else if (paramName == "AISuperResolution") caps = m_AISuperResolutionCaps;
+        else if (paramName == "MEMC") caps = m_MEMCCaps;
         else {
             LOGERR("Unknown tr181ParamName: %s", paramName.c_str());
             return nullptr;
@@ -3309,11 +3333,38 @@ tvError_t AVOutputTV::GetHueCaps(int* max_hue, tvContextCaps_t** context_caps) {
     return GetCaps("Hue", max_hue, context_caps);
 }
 
-tvError_t AVOutputTV::GetPrecisionDetailCaps(int* max_precision, tvContextCaps_t** context_caps) {
-    return GetCaps("PrecisionDetails", max_precision, context_caps);
-}
 tvError_t AVOutputTV::GetLowLatencyStateCaps(int* max_latency, tvContextCaps_t ** context_caps){
     return GetCaps("LowLatencyState", max_latency, context_caps);
+}
+
+// PrecisionDetail
+tvError_t AVOutputTV::GetPrecisionDetailCaps(int * maxPrecision, tvContextCaps_t ** context_caps) {
+    return GetCaps("PrecisionDetail", maxPrecision, context_caps);
+}
+
+// LocalContrastEnhancement
+tvError_t AVOutputTV::GetLocalContrastEnhancementCaps(int * maxLocalContrastEnhancement, tvContextCaps_t ** context_caps) {
+    return GetCaps("LocalContrastEnhancement", maxLocalContrastEnhancement, context_caps);
+}
+
+// MPEGNoiseReduction
+tvError_t AVOutputTV::GetMPEGNoiseReductionCaps(int * maxMPEGNoiseReduction, tvContextCaps_t ** context_caps) {
+    return GetCaps("MPEGNoiseReduction", maxMPEGNoiseReduction, context_caps);
+}
+
+// DigitalNoiseReduction
+tvError_t AVOutputTV::GetDigitalNoiseReductionCaps(int * maxDigitalNoiseReduction, tvContextCaps_t ** context_caps) {
+    return GetCaps("DigitalNoiseReduction", maxDigitalNoiseReduction, context_caps);
+}
+
+// AISuperResolution
+tvError_t AVOutputTV::GetAISuperResolutionCaps(int * maxAISuperResolution, tvContextCaps_t ** context_caps) {
+    return GetCaps("AISuperResolution", maxAISuperResolution, context_caps);
+}
+
+// MEMC
+tvError_t AVOutputTV::GetMEMCCaps(int * maxMEMC, tvContextCaps_t ** context_caps) {
+    return GetCaps("MEMC", maxMEMC, context_caps);
 }
 
 tvError_t AVOutputTV::GetColorTemperatureCaps(tvColorTemp_t** color_temp, size_t* num_color_temp, tvContextCaps_t** context_caps) {

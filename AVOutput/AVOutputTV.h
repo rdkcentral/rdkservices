@@ -243,6 +243,11 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getDVCalibrationCaps)
 		DECLARE_JSON_RPC_METHOD(getPictureModeCapsV2)
 		DECLARE_JSON_RPC_METHOD(getAutoBacklightModeCapsV2)
+		DECLARE_JSON_RPC_METHOD(getLocalContrastEnhancementCaps)
+		DECLARE_JSON_RPC_METHOD(getMPEGNoiseReductionCaps)
+		DECLARE_JSON_RPC_METHOD(getDigitalNoiseReductionCaps)
+		DECLARE_JSON_RPC_METHOD(getAISuperResolutionCaps)
+		DECLARE_JSON_RPC_METHOD(getMEMCCaps)
 
 		/*Set API's*/
 		DECLARE_JSON_RPC_METHOD(setBacklight)
@@ -422,6 +427,11 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t GetTVPictureModeCaps(tvPQModeIndex_t** mode, size_t* num_pic_modes, tvContextCaps_t** context_caps);
 		tvError_t GetBacklightModeCaps(tvBacklightMode_t** backlight_mode, size_t* num_backlight_mode, tvContextCaps_t** context_caps);
 
+		tvError_t GetLocalContrastEnhancementCaps(int* maxLocalContrastEnhancement, tvContextCaps_t** context_caps);
+		tvError_t GetMPEGNoiseReductionCaps(int* maxMPEGNoiseReduction, tvContextCaps_t** context_caps);
+		tvError_t GetDigitalNoiseReductionCaps(int* maxDigitalNoiseReduction, tvContextCaps_t** context_caps);
+		tvError_t GetAISuperResolutionCaps(int* maxAISuperResolution, tvContextCaps_t** context_caps);
+		tvError_t GetMEMCCaps(int* maxMEMC, tvContextCaps_t** context_caps);
 		uint32_t getCapsV2(
 			const std::function<tvError_t(tvContextCaps_t**, int*)>& getCapsFunc,
 			const char* key,
@@ -505,7 +515,7 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t m_lowLatencyStateStatus = tvERROR_NONE;
 
 		int m_maxPrecision = 0;
-		tvContextCaps_t* m_presicionCaps = nullptr;
+		tvContextCaps_t* m_presicionDetailCaps = nullptr;
 		tvError_t m_presicionStatus = tvERROR_NONE;
 
 		int m_maxLocalContrastEnhancement = 0;

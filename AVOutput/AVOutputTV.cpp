@@ -373,6 +373,11 @@ namespace Plugin {
         registerMethod("getDVCalibrationCaps", &AVOutputTV::getDVCalibrationCaps, this);
         registerMethod("getPictureModeCapsV2", &AVOutputTV::getPictureModeCapsV2, this);
         registerMethod("getAutoBacklightModeCapsV2", &AVOutputTV::getAutoBacklightModeCapsV2, this);
+        registerMethod("getLocalContrastEnhancementCaps", &AVOutputTV::getLocalContrastEnhancementCaps, this);
+        registerMethod("getMPEGNoiseReductionCaps", &AVOutputTV::getMPEGNoiseReductionCaps, this);
+        registerMethod("getDigitalNoiseReductionCaps", &AVOutputTV::getDigitalNoiseReductionCaps, this);
+        registerMethod("getAISuperResolutionCaps", &AVOutputTV::getAISuperResolutionCaps, this);
+        registerMethod("getMEMCCaps", &AVOutputTV::getMEMCCaps, this);
 
         LOGINFO("Exit\n");
     }
@@ -708,7 +713,42 @@ namespace Plugin {
         return getCapsV2([this](tvContextCaps_t** context_caps, int* max_precision) {
             return this->GetPrecisionDetailCaps(max_precision, context_caps);
         },
-        "PrecisionDetails", parameters, response);
+        "PrecisionDetail", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getLocalContrastEnhancementCaps(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_val) {
+            return this->GetLocalContrastEnhancementCaps(max_val, context_caps);
+        },
+        "LocalContrastEnhancement", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getMPEGNoiseReductionCaps(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_val) {
+            return this->GetMPEGNoiseReductionCaps(max_val, context_caps);
+        },
+        "MPEGNoiseReduction", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getDigitalNoiseReductionCaps(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_val) {
+            return this->GetDigitalNoiseReductionCaps(max_val, context_caps);
+        },
+        "DigitalNoiseReduction", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getAISuperResolutionCaps(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_val) {
+            return this->GetAISuperResolutionCaps(max_val, context_caps);
+        },
+        "AISuperResolution", parameters, response);
+    }
+
+    uint32_t AVOutputTV::getMEMCCaps(const JsonObject& parameters, JsonObject& response) {
+        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_val) {
+            return this->GetMEMCCaps(max_val, context_caps);
+        },
+        "MEMC", parameters, response);
     }
 
     uint32_t AVOutputTV::getLowLatencyStateCapsV2(const JsonObject& parameters, JsonObject& response) {
