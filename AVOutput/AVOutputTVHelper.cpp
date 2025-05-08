@@ -1373,6 +1373,9 @@ namespace Plugin {
 
         // AISuperResolution
         m_AISuperResolutionStatus = GetAISuperResolutionCaps(&m_maxAISuperResolution, &m_AISuperResolutionCaps);
+        if (m_AISuperResolutionStatus == tvERROR_NONE) {
+            updateAVoutputTVParamV2("sync", "AISuperResolution", paramJson, PQ_PARAM_AI_SUPER_RESOLUTION,level);
+        }
 
         // MEMC
         m_MEMCStatus = GetMEMCCaps(&m_maxMEMC, &m_MEMCCaps);
@@ -3117,7 +3120,9 @@ namespace Plugin {
                 case PQ_PARAM_ASPECT_RATIO:
                     ret |= SaveAspectRatio((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvDisplayMode_t)level);
                     break;
-
+                case PQ_PARAM_AI_SUPER_RESOLUTION:
+                    ret |= SetAISuperResolution((tvVideoSrcType_t)paramIndex.sourceIndex, (tvPQModeIndex_t)paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
+                    break;
                 case PQ_PARAM_HDR10_MODE:
                 case PQ_PARAM_HLG_MODE:
                 case PQ_PARAM_LDIM:
