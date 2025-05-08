@@ -1485,7 +1485,7 @@ namespace WPEFramework
                         usleep(10000);
                         isDeviceActiveSource = true;
                         LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
-                        smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(GiveDevicePowerStatus()),500);
+                        smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(GiveDevicePowerStatus()));
                         ret = true;
                     }
                     catch(...)
