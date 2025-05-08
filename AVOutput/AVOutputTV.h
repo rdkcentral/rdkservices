@@ -205,6 +205,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getHDRMode)
 		DECLARE_JSON_RPC_METHOD(get2PointWB)
 		DECLARE_JSON_RPC_METHOD(getAutoBacklightMode)
+		DECLARE_JSON_RPC_METHOD(getAISuperResolution)
 
 
 		/*Get Capability API's*/
@@ -268,6 +269,8 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(set2PointWB )
  		DECLARE_JSON_RPC_METHOD(signalFilmMakerMode)
 		DECLARE_JSON_RPC_METHOD(setAutoBacklightMode)
+		DECLARE_JSON_RPC_METHOD(setAISuperResolution)
+
 
 		/*Reset API's*/
 		DECLARE_JSON_RPC_METHOD(resetBacklight)
@@ -286,6 +289,8 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(resetCMS)
 		DECLARE_JSON_RPC_METHOD(reset2PointWB)
 		DECLARE_JSON_RPC_METHOD(resetAutoBacklightMode)
+		DECLARE_JSON_RPC_METHOD(resetAISuperResolution)
+
 
     private:
 
@@ -448,18 +453,16 @@ class AVOutputTV : public AVOutputBase {
 			int updateAVoutputTVParamV2(std::string action, std::string tr181ParamName,
 			const JsonObject& parameters, tvPQParameterIndex_t pqParamIndex, int level);
 		std::vector<tvConfigContext_t> getValidContextsFromParameters(const JsonObject& parameters,const std::string& tr181ParamName );
-		bool resetPQParamV2(const JsonObject& parameters,
+		bool resetPictureParamToDefault(const JsonObject& parameters,
 			const std::string& paramName,
 			tvPQParameterIndex_t pqIndex,
 			tvSetFunction halSetter);
 		tvConfigContext_t getValidContextFromGetParameters(const JsonObject& parameters, const std::string& paramName);
 		bool getPQParamV2(const JsonObject& parameters,
 			const std::string& paramName,
-			tvContextCaps_t*& capStore,
-			int& maxCap,
 			tvPQParameterIndex_t paramType,
 			int& outValue);
-		bool setPQParamV2(const JsonObject& parameters, const std::string& paramName,
+		bool applyPictureSetting(const JsonObject& parameters, const std::string& paramName,
 					tvPQParameterIndex_t pqType, tvSetFunction halSetter, int maxCap);
 		bool setPictureModeV2(const JsonObject& parameters);
 		bool getBacklightDimmingModeV2(const JsonObject& parameters, std::string& outMode);
