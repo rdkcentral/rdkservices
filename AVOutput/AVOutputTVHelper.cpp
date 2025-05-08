@@ -3121,7 +3121,10 @@ namespace Plugin {
                     ret |= SaveAspectRatio((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvDisplayMode_t)level);
                     break;
                 case PQ_PARAM_AI_SUPER_RESOLUTION:
+#if HAL_NOT_READY
+#else
                     ret |= SetAISuperResolution((tvVideoSrcType_t)paramIndex.sourceIndex, (tvPQModeIndex_t)paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
+#endif
                     break;
                 case PQ_PARAM_HDR10_MODE:
                 case PQ_PARAM_HLG_MODE:
@@ -3167,7 +3170,6 @@ namespace Plugin {
         return ret;
     }
 
-#define HAL_NOT_READY 1
 #if HAL_NOT_READY
 #define CAPABLITY_FILE_NAMEV2    "/opt/panel/pq_capabilities.json"
 

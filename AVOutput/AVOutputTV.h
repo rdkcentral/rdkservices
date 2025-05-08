@@ -410,6 +410,8 @@ class AVOutputTV : public AVOutputBase {
 			auto it = reverseMap.find(key);
 			return (it != reverseMap.end()) ? it->second : defaultVal;
 		}
+#define HAL_NOT_READY 1
+#if HAL_NOT_READY
 		tvError_t ReadJsonFile(JsonObject& root);
 		tvError_t ExtractContextCaps(const JsonObject& data, tvContextCaps_t** context_caps);
 		tvError_t ExtractRangeInfo(const JsonObject& data, int* max_value);
@@ -431,12 +433,12 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t GetDVCalibrationCaps(tvDVCalibrationSettings_t **min_values, tvDVCalibrationSettings_t **max_values, tvContextCaps_t **context_caps);
 		tvError_t GetTVPictureModeCaps(tvPQModeIndex_t** mode, size_t* num_pic_modes, tvContextCaps_t** context_caps);
 		tvError_t GetBacklightModeCaps(tvBacklightMode_t** backlight_mode, size_t* num_backlight_mode, tvContextCaps_t** context_caps);
-
 		tvError_t GetLocalContrastEnhancementCaps(int* maxLocalContrastEnhancement, tvContextCaps_t** context_caps);
 		tvError_t GetMPEGNoiseReductionCaps(int* maxMPEGNoiseReduction, tvContextCaps_t** context_caps);
 		tvError_t GetDigitalNoiseReductionCaps(int* maxDigitalNoiseReduction, tvContextCaps_t** context_caps);
 		tvError_t GetAISuperResolutionCaps(int* maxAISuperResolution, tvContextCaps_t** context_caps);
 		tvError_t GetMEMCCaps(int* maxMEMC, tvContextCaps_t** context_caps);
+#endif
 		uint32_t getPQCapabilityWithContext(
 			const std::function<tvError_t(tvContextCaps_t**, int*)>& getCapsFunc,
 			const char* key,
@@ -448,15 +450,20 @@ class AVOutputTV : public AVOutputBase {
 		std::vector<tvVideoSrcType_t> extractVideoSources(const JsonObject& parameters);
 		std::vector<tvVideoFormatType_t> extractVideoFormats(const JsonObject& parameters);
 		static bool isGlobalParam(const JsonArray& arr);
-		typedef tvError_t (*tvSetFunction)(int);
 		JsonArray getJsonArrayIfArray(const JsonObject& obj, const std::string& key);
 			int updateAVoutputTVParamV2(std::string action, std::string tr181ParamName,
 			const JsonObject& parameters, tvPQParameterIndex_t pqParamIndex, int level);
 		std::vector<tvConfigContext_t> getValidContextsFromParameters(const JsonObject& parameters,const std::string& tr181ParamName );
+		typedef tvError_t (*tvSetFunction)(int);
 		bool resetPictureParamToDefault(const JsonObject& parameters,
 			const std::string& paramName,
 			tvPQParameterIndex_t pqIndex,
 			tvSetFunction halSetter);
+		typedef tvError_t (*tvSetFunctionV2)(tvVideoSrcType_t, tvPQModeIndex_t,tvVideoFormatType_t,int);
+		bool resetPictureParamToDefault(const JsonObject& parameters,
+			const std::string& paramName,
+			tvPQParameterIndex_t pqIndex,
+			tvSetFunctionV2 halSetter);
 		tvConfigContext_t getValidContextFromGetParameters(const JsonObject& parameters, const std::string& paramName);
 		bool getPQParamV2(const JsonObject& parameters,
 			const std::string& paramName,

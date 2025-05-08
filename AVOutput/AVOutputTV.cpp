@@ -1286,7 +1286,13 @@ namespace Plugin {
 
     uint32_t AVOutputTV::resetAISuperResolution(const JsonObject& parameters, JsonObject& response)
     {
-        returnResponse(false);
+#if HAL_NOT_READY
+        bool success= false;
+#else
+        bool success= resetPictureParamToDefault(parameters,"AISuperResolution",
+                                        PQ_PARAM_AI_SUPER_RESOLUTION, SetAISuperResolution);
+#endif
+        returnResponse(success);
     }
 
     uint32_t AVOutputTV::getAISuperResolution(const JsonObject& parameters, JsonObject& response)
@@ -1339,7 +1345,10 @@ namespace Plugin {
         LOGINFO("currentPQMode %d, currentFmt %d, currentSrc %d ",currentPQMode, currentFmt, currentSrc);
         // Call HAL setter for AISuperResolution
         if (isSetRequiredForParam("AISuperResolution", parameters)) {
-            //ret = SetAISuperResolution(currentSrc, currentPQMode, currentFmt, aiSuperResolution);
+#if HAL_NOT_READY
+#else
+            ret = SetAISuperResolution(currentSrc, currentPQMode, currentFmt, aiSuperResolution);
+#endif
             ret = tvERROR_NONE;
         }
         if(ret != tvERROR_NONE)
@@ -1468,6 +1477,62 @@ namespace Plugin {
             returnResponse(success);
         }
 
+    }
+    bool AVOutputTV::resetPictureParamToDefault(const JsonObject& parameters,
+        const std::string& paramName,
+        tvPQParameterIndex_t pqIndex,
+        tvSetFunctionV2 halSetter)
+    {
+        LOGINFO("Entry: %s\n", paramName.c_str());
+
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int level = 0;
+        tvError_t ret = tvERROR_NONE;
+
+        // Save reset state using V2 path
+        LOGINFO("Updating AVOutputTVParamV2 for: %s\n", paramName.c_str());
+        int retval = updateAVoutputTVParamV2("reset", paramName, parameters, pqIndex, level);
+        if (retval != 0)
+        {
+            LOGERR("Failed to update %s via updateAVoutputTVParamV2. retval: %d\n", paramName.c_str(), retval);
+            return false;
+        }
+
+        // If update succeeded, apply value from local config to HAL
+        if (isSetRequiredForParam(paramName, parameters))
+        {
+            inputInfo.pqmode = "Current";
+            inputInfo.source = "Current";
+            inputInfo.format = "Current";
+
+            if (getParamIndex(paramName, inputInfo, indexInfo) == 0 &&
+                getLocalparam(paramName, indexInfo, level, pqIndex) == 0)
+            {
+                LOGINFO("%s: getLocalparam success for %s: format=%d, source=%d, mode=%d, value=%d\n",
+                        __FUNCTION__, paramName.c_str(), indexInfo.formatIndex,
+                        indexInfo.sourceIndex, indexInfo.pqmodeIndex, level);
+                if (halSetter) {
+                    ret = halSetter(
+                        static_cast<tvVideoSrcType_t>(indexInfo.sourceIndex),
+                        static_cast<tvPQModeIndex_t>(indexInfo.pqmodeIndex),
+                        static_cast<tvVideoFormatType_t>(indexInfo.formatIndex),
+                        level);
+                    LOGINFO("%s halSetter return value: %d\n", paramName.c_str(), ret);
+                } else {
+                    LOGERR("halSetter is null for %s\n", paramName.c_str());
+                    return false;
+                }
+            }
+            else
+            {
+                LOGERR("%s: Failed to get local param for %s\n", __FUNCTION__, paramName.c_str());
+                return false;
+            }
+        }
+
+        LOGINFO("Exit: reset%s successful to value: %d\n", paramName.c_str(), level);
+        return true;
     }
 
     bool AVOutputTV::resetPictureParamToDefault(const JsonObject& parameters,
