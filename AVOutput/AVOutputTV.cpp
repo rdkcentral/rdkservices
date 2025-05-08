@@ -595,7 +595,7 @@ namespace Plugin {
         return true;
     }
 
-    uint32_t AVOutputTV::getCapsV2(
+    uint32_t AVOutputTV::getPQCapabilityWithContext(
         const std::function<tvError_t( tvContextCaps_t**,int*)>& getCapsFunc,
         const char* key,
         const JsonObject& parameters,
@@ -672,90 +672,90 @@ namespace Plugin {
     }
 
     uint32_t AVOutputTV::getBacklightCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this]( tvContextCaps_t** context_caps, int* max_backlight) {
+        return getPQCapabilityWithContext([this]( tvContextCaps_t** context_caps, int* max_backlight) {
             return this->GetBacklightCaps(max_backlight, context_caps);
         }, "Backlight", parameters, response);
     }
 
     uint32_t AVOutputTV::getBrightnessCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this]( tvContextCaps_t** context_caps, int* max_brightness) {
+        return getPQCapabilityWithContext([this]( tvContextCaps_t** context_caps, int* max_brightness) {
             return this->GetBrightnessCaps(max_brightness, context_caps);
         },
         "Brightness", parameters, response);
     }
 
     uint32_t AVOutputTV::getContrastCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_contrast) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_contrast) {
             return this->GetContrastCaps(max_contrast, context_caps);
         },
         "Contrast", parameters, response);
     }
 
     uint32_t AVOutputTV::getSharpnessCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_sharpness) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_sharpness) {
             return this->GetSharpnessCaps(max_sharpness, context_caps);
         },
         "Sharpness", parameters, response);
     }
 
     uint32_t AVOutputTV::getSaturationCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_saturation) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_saturation) {
             return this->GetSaturationCaps(max_saturation, context_caps);
         },
         "Saturation", parameters, response);
     }
 
     uint32_t AVOutputTV::getHueCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this]( tvContextCaps_t** context_caps, int* max_hue) {
+        return getPQCapabilityWithContext([this]( tvContextCaps_t** context_caps, int* max_hue) {
             return this->GetHueCaps(max_hue, context_caps);
         },
         "Hue", parameters, response);
     }
 
     uint32_t AVOutputTV::getPrecisionDetailCaps(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_precision) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_precision) {
             return this->GetPrecisionDetailCaps(max_precision, context_caps);
         },
         "PrecisionDetail", parameters, response);
     }
 
     uint32_t AVOutputTV::getLocalContrastEnhancementCaps(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_val) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_val) {
             return this->GetLocalContrastEnhancementCaps(max_val, context_caps);
         },
         "LocalContrastEnhancement", parameters, response);
     }
 
     uint32_t AVOutputTV::getMPEGNoiseReductionCaps(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_val) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_val) {
             return this->GetMPEGNoiseReductionCaps(max_val, context_caps);
         },
         "MPEGNoiseReduction", parameters, response);
     }
 
     uint32_t AVOutputTV::getDigitalNoiseReductionCaps(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_val) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_val) {
             return this->GetDigitalNoiseReductionCaps(max_val, context_caps);
         },
         "DigitalNoiseReduction", parameters, response);
     }
 
     uint32_t AVOutputTV::getAISuperResolutionCaps(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_val) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_val) {
             return this->GetAISuperResolutionCaps(max_val, context_caps);
         },
         "AISuperResolution", parameters, response);
     }
 
     uint32_t AVOutputTV::getMEMCCaps(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_val) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_val) {
             return this->GetMEMCCaps(max_val, context_caps);
         },
         "MEMC", parameters, response);
     }
 
     uint32_t AVOutputTV::getLowLatencyStateCapsV2(const JsonObject& parameters, JsonObject& response) {
-        return getCapsV2([this](tvContextCaps_t** context_caps, int* max_latency) {
+        return getPQCapabilityWithContext([this](tvContextCaps_t** context_caps, int* max_latency) {
             return this->GetLowLatencyStateCaps(max_latency, context_caps);
         },
         "LowLatencyState", parameters, response);

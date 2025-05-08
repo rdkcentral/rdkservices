@@ -437,7 +437,7 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t GetDigitalNoiseReductionCaps(int* maxDigitalNoiseReduction, tvContextCaps_t** context_caps);
 		tvError_t GetAISuperResolutionCaps(int* maxAISuperResolution, tvContextCaps_t** context_caps);
 		tvError_t GetMEMCCaps(int* maxMEMC, tvContextCaps_t** context_caps);
-		uint32_t getCapsV2(
+		uint32_t getPQCapabilityWithContext(
 			const std::function<tvError_t(tvContextCaps_t**, int*)>& getCapsFunc,
 			const char* key,
 			const JsonObject& parameters,
