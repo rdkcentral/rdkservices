@@ -242,6 +242,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getBacklightDimmingModeCapsV2)
 		DECLARE_JSON_RPC_METHOD(getZoomModeCapsV2)
 		DECLARE_JSON_RPC_METHOD(getCMSCapsV2)
+		DECLARE_JSON_RPC_METHOD(get2PointWBCapsV2)
 		DECLARE_JSON_RPC_METHOD(getDVCalibrationCaps)
 		DECLARE_JSON_RPC_METHOD(getPictureModeCapsV2)
 		DECLARE_JSON_RPC_METHOD(getAutoBacklightModeCapsV2)
@@ -455,6 +456,12 @@ class AVOutputTV : public AVOutputBase {
 			size_t* num_color,
 			size_t* num_component,
 			tvContextCaps_t** context_caps);
+		tvError_t GetCustom2PointWhiteBalanceCaps( int *min_gain,
+			int *min_offset, int *max_gain,
+			int *max_offset, tvWBColor_t **color,
+			tvWBControl_t **control, size_t* num_color,
+			size_t* num_control, tvContextCaps_t ** context_caps);
+
 #endif
 		uint32_t getPQCapabilityWithContext(
 			const std::function<tvError_t(tvContextCaps_t**, int*)>& getCapsFunc,

@@ -372,6 +372,7 @@ namespace Plugin {
         registerMethod("getPictureModeCapsV2", &AVOutputTV::getPictureModeCapsV2, this);
         registerMethod("getAutoBacklightModeCapsV2", &AVOutputTV::getAutoBacklightModeCapsV2, this);
         registerMethod("getCMSCapsV2", &AVOutputTV::getCMSCapsV2, this);
+        registerMethod("get2PointWBCapsV2", &AVOutputTV::get2PointWBCapsV2, this);
         registerMethod("getSdrGammaCaps", &AVOutputTV::getSdrGammaCaps, this);
         registerMethod("getPrecisionDetailCaps", &AVOutputTV::getPrecisionDetailCaps, this);
         registerMethod("getLocalContrastEnhancementCaps", &AVOutputTV::getLocalContrastEnhancementCaps, this);
@@ -5279,6 +5280,80 @@ namespace Plugin {
             LOGINFO("Exit : reset2PointWB successful \n");
             returnResponse(true);
         }
+    }
+    uint32_t AVOutputTV::get2PointWBCapsV2(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry: get2PointWBCapsV2");
+
+        int min_gain = 0, min_offset = 0, max_gain = 0, max_offset = 0;
+        tvWBColor_t* colorArray = nullptr;
+        tvWBControl_t* controlArray = nullptr;
+        size_t num_color = 0, num_control = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        // Call to GetCustom2PointWhiteBalanceCaps to fetch white balance capabilities
+        tvError_t ret = GetCustom2PointWhiteBalanceCaps(&min_gain, &min_offset, &max_gain, &max_offset,
+                                                        &colorArray, &controlArray,
+                                                        &num_color, &num_control, &context_caps);
+
+        if (ret != tvERROR_NONE) {
+            LOGERR("GetCustom2PointWhiteBalanceCaps failed with error: %d", ret);
+            returnResponse(false);
+        }
+
+        // Range Info: Gain and Offset
+        JsonObject rangeGain, rangeOffset;
+        rangeGain["from"] = min_gain;
+        rangeGain["to"] = max_gain;
+        rangeOffset["from"] = min_offset;
+        rangeOffset["to"] = max_offset;
+
+        JsonObject custom2PointWB;
+        custom2PointWB["rangeGain"] = rangeGain;
+        custom2PointWB["rangeOffset"] = rangeOffset;
+
+        // Control Info
+        JsonArray controlJson;
+        for (size_t i = 0; i < num_control; ++i) {
+            controlJson.Add(getWBControlStringFromEnum(controlArray[i])); // Convert control enum to string
+        }
+        custom2PointWB["control"] = controlJson;
+
+        // Color Info
+        JsonArray colorJson;
+        for (size_t i = 0; i < num_color; ++i) {
+            colorJson.Add(getWBColorStringFromEnum(colorArray[i])); // Convert color enum to string
+        }
+        custom2PointWB["color"] = colorJson;
+
+        // Platform Support Info
+        custom2PointWB["platformSupport"] = true; // Assuming platform supports this, set true or retrieve dynamically if needed
+
+        // Context Info
+        JsonObject contextJson;
+        if (context_caps) {
+            for (uint32_t i = 0; i < context_caps->num_contexts; ++i) {
+                JsonObject ctx;
+                ctx["pictureMode"] = convertPictureIndexToString(context_caps->contexts[i].pq_mode);
+                ctx["videoFormat"] = convertVideoFormatToString(context_caps->contexts[i].videoFormatType);
+                ctx["videoSource"] = convertSourceIndexToString(context_caps->contexts[i].videoSrcType);
+
+                // Context key is picture mode, and value is a list of formats
+                JsonArray formatArray;
+                formatArray.Add(ctx["videoFormat"]);
+                contextJson[convertPictureIndexToString(context_caps->contexts[i].pq_mode).c_str()] = formatArray;
+            }
+        }
+        custom2PointWB["context"] = contextJson;
+
+        response["Custom2PointWhiteBalance"] = custom2PointWB;
+
+        // Clean up dynamic memory
+        delete[] colorArray;
+        delete[] controlArray;
+
+        LOGINFO("Exit: get2PointWBCapsV2");
+        returnResponse(true);
     }
 
     uint32_t AVOutputTV::get2PointWBCaps(const JsonObject& parameters, JsonObject& response)

@@ -3904,6 +3904,86 @@ tvError_t AVOutputTV::GetCMSCaps(int* max_hue,
     return tvERROR_NONE;
 }
 
+tvError_t AVOutputTV::GetCustom2PointWhiteBalanceCaps(int* min_gain, int* min_offset,
+    int* max_gain, int* max_offset,
+    tvWBColor_t** color,
+    tvWBControl_t** control,
+    size_t* num_color, size_t* num_control,
+    tvContextCaps_t** context_caps)
+{
+    if (!min_gain || !min_offset || !max_gain || !max_offset ||
+    !color || !control || !num_color || !num_control || !context_caps)
+    {
+        LOGERR("Invalid input pointers");
+        return tvERROR_INVALID_PARAM;
+    }
+
+    JsonObject root;
+    if (ReadJsonFile(root) != tvERROR_NONE) {
+        LOGERR("Failed to read JSON capabilities");
+        return tvERROR_GENERAL;
+    }
+
+    const char* key = "Custom2PointWhiteBalance";
+    if (!root.HasLabel(key)) {
+        LOGERR("Missing key: %s", key);
+        return tvERROR_OPERATION_NOT_SUPPORTED;
+    }
+
+    JsonObject section = root[key].Object();
+
+    if (!section.HasLabel("platformSupport") || !section["platformSupport"].Boolean()) {
+        return tvERROR_OPERATION_NOT_SUPPORTED;
+    }
+
+    // Parse rangeGain and rangeOffset
+    *min_gain  = section["rangeGain"].Object()["from"].Number();
+    *max_gain  = section["rangeGain"].Object()["to"].Number();
+    *min_offset = section["rangeOffset"].Object()["from"].Number();
+    *max_offset = section["rangeOffset"].Object()["to"].Number();
+
+    // Parse control array
+    JsonArray controlArray = section["control"].Array();
+    *num_control = controlArray.Length();
+    *control = new tvWBControl_t[*num_control];
+    for (size_t i = 0; i < *num_control; ++i) {
+        std::string ctrlStr = controlArray[i].String();
+        if (getWBControlEnumFromString(ctrlStr, (*control)[i]) != 0) {
+            LOGERR("Invalid control: %s", ctrlStr.c_str());
+            delete[] *control;
+            *control = nullptr;
+            return tvERROR_INVALID_PARAM;
+        }
+    }
+
+    // Parse color array
+    JsonArray colorArray = section["color"].Array();
+    *num_color = colorArray.Length();
+    *color = new tvWBColor_t[*num_color];
+    for (size_t i = 0; i < *num_color; ++i) {
+        std::string colStr = colorArray[i].String();
+        if (getWBColorEnumFromString(colStr, (*color)[i]) != 0) {
+            LOGERR("Invalid color: %s", colStr.c_str());
+            delete[] *color;
+            delete[] *control;
+            *color = nullptr;
+            *control = nullptr;
+            return tvERROR_INVALID_PARAM;
+        }
+    }
+
+    // Parse contextCaps
+    if (ExtractContextCaps(section, context_caps) != tvERROR_NONE) {
+        delete[] *color;
+        delete[] *control;
+        *color = nullptr;
+        *control = nullptr;
+        return tvERROR_GENERAL;
+    }
+
+    return tvERROR_NONE;
+}
+
 #endif
 
 	int AVOutputTV::ReadCapablitiesFromConf(std::string param, capDetails_t& info)
