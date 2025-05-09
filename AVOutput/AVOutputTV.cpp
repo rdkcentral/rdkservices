@@ -364,15 +364,16 @@ namespace Plugin {
         registerMethod("getSharpnessCapsV2", &AVOutputTV::getSharpnessCapsV2, this);
         registerMethod("getSaturationCapsV2", &AVOutputTV::getSaturationCapsV2, this);
         registerMethod("getHueCapsV2", &AVOutputTV::getHueCapsV2, this);
-        registerMethod("getPrecisionDetailCaps", &AVOutputTV::getPrecisionDetailCaps, this);
         registerMethod("getLowLatencyStateCapsV2", &AVOutputTV::getLowLatencyStateCapsV2, this);
         registerMethod("getColorTemperatureCapsV2", &AVOutputTV::getColorTemperatureCapsV2, this);
-        registerMethod("getSdrGammaCaps", &AVOutputTV::getSdrGammaCaps, this);
         registerMethod("getBacklightDimmingModeCapsV2", &AVOutputTV::getBacklightDimmingModeCapsV2, this);
         registerMethod("getZoomModeCapsV2", &AVOutputTV::getZoomModeCapsV2, this);
         registerMethod("getDVCalibrationCaps", &AVOutputTV::getDVCalibrationCaps, this);
         registerMethod("getPictureModeCapsV2", &AVOutputTV::getPictureModeCapsV2, this);
         registerMethod("getAutoBacklightModeCapsV2", &AVOutputTV::getAutoBacklightModeCapsV2, this);
+        registerMethod("getCMSCapsV2", &AVOutputTV::getCMSCapsV2, this);
+        registerMethod("getSdrGammaCaps", &AVOutputTV::getSdrGammaCaps, this);
+        registerMethod("getPrecisionDetailCaps", &AVOutputTV::getPrecisionDetailCaps, this);
         registerMethod("getLocalContrastEnhancementCaps", &AVOutputTV::getLocalContrastEnhancementCaps, this);
         registerMethod("getMPEGNoiseReductionCaps", &AVOutputTV::getMPEGNoiseReductionCaps, this);
         registerMethod("getDigitalNoiseReductionCaps", &AVOutputTV::getDigitalNoiseReductionCaps, this);
@@ -546,6 +547,48 @@ namespace Plugin {
 
         LOGERR("getLocalparam failed for %s with error code %d", paramName.c_str(), err);
         return false;
+    }
+
+    bool AVOutputTV::setEnumPQParam(const JsonObject& parameters,
+        const std::string& inputKey,           // e.g., "mode"
+        const std::string& paramName,          // e.g., "AutoBacklightMode"
+        const std::unordered_map<std::string, int>& valueMap,
+        tvPQParameterIndex_t paramType,
+        std::function<tvError_t(int)> halSetter)
+    {
+        if (!parameters.HasLabel(inputKey.c_str())) {
+        LOGERR("Missing input field: %s", inputKey.c_str());
+        return false;
+        }
+
+        std::string value = parameters[inputKey.c_str()].String();
+        auto it = valueMap.find(value);
+        if (it == valueMap.end()) {
+        LOGERR("Invalid value '%s' for parameter: %s", value.c_str(), inputKey.c_str());
+        return false;
+        }
+
+        int intVal = it->second;
+
+        // Only call HAL for current system context
+        if (isSetRequiredForParam(paramName, parameters)) {
+            LOGINFO("Calling HAL for %s = %s", paramName.c_str(), value.c_str());
+            tvError_t ret = halSetter(intVal);
+            if (ret != tvERROR_NONE) {
+            LOGERR("HAL setter failed for %s", paramName.c_str());
+            return false;
+            }
+        }
+
+        // Persist the parameter contextually
+        int result = updateAVoutputTVParamV2("set", paramName, parameters, paramType, intVal);
+        if (result != 0) {
+        LOGERR("Persistence failed for %s", paramName.c_str());
+        return false;
+        }
+
+        LOGINFO("setEnumPQParam successful: %s = %s", paramName.c_str(), value.c_str());
+        return true;
     }
 
     bool AVOutputTV::applyPQParamSetting(const JsonObject& parameters, const std::string& paramName,
@@ -4717,6 +4760,73 @@ namespace Plugin {
         }
     }
 
+    uint32_t AVOutputTV::getCMSCapsV2(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry: getCMSCapsV2");
+
+        int max_hue = 0, max_saturation = 0, max_luma = 0;
+        tvDataComponentColor_t* colorArray = nullptr;
+        tvComponentType_t* componentArray = nullptr;
+        size_t num_color = 0, num_component = 0;
+        tvContextCaps_t* context_caps = nullptr;
+
+        tvError_t ret = GetCMSCaps(&max_hue, &max_saturation, &max_luma,
+                                &colorArray, &componentArray,
+                                &num_color, &num_component, &context_caps);
+
+        if (ret != tvERROR_NONE) {
+            LOGERR("GetCMSCaps failed with error: %d", ret);
+            returnResponse(false);
+        }
+
+        // Range Info
+        JsonObject rangeHue, rangeSaturation, rangeLuma;
+        rangeHue["from"] = 0;
+        rangeHue["to"] = max_hue;
+        rangeSaturation["from"] = 0;
+        rangeSaturation["to"] = max_saturation;
+        rangeLuma["from"] = 0;
+        rangeLuma["to"] = max_luma;
+
+        response["rangeHue"] = rangeHue;
+        response["rangeSaturation"] = rangeSaturation;
+        response["rangeLuma"] = rangeLuma;
+
+        // Color Info
+        JsonArray colorJson;
+        for (size_t i = 0; i < num_color; ++i) {
+            colorJson.Add(getCMSColorStringFromEnum(colorArray[i]));
+        }
+        response["color"] = colorJson;
+
+        // Component Info
+        JsonArray componentJson;
+        for (size_t i = 0; i < num_component; ++i) {
+            componentJson.Add(getCMSComponentStringFromEnum(componentArray[i]));
+        }
+        response["component"] = componentJson;
+
+        // Context Info
+        JsonArray contextArray;
+        if (context_caps) {
+            for (uint32_t i = 0; i < context_caps->num_contexts; ++i) {
+                JsonObject ctx;
+                ctx["pictureMode"] = convertPictureIndexToString(context_caps->contexts[i].pq_mode);
+                ctx["videoFormat"] = convertVideoFormatToString(context_caps->contexts[i].videoFormatType);
+                ctx["videoSource"] = convertSourceIndexToString(context_caps->contexts[i].videoSrcType);
+                contextArray.Add(ctx);
+            }
+        }
+        response["contextCaps"] = contextArray;
+
+        // Clean up dynamic memory
+        delete[] colorArray;
+        delete[] componentArray;
+
+        LOGINFO("Exit: getCMSCapsV2");
+        returnResponse(true);
+    }
+
     uint32_t AVOutputTV::getCMSCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
@@ -5297,61 +5407,80 @@ namespace Plugin {
     uint32_t AVOutputTV::setAutoBacklightMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-        std::string value;
-        tvBacklightMode_t mode = tvBacklightMode_AMBIENT;
-        capDetails_t inputInfo;
+        if(m_backlightModeStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            std::string value;
+            tvBacklightMode_t mode = tvBacklightMode_AMBIENT;
+            capDetails_t inputInfo;
 
+            value = parameters.HasLabel("mode") ? parameters["mode"].String() : "";
+            returnIfParamNotFound(parameters,"mode");
 
-        value = parameters.HasLabel("mode") ? parameters["mode"].String() : "";
-        returnIfParamNotFound(parameters,"mode");
+            if (validateInputParameter("AutoBacklightMode",value) != 0) {
+                LOGERR("%s: Range validation failed for AutoBacklightMode\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (validateInputParameter("AutoBacklightMode",value) != 0) {
-            LOGERR("%s: Range validation failed for AutoBacklightMode\n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if (isPlatformSupport("AutoBacklightMode") != 0) {
+                returnResponse(false);
+            }
 
-	if (isPlatformSupport("AutoBacklightMode") != 0) {
-            returnResponse(false);
-        }
+            if (parsingSetInputArgument(parameters,"AutoBacklightMode",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingSetInputArgument(parameters,"AutoBacklightMode",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if( !isCapablityCheckPassed( "AutoBacklightMode",inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for AutoBacklightMode\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-	if( !isCapablityCheckPassed( "AutoBacklightMode",inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for AutoBacklightMode\n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if(!value.compare("Manual")) {
+                mode = tvBacklightMode_MANUAL;
+            }
+            else if (!value.compare("Ambient")) {
+                mode = tvBacklightMode_AMBIENT;
+            }
+            else {
+                returnResponse(false);
+            }
 
-        if(!value.compare("Manual")) {
-            mode = tvBacklightMode_MANUAL;
-        }
-        else if (!value.compare("Ambient")) {
-            mode = tvBacklightMode_AMBIENT;
-        }
-        else {
-            returnResponse(false);
-        }
-        
-        tvError_t ret = SetCurrentBacklightMode (mode);
+            tvError_t ret = SetCurrentBacklightMode (mode);
 
-        if(ret != tvERROR_NONE) {
-            returnResponse(false);
-        }
-        else {
-            //Save AutoBacklightMode to localstore
-
-            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, value.c_str());
-            if ( err != tr181Success ) {
-                LOGERR("setLocalParam for %s Failed : %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
+            if(ret != tvERROR_NONE) {
                 returnResponse(false);
             }
             else {
-                LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, value.c_str());
+                //Save AutoBacklightMode to localstore
+
+                tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, value.c_str());
+                if ( err != tr181Success ) {
+                    LOGERR("setLocalParam for %s Failed : %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
+                    returnResponse(false);
+                }
+                else {
+                    LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, value.c_str());
+                }
+                LOGINFO("Exit : SetAutoBacklightMode() value : %s\n",value.c_str());
+                returnResponse(true);
             }
-            LOGINFO("Exit : SetAutoBacklightMode() value : %s\n",value.c_str());
-            returnResponse(true);
+        }
+        else
+        {
+            bool success = false;
+#if 0
+            success = setEnumPQParam(
+                parameters,
+                "mode",                           // input key
+                "AutoBacklightMode",              // internal param name
+                backlightModeMap,                 // map<string, enum>
+                PQ_PARAM_AUTO_BACKLIGHT_MODE,    // enum param index
+                [this](int val) {
+                    return SetCurrentBacklightMode(static_cast<tvBacklightMode_t>(val));
+                }
+            );
+#endif
+            returnResponse(success);
         }
     }
 

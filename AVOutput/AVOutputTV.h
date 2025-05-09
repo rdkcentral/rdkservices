@@ -241,6 +241,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getSdrGammaCaps)
 		DECLARE_JSON_RPC_METHOD(getBacklightDimmingModeCapsV2)
 		DECLARE_JSON_RPC_METHOD(getZoomModeCapsV2)
+		DECLARE_JSON_RPC_METHOD(getCMSCapsV2)
 		DECLARE_JSON_RPC_METHOD(getDVCalibrationCaps)
 		DECLARE_JSON_RPC_METHOD(getPictureModeCapsV2)
 		DECLARE_JSON_RPC_METHOD(getAutoBacklightModeCapsV2)
@@ -375,6 +376,7 @@ class AVOutputTV : public AVOutputBase {
 		void getDimmingModeStringFromEnum(int value, std::string &toStore);
 		void getColorTempStringFromEnum(int value, std::string &toStore);
 		void getDisplayModeStringFromEnum(int value, std::string &toStore);
+		void getBacklightModeStringFromEnum(int value, std::string &toStore);
 
 		int getCurrentPictureMode(char *picMode);
 		int getDolbyParamToSync(int sourceIndex, int formatIndex, int& value);
@@ -445,6 +447,14 @@ class AVOutputTV : public AVOutputBase {
 			int* num_ui_matrix_points,
 			double** ui_matrix_positions,
 			tvContextCaps_t** context_caps);
+		tvError_t GetCMSCaps(int* max_hue,
+			int* max_saturation,
+			int* max_luma,
+			tvDataComponentColor_t** color,
+			tvComponentType_t** component,
+			size_t* num_color,
+			size_t* num_component,
+			tvContextCaps_t** context_caps);
 #endif
 		uint32_t getPQCapabilityWithContext(
 			const std::function<tvError_t(tvContextCaps_t**, int*)>& getCapsFunc,
@@ -478,6 +488,12 @@ class AVOutputTV : public AVOutputBase {
 			int& outValue);
 		bool applyPQParamSetting(const JsonObject& parameters, const std::string& paramName,
 					tvPQParameterIndex_t pqType, tvSetFunction halSetter, int maxCap);
+		bool setEnumPQParam(const JsonObject& parameters,
+			const std::string& inputKey,           // e.g., "mode"
+			const std::string& paramName,          // e.g., "AutoBacklightMode"
+			const std::unordered_map<std::string, int>& valueMap,
+			tvPQParameterIndex_t paramType,
+			std::function<tvError_t(int)> halSetter);
 		bool setPictureModeV2(const JsonObject& parameters);
 		bool getBacklightDimmingModeV2(const JsonObject& parameters, std::string& outMode);
 		bool getColorTemperatureV2(const JsonObject& parameters, std::string& outMode);
@@ -601,6 +617,8 @@ class AVOutputTV : public AVOutputBase {
 		static const std::map<int, std::string> pqModeMap;
 		static const std::map<int, std::string> videoFormatMap;
 		static const std::map<int, std::string> videoSrcMap;
+		static const std::unordered_map<std::string, tvBacklightMode_t> backlightModeMap;
+
 		// Reverse maps
 		static const std::map<std::string, int> pqModeReverseMap;
 		static const std::map<std::string, int> videoFormatReverseMap;

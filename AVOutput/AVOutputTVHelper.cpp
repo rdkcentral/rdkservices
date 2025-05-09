@@ -976,7 +976,8 @@ namespace Plugin {
             std::map<std::string, std::function<void(int, std::string&)>> fnMap = {
                 {"ColorTemp", [this](int v, std::string& s) { getColorTempStringFromEnum(v, s); }},
                 {"DimmingMode", [this](int v, std::string& s) { getDimmingModeStringFromEnum(v, s); }},
-                {"AspectRatio", [this](int v, std::string& s) { getDisplayModeStringFromEnum(v, s); }}
+                {"AspectRatio", [this](int v, std::string& s) { getDisplayModeStringFromEnum(v, s); }},
+                {"AutoBacklightMode", [this](int v, std::string& s) { getBacklightModeStringFromEnum(v, s); }}
             };
 
             // If there's a custom string conversion for this parameter, apply it
@@ -1921,6 +1922,24 @@ namespace Plugin {
         }
     }
 
+    void AVOutputTV::getBacklightModeStringFromEnum(int value, std::string& toStore)
+    {
+        toStore.clear();
+        switch (static_cast<tvBacklightMode_t>(value)) {
+            case tvBacklightMode_MANUAL:
+                toStore = "Manual";
+                break;
+            case tvBacklightMode_AMBIENT:
+                toStore = "Ambient";
+                break;
+            case tvBacklightMode_ECO:
+                toStore = "Eco";
+                break;
+            default:
+                toStore = "Unknown";
+                break;
+        }
+    }
 
     int AVOutputTV::getCurrentPictureMode(char *picMode)
     {
@@ -2586,7 +2605,7 @@ namespace Plugin {
         {VIDEO_SOURCE_IP, "IP"},
         {VIDEO_SOURCE_TUNER, "Tuner"}
     };
-    static const std::unordered_map<std::string, tvBacklightMode_t> backlightModeMap = {
+    const std::unordered_map<std::string, tvBacklightMode_t> AVOutputTV::backlightModeMap = {
         { "Manual",  tvBacklightMode_MANUAL },
         { "Ambient", tvBacklightMode_AMBIENT },
         { "Eco",     tvBacklightMode_ECO }
@@ -2858,6 +2877,7 @@ namespace Plugin {
         else if (paramName == "DigitalNoiseReduction") caps = m_digitalNoiseReductionCaps;
         else if (paramName == "AISuperResolution") caps = m_AISuperResolutionCaps;
         else if (paramName == "MEMC") caps = m_MEMCCaps;
+        else if (paramName == "AutoBacklightMode") caps = m_backlightModeCaps;
         else {
             LOGERR("Unknown tr181ParamName: %s", paramName.c_str());
             return nullptr;
@@ -3126,6 +3146,8 @@ namespace Plugin {
                     ret |= SetAISuperResolution((tvVideoSrcType_t)paramIndex.sourceIndex, (tvPQModeIndex_t)paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
 #endif
                     break;
+                //case PQ_PARAM_AUTO_BACKLIGHT_MODE:
+                   // break;
                 case PQ_PARAM_HDR10_MODE:
                 case PQ_PARAM_HLG_MODE:
                 case PQ_PARAM_LDIM:
@@ -3237,33 +3259,59 @@ tvError_t AVOutputTV::ExtractContextCaps(const JsonObject& data, tvContextCaps_t
 
     return tvERROR_NONE;
 }
+template<typename EnumType>
+bool LookupEnum(const std::string& str, const std::map<int, std::string>& map, EnumType& outEnum) {
+    for (const auto& entry : map) {
+        if (entry.second == str) {
+            outEnum = static_cast<EnumType>(entry.first);
+            return true;
+        }
+    }
+    return false;
+}
 
-std::vector<tvConfigContext_t> AVOutputTV::ParseContextCaps(const JsonObject& context) {
+std::vector<tvConfigContext_t> AVOutputTV::ParseContextCaps(const JsonObject& context)
+{
     std::vector<tvConfigContext_t> contexts;
-    for (const auto& mode : AVOutputTV::pqModeMap) {
-        if (context.HasLabel(mode.second.c_str())) {
-            JsonObject modeVariant = context[mode.second.c_str()].Object();
-            for (const auto& format : AVOutputTV::videoFormatMap) {
-                if (modeVariant.HasLabel(format.second.c_str())) {
-                    JsonArray sources = modeVariant[format.second.c_str()].Array();
-                    WPEFramework::Core::JSON::ArrayType<WPEFramework::Core::JSON::Variant>::Iterator sourceIterator(sources.Elements());
-                    while (sourceIterator.Next()) {
-                        std::string sourceStr = sourceIterator.Current().String();
-                        auto srcIt = std::find_if(
-                            AVOutputTV::videoSrcMap.begin(), AVOutputTV::videoSrcMap.end(),
-                            [&sourceStr](const std::pair<const int, std::string>& src) { return sourceStr == src.second; });
-                        if (srcIt != AVOutputTV::videoSrcMap.end()) {
-                            tvConfigContext_t ctx;
-                            ctx.pq_mode = static_cast<tvPQModeIndex_t>(mode.first);
-                            ctx.videoFormatType = static_cast<tvVideoFormatType_t>(format.first);
-                            ctx.videoSrcType = static_cast<tvVideoSrcType_t>(srcIt->first);
-                            contexts.push_back(ctx);
-                        }
-                    }
+    std::set<std::tuple<tvPQModeIndex_t, tvVideoFormatType_t, tvVideoSrcType_t>> seen;
+
+    WPEFramework::Core::JSON::VariantContainer::Iterator modeIterator = context.Variants();
+    while (modeIterator.Next()) {
+        std::string modeStr = modeIterator.Label();
+
+        tvPQModeIndex_t modeEnum;
+        if (!LookupEnum(modeStr, pqModeMap, modeEnum)) continue;
+
+        const auto& modeValue = context[modeStr.c_str()];
+        if (!modeValue.IsSet() || modeValue.Content() != WPEFramework::Core::JSON::Variant::type::OBJECT) continue;
+
+        JsonObject formatMap = modeValue.Object();
+        WPEFramework::Core::JSON::VariantContainer::Iterator formatIterator = formatMap.Variants();
+        while (formatIterator.Next()) {
+            std::string formatStr = formatIterator.Label();
+
+            tvVideoFormatType_t fmtEnum;
+            if (!LookupEnum(formatStr, videoFormatMap, fmtEnum)) continue;
+
+            const auto& formatValue = formatMap[formatStr.c_str()];
+            if (!formatValue.IsSet() || formatValue.Content() != WPEFramework::Core::JSON::Variant::type::ARRAY) continue;
+
+            JsonArray sources = formatValue.Array();
+            for (uint32_t i = 0; i < sources.Length(); ++i) {
+                std::string srcStr = sources[i].String();
+
+                tvVideoSrcType_t srcEnum;
+                if (!LookupEnum(srcStr, videoSrcMap, srcEnum)) continue;
+
+                auto triplet = std::make_tuple(modeEnum, fmtEnum, srcEnum);
+                if (seen.find(triplet) == seen.end()) {
+                    contexts.push_back({modeEnum, fmtEnum, srcEnum});
+                    seen.insert(triplet);
                 }
             }
         }
     }
+
     return contexts;
 }
 
@@ -3779,6 +3827,80 @@ tvError_t AVOutputTV::GetDVCalibrationCaps(tvDVCalibrationSettings_t **min_value
     if (ExtractContextCaps(data, context_caps) != tvERROR_NONE) {
         return tvERROR_GENERAL;
     }
+    return tvERROR_NONE;
+}
+
+tvError_t AVOutputTV::GetCMSCaps(int* max_hue,
+    int* max_saturation,
+    int* max_luma,
+    tvDataComponentColor_t** color,
+    tvComponentType_t** component,
+    size_t* num_color,
+    size_t* num_component,
+    tvContextCaps_t** context_caps)
+{
+    if (!max_hue || !max_saturation || !max_luma || !color || !component || !num_color || !num_component || !context_caps) {
+    return tvERROR_INVALID_PARAM;
+    }
+
+    JsonObject root;
+    if (ReadJsonFile(root) != tvERROR_NONE) {
+    return tvERROR_GENERAL;
+    }
+
+    const char* key = "CMS";
+    if (!root.HasLabel(key)) {
+    return tvERROR_OPERATION_NOT_SUPPORTED;
+    }
+
+    JsonObject cms = root[key].Object();
+
+    if (!cms.HasLabel("platformSupport") || !cms["platformSupport"].Boolean()) {
+    return tvERROR_OPERATION_NOT_SUPPORTED;
+    }
+
+    // Extract ranges
+    *max_hue = cms.HasLabel("rangeHue") ? cms["rangeHue"].Object()["to"].Number() : 0;
+    *max_saturation = cms.HasLabel("rangeSaturation") ? cms["rangeSaturation"].Object()["to"].Number() : 0;
+    *max_luma = cms.HasLabel("rangeLuma") ? cms["rangeLuma"].Object()["to"].Number() : 0;
+
+    // Extract colors
+    const JsonArray& colorArray = cms["color"].Array();
+    *num_color = colorArray.Length();
+    *color = new tvDataComponentColor_t[*num_color];
+    for (size_t i = 0; i < *num_color; ++i) {
+        std::string colorStr = colorArray[i].String();
+        if (getCMSColorEnumFromString(colorStr, (*color)[i]) != 0) {
+        delete[] *color;
+        *color = nullptr;
+        return tvERROR_INVALID_PARAM;
+        }
+    }
+
+    // Extract components
+    const JsonArray& compArray = cms["component"].Array();
+    *num_component = compArray.Length();
+    *component = new tvComponentType_t[*num_component];
+    for (size_t i = 0; i < *num_component; ++i) {
+        std::string compStr = compArray[i].String();
+        if (getCMSComponentEnumFromString(compStr, (*component)[i]) != 0) {
+        delete[] *color;
+        delete[] *component;
+        *color = nullptr;
+        *component = nullptr;
+        return tvERROR_INVALID_PARAM;
+        }
+    }
+
+    // Extract context capabilities
+    if (ExtractContextCaps(cms, context_caps) != tvERROR_NONE) {
+        delete[] *color;
+        delete[] *component;
+        *color = nullptr;
+        *component = nullptr;
+        return tvERROR_GENERAL;
+    }
+
     return tvERROR_NONE;
 }
 
