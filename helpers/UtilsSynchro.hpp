@@ -30,7 +30,7 @@ namespace Utils {
                 isThreadUsingLockedApi = true;
                 // printf("METHOD CALL, GETTING LOCK: REALOBJECT '%s', method: '%s' MUTEX:%p\n",typeid(REALOBJECT).name(), debugname.c_str(), &ApiLocks<REALOBJECT>::mtx); fflush(stdout);
                 std::lock_guard<std::recursive_mutex> lock(ApiLocks<REALOBJECT>::mtx);
-                LOGINFO("calling %s with lock: %p\n", debugname.c_str(), &ApiLocks<REALOBJECT>::mtx);
+                if(debugname != "getFaderControl") LOGINFO("calling %s with lock: %p\n", debugname.c_str(), &ApiLocks<REALOBJECT>::mtx);
                 uint32_t ret;
                 try {
                     ret = (obj->*method)(in, out);
