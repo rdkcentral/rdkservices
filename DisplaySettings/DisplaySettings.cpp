@@ -85,7 +85,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 2
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 static bool isCecEnabled = false;
 static bool isResCacheUpdated = false;
@@ -3661,7 +3661,6 @@ namespace WPEFramework {
 
         uint32_t DisplaySettings::getFaderControl(const JsonObject& parameters, JsonObject& response)
         {
-                LOGINFOMETHOD();
                 bool success = true;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
                 int mixerBalance = 0;
@@ -3682,7 +3681,8 @@ namespace WPEFramework {
                         LOG_DEVICE_EXCEPTION1(audioPort);
                         success = false;
                 }
-                returnResponse(success);
+                response["success"] = success;
+                return (success? WPEFramework::Core::ERROR_NONE : WPEFramework::Core::ERROR_GENERAL);
         }
 
         uint32_t DisplaySettings::setPrimaryLanguage (const JsonObject& parameters, JsonObject& response)
