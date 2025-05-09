@@ -3374,6 +3374,62 @@ tvError_t AVOutputTV::GetMEMCCaps(int * maxMEMC, tvContextCaps_t ** context_caps
     return GetCaps("MEMC", maxMEMC, context_caps);
 }
 
+tvError_t AVOutputTV::GetMultiPointWBCaps(int* num_hal_matrix_points,
+    int* rgb_min,
+    int* rgb_max,
+    int* num_ui_matrix_points,
+    double** ui_matrix_positions,
+    tvContextCaps_t** context_caps)
+{
+    if (!num_hal_matrix_points || !rgb_min || !rgb_max ||
+    !num_ui_matrix_points || !ui_matrix_positions || !context_caps)
+    return tvERROR_INVALID_PARAM;
+
+    JsonObject root;
+    if (ReadJsonFile(root) != tvERROR_NONE)
+    return tvERROR_GENERAL;
+
+    const std::string key = "MultiPointWB";
+    if (!root.HasLabel(key.c_str()))
+    return tvERROR_OPERATION_NOT_SUPPORTED;
+
+    JsonObject data = root[key.c_str()].Object();
+
+    if (!data.HasLabel("platformSupport") || !data["platformSupport"].Boolean())
+    return tvERROR_OPERATION_NOT_SUPPORTED;
+
+    // Extract matrix points
+    if (!data.HasLabel("points"))
+    return tvERROR_INVALID_PARAM;
+    *num_hal_matrix_points = data["points"].Number();
+
+    // Extract range info
+    if (!data.HasLabel("rangeInfo"))
+    return tvERROR_INVALID_PARAM;
+
+    JsonObject range = data["rangeInfo"].Object();
+    if (!range.HasLabel("from") || !range.HasLabel("to"))
+    return tvERROR_INVALID_PARAM;
+
+    *rgb_min = range["from"].Number();
+    *rgb_max = range["to"].Number();
+
+    // Allocate UI matrix points (same count for now)
+    *num_ui_matrix_points = *num_hal_matrix_points;
+    *ui_matrix_positions = new double[*num_ui_matrix_points];
+    if (!(*ui_matrix_positions))
+    return tvERROR_GENERAL;
+
+    for (int i = 0; i < *num_ui_matrix_points; ++i)
+    (*ui_matrix_positions)[i] = static_cast<double>(i) / (*num_ui_matrix_points - 1);
+
+    if (ExtractContextCaps(data, context_caps) != tvERROR_NONE)
+        return tvERROR_GENERAL;
+
+    return tvERROR_NONE;
+}
+
+
 tvError_t AVOutputTV::GetColorTemperatureCaps(tvColorTemp_t** color_temp, size_t* num_color_temp, tvContextCaps_t** context_caps) {
     LOGINFO("Entry\n");
     JsonObject root;

@@ -249,6 +249,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getDigitalNoiseReductionCaps)
 		DECLARE_JSON_RPC_METHOD(getAISuperResolutionCaps)
 		DECLARE_JSON_RPC_METHOD(getMEMCCaps)
+		DECLARE_JSON_RPC_METHOD(getMultiPointWBCaps)
 
 		/*Set API's*/
 		DECLARE_JSON_RPC_METHOD(setBacklight)
@@ -438,6 +439,12 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t GetDigitalNoiseReductionCaps(int* maxDigitalNoiseReduction, tvContextCaps_t** context_caps);
 		tvError_t GetAISuperResolutionCaps(int* maxAISuperResolution, tvContextCaps_t** context_caps);
 		tvError_t GetMEMCCaps(int* maxMEMC, tvContextCaps_t** context_caps);
+		tvError_t GetMultiPointWBCaps(int* num_hal_matrix_points,
+			int* rgb_min,
+			int* rgb_max,
+			int* num_ui_matrix_points,
+			double** ui_matrix_positions,
+			tvContextCaps_t** context_caps);
 #endif
 		uint32_t getPQCapabilityWithContext(
 			const std::function<tvError_t(tvContextCaps_t**, int*)>& getCapsFunc,
@@ -455,21 +462,21 @@ class AVOutputTV : public AVOutputBase {
 			const JsonObject& parameters, tvPQParameterIndex_t pqParamIndex, int level);
 		std::vector<tvConfigContext_t> getValidContextsFromParameters(const JsonObject& parameters,const std::string& tr181ParamName );
 		typedef tvError_t (*tvSetFunction)(int);
-		bool resetPictureParamToDefault(const JsonObject& parameters,
+		bool resetPQParamToDefault(const JsonObject& parameters,
 			const std::string& paramName,
 			tvPQParameterIndex_t pqIndex,
 			tvSetFunction halSetter);
 		typedef tvError_t (*tvSetFunctionV2)(tvVideoSrcType_t, tvPQModeIndex_t,tvVideoFormatType_t,int);
-		bool resetPictureParamToDefault(const JsonObject& parameters,
+		bool resetPQParamToDefault(const JsonObject& parameters,
 			const std::string& paramName,
 			tvPQParameterIndex_t pqIndex,
 			tvSetFunctionV2 halSetter);
 		tvConfigContext_t getValidContextFromGetParameters(const JsonObject& parameters, const std::string& paramName);
-		bool getPQParamV2(const JsonObject& parameters,
+		bool getPQParamFromContext(const JsonObject& parameters,
 			const std::string& paramName,
 			tvPQParameterIndex_t paramType,
 			int& outValue);
-		bool applyPictureSetting(const JsonObject& parameters, const std::string& paramName,
+		bool applyPQParamSetting(const JsonObject& parameters, const std::string& paramName,
 					tvPQParameterIndex_t pqType, tvSetFunction halSetter, int maxCap);
 		bool setPictureModeV2(const JsonObject& parameters);
 		bool getBacklightDimmingModeV2(const JsonObject& parameters, std::string& outMode);
