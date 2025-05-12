@@ -374,11 +374,31 @@ namespace Plugin {
         registerMethod("getCMSCapsV2", &AVOutputTV::getCMSCapsV2, this);
         registerMethod("get2PointWBCapsV2", &AVOutputTV::get2PointWBCapsV2, this);
         registerMethod("getSdrGammaCaps", &AVOutputTV::getSdrGammaCaps, this);
+
         registerMethod("getPrecisionDetailCaps", &AVOutputTV::getPrecisionDetailCaps, this);
+        registerMethod("getPrecisionDetail", &AVOutputTV::getPrecisionDetail, this);
+        registerMethod("setPrecisionDetail", &AVOutputTV::setPrecisionDetail, this);
+        registerMethod("resetPrecisionDetail", &AVOutputTV::resetPrecisionDetail, this);
+
         registerMethod("getLocalContrastEnhancementCaps", &AVOutputTV::getLocalContrastEnhancementCaps, this);
+        registerMethod("getLocalContrastEnhancement", &AVOutputTV::getLocalContrastEnhancement, this);
+        registerMethod("setLocalContrastEnhancement", &AVOutputTV::setLocalContrastEnhancement, this);
+        registerMethod("resetLocalContrastEnhancement", &AVOutputTV::resetLocalContrastEnhancement, this);
+
         registerMethod("getMPEGNoiseReductionCaps", &AVOutputTV::getMPEGNoiseReductionCaps, this);
+        registerMethod("getMPEGNoiseReduction", &AVOutputTV::getMPEGNoiseReduction, this);
+        registerMethod("setMPEGNoiseReduction", &AVOutputTV::setMPEGNoiseReduction, this);
+        registerMethod("resetMPEGNoiseReduction", &AVOutputTV::resetMPEGNoiseReduction, this);
+
         registerMethod("getDigitalNoiseReductionCaps", &AVOutputTV::getDigitalNoiseReductionCaps, this);
+        registerMethod("getDigitalNoiseReduction", &AVOutputTV::getDigitalNoiseReduction, this);
+        registerMethod("setDigitalNoiseReduction", &AVOutputTV::setDigitalNoiseReduction, this);
+        registerMethod("resetDigitalNoiseReduction", &AVOutputTV::resetDigitalNoiseReduction, this);
+
         registerMethod("getMEMCCaps", &AVOutputTV::getMEMCCaps, this);
+        registerMethod("getMEMC", &AVOutputTV::getMEMC, this);
+        registerMethod("setMEMC", &AVOutputTV::setMEMC, this);
+        registerMethod("resetMEMC", &AVOutputTV::resetMEMC, this);
 
         registerMethod("getAISuperResolutionCaps", &AVOutputTV::getAISuperResolutionCaps, this);
         registerMethod("getAISuperResolution", &AVOutputTV::getAISuperResolution, this);
@@ -592,7 +612,7 @@ namespace Plugin {
         return true;
     }
 
-    bool AVOutputTV::applyPQParamSetting(const JsonObject& parameters, const std::string& paramName,
+    bool AVOutputTV::setIntPQParam(const JsonObject& parameters, const std::string& paramName,
         tvPQParameterIndex_t pqType, tvSetFunction halSetter, int maxCap)
     {
         LOGINFO("Entry: %s\n", paramName.c_str());
@@ -624,7 +644,7 @@ namespace Plugin {
         if (isSetRequiredForParam(paramName, parameters)) {
             LOGINFO("Proceed with set%s\n", paramName.c_str());
             ret = halSetter(paramValue);
-            if (ret != tvERROR_NONE) {
+            if (ret != tvERROR_NONE){
                 LOGERR("Failed to set %s\n", paramName.c_str());
                 return false;
             }
@@ -1389,6 +1409,61 @@ namespace Plugin {
         }
     }
 
+    uint32_t AVOutputTV::resetPrecisionDetail(const JsonObject& parameters, JsonObject& response)
+    {
+    #if HAL_NOT_READY
+        bool success = false;
+    #else
+        bool success = resetPQParamToDefault(parameters, "PrecisionDetail",
+                                            PQ_PARAM_PRECISION_DETAIL, SetPrecisionDetail);
+    #endif
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::resetLocalContrastEnhancement(const JsonObject& parameters, JsonObject& response)
+    {
+    #if HAL_NOT_READY
+        bool success = false;
+    #else
+        bool success = resetPQParamToDefault(parameters, "LocalContrastEnhancement",
+                                            PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT, SetLocalContrastEnhancement);
+    #endif
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::resetMPEGNoiseReduction(const JsonObject& parameters, JsonObject& response)
+    {
+    #if HAL_NOT_READY
+        bool success = false;
+    #else
+        bool success = resetPQParamToDefault(parameters, "MPEGNoiseReduction",
+                                            PQ_PARAM_MPEG_NOISE_REDUCTION, SetMPEGNoiseReduction);
+    #endif
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::resetDigitalNoiseReduction(const JsonObject& parameters, JsonObject& response)
+    {
+    #if HAL_NOT_READY
+        bool success = false;
+    #else
+        bool success = resetPQParamToDefault(parameters, "DigitalNoiseReduction",
+                                            PQ_PARAM_DIGITAL_NOISE_REDUCTION, SetDigitalNoiseReduction);
+    #endif
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::resetMEMC(const JsonObject& parameters, JsonObject& response)
+    {
+    #if HAL_NOT_READY
+        bool success = false;
+    #else
+        bool success = resetPQParamToDefault(parameters, "MEMC",
+                                            PQ_PARAM_MEMC, SetMEMC);
+    #endif
+        returnResponse(success);
+    }
+
     uint32_t AVOutputTV::resetAISuperResolution(const JsonObject& parameters, JsonObject& response)
     {
 #if HAL_NOT_READY
@@ -1397,6 +1472,76 @@ namespace Plugin {
         bool success= resetPQParamToDefault(parameters,"AISuperResolution",
                                         PQ_PARAM_AI_SUPER_RESOLUTION, SetAISuperResolution);
 #endif
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::getPrecisionDetail(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        int precisionDetail = 0;
+        bool success = getPQParamFromContext(parameters,
+            "PrecisionDetail",
+            PQ_PARAM_PRECISION_DETAIL,
+            precisionDetail);
+        if (success) {
+            response["PrecisionDetail"] = precisionDetail;
+        }
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::getLocalContrastEnhancement(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        int localContraseEnhancement = 0;
+        bool success = getPQParamFromContext(parameters,
+            "LocalContrastEnhancement",
+            PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT,
+            localContraseEnhancement);
+        if (success) {
+            response["LocalContrastEnhancement"] = localContraseEnhancement;
+        }
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::getMPEGNoiseReduction(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        int MPEGNoiseReduction = 0;
+        bool success = getPQParamFromContext(parameters,
+            "MPEGNoiseReduction",
+            PQ_PARAM_MPEG_NOISE_REDUCTION,
+            MPEGNoiseReduction);
+        if (success) {
+            response["MPEGNoiseReduction"] = MPEGNoiseReduction;
+        }
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::getDigitalNoiseReduction(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        int digitalNoiseReduction = 0;
+        bool success = getPQParamFromContext(parameters,
+            "DigitalNoiseReduction",
+            PQ_PARAM_DIGITAL_NOISE_REDUCTION,
+            digitalNoiseReduction);
+        if (success) {
+            response["DigitalNoiseReduction"] = digitalNoiseReduction;
+        }
+        returnResponse(success);
+    }
+
+    uint32_t AVOutputTV::getMEMC(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        int MEMC = 0;
+        bool success = getPQParamFromContext(parameters,
+            "MEMC",
+            PQ_PARAM_MEMC,
+            MEMC);
+        if (success) {
+            response["MEMC"] = MEMC;
+        }
         returnResponse(success);
     }
 
@@ -1414,65 +1559,146 @@ namespace Plugin {
         returnResponse(success);
     }
 
-    uint32_t AVOutputTV::setAISuperResolution(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setContextPQParam(const JsonObject& parameters, JsonObject& response,
+                                       const std::string& inputParamName,
+                                       const std::string& tr181ParamName,
+                                       int maxAllowedValue,
+                                       tvPQParameterIndex_t pqParamType,
+                                       std::function<tvError_t(tvVideoSrcType_t, tvPQModeIndex_t, tvVideoFormatType_t, int)> halSetter)
     {
         LOGINFO("Entry");
-        std::string value;
-        int aiSuperResolution;
-        tvError_t ret = tvERROR_NONE;
 
-        value = parameters.HasLabel("AISuperResolution") ? parameters["AISuperResolution"].String() : "";
-        returnIfParamNotFound(parameters, "AISuperResolution");
-        aiSuperResolution = std::stoi(value);
-
-        // Validate the aiSuperResolution value
-        if (aiSuperResolution < 0 || aiSuperResolution > m_maxAISuperResolution)
-        {
-            LOGERR("Input value %d is out of range for aiSuperResolution", aiSuperResolution);
+        if (!parameters.HasLabel(inputParamName.c_str())) {
+            LOGERR("Missing parameter: %s", inputParamName.c_str());
             returnResponse(false);
         }
 
+        std::string valueStr = parameters[inputParamName.c_str()].String();
+        int value = std::stoi(valueStr);
+
+        if (value < 0 || value > maxAllowedValue) {
+            LOGERR("Input value %d is out of range for %s", value, inputParamName.c_str());
+            returnResponse(false);
+        }
+
+        // Get current context
         tvVideoSrcType_t currentSrc = VIDEO_SOURCE_IP;
         tvVideoFormatType_t currentFmt = VIDEO_FORMAT_SDR;
         tvPQModeIndex_t currentPQMode = PQ_MODE_STANDARD;
+
         GetCurrentVideoSource(&currentSrc);
         GetCurrentVideoFormat(&currentFmt);
         if (currentFmt == VIDEO_FORMAT_NONE)
             currentFmt = VIDEO_FORMAT_SDR;
-        char picMode[PIC_MODE_NAME_MAX]={0};
-        if(!getCurrentPictureMode(picMode)) {
-            LOGERR("Failed to get the Current picture mode\n");
+
+        char picMode[PIC_MODE_NAME_MAX] = {0};
+        if (getCurrentPictureMode(picMode)) {
+            currentPQMode = static_cast<tvPQModeIndex_t>(getPictureModeIndex(std::string(picMode)));
+        } else {
+            LOGERR("Failed to get current picture mode");
         }
-        else {
-            std::string local = picMode;
-            currentPQMode = static_cast<tvPQModeIndex_t>(getPictureModeIndex(local));
-        }
-        LOGINFO("currentPQMode %d, currentFmt %d, currentSrc %d ",currentPQMode, currentFmt, currentSrc);
-        // Call HAL setter for AISuperResolution
-        if (isSetRequiredForParam("AISuperResolution", parameters)) {
-#if HAL_NOT_READY
-#else
-            ret = SetAISuperResolution(currentSrc, currentPQMode, currentFmt, aiSuperResolution);
-#endif
-            ret = tvERROR_NONE;
-        }
-        if(ret != tvERROR_NONE)
-        {
-            LOGERR("Failed to set AISuperResolution\n");
-            returnResponse(false);
-        }
-        else
-        {
-            // Update the TV parameter
-            int retval = updateAVoutputTVParamV2("set", "AISuperResolution", parameters, PQ_PARAM_AI_SUPER_RESOLUTION, aiSuperResolution);
-            if (retval != 0)
-            {
-                LOGERR("Failed to Save AISuperResolution to ssm_data\n");
+
+        LOGINFO("currentPQMode: %d, currentFmt: %d, currentSrc: %d", currentPQMode, currentFmt, currentSrc);
+
+        if (isSetRequiredForParam(tr181ParamName, parameters)) {
+    #if HAL_NOT_READY
+    #else
+            tvError_t ret = halSetter(currentSrc, currentPQMode, currentFmt, value);
+            if (ret != tvERROR_NONE) {
+                LOGERR("HAL setter failed for %s", inputParamName.c_str());
                 returnResponse(false);
             }
-            LOGINFO("Exit : AISuperResolution successful to value: %d\n", aiSuperResolution);
-            returnResponse(true);
+    #endif
         }
+
+        // Persist
+        int retval = updateAVoutputTVParamV2("set", tr181ParamName, parameters, pqParamType, value);
+        if (retval != 0) {
+            LOGERR("Failed to save %s to ssm_data", inputParamName.c_str());
+            returnResponse(false);
+        }
+
+        LOGINFO("Exit: %s set successfully to %d", inputParamName.c_str(), value);
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::setAISuperResolution(const JsonObject& parameters, JsonObject& response)
+    {
+        return setContextPQParam(
+            parameters, response,
+            "aiSuperResolution",
+            "AISuperResolution",
+            m_maxAISuperResolution,
+            PQ_PARAM_AI_SUPER_RESOLUTION,
+            [](tvVideoSrcType_t src, tvPQModeIndex_t mode, tvVideoFormatType_t fmt, int val) {
+                return SetAISuperResolution(src, mode, fmt, val);
+            }
+        );
+    }
+
+    uint32_t AVOutputTV::setMEMC(const JsonObject& parameters, JsonObject& response)
+    {
+        return setContextPQParam(
+            parameters, response,
+            "memc", "MEMC",
+            m_maxMEMC,
+            PQ_PARAM_MEMC,
+            [](tvVideoSrcType_t src, tvPQModeIndex_t mode, tvVideoFormatType_t fmt, int val) {
+                return SetMEMC(src, mode, fmt, val);
+            }
+        );
+    }
+
+    uint32_t AVOutputTV::setPrecisionDetail(const JsonObject& parameters, JsonObject& response)
+    {
+        return setContextPQParam(
+            parameters, response,
+            "precisionDetail", "PrecisionDetail",
+            m_maxPrecisionDetail,
+            PQ_PARAM_PRECISION_DETAIL,
+            [](tvVideoSrcType_t src, tvPQModeIndex_t mode, tvVideoFormatType_t fmt, int val) {
+                return SetPrecisionDetail(src, mode, fmt, val);
+            }
+        );
+    }
+
+    uint32_t AVOutputTV::setLocalContrastEnhancement(const JsonObject& parameters, JsonObject& response)
+    {
+        return setContextPQParam(
+            parameters, response,
+            "localContrastEnhancement", "LocalContrastEnhancement",
+            m_maxLocalContrastEnhancement,
+            PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT,
+            [](tvVideoSrcType_t src, tvPQModeIndex_t mode, tvVideoFormatType_t fmt, int val) {
+                return SetLocalContrastEnhancement(src, mode, fmt, val);
+            }
+        );
+    }
+
+    uint32_t AVOutputTV::setMPEGNoiseReduction(const JsonObject& parameters, JsonObject& response)
+    {
+        return setContextPQParam(
+            parameters, response,
+            "mpegNoiseReduction", "MPEGNoiseReduction",
+            m_maxMPEGNoiseReduction,
+            PQ_PARAM_MPEG_NOISE_REDUCTION,
+            [](tvVideoSrcType_t src, tvPQModeIndex_t mode, tvVideoFormatType_t fmt, int val) {
+                return SetMPEGNoiseReduction(src, mode, fmt, val);
+            }
+        );
+    }
+
+    uint32_t AVOutputTV::setDigitalNoiseReduction(const JsonObject& parameters, JsonObject& response)
+    {
+        return setContextPQParam(
+            parameters, response,
+            "digitalNoiseReduction", "DigitalNoiseReduction",
+            m_maxDigitalNoiseReduction,
+            PQ_PARAM_DIGITAL_NOISE_REDUCTION,
+            [](tvVideoSrcType_t src, tvPQModeIndex_t mode, tvVideoFormatType_t fmt, int val) {
+                return SetDigitalNoiseReduction(src, mode, fmt, val);
+            }
+        );
     }
 
     uint32_t AVOutputTV::getBacklight(const JsonObject& parameters, JsonObject& response)
@@ -1578,7 +1804,7 @@ namespace Plugin {
         }
         else
         {
-            bool success = applyPQParamSetting(parameters, "Backlight", PQ_PARAM_BACKLIGHT, SetBacklight, m_maxBacklight);
+            bool success = setIntPQParam(parameters, "Backlight", PQ_PARAM_BACKLIGHT, SetBacklight, m_maxBacklight);
             returnResponse(success);
         }
 
@@ -1889,7 +2115,7 @@ namespace Plugin {
         }
         else
         {
-            bool success = applyPQParamSetting(parameters, "Brightness", PQ_PARAM_BRIGHTNESS, SetBrightness, m_maxBrightness);
+            bool success = setIntPQParam(parameters, "Brightness", PQ_PARAM_BRIGHTNESS, SetBrightness, m_maxBrightness);
             returnResponse(success);
         }
     }
@@ -2094,7 +2320,7 @@ namespace Plugin {
         }
         else
         {
-            bool success = applyPQParamSetting(parameters, "Contrast", PQ_PARAM_CONTRAST, SetContrast, m_maxContrast);
+            bool success = setIntPQParam(parameters, "Contrast", PQ_PARAM_CONTRAST, SetContrast, m_maxContrast);
             returnResponse(success);
         }
     }
@@ -2300,7 +2526,7 @@ namespace Plugin {
         }
         else
         {
-            bool success = applyPQParamSetting(parameters, "Saturation", PQ_PARAM_SATURATION, SetSaturation, m_maxSaturation);
+            bool success = setIntPQParam(parameters, "Saturation", PQ_PARAM_SATURATION, SetSaturation, m_maxSaturation);
             returnResponse(success);
         }
     }
@@ -2506,7 +2732,7 @@ namespace Plugin {
         }
         else
         {
-            bool success = applyPQParamSetting(parameters, "Sharpness", PQ_PARAM_SHARPNESS, SetSharpness, m_maxSharpness);
+            bool success = setIntPQParam(parameters, "Sharpness", PQ_PARAM_SHARPNESS, SetSharpness, m_maxSharpness);
             returnResponse(success);
         }
     }
@@ -2713,7 +2939,7 @@ namespace Plugin {
         }
         else
         {
-            bool success = applyPQParamSetting(parameters, "Hue", PQ_PARAM_HUE, SetHue, m_maxHue);
+            bool success = setIntPQParam(parameters, "Hue", PQ_PARAM_HUE, SetHue, m_maxHue);
             returnResponse(success);
         }
     }

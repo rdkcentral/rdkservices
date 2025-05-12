@@ -206,6 +206,12 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(get2PointWB)
 		DECLARE_JSON_RPC_METHOD(getAutoBacklightMode)
 		DECLARE_JSON_RPC_METHOD(getAISuperResolution)
+		DECLARE_JSON_RPC_METHOD(getPrecisionDetail)
+		DECLARE_JSON_RPC_METHOD(getLocalContrastEnhancement)
+		DECLARE_JSON_RPC_METHOD(getMPEGNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(getDigitalNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(getMEMC)
+
 
 
 		/*Get Capability API's*/
@@ -273,7 +279,11 @@ class AVOutputTV : public AVOutputBase {
  		DECLARE_JSON_RPC_METHOD(signalFilmMakerMode)
 		DECLARE_JSON_RPC_METHOD(setAutoBacklightMode)
 		DECLARE_JSON_RPC_METHOD(setAISuperResolution)
-
+		DECLARE_JSON_RPC_METHOD(setPrecisionDetail)
+		DECLARE_JSON_RPC_METHOD(setLocalContrastEnhancement)
+		DECLARE_JSON_RPC_METHOD(setMPEGNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(setDigitalNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(setMEMC)
 
 		/*Reset API's*/
 		DECLARE_JSON_RPC_METHOD(resetBacklight)
@@ -293,6 +303,12 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(reset2PointWB)
 		DECLARE_JSON_RPC_METHOD(resetAutoBacklightMode)
 		DECLARE_JSON_RPC_METHOD(resetAISuperResolution)
+		DECLARE_JSON_RPC_METHOD(resetPrecisionDetail)
+		DECLARE_JSON_RPC_METHOD(resetLocalContrastEnhancement)
+		DECLARE_JSON_RPC_METHOD(resetMPEGNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(resetDigitalNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(resetMEMC)
+
 
 
     private:
@@ -493,7 +509,7 @@ class AVOutputTV : public AVOutputBase {
 			const std::string& paramName,
 			tvPQParameterIndex_t paramType,
 			int& outValue);
-		bool applyPQParamSetting(const JsonObject& parameters, const std::string& paramName,
+		bool setIntPQParam(const JsonObject& parameters, const std::string& paramName,
 					tvPQParameterIndex_t pqType, tvSetFunction halSetter, int maxCap);
 		bool setEnumPQParam(const JsonObject& parameters,
 			const std::string& inputKey,           // e.g., "mode"
@@ -501,6 +517,12 @@ class AVOutputTV : public AVOutputBase {
 			const std::unordered_map<std::string, int>& valueMap,
 			tvPQParameterIndex_t paramType,
 			std::function<tvError_t(int)> halSetter);
+		uint32_t setContextPQParam(const JsonObject& parameters, JsonObject& response,
+                                       const std::string& inputParamName,
+                                       const std::string& tr181ParamName,
+                                       int maxAllowedValue,
+                                       tvPQParameterIndex_t pqParamType,
+                                       std::function<tvError_t(tvVideoSrcType_t, tvPQModeIndex_t, tvVideoFormatType_t, int)> halSetter);
 		bool setPictureModeV2(const JsonObject& parameters);
 		bool getBacklightDimmingModeV2(const JsonObject& parameters, std::string& outMode);
 		bool getColorTemperatureV2(const JsonObject& parameters, std::string& outMode);
@@ -554,9 +576,9 @@ class AVOutputTV : public AVOutputBase {
 		tvContextCaps_t* m_lowLatencyStateCaps = nullptr;
 		tvError_t m_lowLatencyStateStatus = tvERROR_NONE;
 
-		int m_maxPrecision = 0;
-		tvContextCaps_t* m_presicionDetailCaps = nullptr;
-		tvError_t m_presicionStatus = tvERROR_NONE;
+		int m_maxPrecisionDetail = 0;
+		tvContextCaps_t* m_precisionDetailCaps = nullptr;
+		tvError_t m_precisionDetailStatus = tvERROR_NONE;
 
 		int m_maxLocalContrastEnhancement = 0;
 		tvContextCaps_t* m_localContrastEnhancementCaps = nullptr;

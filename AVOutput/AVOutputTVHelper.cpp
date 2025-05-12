@@ -1359,18 +1359,26 @@ namespace Plugin {
         m_aspectRatioStatus = GetAspectRatioCaps(&m_aspectRatio, &m_numAspectRatio, &m_aspectRatioCaps);
         //LowLatencyState
         m_lowLatencyStateStatus = GetLowLatencyStateCaps(&m_maxlowLatencyState, &m_lowLatencyStateCaps);
-
         // PrecisionDetail
-        m_presicionStatus = GetPrecisionDetailCaps(&m_maxPrecision, &m_presicionDetailCaps);
+        m_precisionDetailStatus = GetPrecisionDetailCaps(&m_maxPrecisionDetail, &m_precisionDetailCaps);
 
         // LocalContrastEnhancement
         m_localContrastEnhancementStatus = GetLocalContrastEnhancementCaps(&m_maxLocalContrastEnhancement, &m_localContrastEnhancementCaps);
+        if (m_localContrastEnhancementStatus == tvERROR_NONE) {
+            updateAVoutputTVParamV2("sync", "LocalContrastEnhancement", paramJson, PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT, level);
+        }
 
         // MPEGNoiseReduction
         m_MPEGNoiseReductionStatus = GetMPEGNoiseReductionCaps(&m_maxMPEGNoiseReduction, &m_MPEGNoiseReductionCaps);
+        if (m_MPEGNoiseReductionStatus == tvERROR_NONE) {
+            updateAVoutputTVParamV2("sync", "MPEGNoiseReduction", paramJson, PQ_PARAM_MPEG_NOISE_REDUCTION, level);
+        }
 
         // DigitalNoiseReduction
         m_digitalNoiseReductionStatus = GetDigitalNoiseReductionCaps(&m_maxDigitalNoiseReduction, &m_digitalNoiseReductionCaps);
+        if (m_digitalNoiseReductionStatus == tvERROR_NONE) {
+            updateAVoutputTVParamV2("sync", "DigitalNoiseReduction", paramJson, PQ_PARAM_DIGITAL_NOISE_REDUCTION, level);
+        }
 
         // AISuperResolution
         m_AISuperResolutionStatus = GetAISuperResolutionCaps(&m_maxAISuperResolution, &m_AISuperResolutionCaps);
@@ -1380,7 +1388,9 @@ namespace Plugin {
 
         // MEMC
         m_MEMCStatus = GetMEMCCaps(&m_maxMEMC, &m_MEMCCaps);
-
+        if (m_MEMCStatus == tvERROR_NONE) {
+            updateAVoutputTVParamV2("sync", "MEMC", paramJson, PQ_PARAM_MEMC, level);
+        }
         // Sync CMS and WB
         syncCMSParams();
         syncWBParams();
@@ -2871,7 +2881,7 @@ namespace Plugin {
         else if (paramName == "PictureMode") caps = m_pictureModeCaps;
         else if (paramName == "AspectRatio") caps = m_aspectRatioCaps;
         else if (paramName == "LowLatencyState") caps = m_lowLatencyStateCaps;
-        else if (paramName == "PrecisionDetail") caps = m_presicionDetailCaps;
+        else if (paramName == "PrecisionDetail") caps = m_precisionDetailCaps;
         else if (paramName == "LocalContrastEnhancement") caps = m_localContrastEnhancementCaps;
         else if (paramName == "MPEGNoiseReduction") caps = m_MPEGNoiseReductionCaps;
         else if (paramName == "DigitalNoiseReduction") caps = m_digitalNoiseReductionCaps;
@@ -3140,11 +3150,64 @@ namespace Plugin {
                 case PQ_PARAM_ASPECT_RATIO:
                     ret |= SaveAspectRatio((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvDisplayMode_t)level);
                     break;
+                    case PQ_PARAM_PRECISION_DETAIL:
+            #if HAL_NOT_READY
+            #else
+                    ret |= SetPrecisionDetail((tvVideoSrcType_t)paramIndex.sourceIndex,
+                                            (tvPQModeIndex_t)paramIndex.pqmodeIndex,
+                                            (tvVideoFormatType_t)paramIndex.formatIndex,
+                                            level);
+            #endif
+                    break;
+
+                case PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT:
+            #if HAL_NOT_READY
+            #else
+                    ret |= SetLocalContrastEnhancement((tvVideoSrcType_t)paramIndex.sourceIndex,
+                                                    (tvPQModeIndex_t)paramIndex.pqmodeIndex,
+                                                    (tvVideoFormatType_t)paramIndex.formatIndex,
+                                                    level);
+            #endif
+                    break;
+
+                case PQ_PARAM_MPEG_NOISE_REDUCTION:
+            #if HAL_NOT_READY
+            #else
+                    ret |= SetMPEGNoiseReduction((tvVideoSrcType_t)paramIndex.sourceIndex,
+                                                (tvPQModeIndex_t)paramIndex.pqmodeIndex,
+                                                (tvVideoFormatType_t)paramIndex.formatIndex,
+                                                level);
+            #endif
+                    break;
+
+                case PQ_PARAM_DIGITAL_NOISE_REDUCTION:
+            #if HAL_NOT_READY
+            #else
+                    ret |= SetDigitalNoiseReduction((tvVideoSrcType_t)paramIndex.sourceIndex,
+                                                    (tvPQModeIndex_t)paramIndex.pqmodeIndex,
+                                                    (tvVideoFormatType_t)paramIndex.formatIndex,
+                                                    level);
+            #endif
+                    break;
+
                 case PQ_PARAM_AI_SUPER_RESOLUTION:
-#if HAL_NOT_READY
-#else
-                    ret |= SetAISuperResolution((tvVideoSrcType_t)paramIndex.sourceIndex, (tvPQModeIndex_t)paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
-#endif
+            #if HAL_NOT_READY
+            #else
+                    ret |= SetAISuperResolution((tvVideoSrcType_t)paramIndex.sourceIndex,
+                                                (tvPQModeIndex_t)paramIndex.pqmodeIndex,
+                                                (tvVideoFormatType_t)paramIndex.formatIndex,
+                                                level);
+            #endif
+                    break;
+
+                case PQ_PARAM_MEMC:
+            #if HAL_NOT_READY
+            #else
+                    ret |= SetMEMC((tvVideoSrcType_t)paramIndex.sourceIndex,
+                                (tvPQModeIndex_t)paramIndex.pqmodeIndex,
+                                (tvVideoFormatType_t)paramIndex.formatIndex,
+                                level);
+            #endif
                     break;
                 //case PQ_PARAM_AUTO_BACKLIGHT_MODE:
                    // break;
@@ -3178,7 +3241,6 @@ namespace Plugin {
                 case PQ_PARAM_WB_OFFSET_RED:
                 case PQ_PARAM_WB_OFFSET_GREEN:
                 case PQ_PARAM_WB_OFFSET_BLUE:
-                case PQ_PARAM_PRECISION_DETAIL:
                     // TODO: Add implementation
                     break;
 
