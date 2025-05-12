@@ -1478,10 +1478,10 @@ namespace WPEFramework
                     try
                     {
                         LOGINFO("Command: sending ImageViewOn TV \r\n");
-                        smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(ImageViewOn()));
+                        smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(ImageViewOn()),500);
                         usleep(10000);
                         LOGINFO("Command: sending ActiveSource  physical_addr :%s \r\n",physical_addr.toString().c_str());
-                        smConnection->sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(ActiveSource(physical_addr)));
+                        smConnection->sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(ActiveSource(physical_addr)),500);
                         usleep(10000);
                         isDeviceActiveSource = true;
                         LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
