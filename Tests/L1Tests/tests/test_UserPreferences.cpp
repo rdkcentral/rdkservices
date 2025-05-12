@@ -90,4 +90,4 @@ TEST_F(UserPreferencesTest, setUILanguage)
     file.Destroy();
 }
 
-#endif()
+#endif
