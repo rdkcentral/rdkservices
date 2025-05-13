@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.3] - 2025-05-13
+### Changed
+- Calling UserSettings from within UserPreferences Get/Set
+
 ## [1.0.2] - 2024-05-25
 ### Added
 - Make plugin autostart configurable from recipe
