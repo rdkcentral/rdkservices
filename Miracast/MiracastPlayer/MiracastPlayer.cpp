@@ -119,7 +119,7 @@ namespace WPEFramework
 				if (nullptr != m_miracast_rtsp_obj)
 				{
 					m_CurrentService = service;
-					m_GstPlayer = SoC_GstPlayer::getInstance();
+					m_GstPlayer = MiracastGstPlayer::getInstance();
 					m_isServiceInitialized = true;
 				}
 				else
@@ -221,6 +221,50 @@ namespace WPEFramework
 					m_video_sink_rect.height = height;
 
 					rtsp_hldr_msgq_data.videorect = m_video_sink_rect;
+
+					if (0 == access("/opt/miracast_westeros_env", F_OK))
+					{
+						if (0 != setenv("XDG_RUNTIME_DIR", "/run", 1))
+						{
+							MIRACASTLOG_ERROR("Failed, setenv for XDG_RUNTIME_DIR: [%s]",strerror(errno));
+						}
+						if (0 != setenv("LD_PRELOAD", "libwesteros_gl.so.0.0.0", 1))
+						{
+							MIRACASTLOG_ERROR("Failed, setenv for LD_PRELOAD: [%s]",strerror(errno));
+						}
+						if (0 != setenv("WESTEROS_GL_GRAPHICS_MAX_SIZE", "1920x1080", 1))
+						{
+							MIRACASTLOG_ERROR("Failed, setenv for WESTEROS_GL_GRAPHICS_MAX_SIZE: [%s]",strerror(errno));
+						}
+						if (0 != setenv("WESTEROS_GL_MODE", "3840x2160x60", 1))
+						{
+							MIRACASTLOG_ERROR("Failed, setenv for WESTEROS_GL_MODE: [%s]",strerror(errno));
+						}
+						if (0 != setenv("WESTEROS_GL_USE_REFRESH_LOCK", "1", 1))
+						{
+							MIRACASTLOG_ERROR("Failed, setenv for WESTEROS_GL_USE_REFRESH_LOCK: [%s]",strerror(errno));
+						}
+						if (0 != setenv("WESTEROS_GL_USE_AMLOGIC_AVSYNC", "1", 1))
+						{
+							MIRACASTLOG_ERROR("Failed, setenv for WESTEROS_GL_USE_AMLOGIC_AVSYNC: [%s]",strerror(errno));
+						}
+						if (0 != setenv("WAYLAND_DISPLAY", "main0", 1))
+						{
+							MIRACASTLOG_ERROR("Failed, setenv for WAYLAND_DISPLAY: [%s]",strerror(errno));
+						}
+						if (0 != setenv("WESTEROS_SINK_AMLOGIC_USE_DMABUF", "1", 1))
+						{
+							MIRACASTLOG_ERROR("Failed, setenv for WESTEROS_SINK_AMLOGIC_USE_DMABUF: [%s]",strerror(errno));
+						}
+						if (0 != setenv("WESTEROS_SINK_USE_FREERUN", "1", 1))
+						{
+							MIRACASTLOG_ERROR("Failed, setenv for WESTEROS_SINK_USE_FREERUN: [%s]",strerror(errno));
+						}
+						if (0 != setenv("WESTEROS_SINK_USE_ESSRMGR", "1", 1))
+						{
+							MIRACASTLOG_ERROR("Failed, setenv for WESTEROS_SINK_USE_ESSRMGR: [%s]",strerror(errno));
+						}
+					}
 					m_miracast_rtsp_obj->send_msgto_rtsp_msg_hdler_thread(rtsp_hldr_msgq_data);
 				}
 				else{
@@ -778,12 +822,56 @@ namespace WPEFramework
 				char commandBuffer[768] = {0};
 				snprintf( commandBuffer,
 						sizeof(commandBuffer),
-						"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastService.1.updatePlayerState\", \"params\":{\"mac\": \"%s\",\"state\": \"%s\",\"reason_code\": %s}}' http://127.0.0.1:9998/jsonrpc",
+						"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastService.1.updatePlayerState\", \"params\":{\"mac\": \"%s\",\"state\": \"%s\",\"reason_code\": %s}}' http://127.0.0.1:9998/jsonrpc &",
 						client_mac.c_str(),
 						stateDescription(player_state).c_str(),
 						std::to_string(reason_code).c_str());
 				MIRACASTLOG_INFO("System Command [%s]",commandBuffer);
 				MiracastCommon::execute_SystemCommand( commandBuffer );
+
+				if (( MIRACAST_PLAYER_STATE_STOPPED == player_state ) && (0 == access("/opt/miracast_westeros_env", F_OK)))
+				{
+					if (0 != unsetenv("XDG_RUNTIME_DIR"))
+					{
+						MIRACASTLOG_ERROR("Failed, unsetenv for XDG_RUNTIME_DIR: [%s]",strerror(errno));
+					}
+					if (0 != unsetenv("LD_PRELOAD"))
+					{
+						MIRACASTLOG_ERROR("Failed, unsetenv for LD_PRELOAD: [%s]",strerror(errno));
+					}
+					if (0 != unsetenv("WESTEROS_GL_GRAPHICS_MAX_SIZE"))
+					{
+						MIRACASTLOG_ERROR("Failed, unsetenv for WESTEROS_GL_GRAPHICS_MAX_SIZE: [%s]",strerror(errno));
+					}
+					if (0 != unsetenv("WESTEROS_GL_MODE"))
+					{
+						MIRACASTLOG_ERROR("Failed, unsetenv for WESTEROS_GL_MODE: [%s]",strerror(errno));
+					}
+					if (0 != unsetenv("WESTEROS_GL_USE_REFRESH_LOCK"))
+					{
+						MIRACASTLOG_ERROR("Failed, unsetenv for WESTEROS_GL_USE_REFRESH_LOCK: [%s]",strerror(errno));
+					}
+					if (0 != unsetenv("WESTEROS_GL_USE_AMLOGIC_AVSYNC"))
+					{
+						MIRACASTLOG_ERROR("Failed, unsetenv for WESTEROS_GL_USE_AMLOGIC_AVSYNC: [%s]",strerror(errno));
+					}
+					if (0 != unsetenv("WAYLAND_DISPLAY"))
+					{
+						MIRACASTLOG_ERROR("Failed, unsetenv for WAYLAND_DISPLAY: [%s]",strerror(errno));
+					}
+					if (0 != unsetenv("WESTEROS_SINK_AMLOGIC_USE_DMABUF"))
+					{
+						MIRACASTLOG_ERROR("Failed, unsetenv for WESTEROS_SINK_AMLOGIC_USE_DMABUF: [%s]",strerror(errno));
+					}
+					if (0 != unsetenv("WESTEROS_SINK_USE_FREERUN"))
+					{
+						MIRACASTLOG_ERROR("Failed, unsetenv for WESTEROS_SINK_USE_FREERUN: [%s]",strerror(errno));
+					}
+					if (0 != unsetenv("WESTEROS_SINK_USE_ESSRMGR"))
+					{
+						MIRACASTLOG_ERROR("Failed, unsetenv for WESTEROS_SINK_USE_ESSRMGR: [%s]",strerror(errno));
+					}
+				}
 			}
 			else
 			{
