@@ -329,6 +329,26 @@ TEST_F(XCastDsTest, getsetStandbyBehavoir)
     EXPECT_EQ(response, string("{\"standbybehavior\":\"active\",\"success\":true}"));
 }
 
+TEST_F(XCastDsTest, getsetManufacturerName)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setManufacturerName"), _T("{\"manufacturer\": \"manufacturerTest\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getManufacturerName"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"manufacturer\":\"manufacturerTest\",\"success\":true}"));
+}
+
+TEST_F(XCastDsTest, getsetModelName)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setModelName"), _T("{\"model\": \"modelTest\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getModelName"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"model\":\"modelTest\",\"success\":true}"));
+}
+
 TEST_F(XCastInitializedTest, onApplicationStateChanged)
 {
     EXPECT_CALL(*p_rtBaseMock, set(::testing::_, ::testing::Matcher<const char*>(::testing::_)))
