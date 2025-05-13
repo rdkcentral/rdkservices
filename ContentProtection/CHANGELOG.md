@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.0] - 2025-05-13
+### Changed
+- New appId parameter in openDrmSession and onWatermarkStatusChanged, opacityLevel parameter in showWatermark
+
 ## [1.0.1] - 2025-05-05
 ### Fixed
 - Fix callsign - "org.rdk." missing
