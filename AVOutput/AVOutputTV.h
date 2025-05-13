@@ -509,6 +509,12 @@ class AVOutputTV : public AVOutputBase {
 			const std::string& paramName,
 			tvPQParameterIndex_t paramType,
 			int& outValue);
+		bool getEnumPQParamString(
+			const JsonObject& parameters,
+			const std::string& paramName,
+			tvPQParameterIndex_t pqType,
+			const std::unordered_map<int, std::string>& enumToStrMap,
+			std::string& outStr);
 		bool setIntPQParam(const JsonObject& parameters, const std::string& paramName,
 					tvPQParameterIndex_t pqType, tvSetFunction halSetter, int maxCap);
 		bool setEnumPQParam(const JsonObject& parameters,
@@ -524,8 +530,6 @@ class AVOutputTV : public AVOutputBase {
                                        tvPQParameterIndex_t pqParamType,
                                        std::function<tvError_t(tvVideoSrcType_t, tvPQModeIndex_t, tvVideoFormatType_t, int)> halSetter);
 		bool setPictureModeV2(const JsonObject& parameters);
-		bool getBacklightDimmingModeV2(const JsonObject& parameters, std::string& outMode);
-		bool getColorTemperatureV2(const JsonObject& parameters, std::string& outMode);
 		bool getPictureModeV2(const JsonObject& parameters, std::string& outMode);
 		std::string getCurrentPictureModeAsString();
 		std::string getCurrentVideoFormatAsString();

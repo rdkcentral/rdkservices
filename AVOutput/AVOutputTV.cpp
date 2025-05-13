@@ -527,12 +527,12 @@ namespace Plugin {
         {"TV ZOOM",          tvDisplayMode_ZOOM},
         {"TV FULL",          tvDisplayMode_FULL}
     };
-    static const std::unordered_map<tvDimmingMode_t, std::string> dimmingModeReverseMap = {
+    static const std::unordered_map<int, std::string> dimmingModeReverseMap = {
         { tvDimmingMode_Fixed, "Fixed" },
         { tvDimmingMode_Local, "Local" },
         { tvDimmingMode_Global, "Global" }
     };
-    static const std::unordered_map<std::string, tvDimmingMode_t> dimmingModeMap = {
+    static const std::unordered_map<std::string, int> dimmingModeMap = {
         { "Fixed", tvDimmingMode_Fixed },
         { "Local", tvDimmingMode_Local },
         { "Global", tvDimmingMode_Global }
@@ -568,6 +568,48 @@ namespace Plugin {
 
         LOGERR("getLocalparam failed for %s with error code %d", paramName.c_str(), err);
         return false;
+    }
+
+    bool AVOutputTV::getEnumPQParamString(
+        const JsonObject& parameters,
+        const std::string& paramName,
+        tvPQParameterIndex_t pqType,
+        const std::unordered_map<int, std::string>& enumToStrMap,
+        std::string& outStr)
+    {
+        LOGINFO("getEnumPQParamString Entry for %s\n", paramName.c_str());
+
+        tvConfigContext_t validContext = getValidContextFromGetParameters(parameters, paramName);
+        if ((validContext.videoSrcType == VIDEO_SOURCE_ALL &&
+            validContext.videoFormatType == VIDEO_FORMAT_NONE &&
+            validContext.pq_mode == PQ_MODE_INVALID))
+        {
+            LOGWARN("No valid context for get %s", paramName.c_str());
+            return false;
+        }
+
+        paramIndex_t indexInfo {
+            .sourceIndex = static_cast<uint8_t>(validContext.videoSrcType),
+            .pqmodeIndex = static_cast<uint8_t>(validContext.pq_mode),
+            .formatIndex = static_cast<uint8_t>(validContext.videoFormatType)
+        };
+
+        int paramValue = 0;
+        int err = getLocalparam(paramName, indexInfo, paramValue, pqType);
+        if (err != 0) {
+            LOGERR("Failed to get %s from localparam", paramName.c_str());
+            return false;
+        }
+
+        auto it = enumToStrMap.find(paramValue);
+        if (it != enumToStrMap.end()) {
+            outStr = it->second;
+            LOGINFO("%s = %s", paramName.c_str(), outStr.c_str());
+            return true;
+        } else {
+            LOGERR("Enum value %d not found in map for %s", paramValue, paramName.c_str());
+            return false;
+        }
     }
 
     bool AVOutputTV::setEnumPQParam(const JsonObject& parameters,
@@ -896,7 +938,7 @@ namespace Plugin {
     };
 
     // Reverse lookup: enum → string
-    const std::map<int, std::string> colorTempReverseMap = {
+    const std::unordered_map<int, std::string> colorTempReverseMap = {
         {tvColorTemp_STANDARD,          "Standard"},
         {tvColorTemp_WARM,              "Warm"},
         {tvColorTemp_COLD,              "Cold"},
@@ -3052,36 +3094,6 @@ namespace Plugin {
         }
     }
 
-    bool AVOutputTV::getColorTemperatureV2(const JsonObject& parameters, std::string& outMode)
-    {
-        LOGINFO("%s Entry\n", __FUNCTION__);
-
-        tvConfigContext_t validContext = getValidContextFromGetParameters(parameters, "ColorTemp");
-        if ((validContext.videoSrcType == VIDEO_SOURCE_ALL &&
-            validContext.videoFormatType == VIDEO_FORMAT_NONE &&
-            validContext.pq_mode == PQ_MODE_INVALID))
-        {
-            LOGWARN("No Valid context for get ColorTemp");
-            return false;
-        }
-
-        paramIndex_t indexInfo {
-            .sourceIndex = static_cast<uint8_t>(validContext.videoSrcType),
-            .pqmodeIndex = static_cast<uint8_t>(validContext.pq_mode),
-            .formatIndex = static_cast<uint8_t>(validContext.videoFormatType)
-        };
-
-        int colortemp = 0;
-        int err = getLocalparam("ColorTemp", indexInfo, colortemp, PQ_PARAM_COLOR_TEMPERATURE);
-        if (err == 0) {
-            outMode = getColorTemperatureStringFromEnum(static_cast<tvColorTemp_t>(colortemp));
-            LOGINFO("Color Temp Value: %s\n", outMode.c_str());
-            return true;
-        }
-
-        return false;
-    }
-
     uint32_t AVOutputTV::getColorTemperature(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
@@ -3138,13 +3150,15 @@ namespace Plugin {
         }
         else
         {
-            std::string tempStr;
-            if (getColorTemperatureV2(parameters, tempStr)) {
-                response["colorTemperature"] = tempStr;
+            std::string outMode;
+            if (getEnumPQParamString(parameters, "ColorTemp",
+                 PQ_PARAM_COLOR_TEMPERATURE, colorTempReverseMap, outMode)) {
+                response["colorTemperature"] = outMode;
                 returnResponse(true);
             } else {
                 returnResponse(false);
             }
+
         }
     }
 
@@ -3207,43 +3221,16 @@ namespace Plugin {
         }
         else
         {
-            LOGINFO("Entry: setColorTemperatureV2\n");
-            tvError_t ret = tvERROR_NONE;
-            std::string key = "colorTemperature";
-            if (!parameters.HasLabel(key.c_str())) {
-                LOGERR("Missing parameter: %s", key.c_str());
-                returnResponse(false);
-            }
-            std::string value = parameters[key.c_str()].String();
-            auto it = colorTempMap.find(value);
-            if (it == colorTempMap.end()) {
-                LOGERR("Invalid colorTemperature: %s", value.c_str());
-                returnResponse(false);
-            }
-            int colorTempValue = it->second;
-            if( isSetRequiredForParam("ColorTemp", parameters))
-            {
-                LOGINFO("Proceed with %s\n",__FUNCTION__);
-                ret = SetColorTemperature((tvColorTemp_t)colorTempValue);
-            }
-            if(ret != tvERROR_NONE)
-            {
-                LOGERR("Failed to set ColorTemperature\n");
-                returnResponse(false);
-            }
-            else
-            {
-                // Update the TV parameter
-                LOGINFO("Updating AVOutputTVParamV2 for ColorTemperature %d", colorTempValue);
-                int retval = updateAVoutputTVParamV2("set", "ColorTemp", parameters, PQ_PARAM_COLOR_TEMPERATURE, colorTempValue);
-                if (retval != 0)
-                {
-                    LOGERR("Failed to Save ColorTemperature to ssm_data\n");
-                    returnResponse(false);
+            return setEnumPQParam(
+                parameters,
+                "colorTemperature",
+                "ColorTemp",
+                colorTempMap,
+                PQ_PARAM_COLOR_TEMPERATURE,
+                [](int val) {
+                    return SetColorTemperature(static_cast<tvColorTemp_t>(val));
                 }
-                LOGINFO("Exit : setColorTemperature successful to value: %d\n", colorTempValue);
-                returnResponse(true);
-            }
+            );
         }
     }
 
@@ -3347,36 +3334,6 @@ namespace Plugin {
         }
     }
 
-    bool AVOutputTV::getBacklightDimmingModeV2(const JsonObject& parameters, std::string& outMode)
-    {
-        LOGINFO("%s Entry\n", __FUNCTION__);
-
-        tvConfigContext_t validContext = getValidContextFromGetParameters(parameters, "DimmingMode");
-        if ((validContext.videoSrcType == VIDEO_SOURCE_ALL &&
-             validContext.videoFormatType == VIDEO_FORMAT_NONE &&
-             validContext.pq_mode == PQ_MODE_INVALID))
-        {
-            LOGWARN("No Valid context for get DimmingMode");
-            return false;
-        }
-
-        paramIndex_t indexInfo {
-            .sourceIndex = static_cast<uint8_t>(validContext.videoSrcType),
-            .pqmodeIndex = static_cast<uint8_t>(validContext.pq_mode),
-            .formatIndex = static_cast<uint8_t>(validContext.videoFormatType)
-        };
-
-        int dimmingMode = 0;
-        int err = getLocalparam("DimmingMode", indexInfo, dimmingMode, PQ_PARAM_DIMMINGMODE);
-        if (err == 0) {
-            getDimmingModeStringFromEnum(dimmingMode, outMode);
-            LOGINFO("DimmingMode Value: %s\n", outMode.c_str());
-            return true;
-        }
-
-        return false;
-    }
-
     uint32_t AVOutputTV::getBacklightDimmingMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
@@ -3425,7 +3382,8 @@ namespace Plugin {
         else
         {
             std::string mode;
-            if (getBacklightDimmingModeV2(parameters, mode)) {
+            if (getEnumPQParamString(parameters, "DimmingMode",
+                 PQ_PARAM_DIMMINGMODE, dimmingModeReverseMap, mode)) {
                 response["DimmingMode"] = mode;
                 returnResponse(true);
             } else {
@@ -4623,28 +4581,42 @@ namespace Plugin {
     uint32_t AVOutputTV::getLowLatencyState(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
+        if(m_lowLatencyStateStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            paramIndex_t indexInfo;
+            int lowlatencystate = 0;
 
-        capDetails_t inputInfo;
-        paramIndex_t indexInfo;
-        int lowlatencystate = 0;
+            if (parsingGetInputArgument(parameters, "LowLatencyState",inputInfo) != 0) {
+                LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+                returnResponse(false);
+            }
+            if (getParamIndex("LowLatencyState",inputInfo,indexInfo) == -1) {
+                LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingGetInputArgument(parameters, "LowLatencyState",inputInfo) != 0) {
-            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
-            returnResponse(false);
+            int err = getLocalparam("LowLatencyState", indexInfo ,lowlatencystate, PQ_PARAM_LOWLATENCY_STATE);
+            if( err == 0 ) {
+                response["lowLatencyState"] = std::to_string(lowlatencystate);
+                LOGINFO("Exit : LowLatencyState Value: %d \n", lowlatencystate);
+                returnResponse(true);
+            }
+            else {
+                returnResponse(false);
+            }
         }
-        if (getParamIndex("LowLatencyState",inputInfo,indexInfo) == -1) {
-            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        int err = getLocalparam("LowLatencyState", indexInfo ,lowlatencystate, PQ_PARAM_LOWLATENCY_STATE);
-        if( err == 0 ) {
-            response["lowLatencyState"] = std::to_string(lowlatencystate);
-            LOGINFO("Exit : LowLatencyState Value: %d \n", lowlatencystate);
-            returnResponse(true);
-        }
-        else {
-            returnResponse(false);
+        else
+        {
+            int lowlatencystate = 0;
+            if (getPQParamFromContext(parameters, "LowLatencyState", PQ_PARAM_LOWLATENCY_STATE, lowlatencystate)) {
+                response["lowLatencyState"] = std::to_string(lowlatencystate);
+                LOGINFO("Exit : LowLatencyState Value: %d", lowlatencystate);
+                returnResponse(true);
+            } else {
+                LOGERR("Failed to get LowLatencyState");
+                returnResponse(false);
+            }
         }
     }
 
@@ -5775,7 +5747,7 @@ namespace Plugin {
                 "mode",                           // input key
                 "AutoBacklightMode",              // internal param name
                 backlightModeMap,                 // map<string, enum>
-                PQ_PARAM_AUTO_BACKLIGHT_MODE,    // enum param index
+                PQ_PARAM_BACKLIGHT_MODE,    // enum param index
                 [this](int val) {
                     return SetCurrentBacklightMode(static_cast<tvBacklightMode_t>(val));
                 }
@@ -5787,23 +5759,41 @@ namespace Plugin {
 
     uint32_t AVOutputTV::getAutoBacklightMode(const JsonObject& parameters, JsonObject& response)
     {
+        if(m_backlightModeStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            TR181_ParamData_t param;
 
-        TR181_ParamData_t param;
+            if (isPlatformSupport("AutoBacklightMode") != 0) {
+                returnResponse(false);
+            }
 
-        if (isPlatformSupport("AutoBacklightMode") != 0) {
-            returnResponse(false);
+            tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, &param);
+            if (err!= tr181Success) {
+                returnResponse(false);
+            }
+            else {
+                std::string s;
+                s+=param.value;
+                response["mode"] = s;
+                LOGINFO("Exit getAutoBacklightMode(): %s\n",s.c_str());
+                returnResponse(true);
+            }
         }
-
-        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, &param);
-        if (err!= tr181Success) {
+        else
+        {
+#if 0
+            int mode = 0;
+            if (getPQParamFromContext(parameters, "AutoBacklightMode", PQ_PARAM_BACKLIGHT_MODE, mode)) {
+                response["mode"] = std::to_string(mode);
+                LOGINFO("Exit : AutoBacklightMode Value: %d", mode);
+                returnResponse(true);
+            } else {
+                LOGERR("Failed to get AutoBacklightMode");
+                returnResponse(false);
+            }
+#else
             returnResponse(false);
-        }
-        else {
-            std::string s;
-            s+=param.value;
-            response["mode"] = s;
-            LOGINFO("Exit getAutoBacklightMode(): %s\n",s.c_str());
-            returnResponse(true);
+#endif
         }
     
     }
