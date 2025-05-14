@@ -373,7 +373,7 @@ namespace Plugin {
         registerMethod("getAutoBacklightModeCapsV2", &AVOutputTV::getAutoBacklightModeCapsV2, this);
         registerMethod("getCMSCapsV2", &AVOutputTV::getCMSCapsV2, this);
         registerMethod("get2PointWBCapsV2", &AVOutputTV::get2PointWBCapsV2, this);
-        registerMethod("getSdrGammaCaps", &AVOutputTV::getSdrGammaCaps, this);
+        registerMethod("getSDRGammaCaps", &AVOutputTV::getSDRGammaCaps, this);
 
         registerMethod("getPrecisionDetailCaps", &AVOutputTV::getPrecisionDetailCaps, this);
         registerMethod("getPrecisionDetail", &AVOutputTV::getPrecisionDetail, this);
@@ -981,7 +981,7 @@ namespace Plugin {
         returnResponse(true);
     }
 
-    uint32_t AVOutputTV::getSdrGammaCaps(const JsonObject& parameters, JsonObject& response) {
+    uint32_t AVOutputTV::getSDRGammaCaps(const JsonObject& parameters, JsonObject& response) {
         tvSdrGamma_t* sdr_gamma = nullptr;
         size_t num_sdr_gamma = 0;
         tvContextCaps_t* context_caps = nullptr;
