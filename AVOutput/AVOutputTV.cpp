@@ -902,10 +902,10 @@ namespace Plugin {
             }
         }
         response["contextCaps"] = contextArray;
-
+#if HAL_NOT_READY
         // TODO:: Review cleanup once HAL is available, as memory will be allocated in HAL.
         delete[] ui_matrix_positions;
-
+#endif
         LOGINFO("Exit\n");
         returnResponse(true);
     }
@@ -977,7 +977,9 @@ namespace Plugin {
         response["ColorTemperature"] = colorTempJson;
 
         // TODO:: Review cleanup once HAL is available, as memory will be allocated in HAL.
+#if HAL_NOT_READY
         free(color_temp);
+#endif
         returnResponse(true);
     }
 
@@ -1012,8 +1014,9 @@ namespace Plugin {
         sdrGammaJson["platformSupport"] = true;
         sdrGammaJson["context"] = parseContextCaps(context_caps);
         response["SDRGamma"] = sdrGammaJson;
-
+#if HAL_NOT_READY
         free(sdr_gamma);
+#endif
         returnResponse(true);
     }
 
@@ -1041,8 +1044,9 @@ namespace Plugin {
         dimmingModeJson["platformSupport"] = true;
         dimmingModeJson["context"] = parseContextCaps(context_caps);
         response["DimmingMode"] = dimmingModeJson;
-
+#if HAL_NOT_READY
         free(dimming_mode);
+#endif
         returnResponse(true);
     }
 
@@ -1061,8 +1065,9 @@ namespace Plugin {
         aspectRatioJson["platformSupport"] = true;
         aspectRatioJson["context"] = parseContextCaps(m_aspectRatioCaps);
         response["AspectRatio"] = aspectRatioJson;
-
+#if HAL_NOT_READY
         free(m_aspectRatio);
+#endif
         returnResponse(true);
     }
 
@@ -1083,8 +1088,9 @@ namespace Plugin {
         pictureModeJson["platformSupport"] = true;
         pictureModeJson["context"] = parseContextCaps(m_pictureModeCaps);
         response["PictureMode"] = pictureModeJson;
-
+#if HAL_NOT_READY
         free(m_pictureModes);
+#endif
         returnResponse(true);
     }
 
@@ -1117,9 +1123,10 @@ namespace Plugin {
 
         backlightModeJson["context"] = parseContextCaps(m_backlightModeCaps);
         response["BacklightMode"] = backlightModeJson;
-
+#if HAL_NOT_READY
         // TODO:: Review cleanup once HAL is available, as memory will be allocated in HAL.
         free(m_backlightModes);
+#endif
         returnResponse(true);
     }
 
@@ -1152,11 +1159,11 @@ namespace Plugin {
         capsInfo["context"] = parseContextCaps(context_caps);
 
         response["DolbyVisionCalibration"] = capsInfo;
-
+#if HAL_NOT_READY
         // TODO:: Review cleanup once HAL is available, as memory will be allocated in HAL.
         delete min_values;
         delete max_values;
-
+#endif
         returnResponse(true);
     }
 
@@ -5017,11 +5024,11 @@ namespace Plugin {
             }
         }
         response["contextCaps"] = contextArray;
-
+#if HAL_NOT_READY
         // Clean up dynamic memory
         delete[] colorArray;
         delete[] componentArray;
-
+#endif
         LOGINFO("Exit: getCMSCapsV2");
         returnResponse(true);
     }
@@ -5545,11 +5552,11 @@ namespace Plugin {
         custom2PointWB["context"] = contextJson;
 
         response["Custom2PointWhiteBalance"] = custom2PointWB;
-
+#if HAL_NOT_READY
         // Clean up dynamic memory
         delete[] colorArray;
         delete[] controlArray;
-
+#endif
         LOGINFO("Exit: get2PointWBCapsV2");
         returnResponse(true);
     }
