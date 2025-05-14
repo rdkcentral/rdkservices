@@ -1351,8 +1351,6 @@ namespace Plugin {
             updateAVoutputTVParamV2("sync", "Backlight", paramJson, PQ_PARAM_BACKLIGHT, level);
         }
 
-        //PictureMode
-        m_pictureModeStatus = GetTVPictureModeCaps(&m_pictureModes, &m_numPictureModes, &m_pictureModeCaps);
         //Ambient Bakclight Mode
         m_backlightModeStatus = GetBacklightModeCaps(&m_backlightModes, &m_numBacklightModes, &m_backlightModeCaps);
         //AspectRatio
@@ -1424,54 +1422,62 @@ namespace Plugin {
                 currentFmt = VIDEO_FORMAT_SDR;
 
             if (source == "Current")
-                source = convertSourceIndexToString(currentSrc);
+                source = convertSourceIndexToStringV2(currentSrc);
             if (format == "Current")
-                format = convertVideoFormatToString(currentFmt);
+                format = convertVideoFormatToStringV2(currentFmt);
         }
+        //PictureMode
+        m_pictureModeStatus = GetTVPictureModeCaps(&m_pictureModes, &m_numPictureModes, &m_pictureModeCaps);
+        if (m_pictureModeStatus == tvERROR_NONE)
+        {
+            for (size_t i = 0; i < m_pictureModeCaps->num_contexts; ++i) {
+                const tvConfigContext_t& ctx = m_pictureModeCaps->contexts[i];
 
-        for (size_t i = 0; i < m_pictureModeCaps->num_contexts; ++i) {
-            const tvConfigContext_t& ctx = m_pictureModeCaps->contexts[i];
+                std::string sourceStr = convertSourceIndexToStringV2(ctx.videoSrcType);
+                std::string formatStr = convertVideoFormatToStringV2(ctx.videoFormatType);
 
-            std::string sourceStr = convertSourceIndexToString(ctx.videoSrcType);
-            std::string formatStr = convertVideoFormatToString(ctx.videoFormatType);
+                // Filter by provided source/format
+                if (source != "Global" && source != sourceStr)
+                    continue;
+                if (format != "Global" && format != formatStr)
+                    continue;
 
-            // Filter by provided source/format
-            if (source != "Global" && source != sourceStr)
-                continue;
-            if (format != "Global" && format != formatStr)
-                continue;
+                std::string tr181Param = std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM) +
+                                        "." + sourceStr + ".Format." + formatStr + ".PictureModeString";
 
-            std::string tr181Param = std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM) +
-                                     "." + sourceStr + ".Format." + formatStr + ".PictureModeString";
+                err = getLocalParam(rfc_caller_id, tr181Param.c_str(), &param);
+                if (err != tr181Success) {
+                    LOGWARN("Failed to getLocalParam for %s\n", tr181Param.c_str());
+                    continue;
+                }
 
-            err = getLocalParam(rfc_caller_id, tr181Param.c_str(), &param);
-            if (err != tr181Success) {
-                LOGWARN("Failed to getLocalParam for %s\n", tr181Param.c_str());
-                continue;
+                std::string modeStr = param.value;
+                int modeIndex = -1;
+                for (size_t i = 0; i < m_numPictureModes; ++i) {
+                    if (pqModeMap.at(m_pictureModes[i]) == modeStr) {
+                        modeIndex = static_cast<int>(i);
+                        break;
+                    }
+                }
+                LOGINFO("Got mode string from TR181: %s -> index=%d", modeStr.c_str(), modeIndex);
+
+                tvError_t tv_err = SaveSourcePictureMode(ctx.videoSrcType, ctx.videoFormatType, modeIndex);
+                if (tv_err != tvERROR_NONE) {
+                    LOGWARN("Failed SaveSourcePictureMode for %s / %s\n", sourceStr.c_str(), formatStr.c_str());
+                    continue;
+                }
+
+                contextSynced = true;
             }
 
-            std::string modeStr = param.value;
-            int modeIndex = static_cast<int>(getPictureModeIndex(modeStr));
-            if (modeIndex == -1) {
-                LOGWARN("Invalid pictureMode from TR181: %s\n", modeStr.c_str());
-                continue;
+            if (!contextSynced) {
+                LOGWARN("No matching context synced for pqmode=%s source=%s format=%s\n",
+                        pqmode.c_str(), source.c_str(), format.c_str());
+                return -1;
             }
-
-            tvError_t tv_err = SaveSourcePictureMode(ctx.videoSrcType, ctx.videoFormatType, modeIndex);
-            if (tv_err != tvERROR_NONE) {
-                LOGWARN("Failed SaveSourcePictureMode for %s / %s\n", sourceStr.c_str(), formatStr.c_str());
-                continue;
-            }
-
-            contextSynced = true;
+            return 0;
         }
-
-        if (!contextSynced) {
-            LOGWARN("No matching context synced for pqmode=%s source=%s format=%s\n",
-                    pqmode.c_str(), source.c_str(), format.c_str());
-            return -1;
-        }
-        return 0;
+        return -1;
     }
 
     int AVOutputTV::syncAvoutputTVPQModeParamsToHAL(std::string pqmode, std::string source, std::string format)
