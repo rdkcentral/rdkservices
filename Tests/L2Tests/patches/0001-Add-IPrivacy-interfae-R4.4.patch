@@ -1,0 +1,106 @@
+From 97ab724b70dd394809d4513f33fdb04cc9c33251 Mon Sep 17 00:00:00 2001
+From: Adrian Muzyka <Adrian_Muzyka@comcast.com>
+Date: Thu, 15 May 2025 10:29:03 +0200
+Subject: [PATCH] Add IPrivacy interfae R4.4
+
+---
+ interfaces/IPrivacy.h | 69 +++++++++++++++++++++++++++++++++++++++++++
+ interfaces/Ids.h      |  6 +++-
+ 2 files changed, 74 insertions(+), 1 deletion(-)
+ create mode 100644 interfaces/IPrivacy.h
+
+diff --git a/interfaces/IPrivacy.h b/interfaces/IPrivacy.h
+new file mode 100644
+index 0000000..f8a2670
+--- /dev/null
++++ b/interfaces/IPrivacy.h
+@@ -0,0 +1,69 @@
++
++#pragma once
++
++#include "Module.h"
++
++// @stubgen:include <com/IIteratorType.h>
++
++namespace WPEFramework
++{
++    namespace Exchange
++    {
++        // @json 1.0.0 @text:keep
++        struct EXTERNAL IPrivacy : virtual public Core::IUnknown
++        {
++            enum { ID = ID_PRIVACY };
++
++            struct PrivacySettingInfo
++            {
++                string settingName; // @brief The name of the setting
++                bool allowed;       // @brief Indicates if the setting is allowed
++            };
++
++            using IPrivacySettingInfoIterator = RPC::IIteratorType<PrivacySettingInfo, WPEFramework::Exchange::ID_PRIVACY_SETTING_INFO_ITERATOR>;
++
++            using IStringIterator = RPC::IIteratorType<string, RPC::ID_STRINGITERATOR>;
++
++            virtual ~IPrivacy() override = default;
++
++            // @event
++            struct EXTERNAL INotification : virtual public Core::IUnknown
++            {
++                enum
++                {
++                    ID = ID_PRIVACY_NOTIFICATION
++                };
++
++                virtual ~INotification() override = default;
++
++                // @text onExclusionPolicyChanged
++                // @brief Raised when there is a change in the exclusion policy in the system.
++                virtual void OnExclusionPolicyChanged() = 0;
++            };
++
++            virtual Core::hresult Register(INotification *notification /* @in */) = 0;
++            virtual Core::hresult Unregister(INotification *notification /* @in */) = 0;
++
++
++            // @brief Gets all the privacy settings.
++            // @text getAllPrivacySettings
++            // @param settings: Iterator of all privacy settings
++            virtual Core::hresult GetAllPrivacySettings(IPrivacySettingInfoIterator* &settings /* @out */) const = 0;
++
++            // @brief Gets the privacy exclusion policies
++            // @text getExclusionPolicies
++            // @param policies: The iterator with all the exclusion policies names
++            virtual Core::hresult GetExclusionPolicies(IStringIterator*& policies /* @out */) const = 0;
++
++            // @brief Gets the data for a given exclusion policy
++            // @text getDataForExclusionPolicy
++            // @param policy: The name of the policy
++            // @param dataEvents: The iterator with all the data events
++            // @param entityReference: The iterator with all the entity references
++            // @param derivativePropagation: The derivative propagation flag
++            virtual Core::hresult GetDataForExclusionPolicy(const string& policy /* @in */, IStringIterator* &dataEvents /* @out */, IStringIterator* &entityReference /* @out */, bool &derivativePropagation /* @out */) const = 0;
++
++        };
++    } // namespace Exchange
++} // namespace WPEFramework
++
+diff --git a/interfaces/Ids.h b/interfaces/Ids.h
+index ceda78d..4ccadb0 100644
+--- a/interfaces/Ids.h
++++ b/interfaces/Ids.h
+@@ -372,7 +372,11 @@ namespace Exchange {
+         ID_SYSTEM_MODE                               = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x520,
+         ID_SYSTEM_MODE_NOTIFICATION                  = ID_SYSTEM_MODE + 1,
+ 
+-        ID_ANALYTICS                                 = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x530
++        ID_ANALYTICS                                 = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x530,
++
++        ID_PRIVACY                                   = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x540,
++	    ID_PRIVACY_NOTIFICATION                      = ID_PRIVACY + 1,
++	    ID_PRIVACY_SETTING_INFO_ITERATOR             = ID_PRIVACY + 2
+ 
+     };
+ }
+-- 
+2.43.0
+

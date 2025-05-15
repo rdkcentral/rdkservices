@@ -81,6 +81,7 @@ namespace Plugin {
                                     IStringIterator* const& cetList,
                                     const uint64_t epochTimestamp,
                                     const uint64_t uptimeTimestamp,
+                                    const string& appId,
                                     const string& eventPayload)
     {
         std::shared_ptr<Event> event = std::make_shared<Event>();
@@ -101,6 +102,7 @@ namespace Plugin {
         }
         event->epochTimestamp = epochTimestamp;
         event->uptimeTimestamp = uptimeTimestamp;
+        event->appId = appId;
         event->eventPayload = eventPayload;
 
         LOGINFO("Epoch Timestamp:  %" PRIu64, epochTimestamp);
@@ -316,6 +318,7 @@ namespace Plugin {
         backendEvent.eventSourceVersion = event.eventSourceVersion;
         backendEvent.epochTimestamp = event.epochTimestamp;
         backendEvent.eventPayload = event.eventPayload;
+        backendEvent.appId = event.appId;
         backendEvent.cetList = event.cetList;
 
         //TODO: Add mapping of event source/name to the desired backend

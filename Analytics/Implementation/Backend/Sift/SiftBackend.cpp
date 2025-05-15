@@ -41,6 +41,7 @@ namespace WPEFramework
             , mStorePtr(nullptr)
             , mUploaderPtr(nullptr)
             , mSessionId()
+            , mCetListCached(false)
         {
             mThread = std::thread(&SiftBackend::ActionLoop, this);
         }
@@ -108,6 +109,11 @@ namespace WPEFramework
                         mQueueCondition.wait_for(lock, queueTimeout, [this]
                                                  { return !mActionQueue.empty(); });
                     }
+
+                    // TODO: To limit the nbr of calls to mConfigPtr->GetCetList
+                    // the mCetList is cached for burst of events.
+                    // Here clear the cache if no new events are sent
+                    mCetListCached = false;
                 }
 
                 Action action = {ACTION_TYPE_UNDEF, nullptr};
@@ -248,6 +254,28 @@ namespace WPEFramework
                         cetList.Add(cet);
                     }
                     eventJson["cet_list"] = cetList;
+                }
+                else
+                {
+                    std::list<std::string> cetList;
+                    bool drop = false;
+                    if (mConfigPtr && mConfigPtr->GetCetList(cetList, drop, mCetListCached, event.appId))
+                    {
+                        mCetListCached = true;
+
+                        if (drop)
+                        {
+                            LOGINFO("Event %s dropped following CET", event.eventName.c_str());
+                            return true;
+                        }
+
+                        JsonArray cetListJson = JsonArray();
+                        for (const std::string &cet : cetList)
+                        {
+                            cetListJson.Add(cet);
+                        }
+                        eventJson["cet_list"] = cetListJson;
+                    }
                 }
                 eventJson["logger_name"] = attributes.loggerName;
                 eventJson["logger_version"] = attributes.loggerVersion;

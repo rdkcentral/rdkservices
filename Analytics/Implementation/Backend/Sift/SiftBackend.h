@@ -83,6 +83,7 @@ namespace Plugin {
         SiftStorePtr mStorePtr;
         SiftUploaderPtr mUploaderPtr;
         std::string mSessionId;
+        bool mCetListCached;
     };
 
 }
