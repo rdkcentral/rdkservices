@@ -19,6 +19,8 @@
 #include "SiftConfig.h"
 #include "UtilsLogging.h"
 
+#include "interfaces/IPrivacy.h"
+
 #include <algorithm>
 #include <cctype> 
 #include <fstream>
@@ -26,6 +28,7 @@
 #define AUTHSERVICE_CALLSIGN "org.rdk.AuthService"
 #define SYSTEM_CALLSIGN "org.rdk.System"
 #define PERSISTENT_STORE_CALLSIGN "org.rdk.PersistentStore"
+#define PRIVACY_CALLSIGN "org.rdk.Privacy"
 #define PERSISTENT_STORE_ANALYTICS_NAMESPACE "Analytics"
 #define PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE "accountProfile"
 #define JSONRPC_THUNDER_TIMEOUT 20000
@@ -66,6 +69,9 @@ namespace WPEFramework
                     , StorePath()
                     , EventsLimit(1000)
                     , Url()
+                    , CetMap()
+                    , DropOnAllTags(true)
+                    , CetEventType()
 
                 {
                     Add(_T("schema2"), &Schema2);
@@ -84,6 +90,9 @@ namespace WPEFramework
                     Add(_T("storepath"), &StorePath);
                     Add(_T("eventslimit"), &EventsLimit);
                     Add(_T("url"), &Url);
+                    Add(_T("cetmap"), &CetMap);
+                    Add(_T("cetdroponalltags"), &DropOnAllTags);
+                    Add(_T("ceteventtype"), &CetEventType);
                 }
                 ~SiftConfig() = default;
 
@@ -104,6 +113,9 @@ namespace WPEFramework
                 Core::JSON::String StorePath;
                 Core::JSON::DecUInt32 EventsLimit;
                 Core::JSON::String Url;
+                Core::JSON::VariantContainer CetMap;
+                Core::JSON::Boolean DropOnAllTags;
+                Core::JSON::String CetEventType;
             };
 
            
@@ -315,7 +327,12 @@ namespace WPEFramework
                                                             mUploaderConfig(),
                                                             mShell(shell),
                                                             mSystemTime(systemTime),
-                                                            mAuthServiceLink(nullptr)
+                                                            mAuthServiceLink(nullptr),
+                                                            mMonitorPrivacy(this),
+                                                            mCetMap(),
+                                                            mCetDropOnAllTags(true),
+                                                            mPrivacySettings(),
+                                                            mPrivacyExclusionPolicies()
         {
             ASSERT(shell != nullptr);
             ParsePluginConfig();
@@ -368,6 +385,12 @@ namespace WPEFramework
 
                 // Sift2.0 platform equals proposition
                 mAttributes.platform = mAttributes.proposition;
+
+                // If productVersion empty, use OsVersion
+                if (mAttributes.productVersion.empty())
+                {
+                    mAttributes.productVersion = mAttributes.deviceOsVersion;
+                }
 
                 valid = (!mAttributes.commonSchema.empty()
                     && !mAttributes.productName.empty()
@@ -442,6 +465,101 @@ namespace WPEFramework
             }
             mMutex.unlock();
             return valid;
+        }
+
+        bool SiftConfig::GetCetList(std::list<std::string> &cetList, bool &drop, const bool useCache, const std::string &appId)
+        {
+            if (mCetMap.empty() || mCetEventType.empty())
+            {
+                return false;
+            }
+
+            // Prepare set of cet tags to not duplicate
+            std::set<std::string> cetSet;
+
+            //TODO: PrivacySettings should be kept in sync via notifications
+            if (!useCache)
+            {
+                auto privacy = mShell->QueryInterfaceByCallsign<Exchange::IPrivacy>(PRIVACY_CALLSIGN);
+                std::map<std::string, bool> newPrivacySettings;
+                if (privacy)
+                {
+                    Exchange::IPrivacy::IPrivacySettingInfoIterator *settings = nullptr;
+                    if (privacy->GetAllPrivacySettings(settings) == Core::ERROR_NONE)
+                    {
+                        if (settings != nullptr)
+                        {
+                            Exchange::IPrivacy::PrivacySettingInfo info;
+                            while (settings->Next(info))
+                            {
+                                newPrivacySettings[info.settingName] = info.allowed;
+                            }
+                            settings->Release();
+                        }
+                    }
+                    privacy->Release();
+                }
+                mPrivacySettings = newPrivacySettings;
+            }
+
+            std::unique_lock<std::mutex> lock(mMutex);
+            drop = mCetDropOnAllTags;
+
+            for (auto &tag : mCetMap)
+            {
+                bool excluded = false;
+                if (!appId.empty() && mPrivacyExclusionPolicies.find(tag.first) != mPrivacyExclusionPolicies.end())
+                {
+                    auto &exclusionPolicy = mPrivacyExclusionPolicies.at(tag.first);
+                    if (exclusionPolicy.dataEvents.find(mCetEventType) != exclusionPolicy.dataEvents.end())
+                    {
+                        if (exclusionPolicy.entityReference.find(appId) != exclusionPolicy.entityReference.end())
+                        {
+                            excluded = true;
+                        }
+                    }
+                }
+
+                // Excluded by Exclusion Policy
+                if (excluded)
+                {
+                    LOGINFO("Cet Tag %s added by Exclusion Policy", tag.second.c_str());
+                    cetSet.insert(tag.second);
+                }
+                else
+                {
+                    auto it = mPrivacySettings.find(tag.first);
+                    // Excluded by Privacy Settings equal not allowed
+                    if (!mPrivacySettings.empty() && (it == mPrivacySettings.end() || it->second == false))
+                    {
+                        LOGINFO("Cet Tag %s added by Privacy Settings", tag.second.c_str());
+                        cetSet.insert(tag.second);
+                    }
+                    // Not excluded. Drop only on all tags excluded
+                    else
+                    {
+                        drop = false;
+                    }
+                }
+            }
+
+            // Convert set to list
+            cetList.clear();
+            for (const auto &cet : cetSet)
+            {
+                cetList.push_back(cet);
+            }
+
+            return !cetList.empty();
+        }
+
+        void SiftConfig::OnPrivacyChanged(PrivacyChanged what, bool value)
+        {
+            if (what == PrivacyChanged::EXCLUSION_POLICY)
+            {
+                // Notification called from separate thread, so it is ok to sync here
+                SyncPrivacyExclusionPolicies();
+            }
         }
 
         void SiftConfig::TriggerInitialization()
@@ -519,7 +637,7 @@ namespace WPEFramework
                 mUploaderConfig.minRetryPeriod = config.Sift.MinRetryPeriod.Value();
                 mUploaderConfig.maxRetryPeriod = config.Sift.MaxRetryPeriod.Value();
                 mUploaderConfig.exponentialPeriodicFactor = config.Sift.ExponentialPeriodicFactor.Value();
-                
+
                 SYSLOG(Logging::Startup, (_T("Parsed Analytics config: '%s', '%s', '%s', '%s', '%s', '%s', '%s'."),
                                           mAttributes.commonSchema.c_str(),
                                           mAttributes.env.c_str(),
@@ -529,6 +647,22 @@ namespace WPEFramework
                                           mAttributes.platform.c_str(),
                                           mAttributes.deviceOsName.c_str()
                     ));
+
+                // Set CetMap
+                auto cetMapIter = config.Sift.CetMap.Variants();
+
+                while (cetMapIter.Next())
+                {
+                    if (cetMapIter.Current().Content() == WPEFramework::Core::JSON::Variant::type::STRING)
+                    {
+                        mCetMap[cetMapIter.Label()] = cetMapIter.Current().String();
+                        SYSLOG(Logging::Startup, ("Sift CetMap: \"%s\" : \"%s\"", cetMapIter.Label(), mCetMap[cetMapIter.Label()].c_str()));
+                    }
+                }
+                mCetDropOnAllTags = config.Sift.DropOnAllTags.Value();
+                SYSLOG(Logging::Startup, ("Sift DropOnAllTags: %s", mCetDropOnAllTags ? "true" : "false"));
+                mCetEventType = config.Sift.CetEventType.Value();
+                SYSLOG(Logging::Startup, ("Sift CetEventType: \"%s\"", mCetEventType.c_str()));
             }
         }
 
@@ -753,6 +887,26 @@ namespace WPEFramework
                     }
                 }
             }
+
+            // Activate Privacy plugin if needed
+            if (IsPluginActivated(mShell, PRIVACY_CALLSIGN) == false)
+            {
+                ActivatePlugin(mShell, PRIVACY_CALLSIGN);
+            }
+
+            // Register to privacy events and get privacy settings
+            auto privacy = mShell->QueryInterfaceByCallsign<Exchange::IPrivacy>(PRIVACY_CALLSIGN);
+            if (privacy != nullptr)
+            {
+                privacy->Register(&mMonitorPrivacy);
+                privacy->Release();
+            }
+            else
+            {
+                LOGERR("Failed to get Privacy interface");
+            }
+
+            SyncPrivacyExclusionPolicies();
         }
 
         uint32_t SiftConfig::GetValueFromPersistent(const string& ns, const string& key, string& value)
@@ -830,7 +984,7 @@ namespace WPEFramework
         {
             int32_t timeZoneOffsetSec = 0;
             SystemTime::TimeZoneAccuracy accuracy = SystemTime::TimeZoneAccuracy::ACC_UNDEFINED;
-    
+
             if (mSystemTime != nullptr && mSystemTime->IsSystemTimeAvailable())
             {
                 accuracy = mSystemTime->GetTimeZoneOffset(timeZoneOffsetSec);
@@ -863,6 +1017,76 @@ namespace WPEFramework
             mAttributes.xboAccountId.clear();
             mAttributes.xboDeviceId.clear();
             mMutex.unlock();
+        }
+
+        void SiftConfig::SyncPrivacyExclusionPolicies()
+        {
+            std::map<std::string, SiftConfig::PrivacyExclusionPolicy> newPolicies;
+
+            auto privacy = mShell->QueryInterfaceByCallsign<Exchange::IPrivacy>(PRIVACY_CALLSIGN);
+            if (privacy != nullptr)
+            {
+                Exchange::IPrivacy::IStringIterator *polices = nullptr;
+                uint32_t result = privacy->GetExclusionPolicies(polices);
+                if (result == Core::ERROR_NONE)
+                {
+                    if (polices != nullptr)
+                    {
+                        std::string policyName;
+                        while (polices->Next(policyName))
+                        {
+                            Exchange::IPrivacy::IStringIterator *dataEvents = nullptr;
+                            Exchange::IPrivacy::IStringIterator *entityReference = nullptr;
+                            bool derivativePropagation = false;
+                            uint32_t result = privacy->GetDataForExclusionPolicy(policyName, dataEvents, entityReference, derivativePropagation);
+                            if (result != Core::ERROR_NONE)
+                            {
+                                LOGERR("Failed to get ExclusionPolicy %s", policyName.c_str());
+                                continue;
+                            }
+                            PrivacyExclusionPolicy policy;
+                            policy.derivativePropagation = derivativePropagation;
+                            std::string dataEvent;
+                            while (dataEvents && dataEvents->Next(dataEvent))
+                            {
+                                policy.dataEvents.insert(dataEvent);
+                            }
+
+                            std::string entityRef;
+                            while (entityReference && entityReference->Next(entityRef))
+                            {
+                                policy.entityReference.insert(entityRef);
+                            }
+
+                            newPolicies[policyName] = policy;
+
+                            if (dataEvents)
+                            {
+                                dataEvents->Release();
+                            }
+
+                            if (entityReference)
+                            {
+                                entityReference->Release();
+                            }
+                            LOGINFO("Got ExclusionPolicy %s", policyName.c_str());
+                        }
+                        polices->Release();
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to get ExclusionPolicies");
+                }
+                privacy->Release();
+            }
+            else
+            {
+                LOGERR("Failed to get Privacy interface");
+            }
+
+            std::unique_lock<std::mutex> lock(mMutex);
+            mPrivacyExclusionPolicies = newPolicies;
         }
 
         void SiftConfig::ActivatePlugin(PluginHost::IShell *shell, const char *callSign)
@@ -898,16 +1122,15 @@ namespace WPEFramework
         bool SiftConfig::IsPluginActivated(PluginHost::IShell *shell, const char *callSign)
         {
             PluginHost::IShell::state state = PluginHost::IShell::DEACTIVATED;
-            std::string callsign = PERSISTENT_STORE_CALLSIGN;
-            auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
+            auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callSign);
             if (interface == nullptr)
             {
-                LOGERR("No IShell for %s", callsign.c_str());
+                LOGERR("No IShell for %s", callSign);
             }
             else
             {
                 state = interface->State();
-                LOGINFO("IShell state %d for callsing %s", state, callsign.c_str());
+                LOGINFO("IShell state %d for callsing %s", state, callSign);
                 interface->Release();
             }
 

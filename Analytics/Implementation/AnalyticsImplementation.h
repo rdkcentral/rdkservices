@@ -66,6 +66,7 @@ namespace Plugin {
             std::list<std::string> cetList;
             uint64_t epochTimestamp;
             uint64_t uptimeTimestamp;
+            std::string appId;
             std::string eventPayload;
         };
 
@@ -134,6 +135,7 @@ namespace Plugin {
                                    IStringIterator* const& cetList,
                                    const uint64_t epochTimestamp,
                                    const uint64_t uptimeTimestamp,
+                                   const string& appId,
                                    const string& eventPayload) override;
 
 
