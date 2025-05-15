@@ -78,7 +78,7 @@
 #define HDMICECSINK_NUMBER_TV_ADDR 					2
 #define HDMICECSINK_UPDATE_POWER_STATUS_INTERVA_MS    (60 * 1000)
 #define HDMISINK_ARC_START_STOP_MAX_WAIT_MS           4000
-#define HDMICECSINK_UPDATE_AUDIO_STATUS_INTERVAL_MS    500
+#define HDMICECSINK_UPDATE_AUDIO_STATUS_INTERVAL_MS    2000
 
 
 #define SAD_FMT_CODE_AC3 2
@@ -695,6 +695,7 @@ namespace WPEFramework
 		   m_isHdmiInConnected = false;
 		   hdmiCecAudioDeviceConnected = false;
 		   m_isAudioStatusInfoUpdated = false;
+		   m_audioStatusRequested = false;
 		   m_audioStatusReceived = false;
 		   m_audioStatusTimerStarted = false;
                    m_audioDevicePowerStatusRequested = false;
@@ -1223,9 +1224,11 @@ namespace WPEFramework
 			    LOGINFO("AudioStatus received from the Audio Device and the timer is still active. So stopping the timer!\n");
 			    m_audioStatusDetectionTimer.stop();
 		    }
-		    LOGINFO("AudioStatus received from the Audio Device. Updating the AudioStatus info! m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
+		    LOGINFO("AudioStatus received from the Audio Device. Updating the AudioStatus info! m_isAudioStatusInfoUpdated :%d, m_audioStatusRequested :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusRequested,m_audioStatusReceived,m_audioStatusTimerStarted);
 	    }
-			LOGINFO("Command: ReportAudioStatus  %s audio Mute status %d  means %s  and current Volume level is %d \n",GetOpName(msg.opCode()),msg.status.getAudioMuteStatus(),msg.status.toString().c_str(),msg.status.getAudioVolume());
+	    if(m_audioStatusRequested)
+		    m_audioStatusRequested = false;
+	    LOGINFO("Command: ReportAudioStatus  %s audio Mute status %d  means %s  and current Volume level is %d \n",GetOpName(msg.opCode()),msg.status.getAudioMuteStatus(),msg.status.toString().c_str(),msg.status.getAudioVolume());
             params["muteStatus"]  = msg.status.getAudioMuteStatus();
             params["volumeLevel"] = msg.status.getAudioVolume();
             sendNotify(eventString[HDMICECSINK_EVENT_REPORT_AUDIO_STATUS], params);
@@ -1417,7 +1420,15 @@ namespace WPEFramework
              return;
             if(!(_instance->smConnection))
                 return;
+	    if (_instance->m_audioStatusDetectionTimer.isActive())
+	    {
+		    LOGINFO("Stopping the Audio Status Timer!\n");
+		    _instance->m_audioStatusDetectionTimer.stop();
+		    _instance->m_audioStatusTimerStarted = false;
+		    LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ",_instance->m_isAudioStatusInfoUpdated,_instance->m_audioStatusReceived,_instance->m_audioStatusTimerStarted);
+	    }
              LOGINFO(" Send GiveAudioStatus ");
+	     m_audioStatusRequested = true;
 	      _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(GiveAudioStatus()), 100);
 
         }
@@ -2653,7 +2664,8 @@ namespace WPEFramework
 					m_isAudioStatusInfoUpdated = false;
 					m_audioStatusReceived = false;
 					m_audioStatusTimerStarted = false;
-					LOGINFO("Audio device removed, reset the audio status info.  m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
+					m_audioStatusRequested = false;
+					LOGINFO("Audio device removed, reset the audio status info.  m_isAudioStatusInfoUpdated :%d, m_audioStatusRequested :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d", m_isAudioStatusInfoUpdated,m_audioStatusRequested,m_audioStatusReceived,m_audioStatusTimerStarted);
                                         sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_CONNECTED_STATUS], params)
                                 }
 
@@ -3287,9 +3299,10 @@ namespace WPEFramework
 			    m_audioStatusDetectionTimer.stop();
 	    }
 	    m_isAudioStatusInfoUpdated = false;
+	    m_audioStatusRequested = false;
 	    m_audioStatusReceived = false;
 	    m_audioStatusTimerStarted = false;
-	    LOGINFO("CEC Disabled, reset the audio status info. m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
+	    LOGINFO("CEC Disabled, reset the audio status info. m_isAudioStatusInfoUpdated :%d, m_audioStatusRequested :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusRequested,m_audioStatusReceived,m_audioStatusTimerStarted);
 
 
 	    for(int i=0; i< 16; i++)
@@ -3546,14 +3559,14 @@ namespace WPEFramework
 
 		    if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && ((keyInfo.keyCode == VOLUME_UP) || (keyInfo.keyCode == VOLUME_DOWN) || (keyInfo.keyCode == MUTE)) )
 		    {
+			    LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusRequested :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ",_instance->m_isAudioStatusInfoUpdated,_instance->m_audioStatusRequested,_instance->m_audioStatusReceived,_instance->m_audioStatusTimerStarted);
 			if(keyInfo.keyCode == MUTE)
 			{
 				_instance->sendGiveAudioStatusMsg();
 			}
 			else
 			{
-				LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ",_instance->m_isAudioStatusInfoUpdated,_instance->m_audioStatusReceived,_instance->m_audioStatusTimerStarted);
-				if (!_instance->m_isAudioStatusInfoUpdated)
+				if ((!_instance->m_isAudioStatusInfoUpdated) && (!m_audioStatusRequested))
 				{
 					if ( !(_instance->m_audioStatusDetectionTimer.isActive()))
 					{
