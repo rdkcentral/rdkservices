@@ -14,6 +14,10 @@ All notable changes to this RDK Service will be documented in this file.
 
     For more details, refer to versioning section under Main README.
 
+## [1.0.4] - 2025-05-19
+### Added
+- Support CET list composition and event dropping
+
 ## [1.0.3] - 2025-02-07
 ### Fixed
 - Fix hang on call to zdump

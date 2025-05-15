@@ -21,8 +21,10 @@
 #include "../../../Module.h"
 #include "../../SystemTime/SystemTime.h"
 #include <interfaces/IStore.h>
+#include <interfaces/IPrivacy.h>
 #include <mutex>
 #include <memory>
+#include <set>
 
 namespace WPEFramework
 {
@@ -89,6 +91,11 @@ namespace WPEFramework
                 uint32_t exponentialPeriodicFactor;
             };
 
+            enum PrivacyChanged
+            {
+                EXCLUSION_POLICY
+            };
+
             SiftConfig(const SiftConfig &) = delete;
             SiftConfig &operator=(const SiftConfig &) = delete;
 
@@ -98,6 +105,9 @@ namespace WPEFramework
             bool GetAttributes(Attributes &attributes);
             bool GetStoreConfig(StoreConfig &config);
             bool GetUploaderConfig(UploaderConfig &config);
+            bool GetCetList(std::list<std::string> &cetList, bool &drop, const bool useCache, const std::string &appId = "");
+
+            void OnPrivacyChanged(PrivacyChanged what, bool value = false);
 
         private:
             class MonitorKeys : public Exchange::IStore::INotification {
@@ -123,6 +133,46 @@ namespace WPEFramework
                 std::map<std::string, std::map<std::string, Callback>> mCallbacks;
             };
 
+            class MonitorPrivacy : public Exchange::IPrivacy::INotification {
+            private:
+                MonitorPrivacy(const MonitorPrivacy&) = delete;
+                MonitorPrivacy& operator=(const MonitorPrivacy&) = delete;
+            public:
+                MonitorPrivacy(SiftConfig *parent) : mParent(*parent) {
+                    ASSERT(parent != nullptr);
+                }
+                ~MonitorPrivacy() = default;
+                // Not in use
+                void OnConsentStringChanged() {}
+                void OnContinueWatchingChanged(const bool allowed) {}
+                void OnPersonalizedRecommendationChanged(const bool allowed) {}
+                void OnProductAnalyticsChanged(const bool allowed) {}
+                void OnWatchHistoryChanged(const bool allowed) {}
+
+                void OnExclusionPolicyChanged()
+                {
+                    mParent.OnPrivacyChanged(EXCLUSION_POLICY);
+                }
+
+                BEGIN_INTERFACE_MAP(MonitorPrivacy)
+                INTERFACE_ENTRY(Exchange::IPrivacy::INotification)
+                END_INTERFACE_MAP
+            private:
+                SiftConfig &mParent;
+            };
+
+            struct PrivacyExclusionPolicy
+            {
+                std::set<std::string> dataEvents;
+                std::set<std::string> entityReference;
+                bool derivativePropagation;
+
+                PrivacyExclusionPolicy()
+                    : derivativePropagation(false)
+                {
+                }
+            };
+
         private:
             void TriggerInitialization();
             void InitializeKeysMap();
@@ -132,6 +182,7 @@ namespace WPEFramework
             void UpdateXboValues();
             bool UpdateTimeZone();
             void OnActivationStatusChanged(const JsonObject& parameters);
+            void SyncPrivacyExclusionPolicies();
 
             static void ActivatePlugin(PluginHost::IShell *shell, const char *callSign);
             static bool IsPluginActivated(PluginHost::IShell *shell, const char *callSign);
@@ -147,6 +198,13 @@ namespace WPEFramework
             std::map<std::string, std::map<std::string, std::string*>> mKeysMap;
             SystemTimePtr mSystemTime;
             std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> mAuthServiceLink;
+            Core::Sink<MonitorPrivacy> mMonitorPrivacy;
+            std::map<std::string, std::string> mCetMap;
+            bool mCetDropOnAllTags;
+            std::string mCetEventType;
+            std::map<std::string, bool> mPrivacySettings;
+            std::map<std::string, PrivacyExclusionPolicy> mPrivacyExclusionPolicies;
+
         };
 
         typedef std::unique_ptr<SiftConfig> SiftConfigPtr;

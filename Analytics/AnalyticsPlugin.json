@@ -87,6 +87,27 @@
                     "url":{
                        "description":"URL to Sift server endpoint",
                        "type":"string"
+                    },
+                    "cetmap":{
+                       "description":"Privacy settings to CET mapping",
+                       "type":"object",
+                         "properties":{
+                           "privacy-setting-x":{
+                               "description":"Example privacy setting",
+                               "type":"string"
+                           }
+                         },
+                         "required":[
+                           "privacy-setting-x"
+                         ]
+                    },
+                    "cetdroponalltags":{
+                       "description":"If true, drop event if all CET appended to the event",
+                       "type":"boolean"
+                    },
+                    "ceteventtype":{
+                       "description":"Privacy specific event type string to parse Exclusion Policy",
+                       "type":"string"
                     }
                  },
                  "required":[

@@ -38,6 +38,7 @@ namespace Plugin {
             std::string eventSourceVersion;
             std::list<std::string> cetList;
             uint64_t epochTimestamp;
+            std::string appId;
             std::string eventPayload;
         };
 

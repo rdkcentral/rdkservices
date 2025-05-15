@@ -2,7 +2,7 @@
 <a name="Analytics_Plugin"></a>
 # Analytics Plugin
 
-**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/Analytics/CHANGELOG.md)**
+**Version: [1.0.4](https://github.com/rdkcentral/rdkservices/blob/main/Analytics/CHANGELOG.md)**
 
 A org.rdk.Analytics plugin for Thunder framework.
 
@@ -56,6 +56,10 @@ The table below lists configuration options of the plugin.
 | configuration.sift.storepath | number | Sift store path to persistent queue with events |
 | configuration.sift.eventslimit | number | Sift store events limit |
 | configuration.sift.url | string | URL to Sift server endpoint |
+| configuration.sift?.cetmap | object | <sup>*(optional)*</sup> Privacy settings to CET mapping |
+| configuration.sift?.cetmap.privacy-setting-x | string | Example privacy setting |
+| configuration.sift?.cetdroponalltags | boolean | <sup>*(optional)*</sup> If true, drop event if all CET appended to the event |
+| configuration.sift?.ceteventtype | string | <sup>*(optional)*</sup> Privacy specific event type string to parse Exclusion Policy |
 
 <a name="Methods"></a>
 # Methods
@@ -91,6 +95,7 @@ No Events
 | params.cetList[#] | string |  |
 | params?.epochTimestamp | integer | <sup>*(optional)*</sup> Timestamp for the START of this event, epoch time, in ms UTC |
 | params?.uptimeTimestamp | integer | <sup>*(optional)*</sup> Timestamp for the START of this event, uptime of the device, in ms. ONLY to be used when Time quality is not good |
+| params?.appId | string | <sup>*(optional)*</sup> Durable App ID string |
 | params.eventPayload | object | Custom payload of the event in JSON format. User defined colection of objects and keys. May be an empty object |
 | params.eventPayload.keyOrObject | string | User defined custom key or object |
 
@@ -119,6 +124,7 @@ No Events
         ],
         "epochTimestamp": 1721906631000,
         "uptimeTimestamp": 35000,
+        "appId": "app-id-app1",
         "eventPayload": {
             "keyOrObject": "value1"
         }
