@@ -3566,7 +3566,7 @@ namespace WPEFramework
 			}
 			else
 			{
-				if ((!_instance->m_isAudioStatusInfoUpdated) && (!m_audioStatusRequested))
+				if ((!_instance->m_isAudioStatusInfoUpdated) && (!_instance->m_audioStatusRequested))
 				{
 					if ( !(_instance->m_audioStatusDetectionTimer.isActive()))
 					{
