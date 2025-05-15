@@ -2618,6 +2618,7 @@ namespace Plugin {
         {VIDEO_SOURCE_HDMI1, "HDMI1"},
         {VIDEO_SOURCE_HDMI2, "HDMI2"},
         {VIDEO_SOURCE_HDMI3, "HDMI3"},
+        {VIDEO_SOURCE_HDMI4, "HDMI4"},
         {VIDEO_SOURCE_IP, "IP"},
         {VIDEO_SOURCE_TUNER, "Tuner"}
     };
