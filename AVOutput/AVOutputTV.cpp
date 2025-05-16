@@ -634,7 +634,7 @@ namespace Plugin {
         int intVal = it->second;
 
         // Only call HAL for current system context
-        if (isSetRequiredForParam(paramName, parameters)) {
+        if (isSetRequiredForParam(parameters)) {
             LOGINFO("Calling HAL for %s = %s", paramName.c_str(), value.c_str());
             tvError_t ret = halSetter(intVal);
             if (ret != tvERROR_NONE) {
@@ -683,7 +683,7 @@ namespace Plugin {
         return false;
         }
 
-        if (isSetRequiredForParam(paramName, parameters)) {
+        if (isSetRequiredForParam(parameters)) {
             LOGINFO("Proceed with set%s\n", paramName.c_str());
             ret = halSetter(paramValue);
             if (ret != tvERROR_NONE){
@@ -939,9 +939,9 @@ namespace Plugin {
         if (context_caps) {
             for (uint32_t i = 0; i < context_caps->num_contexts; ++i) {
                 JsonObject ctx;
-                ctx["pictureMode"] = convertPictureIndexToString(context_caps->contexts[i].pq_mode);
-                ctx["videoFormat"] = convertVideoFormatToString(context_caps->contexts[i].videoFormatType);
-                ctx["videoSource"] = convertSourceIndexToString(context_caps->contexts[i].videoSrcType);
+                ctx["pictureMode"] = convertPictureIndexToStringV2(context_caps->contexts[i].pq_mode);
+                ctx["videoFormat"] = convertVideoFormatToStringV2(context_caps->contexts[i].videoFormatType);
+                ctx["videoSource"] = convertSourceIndexToStringV2(context_caps->contexts[i].videoSrcType);
                 contextArray.Add(ctx);
             }
         }
@@ -1701,7 +1701,7 @@ namespace Plugin {
 
         LOGINFO("currentPQMode: %d, currentFmt: %d, currentSrc: %d", currentPQMode, currentFmt, currentSrc);
 
-        if (isSetRequiredForParam(tr181ParamName, parameters)) {
+        if (isSetRequiredForParam(parameters)) {
     #if HAL_NOT_READY
     #else
             tvError_t ret = halSetter(currentSrc, currentPQMode, currentFmt, value);
@@ -1932,7 +1932,7 @@ namespace Plugin {
         }
 
         // If update succeeded, apply value from local config to HAL
-        if (isSetRequiredForParam(paramName, parameters))
+        if (isSetRequiredForParam(parameters))
         {
             inputInfo.pqmode = "Current";
             inputInfo.source = "Current";
@@ -1989,7 +1989,7 @@ namespace Plugin {
         }
 
         // If update succeeded, apply value from local config to HAL
-        if (isSetRequiredForParam(paramName, parameters))
+        if (isSetRequiredForParam(parameters))
         {
             inputInfo.pqmode = "Current";
             inputInfo.source = "Current";
@@ -3515,7 +3515,7 @@ namespace Plugin {
                 LOGERR("Input value %d is out of range (0 - %d) for DimmingMode", dimmingMode, tvDimmingMode_MAX);
                 returnResponse(false);
             }
-            if( isSetRequiredForParam("DimmingMode", parameters) ) {
+            if( isSetRequiredForParam(parameters) ) {
                 LOGINFO("Proceed with %s\n",__FUNCTION__);
                 ret = SetTVDimmingMode(value.c_str());
             }
@@ -4035,8 +4035,8 @@ namespace Plugin {
 
         // Directly use TR-181 to fetch active picture mode
         std::string tr181_param_name = std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM) +
-            "." + convertSourceIndexToString(source) +
-            ".Format." + convertVideoFormatToString(format) +
+            "." + convertSourceIndexToStringV2(source) +
+            ".Format." + convertVideoFormatToStringV2(format) +
             ".PictureModeString";
 
         LOGINFO("TR181 Param Name = %s", tr181_param_name.c_str());
@@ -4098,10 +4098,10 @@ namespace Plugin {
 
     bool AVOutputTV::setPictureModeV2(const JsonObject& parameters)
     {
-        LOGINFO("Entry %s\n", __FUNCTION__);
+        LOGINFO("Entry %s", __FUNCTION__);
 
         if (!parameters.HasLabel("pictureMode")) {
-            LOGERR("Missing 'pictureMode' in parameters.\n");
+            LOGERR("Missing 'pictureMode' in parameters.");
             return false;
         }
 
@@ -4110,9 +4110,15 @@ namespace Plugin {
         // Validate against m_pictureModes
         int modeIndex = -1;
         for (size_t i = 0; i < m_numPictureModes; ++i) {
-            if (pqModeMap.at(m_pictureModes[i]) == mode) {
-                modeIndex = static_cast<int>(i);
-                break;
+            auto it = pqModeMap.find(m_pictureModes[i]);
+            if (it != pqModeMap.end()) {
+                if (it->second == mode) {
+                    modeIndex = static_cast<int>(i);
+                    LOGINFO("Matched pictureMode '%s' at index %d", mode.c_str(), modeIndex);
+                    break;
+                }
+            } else {
+                LOGERR("pqModeMap does not contain m_pictureModes[%zu] = %d", i, m_pictureModes[i]);
             }
         }
 
@@ -4121,53 +4127,55 @@ namespace Plugin {
             return false;
         }
 
-        // Extract videoSource array (default: Global if not provided)
+        // Extract videoSource
         std::vector<std::string> sources;
         if (parameters.HasLabel("videoSource")) {
             const JsonArray& sourceParam = parameters["videoSource"].Array();
             for (uint32_t i = 0; i < sourceParam.Length(); ++i) {
                 std::string source = sourceParam[i].Value();
                 if (!source.empty()) {
-                    sources.push_back(source);  // Only add non-empty sources
+                    sources.push_back(source);
                 }
             }
         } else {
             sources.push_back("Global");
+            LOGINFO("videoSource not provided, defaulting to 'Global'");
         }
 
-        // Extract videoFormat array (default: Global if not provided)
+        // Extract videoFormat
         std::vector<std::string> formats;
         if (parameters.HasLabel("videoFormat")) {
             const JsonArray& formatParam = parameters["videoFormat"].Array();
             for (uint32_t i = 0; i < formatParam.Length(); ++i) {
                 std::string format = formatParam[i].Value();
                 if (!format.empty()) {
-                    formats.push_back(format);  // Only add non-empty formats
+                    formats.push_back(format);
                 }
             }
         } else {
             formats.push_back("Global");
+            LOGINFO("videoFormat not provided, defaulting to 'Global'");
         }
 
-        // Expand Global sources and formats if "Global" is set
+        // Expand 'Global' sources
         if (std::find(sources.begin(), sources.end(), "Global") != sources.end()) {
-            // Extract sources from context
             std::unordered_set<std::string> sourceSet;
             for (size_t j = 0; j < m_pictureModeCaps->num_contexts; ++j) {
                 if (m_pictureModeCaps->contexts[j].pq_mode == m_pictureModes[modeIndex]) {
-                    sourceSet.insert(convertSourceIndexToStringV2(m_pictureModeCaps->contexts[j].videoSrcType));
+                    std::string srcStr = convertSourceIndexToStringV2(m_pictureModeCaps->contexts[j].videoSrcType);
+                    sourceSet.insert(srcStr);
                 }
             }
             sources.insert(sources.end(), sourceSet.begin(), sourceSet.end());
         }
 
-        // Expand Global formats if "Global" is set
+        // Expand 'Global' formats
         if (std::find(formats.begin(), formats.end(), "Global") != formats.end()) {
-            // Extract formats from context
             std::unordered_set<std::string> formatSet;
             for (size_t j = 0; j < m_pictureModeCaps->num_contexts; ++j) {
                 if (m_pictureModeCaps->contexts[j].pq_mode == m_pictureModes[modeIndex]) {
-                    formatSet.insert(convertVideoFormatToStringV2(m_pictureModeCaps->contexts[j].videoFormatType));
+                    std::string fmtStr = convertVideoFormatToStringV2(m_pictureModeCaps->contexts[j].videoFormatType);
+                    formatSet.insert(fmtStr);
                 }
             }
             formats.insert(formats.end(), formatSet.begin(), formatSet.end());
@@ -4181,52 +4189,55 @@ namespace Plugin {
         if (currentFmt == VIDEO_FORMAT_NONE)
             currentFmt = VIDEO_FORMAT_SDR;
 
+        LOGINFO("Current video source: %s, format: %s",
+            convertSourceIndexToStringV2(currentSrc).c_str(),
+            convertVideoFormatToStringV2(currentFmt).c_str());
+
         bool contextHandled = false;
 
-        // Iterate through contexts and apply picture mode based on the video source and format
+        // Iterate through contexts and apply mode
         for (size_t i = 0; i < m_pictureModeCaps->num_contexts; ++i) {
             const tvConfigContext_t& ctx = m_pictureModeCaps->contexts[i];
 
-            // Only process contexts with matching picture mode
             if (ctx.pq_mode != m_pictureModes[modeIndex])
                 continue;
 
-            // Validate by source and format
-            if (!isValidSource(sources, ctx.videoSrcType))
-                continue;
             if (!isValidFormat(formats, ctx.videoFormatType))
                 continue;
 
-            // Apply to hardware
+            if (!isValidSource(sources, ctx.videoSrcType))
+                continue;
+
+            std::string srcStr = convertSourceIndexToStringV2(ctx.videoSrcType);
+            std::string fmtStr = convertVideoFormatToStringV2(ctx.videoFormatType);
+
             if (ctx.videoSrcType == currentSrc && ctx.videoFormatType == currentFmt) {
-                LOGINFO("Applying SetTVPictureMode to hardware for current context.\n");
                 if (SetTVPictureMode(mode.c_str()) != tvERROR_NONE) {
-                    LOGERR("SetTVPictureMode failed: %s\n", mode.c_str());
-                    continue;  // Skip TR181 write if hardware apply fails
+                    LOGERR("SetTVPictureMode failed for mode: %s", mode.c_str());
+                    continue;
                 }
             }
-            // Update TR181 after successful HAL application
+
             std::string tr181Param = std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM) + "." +
-                convertSourceIndexToString(ctx.videoSrcType) + ".Format." +
-                convertVideoFormatToString(ctx.videoFormatType) + ".PictureModeString";
+                srcStr + ".Format." + fmtStr + ".PictureModeString";
 
             tr181ErrorCode_t err = setLocalParam(rfc_caller_id, tr181Param.c_str(), mode.c_str());
             if (err != tr181Success) {
-                LOGERR("setLocalParam failed for %s: %s", tr181Param.c_str(), getTR181ErrorString(err));
+                LOGERR("setLocalParam failed: %s => %s", tr181Param.c_str(), getTR181ErrorString(err));
                 continue;
             }
-
             contextHandled = true;
         }
 
         if (!contextHandled) {
-            LOGERR("No matching context found to apply pictureMode: %s", mode.c_str());
+            LOGERR("No valid context found to apply pictureMode: %s", mode.c_str());
             return false;
         }
 
-        LOGINFO("Exit: PictureMode '%s' applied successfully.\n", mode.c_str());
+        LOGINFO("Exit %s: PictureMode '%s' applied successfully.", __FUNCTION__, mode.c_str());
         return true;
     }
+
 
     uint32_t AVOutputTV::setPictureMode(const JsonObject& parameters, JsonObject& response)
     {
@@ -4316,9 +4327,15 @@ namespace Plugin {
                 returnResponse(true);
             }
         }
-        else
-        {
-            bool success= setPictureModeV2(parameters);
+        else {
+            bool success = false;
+            try {
+                success = setPictureModeV2(parameters);
+            } catch (const std::exception& e) {
+                LOGERR("Exception in setPictureModeV2: %s", e.what());
+            } catch (...) {
+                LOGERR("Unknown exception in setPictureModeV2");
+            }
             returnResponse(success);
         }
     }
@@ -4377,8 +4394,8 @@ namespace Plugin {
                 continue;
 
             std::string tr181Param = std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM) + "." +
-                convertSourceIndexToString(ctx.videoSrcType) + ".Format." +
-                convertVideoFormatToString(ctx.videoFormatType) + ".PictureModeString";
+                convertSourceIndexToStringV2(ctx.videoSrcType) + ".Format." +
+                convertVideoFormatToStringV2(ctx.videoFormatType) + ".PictureModeString";
 
             // Clear override
             tr181ErrorCode_t err = clearLocalParam(rfc_caller_id, tr181Param.c_str());
@@ -4397,10 +4414,6 @@ namespace Plugin {
 
             // Apply to hardware if current context matches
             if (ctx.videoSrcType == currentSrc && ctx.videoFormatType == currentFmt) {
-                LOGINFO("resetPictureModeV2: Applying PictureMode %s for current Src=%s Format=%s",
-                        param.value,
-                        convertSourceIndexToString(currentSrc).c_str(),
-                        convertVideoFormatToString(currentFmt).c_str());
 
                 tvError_t ret = SetTVPictureMode(param.value);
                 if (ret != tvERROR_NONE) {
@@ -4412,11 +4425,6 @@ namespace Plugin {
             // Save to internal config
             int pqmodeIndex = static_cast<int>(getPictureModeIndex(param.value));
             SaveSourcePictureMode(ctx.videoSrcType, ctx.videoFormatType, pqmodeIndex);
-
-            LOGINFO("resetPictureModeV2: Reset done for Src=%s Format=%s\n",
-                    convertSourceIndexToString(ctx.videoSrcType).c_str(),
-                    convertVideoFormatToString(ctx.videoFormatType).c_str());
-
             contextHandled = true;
         }
 
@@ -4617,7 +4625,7 @@ namespace Plugin {
             }
             else
             {
-                if(isSetRequiredForParam("LowLatencyState",parameters))
+                if(isSetRequiredForParam(parameters))
                 {
                     LOGINFO("Proceed with setLowLatencyState\n");
                     ret = SetLowLatencyState( lowLatencyIndex );
@@ -5069,9 +5077,9 @@ namespace Plugin {
         if (context_caps) {
             for (uint32_t i = 0; i < context_caps->num_contexts; ++i) {
                 JsonObject ctx;
-                ctx["pictureMode"] = convertPictureIndexToString(context_caps->contexts[i].pq_mode);
-                ctx["videoFormat"] = convertVideoFormatToString(context_caps->contexts[i].videoFormatType);
-                ctx["videoSource"] = convertSourceIndexToString(context_caps->contexts[i].videoSrcType);
+                ctx["pictureMode"] = convertPictureIndexToStringV2(context_caps->contexts[i].pq_mode);
+                ctx["videoFormat"] = convertVideoFormatToStringV2(context_caps->contexts[i].videoFormatType);
+                ctx["videoSource"] = convertSourceIndexToStringV2(context_caps->contexts[i].videoSrcType);
                 contextArray.Add(ctx);
             }
         }
@@ -5591,14 +5599,14 @@ namespace Plugin {
         if (context_caps) {
             for (uint32_t i = 0; i < context_caps->num_contexts; ++i) {
                 JsonObject ctx;
-                ctx["pictureMode"] = convertPictureIndexToString(context_caps->contexts[i].pq_mode);
-                ctx["videoFormat"] = convertVideoFormatToString(context_caps->contexts[i].videoFormatType);
-                ctx["videoSource"] = convertSourceIndexToString(context_caps->contexts[i].videoSrcType);
+                ctx["pictureMode"] = convertPictureIndexToStringV2(context_caps->contexts[i].pq_mode);
+                ctx["videoFormat"] = convertVideoFormatToStringV2(context_caps->contexts[i].videoFormatType);
+                ctx["videoSource"] = convertSourceIndexToStringV2(context_caps->contexts[i].videoSrcType);
 
                 // Context key is picture mode, and value is a list of formats
                 JsonArray formatArray;
                 formatArray.Add(ctx["videoFormat"]);
-                contextJson[convertPictureIndexToString(context_caps->contexts[i].pq_mode).c_str()] = formatArray;
+                contextJson[convertPictureIndexToStringV2(context_caps->contexts[i].pq_mode).c_str()] = formatArray;
             }
         }
         custom2PointWB["context"] = contextJson;
@@ -5931,7 +5939,7 @@ namespace Plugin {
             returnResponse(false);
         }
         else {
-            response["currentVideoSource"] = convertSourceIndexToString(currentSource);
+            response["currentVideoSource"] = convertSourceIndexToStringV2(currentSource);
             LOGINFO("Exit: getVideoSource :%d   success \n", currentSource);
             returnResponse(true);
         }
