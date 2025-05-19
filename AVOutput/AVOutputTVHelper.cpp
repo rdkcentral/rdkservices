@@ -3242,7 +3242,6 @@ namespace Plugin {
     }
 
 #if HAL_NOT_READY
-#define CAPABLITY_FILE_NAMEV2    "/opt/panel/pq_capabilities.json"
 
 tvError_t AVOutputTV::ReadJsonFile(JsonObject& root) {
     std::ifstream file(CAPABLITY_FILE_NAMEV2);

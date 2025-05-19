@@ -429,8 +429,9 @@ class AVOutputTV : public AVOutputBase {
 			auto it = reverseMap.find(key);
 			return (it != reverseMap.end()) ? it->second : defaultVal;
 		}
-#define HAL_NOT_READY 1
+#define HAL_NOT_READY 0
 #if HAL_NOT_READY
+#define CAPABLITY_FILE_NAMEV2    "/opt/panel/pq_capabilities.json"
 		tvError_t ReadJsonFile(JsonObject& root);
 		tvError_t ExtractContextCaps(const JsonObject& data, tvContextCaps_t** context_caps);
 		tvError_t ExtractRangeInfo(const JsonObject& data, int* max_value);
@@ -476,6 +477,8 @@ class AVOutputTV : public AVOutputBase {
 			int *max_offset, tvWBColor_t **color,
 			tvWBControl_t **control, size_t* num_color,
 			size_t* num_control, tvContextCaps_t ** context_caps);
+#else
+		#define CAPABLITY_FILE_NAMEV2    "/etc/pq_capabilities.json"
 
 #endif
 		uint32_t getPQCapabilityWithContext(
