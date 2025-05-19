@@ -3241,8 +3241,6 @@ namespace Plugin {
         return ret;
     }
 
-#if HAL_NOT_READY
-
 tvError_t AVOutputTV::ReadJsonFile(JsonObject& root) {
     std::ifstream file(CAPABLITY_FILE_NAMEV2);
     if (!file.is_open()) {
@@ -3412,37 +3410,97 @@ tvError_t AVOutputTV::GetCaps(const std::string& key, int* max_value, tvContextC
     return tvERROR_NONE;
 }
 
-tvError_t AVOutputTV::GetBacklightCaps(int* max_backlight, tvContextCaps_t** context_caps) {
-    return GetCaps("Backlight", max_backlight, context_caps);
+tvError_t AVOutputTV::GetDVCalibrationCaps(tvDVCalibrationSettings_t **min_values, tvDVCalibrationSettings_t **max_values, tvContextCaps_t **context_caps) {
+    JsonObject root;
+    if (ReadJsonFile(root) != tvERROR_NONE) {
+        return tvERROR_GENERAL;
+    }
+    if (!root.HasLabel("DolbyVisionCalibration")) {
+        LOGWARN("AVOutputPlugins: %s: Missing 'DolbyVisionCalibration' label", __FUNCTION__);
+        return tvERROR_GENERAL;
+    }
+
+    JsonObject data = root["DolbyVisionCalibration"].Object();
+    *min_values = new tvDVCalibrationSettings_t();
+    *max_values = new tvDVCalibrationSettings_t();
+
+    std::map<std::string, double tvDVCalibrationSettings_t::*> keyMap = {
+        {"Tmax", &tvDVCalibrationSettings_t::Tmax},
+        {"Tmin", &tvDVCalibrationSettings_t::Tmin},
+        {"Tgamma", &tvDVCalibrationSettings_t::Tgamma},
+        {"Rx", &tvDVCalibrationSettings_t::Rx},
+        {"Ry", &tvDVCalibrationSettings_t::Ry},
+        {"Gx", &tvDVCalibrationSettings_t::Gx},
+        {"Gy", &tvDVCalibrationSettings_t::Gy},
+        {"Bx", &tvDVCalibrationSettings_t::Bx},
+        {"By", &tvDVCalibrationSettings_t::By},
+        {"Wx", &tvDVCalibrationSettings_t::Wx},
+        {"Wy", &tvDVCalibrationSettings_t::Wy}
+    };
+
+    for (auto it = keyMap.begin(); it != keyMap.end(); ++it) {
+        const std::string& key = it->first;
+        double tvDVCalibrationSettings_t::*member = it->second;
+        std::string minKey = "range" + key;
+        if (data.HasLabel(minKey.c_str())) {
+            JsonObject range = data[minKey.c_str()].Object();
+            (*min_values)->*member = range["from"].Number();
+            (*max_values)->*member = range["to"].Number();
+        }
+    }
+
+    if (ExtractContextCaps(data, context_caps) != tvERROR_NONE) {
+        return tvERROR_GENERAL;
+    }
+    return tvERROR_NONE;
 }
 
-tvError_t AVOutputTV::GetBrightnessCaps(int* max_brightness, tvContextCaps_t** context_caps) {
-    return GetCaps("Brightness", max_brightness, context_caps);
-}
+tvError_t AVOutputTV::GetBacklightModeCaps(tvBacklightMode_t** backlight_mode, size_t* num_backlight_mode, tvContextCaps_t** context_caps)
+{
+    LOGINFO("Entry\n");
 
-tvError_t AVOutputTV::GetContrastCaps(int* max_contrast, tvContextCaps_t** context_caps) {
-    return GetCaps("Contrast", max_contrast, context_caps);
-}
+    JsonObject root;
+    if (ReadJsonFile(root) != tvERROR_NONE) {
+        return tvERROR_GENERAL;
+    }
 
-tvError_t AVOutputTV::GetSharpnessCaps(int* max_sharpness, tvContextCaps_t** context_caps) {
-    return GetCaps("Sharpness", max_sharpness, context_caps);
-}
+    std::string key = "BacklightMode";
+    if (!root.HasLabel(key.c_str())) {
+        LOGWARN("AVOutputPlugins: %s: Missing '%s' label", __FUNCTION__, key.c_str());
+        return tvERROR_GENERAL;
+    }
 
-tvError_t AVOutputTV::GetSaturationCaps(int* max_saturation, tvContextCaps_t** context_caps) {
-    return GetCaps("Saturation", max_saturation, context_caps);
-}
+    JsonObject data = root[key.c_str()].Object();
+    if (!data.HasLabel("platformSupport") || !data["platformSupport"].Boolean()) {
+        LOGWARN("AVOutputPlugins: %s: Platform support is false", __FUNCTION__);
+        return tvERROR_OPERATION_NOT_SUPPORTED;
+    }
 
-tvError_t AVOutputTV::GetHueCaps(int* max_hue, tvContextCaps_t** context_caps) {
-    return GetCaps("Hue", max_hue, context_caps);
-}
+    JsonObject rangeInfo = data["rangeInfo"].Object();
+    JsonArray optionsArray = rangeInfo["options"].Array();
 
-tvError_t AVOutputTV::GetLowLatencyStateCaps(int* max_latency, tvContextCaps_t ** context_caps){
-    return GetCaps("LowLatencyState", max_latency, context_caps);
-}
+    *num_backlight_mode = optionsArray.Length();
+    *backlight_mode = static_cast<tvBacklightMode_t*>(malloc(*num_backlight_mode * sizeof(tvBacklightMode_t)));
+    if (!(*backlight_mode)) {
+        return tvERROR_GENERAL;
+    }
 
-// PrecisionDetail
-tvError_t AVOutputTV::GetPrecisionDetailCaps(int * maxPrecision, tvContextCaps_t ** context_caps) {
-    return GetCaps("PrecisionDetail", maxPrecision, context_caps);
+    for (size_t i = 0; i < *num_backlight_mode; ++i) {
+        std::string modeStr = optionsArray[i].String();
+        auto it = backlightModeMap.find(modeStr);
+        if (it != backlightModeMap.end()) {
+            (*backlight_mode)[i] = it->second;
+        } else {
+            (*backlight_mode)[i] = tvBacklightMode_INVALID;
+        }
+    }
+
+    if (ExtractContextCaps(data, context_caps) != tvERROR_NONE) {
+        free(*backlight_mode);
+        return tvERROR_GENERAL;
+    }
+
+    return tvERROR_NONE;
 }
 
 // LocalContrastEnhancement
@@ -3458,16 +3516,6 @@ tvError_t AVOutputTV::GetMPEGNoiseReductionCaps(int * maxMPEGNoiseReduction, tvC
 // DigitalNoiseReduction
 tvError_t AVOutputTV::GetDigitalNoiseReductionCaps(int * maxDigitalNoiseReduction, tvContextCaps_t ** context_caps) {
     return GetCaps("DigitalNoiseReduction", maxDigitalNoiseReduction, context_caps);
-}
-
-// AISuperResolution
-tvError_t AVOutputTV::GetAISuperResolutionCaps(int * maxAISuperResolution, tvContextCaps_t ** context_caps) {
-    return GetCaps("AISuperResolution", maxAISuperResolution, context_caps);
-}
-
-// MEMC
-tvError_t AVOutputTV::GetMEMCCaps(int * maxMEMC, tvContextCaps_t ** context_caps) {
-    return GetCaps("MEMC", maxMEMC, context_caps);
 }
 
 tvError_t AVOutputTV::GetMultiPointWBCaps(int* num_hal_matrix_points,
@@ -3525,6 +3573,203 @@ tvError_t AVOutputTV::GetMultiPointWBCaps(int* num_hal_matrix_points,
     return tvERROR_NONE;
 }
 
+tvError_t AVOutputTV::GetCMSCaps(int* max_hue,
+    int* max_saturation,
+    int* max_luma,
+    tvDataComponentColor_t** color,
+    tvComponentType_t** component,
+    size_t* num_color,
+    size_t* num_component,
+    tvContextCaps_t** context_caps)
+{
+    if (!max_hue || !max_saturation || !max_luma || !color || !component || !num_color || !num_component || !context_caps) {
+    return tvERROR_INVALID_PARAM;
+    }
+
+    JsonObject root;
+    if (ReadJsonFile(root) != tvERROR_NONE) {
+    return tvERROR_GENERAL;
+    }
+
+    const char* key = "CMS";
+    if (!root.HasLabel(key)) {
+    return tvERROR_OPERATION_NOT_SUPPORTED;
+    }
+
+    JsonObject cms = root[key].Object();
+
+    if (!cms.HasLabel("platformSupport") || !cms["platformSupport"].Boolean()) {
+    return tvERROR_OPERATION_NOT_SUPPORTED;
+    }
+
+    // Extract ranges
+    *max_hue = cms.HasLabel("rangeHue") ? cms["rangeHue"].Object()["to"].Number() : 0;
+    *max_saturation = cms.HasLabel("rangeSaturation") ? cms["rangeSaturation"].Object()["to"].Number() : 0;
+    *max_luma = cms.HasLabel("rangeLuma") ? cms["rangeLuma"].Object()["to"].Number() : 0;
+
+    // Extract colors
+    const JsonArray& colorArray = cms["color"].Array();
+    *num_color = colorArray.Length();
+    *color = new tvDataComponentColor_t[*num_color];
+    for (size_t i = 0; i < *num_color; ++i) {
+        std::string colorStr = colorArray[i].String();
+        if (getCMSColorEnumFromString(colorStr, (*color)[i]) != 0) {
+        delete[] *color;
+        *color = nullptr;
+        return tvERROR_INVALID_PARAM;
+        }
+    }
+
+    // Extract components
+    const JsonArray& compArray = cms["component"].Array();
+    *num_component = compArray.Length();
+    *component = new tvComponentType_t[*num_component];
+    for (size_t i = 0; i < *num_component; ++i) {
+        std::string compStr = compArray[i].String();
+        if (getCMSComponentEnumFromString(compStr, (*component)[i]) != 0) {
+        delete[] *color;
+        delete[] *component;
+        *color = nullptr;
+        *component = nullptr;
+        return tvERROR_INVALID_PARAM;
+        }
+    }
+
+    // Extract context capabilities
+    if (ExtractContextCaps(cms, context_caps) != tvERROR_NONE) {
+        delete[] *color;
+        delete[] *component;
+        *color = nullptr;
+        *component = nullptr;
+        return tvERROR_GENERAL;
+    }
+
+    return tvERROR_NONE;
+}
+
+tvError_t AVOutputTV::GetCustom2PointWhiteBalanceCaps(int* min_gain, int* min_offset,
+    int* max_gain, int* max_offset,
+    tvWBColor_t** color,
+    tvWBControl_t** control,
+    size_t* num_color, size_t* num_control,
+    tvContextCaps_t** context_caps)
+{
+    if (!min_gain || !min_offset || !max_gain || !max_offset ||
+    !color || !control || !num_color || !num_control || !context_caps)
+    {
+        LOGERR("Invalid input pointers");
+        return tvERROR_INVALID_PARAM;
+    }
+
+    JsonObject root;
+    if (ReadJsonFile(root) != tvERROR_NONE) {
+        LOGERR("Failed to read JSON capabilities");
+        return tvERROR_GENERAL;
+    }
+
+    const char* key = "Custom2PointWhiteBalance";
+    if (!root.HasLabel(key)) {
+        LOGERR("Missing key: %s", key);
+        return tvERROR_OPERATION_NOT_SUPPORTED;
+    }
+
+    JsonObject section = root[key].Object();
+
+    if (!section.HasLabel("platformSupport") || !section["platformSupport"].Boolean()) {
+        return tvERROR_OPERATION_NOT_SUPPORTED;
+    }
+
+    // Parse rangeGain and rangeOffset
+    *min_gain  = section["rangeGain"].Object()["from"].Number();
+    *max_gain  = section["rangeGain"].Object()["to"].Number();
+    *min_offset = section["rangeOffset"].Object()["from"].Number();
+    *max_offset = section["rangeOffset"].Object()["to"].Number();
+
+    // Parse control array
+    JsonArray controlArray = section["control"].Array();
+    *num_control = controlArray.Length();
+    *control = new tvWBControl_t[*num_control];
+    for (size_t i = 0; i < *num_control; ++i) {
+        std::string ctrlStr = controlArray[i].String();
+        if (getWBControlEnumFromString(ctrlStr, (*control)[i]) != 0) {
+            LOGERR("Invalid control: %s", ctrlStr.c_str());
+            delete[] *control;
+            *control = nullptr;
+            return tvERROR_INVALID_PARAM;
+        }
+    }
+
+    // Parse color array
+    JsonArray colorArray = section["color"].Array();
+    *num_color = colorArray.Length();
+    *color = new tvWBColor_t[*num_color];
+    for (size_t i = 0; i < *num_color; ++i) {
+        std::string colStr = colorArray[i].String();
+        if (getWBColorEnumFromString(colStr, (*color)[i]) != 0) {
+            LOGERR("Invalid color: %s", colStr.c_str());
+            delete[] *color;
+            delete[] *control;
+            *color = nullptr;
+            *control = nullptr;
+            return tvERROR_INVALID_PARAM;
+        }
+    }
+
+    // Parse contextCaps
+    if (ExtractContextCaps(section, context_caps) != tvERROR_NONE) {
+        delete[] *color;
+        delete[] *control;
+        *color = nullptr;
+        *control = nullptr;
+        return tvERROR_GENERAL;
+    }
+
+    return tvERROR_NONE;
+}
+
+#if HAL_NOT_READY
+tvError_t AVOutputTV::GetBacklightCaps(int* max_backlight, tvContextCaps_t** context_caps) {
+    return GetCaps("Backlight", max_backlight, context_caps);
+}
+
+tvError_t AVOutputTV::GetBrightnessCaps(int* max_brightness, tvContextCaps_t** context_caps) {
+    return GetCaps("Brightness", max_brightness, context_caps);
+}
+
+tvError_t AVOutputTV::GetContrastCaps(int* max_contrast, tvContextCaps_t** context_caps) {
+    return GetCaps("Contrast", max_contrast, context_caps);
+}
+
+tvError_t AVOutputTV::GetSharpnessCaps(int* max_sharpness, tvContextCaps_t** context_caps) {
+    return GetCaps("Sharpness", max_sharpness, context_caps);
+}
+
+tvError_t AVOutputTV::GetSaturationCaps(int* max_saturation, tvContextCaps_t** context_caps) {
+    return GetCaps("Saturation", max_saturation, context_caps);
+}
+
+tvError_t AVOutputTV::GetHueCaps(int* max_hue, tvContextCaps_t** context_caps) {
+    return GetCaps("Hue", max_hue, context_caps);
+}
+
+tvError_t AVOutputTV::GetLowLatencyStateCaps(int* max_latency, tvContextCaps_t ** context_caps){
+    return GetCaps("LowLatencyState", max_latency, context_caps);
+}
+
+// PrecisionDetail
+tvError_t AVOutputTV::GetPrecisionDetailCaps(int * maxPrecision, tvContextCaps_t ** context_caps) {
+    return GetCaps("PrecisionDetail", maxPrecision, context_caps);
+}
+
+// AISuperResolution
+tvError_t AVOutputTV::GetAISuperResolutionCaps(int * maxAISuperResolution, tvContextCaps_t ** context_caps) {
+    return GetCaps("AISuperResolution", maxAISuperResolution, context_caps);
+}
+
+// MEMC
+tvError_t AVOutputTV::GetMEMCCaps(int * maxMEMC, tvContextCaps_t ** context_caps) {
+    return GetCaps("MEMC", maxMEMC, context_caps);
+}
 
 tvError_t AVOutputTV::GetColorTemperatureCaps(tvColorTemp_t** color_temp, size_t* num_color_temp, tvContextCaps_t** context_caps) {
     LOGINFO("Entry\n");
@@ -3762,270 +4007,6 @@ tvError_t AVOutputTV::GetTVPictureModeCaps(tvPQModeIndex_t** mode, size_t* num_p
 
     if (ExtractContextCaps(data, context_caps) != tvERROR_NONE) {
         free(*mode);
-        return tvERROR_GENERAL;
-    }
-
-    return tvERROR_NONE;
-}
-tvError_t AVOutputTV::GetBacklightModeCaps(tvBacklightMode_t** backlight_mode, size_t* num_backlight_mode, tvContextCaps_t** context_caps)
-{
-    LOGINFO("Entry\n");
-
-    JsonObject root;
-    if (ReadJsonFile(root) != tvERROR_NONE) {
-        return tvERROR_GENERAL;
-    }
-
-    std::string key = "BacklightMode";
-    if (!root.HasLabel(key.c_str())) {
-        LOGWARN("AVOutputPlugins: %s: Missing '%s' label", __FUNCTION__, key.c_str());
-        return tvERROR_GENERAL;
-    }
-
-    JsonObject data = root[key.c_str()].Object();
-    if (!data.HasLabel("platformSupport") || !data["platformSupport"].Boolean()) {
-        LOGWARN("AVOutputPlugins: %s: Platform support is false", __FUNCTION__);
-        return tvERROR_OPERATION_NOT_SUPPORTED;
-    }
-
-    JsonObject rangeInfo = data["rangeInfo"].Object();
-    JsonArray optionsArray = rangeInfo["options"].Array();
-
-    *num_backlight_mode = optionsArray.Length();
-    *backlight_mode = static_cast<tvBacklightMode_t*>(malloc(*num_backlight_mode * sizeof(tvBacklightMode_t)));
-    if (!(*backlight_mode)) {
-        return tvERROR_GENERAL;
-    }
-
-    for (size_t i = 0; i < *num_backlight_mode; ++i) {
-        std::string modeStr = optionsArray[i].String();
-        auto it = backlightModeMap.find(modeStr);
-        if (it != backlightModeMap.end()) {
-            (*backlight_mode)[i] = it->second;
-        } else {
-            (*backlight_mode)[i] = tvBacklightMode_INVALID;
-        }
-    }
-
-    if (ExtractContextCaps(data, context_caps) != tvERROR_NONE) {
-        free(*backlight_mode);
-        return tvERROR_GENERAL;
-    }
-
-    return tvERROR_NONE;
-}
-
-
-/*
-tvError_t GetColorTemperatureCaps(char*** options, size_t* options_count, tvContextCaps_t** context_caps);
-Since C does not have std::vector, we use char*** options (a pointer to an array of strings).
-size_t* options_count is used to store the number of elements in the array.
-
-char** options = NULL;
-size_t options_count = 0;
-tvContextCaps_t* context_caps = NULL;
-
-tvError_t status = GetColorTemperatureCaps(&options, &options_count, &context_caps);
-if (status == tvERROR_NONE) {
-    for (size_t i = 0; i < options_count; i++) {
-        printf("Option: %s\n", options[i]);
-    }
-}
-*/
-
-tvError_t AVOutputTV::GetDVCalibrationCaps(tvDVCalibrationSettings_t **min_values, tvDVCalibrationSettings_t **max_values, tvContextCaps_t **context_caps) {
-    JsonObject root;
-    if (ReadJsonFile(root) != tvERROR_NONE) {
-        return tvERROR_GENERAL;
-    }
-    if (!root.HasLabel("DolbyVisionCalibration")) {
-        LOGWARN("AVOutputPlugins: %s: Missing 'DolbyVisionCalibration' label", __FUNCTION__);
-        return tvERROR_GENERAL;
-    }
-
-    JsonObject data = root["DolbyVisionCalibration"].Object();
-    *min_values = new tvDVCalibrationSettings_t();
-    *max_values = new tvDVCalibrationSettings_t();
-
-    std::map<std::string, double tvDVCalibrationSettings_t::*> keyMap = {
-        {"Tmax", &tvDVCalibrationSettings_t::Tmax},
-        {"Tmin", &tvDVCalibrationSettings_t::Tmin},
-        {"Tgamma", &tvDVCalibrationSettings_t::Tgamma},
-        {"Rx", &tvDVCalibrationSettings_t::Rx},
-        {"Ry", &tvDVCalibrationSettings_t::Ry},
-        {"Gx", &tvDVCalibrationSettings_t::Gx},
-        {"Gy", &tvDVCalibrationSettings_t::Gy},
-        {"Bx", &tvDVCalibrationSettings_t::Bx},
-        {"By", &tvDVCalibrationSettings_t::By},
-        {"Wx", &tvDVCalibrationSettings_t::Wx},
-        {"Wy", &tvDVCalibrationSettings_t::Wy}
-    };
-
-    for (auto it = keyMap.begin(); it != keyMap.end(); ++it) {
-        const std::string& key = it->first;
-        double tvDVCalibrationSettings_t::*member = it->second;
-        std::string minKey = "range" + key;
-        if (data.HasLabel(minKey.c_str())) {
-            JsonObject range = data[minKey.c_str()].Object();
-            (*min_values)->*member = range["from"].Number();
-            (*max_values)->*member = range["to"].Number();
-        }
-    }
-
-    if (ExtractContextCaps(data, context_caps) != tvERROR_NONE) {
-        return tvERROR_GENERAL;
-    }
-    return tvERROR_NONE;
-}
-
-tvError_t AVOutputTV::GetCMSCaps(int* max_hue,
-    int* max_saturation,
-    int* max_luma,
-    tvDataComponentColor_t** color,
-    tvComponentType_t** component,
-    size_t* num_color,
-    size_t* num_component,
-    tvContextCaps_t** context_caps)
-{
-    if (!max_hue || !max_saturation || !max_luma || !color || !component || !num_color || !num_component || !context_caps) {
-    return tvERROR_INVALID_PARAM;
-    }
-
-    JsonObject root;
-    if (ReadJsonFile(root) != tvERROR_NONE) {
-    return tvERROR_GENERAL;
-    }
-
-    const char* key = "CMS";
-    if (!root.HasLabel(key)) {
-    return tvERROR_OPERATION_NOT_SUPPORTED;
-    }
-
-    JsonObject cms = root[key].Object();
-
-    if (!cms.HasLabel("platformSupport") || !cms["platformSupport"].Boolean()) {
-    return tvERROR_OPERATION_NOT_SUPPORTED;
-    }
-
-    // Extract ranges
-    *max_hue = cms.HasLabel("rangeHue") ? cms["rangeHue"].Object()["to"].Number() : 0;
-    *max_saturation = cms.HasLabel("rangeSaturation") ? cms["rangeSaturation"].Object()["to"].Number() : 0;
-    *max_luma = cms.HasLabel("rangeLuma") ? cms["rangeLuma"].Object()["to"].Number() : 0;
-
-    // Extract colors
-    const JsonArray& colorArray = cms["color"].Array();
-    *num_color = colorArray.Length();
-    *color = new tvDataComponentColor_t[*num_color];
-    for (size_t i = 0; i < *num_color; ++i) {
-        std::string colorStr = colorArray[i].String();
-        if (getCMSColorEnumFromString(colorStr, (*color)[i]) != 0) {
-        delete[] *color;
-        *color = nullptr;
-        return tvERROR_INVALID_PARAM;
-        }
-    }
-
-    // Extract components
-    const JsonArray& compArray = cms["component"].Array();
-    *num_component = compArray.Length();
-    *component = new tvComponentType_t[*num_component];
-    for (size_t i = 0; i < *num_component; ++i) {
-        std::string compStr = compArray[i].String();
-        if (getCMSComponentEnumFromString(compStr, (*component)[i]) != 0) {
-        delete[] *color;
-        delete[] *component;
-        *color = nullptr;
-        *component = nullptr;
-        return tvERROR_INVALID_PARAM;
-        }
-    }
-
-    // Extract context capabilities
-    if (ExtractContextCaps(cms, context_caps) != tvERROR_NONE) {
-        delete[] *color;
-        delete[] *component;
-        *color = nullptr;
-        *component = nullptr;
-        return tvERROR_GENERAL;
-    }
-
-    return tvERROR_NONE;
-}
-
-tvError_t AVOutputTV::GetCustom2PointWhiteBalanceCaps(int* min_gain, int* min_offset,
-    int* max_gain, int* max_offset,
-    tvWBColor_t** color,
-    tvWBControl_t** control,
-    size_t* num_color, size_t* num_control,
-    tvContextCaps_t** context_caps)
-{
-    if (!min_gain || !min_offset || !max_gain || !max_offset ||
-    !color || !control || !num_color || !num_control || !context_caps)
-    {
-        LOGERR("Invalid input pointers");
-        return tvERROR_INVALID_PARAM;
-    }
-
-    JsonObject root;
-    if (ReadJsonFile(root) != tvERROR_NONE) {
-        LOGERR("Failed to read JSON capabilities");
-        return tvERROR_GENERAL;
-    }
-
-    const char* key = "Custom2PointWhiteBalance";
-    if (!root.HasLabel(key)) {
-        LOGERR("Missing key: %s", key);
-        return tvERROR_OPERATION_NOT_SUPPORTED;
-    }
-
-    JsonObject section = root[key].Object();
-
-    if (!section.HasLabel("platformSupport") || !section["platformSupport"].Boolean()) {
-        return tvERROR_OPERATION_NOT_SUPPORTED;
-    }
-
-    // Parse rangeGain and rangeOffset
-    *min_gain  = section["rangeGain"].Object()["from"].Number();
-    *max_gain  = section["rangeGain"].Object()["to"].Number();
-    *min_offset = section["rangeOffset"].Object()["from"].Number();
-    *max_offset = section["rangeOffset"].Object()["to"].Number();
-
-    // Parse control array
-    JsonArray controlArray = section["control"].Array();
-    *num_control = controlArray.Length();
-    *control = new tvWBControl_t[*num_control];
-    for (size_t i = 0; i < *num_control; ++i) {
-        std::string ctrlStr = controlArray[i].String();
-        if (getWBControlEnumFromString(ctrlStr, (*control)[i]) != 0) {
-            LOGERR("Invalid control: %s", ctrlStr.c_str());
-            delete[] *control;
-            *control = nullptr;
-            return tvERROR_INVALID_PARAM;
-        }
-    }
-
-    // Parse color array
-    JsonArray colorArray = section["color"].Array();
-    *num_color = colorArray.Length();
-    *color = new tvWBColor_t[*num_color];
-    for (size_t i = 0; i < *num_color; ++i) {
-        std::string colStr = colorArray[i].String();
-        if (getWBColorEnumFromString(colStr, (*color)[i]) != 0) {
-            LOGERR("Invalid color: %s", colStr.c_str());
-            delete[] *color;
-            delete[] *control;
-            *color = nullptr;
-            *control = nullptr;
-            return tvERROR_INVALID_PARAM;
-        }
-    }
-
-    // Parse contextCaps
-    if (ExtractContextCaps(section, context_caps) != tvERROR_NONE) {
-        delete[] *color;
-        delete[] *control;
-        *color = nullptr;
-        *control = nullptr;
         return tvERROR_GENERAL;
     }
 
