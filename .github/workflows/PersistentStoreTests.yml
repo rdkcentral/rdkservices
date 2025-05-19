@@ -1,0 +1,61 @@
+name: PersistentStore
+
+on:
+  push:
+    paths:
+      - PersistentStore/**
+      - .github/workflows/*PersistentStore*.yml
+  pull_request:
+    paths:
+      - PersistentStore/**
+      - .github/workflows/*PersistentStore*.yml
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - src: 'PersistentStore/sqlite/l1test'
+            build: 'build/sqlitel1test'
+            test: 'sqlitel1test'
+          - src: 'PersistentStore/l0test'
+            build: 'build/persistentstorel0test'
+            test: 'persistentstorel0test'
+          - src: 'PersistentStore/l1test'
+            build: 'build/persistentstorel1test'
+            test: 'persistentstorel1test'
+          - src: 'PersistentStore'
+            build: 'build/PersistentStore'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ${{github.repository}}
+      - run: |
+          sudo apt update
+          sudo apt install -y valgrind cmake libsqlite3-dev
+      - run: sh +x ${GITHUB_REPOSITORY}/.github/workflows/BuildThunder.sh
+      - run: |
+          cmake \
+            -S ${GITHUB_REPOSITORY}/${{ matrix.src }} \
+            -B ${{ matrix.build }} \
+            -DCMAKE_INSTALL_PREFIX="install" \
+            -DCMAKE_CXX_FLAGS="-Wall -Werror"
+          cmake --build ${{ matrix.build }} --target install
+      - if: ${{ matrix.test }}
+        run: |
+          PATH=${PWD}/install/bin:${PATH} \
+            LD_LIBRARY_PATH=${PWD}/install/lib:${LD_LIBRARY_PATH} \
+            valgrind --tool=memcheck --log-file=valgrind_log \
+            --leak-check=yes \
+            --show-reachable=yes \
+            --track-fds=yes \
+            --fair-sched=try \
+            ${{ matrix.test }}
+      - if: ${{ !env.ACT && matrix.test }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-${{ matrix.test }}
+          path: |
+            valgrind_log
+          if-no-files-found: warn
