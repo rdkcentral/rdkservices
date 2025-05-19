@@ -1526,8 +1526,12 @@ namespace Plugin {
     #if HAL_NOT_READY
         bool success = false;
     #else
+        #if ENABLE_PQ_PARAM
         bool success = resetPQParamToDefault(parameters, "LocalContrastEnhancement",
                                             PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT, SetLocalContrastEnhancement);
+        #else
+        bool success = true;
+        #endif
     #endif
         returnResponse(success);
     }
@@ -1537,8 +1541,12 @@ namespace Plugin {
     #if HAL_NOT_READY
         bool success = false;
     #else
+        #if ENABLE_PQ_PARAM
         bool success = resetPQParamToDefault(parameters, "MPEGNoiseReduction",
                                             PQ_PARAM_MPEG_NOISE_REDUCTION, SetMPEGNoiseReduction);
+        #else
+        bool success = true;
+        #endif
     #endif
         returnResponse(success);
     }
@@ -1548,8 +1556,13 @@ namespace Plugin {
     #if HAL_NOT_READY
         bool success = false;
     #else
+        #if ENABLE_PQ_PARAM
         bool success = resetPQParamToDefault(parameters, "DigitalNoiseReduction",
                                             PQ_PARAM_DIGITAL_NOISE_REDUCTION, SetDigitalNoiseReduction);
+        #else
+        bool success = true;
+        #endif
+
     #endif
         returnResponse(success);
     }
@@ -1765,6 +1778,7 @@ namespace Plugin {
 
     uint32_t AVOutputTV::setLocalContrastEnhancement(const JsonObject& parameters, JsonObject& response)
     {
+#if ENABLE_PQ_PARAM
         return setContextPQParam(
             parameters, response,
             "localContrastEnhancement", "LocalContrastEnhancement",
@@ -1774,10 +1788,14 @@ namespace Plugin {
                 return SetLocalContrastEnhancement(src, mode, fmt, val);
             }
         );
+#else
+    returnResponse(true);
+#endif
     }
 
     uint32_t AVOutputTV::setMPEGNoiseReduction(const JsonObject& parameters, JsonObject& response)
     {
+#if ENABLE_PQ_PARAM
         return setContextPQParam(
             parameters, response,
             "mpegNoiseReduction", "MPEGNoiseReduction",
@@ -1787,10 +1805,14 @@ namespace Plugin {
                 return SetMPEGNoiseReduction(src, mode, fmt, val);
             }
         );
+#else
+    returnResponse(true);
+#endif
     }
 
     uint32_t AVOutputTV::setDigitalNoiseReduction(const JsonObject& parameters, JsonObject& response)
     {
+#if ENABLE_PQ_PARAM
         return setContextPQParam(
             parameters, response,
             "digitalNoiseReduction", "DigitalNoiseReduction",
@@ -1800,6 +1822,9 @@ namespace Plugin {
                 return SetDigitalNoiseReduction(src, mode, fmt, val);
             }
         );
+#else
+    returnResponse(true);
+#endif
     }
 
     uint32_t AVOutputTV::getBacklight(const JsonObject& parameters, JsonObject& response)

@@ -929,26 +929,6 @@ namespace Plugin {
         return ret;
     }
 
-    tvContentFormatType_t AVOutputTV::convertFormatStringToTVContentFormat(const char *format)
-    {
-        tvContentFormatType_t ret = tvContentFormatType_SDR;
-
-        if( strncmp(format,"sdr",strlen(format)) == 0 || strncmp(format,"SDR",strlen(format)) == 0 ) {
-            ret = tvContentFormatType_SDR;
-	}
-        else if( strncmp(format,"hdr10",strlen(format)) == 0 || strncmp(format,"HDR10",strlen(format))==0 ) {
-            ret = tvContentFormatType_HDR10;
-	}
-        else if( strncmp(format,"hlg",strlen(format)) == 0 || strncmp(format,"HLG",strlen(format)) == 0 ) {
-            ret = tvContentFormatType_HLG;
-	}
-        else if( strncmp(format,"dolby",strlen(format)) == 0 || strncmp(format,"DOLBY",strlen(format)) == 0 ) {
-            ret=tvContentFormatType_DOVI;
-	}
-
-        return ret;
-    }
-
     tvError_t AVOutputTV::updateAVoutputTVParamToHALV2(std::string forParam, paramIndex_t indexInfo, int value, bool setNotDelete)
     {
         tvError_t ret = tvERROR_NONE;
@@ -3164,30 +3144,36 @@ namespace Plugin {
                 case PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT:
             #if HAL_NOT_READY
             #else
+                #if ENABLE_PQ_PARAM
                     ret |= SetLocalContrastEnhancement((tvVideoSrcType_t)paramIndex.sourceIndex,
                                                     (tvPQModeIndex_t)paramIndex.pqmodeIndex,
                                                     (tvVideoFormatType_t)paramIndex.formatIndex,
                                                     level);
+                #endif
             #endif
                     break;
 
                 case PQ_PARAM_MPEG_NOISE_REDUCTION:
             #if HAL_NOT_READY
             #else
+                #if ENABLE_PQ_PARAM
                     ret |= SetMPEGNoiseReduction((tvVideoSrcType_t)paramIndex.sourceIndex,
                                                 (tvPQModeIndex_t)paramIndex.pqmodeIndex,
                                                 (tvVideoFormatType_t)paramIndex.formatIndex,
                                                 level);
+                #endif
             #endif
                     break;
 
                 case PQ_PARAM_DIGITAL_NOISE_REDUCTION:
             #if HAL_NOT_READY
             #else
+                #if ENABLE_PQ_PARAM
                     ret |= SetDigitalNoiseReduction((tvVideoSrcType_t)paramIndex.sourceIndex,
                                                     (tvPQModeIndex_t)paramIndex.pqmodeIndex,
                                                     (tvVideoFormatType_t)paramIndex.formatIndex,
                                                     level);
+                #endif
             #endif
                     break;
 

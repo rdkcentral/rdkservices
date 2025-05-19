@@ -352,7 +352,6 @@ class AVOutputTV : public AVOutputBase {
 		string convertSourceIndexToString(int source);
 		string convertVideoFormatToString(int format);
 		string convertPictureIndexToString(int pqmode);
-		tvContentFormatType_t convertFormatStringToTVContentFormat(const char *format);
 		//std::string convertSourceIndexToString(int sourceIndex);
 		//std::string convertVideoFormatToString( int formatIndex );
 		void convertUserScaleBacklightToDriverScale(int format,int * params);
