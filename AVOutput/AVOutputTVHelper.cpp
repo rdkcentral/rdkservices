@@ -2595,7 +2595,7 @@ namespace Plugin {
     };
 
     const std::map<int, std::string> AVOutputTV::videoSrcMap = {
-        {VIDEO_SOURCE_COMPOSITE1, "Composite"},
+        {VIDEO_SOURCE_COMPOSITE1, "Composite1"},
         {VIDEO_SOURCE_HDMI1, "HDMI1"},
         {VIDEO_SOURCE_HDMI2, "HDMI2"},
         {VIDEO_SOURCE_HDMI3, "HDMI3"},
