@@ -679,6 +679,8 @@ namespace Plugin {
                     if( _buffer != nullptr ) {
                         _adminLock.Unlock();
                         bufferid = _buffer->Name();
+                    } else {
+                        _adminLock.Unlock();
                     }
                     return bufferid;
                 }
