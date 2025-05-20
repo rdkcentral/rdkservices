@@ -187,6 +187,7 @@ namespace WPEFramework
             static void ActivatePlugin(PluginHost::IShell *shell, const char *callSign);
             static bool IsPluginActivated(PluginHost::IShell *shell, const char *callSign);
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> GetThunderControllerClient(std::string callsign="");
+            static bool GetFileRegex(const std::string &fileName, const std::string &regex, std::string &result);
 
             std::thread mInitializationThread;
             Core::Sink<MonitorKeys> mMonitorKeys;

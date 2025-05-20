@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <cctype> 
 #include <fstream>
+#include <regex>
 
 #define AUTHSERVICE_CALLSIGN "org.rdk.AuthService"
 #define SYSTEM_CALLSIGN "org.rdk.System"
@@ -33,6 +34,7 @@
 #define PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE "accountProfile"
 #define JSONRPC_THUNDER_TIMEOUT 20000
 #define THUNDER_ACCESS_DEFAULT_VALUE "127.0.0.1:9998"
+#define DEVICE_PROPERTIES_FILE "/etc/device.properties"
 
 namespace WPEFramework
 {
@@ -663,6 +665,42 @@ namespace WPEFramework
                 SYSLOG(Logging::Startup, ("Sift DropOnAllTags: %s", mCetDropOnAllTags ? "true" : "false"));
                 mCetEventType = config.Sift.CetEventType.Value();
                 SYSLOG(Logging::Startup, ("Sift CetEventType: \"%s\"", mCetEventType.c_str()));
+
+                // Get Sift url from device properties as first choise
+                if (GetFileRegex(DEVICE_PROPERTIES_FILE, R"(SIFT_URL=\S+)", mUploaderConfig.url))
+                {
+                    SYSLOG(Logging::Startup, ("Sift Url from device properties: %s", mUploaderConfig.url.c_str()));
+                }
+
+                // Get Sift common schema from device properties as first choise
+                if (GetFileRegex(DEVICE_PROPERTIES_FILE, R"(SIFT_COMMON_SCHEMA=\S+)", mAttributes.commonSchema))
+                {
+                    SYSLOG(Logging::Startup, ("Sift Common Schema from device properties: %s", mAttributes.commonSchema.c_str()));
+                }
+                
+                // Get Sift env from device properties as first choise
+                if (GetFileRegex(DEVICE_PROPERTIES_FILE, R"(BUILD_TYPE=\S+)", mAttributes.env))
+                {
+                    SYSLOG(Logging::Startup, ("Sift Env from device properties: %s", mAttributes.env.c_str()));
+                }
+
+                // Get Sift schema from device properties as first choise
+                string schema;
+                if (GetFileRegex(DEVICE_PROPERTIES_FILE, R"(SIFT_SCHEMA_VER=\S+)", schema))
+                {
+                    if (schema == "2.0")
+                    {
+                        mAttributes.schema2Enabled = true;
+                    }
+                    else if (schema == "1.0")
+                    {
+                        mAttributes.schema2Enabled = false;
+                    }
+                    else
+                    {
+                        LOGERR("Invalid SIFT_SCHEMA value in %s: %s", DEVICE_PROPERTIES_FILE, schema.c_str());
+                    }
+                }
             }
         }
 
@@ -1149,6 +1187,25 @@ namespace WPEFramework
             std::string query = "token=" + sThunderSecurityToken;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(thunderAccessValue)));
             return std::make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>(callsign, "", false, query);
+        }
+
+        bool SiftConfig::GetFileRegex(const std::string &fileName, const std::string &regex, std::string &result)
+        {
+            std::regex pattern(regex);
+            std::ifstream file(fileName);
+            if (file) {
+                string line;
+                while (std::getline(file, line)) {
+                    std::smatch sm;
+                    if (std::regex_match(line, sm, pattern)) {
+                        ASSERT(sm.size() == 2);
+                        result = sm[1];
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         void SiftConfig::MonitorKeys::ValueChanged(const string& ns, const string& key, const string& value)
