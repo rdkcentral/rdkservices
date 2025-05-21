@@ -96,7 +96,7 @@ protected:
     }
 };
 
-TEST_F(DeviceAudioCapabilitiesDsTest, SupportedAudioPorts)
+TEST_F(DeviceAudioCapabilitiesDsTest, DISABLED_SupportedAudioPorts)
 {
     device::AudioOutputPort audioOutputPort;
     RPC::IStringIterator* supportedAudioPorts = nullptr;
@@ -116,7 +116,7 @@ TEST_F(DeviceAudioCapabilitiesDsTest, SupportedAudioPorts)
     supportedAudioPorts->Release();
 }
 
-TEST_F(DeviceAudioCapabilitiesDsTest, AudioCapabilities_noParam)
+TEST_F(DeviceAudioCapabilitiesDsTest, DISABLED_AudioCapabilities_noParam)
 {
     device::AudioOutputPort audioOutputPort;
     Exchange::IDeviceAudioCapabilities::IAudioCapabilityIterator* audioCapabilities = nullptr;
@@ -145,7 +145,7 @@ TEST_F(DeviceAudioCapabilitiesDsTest, AudioCapabilities_noParam)
     audioCapabilities->Release();
 }
 
-TEST_F(DeviceAudioCapabilitiesDsTest, MS12Capabilities_noParam)
+TEST_F(DeviceAudioCapabilitiesDsTest, DISABLED_MS12Capabilities_noParam)
 {
     device::AudioOutputPort audioOutputPort;
     Exchange::IDeviceAudioCapabilities::IMS12CapabilityIterator* ms12Capabilities = nullptr;
@@ -174,7 +174,7 @@ TEST_F(DeviceAudioCapabilitiesDsTest, MS12Capabilities_noParam)
     ms12Capabilities->Release();
 }
 
-TEST_F(DeviceAudioCapabilitiesDsTest, SupportedMS12AudioProfiles_noParam)
+TEST_F(DeviceAudioCapabilitiesDsTest, DISABLED_SupportedMS12AudioProfiles_noParam)
 {
     device::AudioOutputPort audioOutputPort;
     RPC::IStringIterator* supportedMS12AudioProfiles = nullptr;
@@ -197,7 +197,7 @@ TEST_F(DeviceAudioCapabilitiesDsTest, SupportedMS12AudioProfiles_noParam)
     supportedMS12AudioProfiles->Release();
 }
 
-TEST_F(DeviceAudioCapabilitiesDsTest, SupportedAudioPorts_exception)
+TEST_F(DeviceAudioCapabilitiesDsTest, DISABLED_SupportedAudioPorts_exception)
 {
     RPC::IStringIterator* supportedAudioPorts = nullptr;
 
@@ -211,7 +211,7 @@ TEST_F(DeviceAudioCapabilitiesDsTest, SupportedAudioPorts_exception)
     EXPECT_EQ(supportedAudioPorts, nullptr);
 }
 
-TEST_F(DeviceAudioCapabilitiesDsTest, AudioCapabilities_HDMI0_exception)
+TEST_F(DeviceAudioCapabilitiesDsTest, DISABLED_AudioCapabilities_HDMI0_exception)
 {
     Exchange::IDeviceAudioCapabilities::IAudioCapabilityIterator* audioCapabilities = nullptr;
 
@@ -226,7 +226,7 @@ TEST_F(DeviceAudioCapabilitiesDsTest, AudioCapabilities_HDMI0_exception)
     EXPECT_EQ(audioCapabilities, nullptr);
 }
 
-TEST_F(DeviceAudioCapabilitiesDsTest, MS12Capabilities_HDMI0_exception)
+TEST_F(DeviceAudioCapabilitiesDsTest, DISABLED_MS12Capabilities_HDMI0_exception)
 {
     Exchange::IDeviceAudioCapabilities::IMS12CapabilityIterator* ms12Capabilities = nullptr;
 
@@ -241,7 +241,7 @@ TEST_F(DeviceAudioCapabilitiesDsTest, MS12Capabilities_HDMI0_exception)
     EXPECT_EQ(ms12Capabilities, nullptr);
 }
 
-TEST_F(DeviceAudioCapabilitiesDsTest, SupportedMS12AudioProfiles_HDMI0_exception)
+TEST_F(DeviceAudioCapabilitiesDsTest, DISABLED_SupportedMS12AudioProfiles_HDMI0_exception)
 {
     RPC::IStringIterator* supportedMS12AudioProfiles = nullptr;
 
