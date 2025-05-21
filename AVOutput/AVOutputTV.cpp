@@ -368,7 +368,7 @@ namespace Plugin {
         registerMethod("getColorTemperatureCapsV2", &AVOutputTV::getColorTemperatureCapsV2, this);
         registerMethod("getBacklightDimmingModeCapsV2", &AVOutputTV::getBacklightDimmingModeCapsV2, this);
         registerMethod("getZoomModeCapsV2", &AVOutputTV::getZoomModeCapsV2, this);
-        registerMethod("getDVCalibrationCaps", &AVOutputTV::getDVCalibrationCaps, this);
+        registerMethod("getDolbyVisionCalibrationCaps ", &AVOutputTV::getDolbyVisionCalibrationCaps , this);
         registerMethod("getPictureModeCapsV2", &AVOutputTV::getPictureModeCapsV2, this);
         registerMethod("getAutoBacklightModeCapsV2", &AVOutputTV::getAutoBacklightModeCapsV2, this);
         registerMethod("getCMSCapsV2", &AVOutputTV::getCMSCapsV2, this);
@@ -785,7 +785,7 @@ namespace Plugin {
 #else
         return GetBacklightCaps(max_backlight, context_caps);
 #endif
-        }, "Backlight", parameters, response);
+        }, "backlight", parameters, response);
     }
 
     uint32_t AVOutputTV::getBrightnessCapsV2(const JsonObject& parameters, JsonObject& response) {
@@ -796,7 +796,7 @@ namespace Plugin {
         return GetBrightnessCaps(max_brightness, context_caps);
 #endif
         },
-        "Brightness", parameters, response);
+        "brightness", parameters, response);
     }
 
     uint32_t AVOutputTV::getContrastCapsV2(const JsonObject& parameters, JsonObject& response) {
@@ -807,7 +807,7 @@ namespace Plugin {
         return GetContrastCaps(max_contrast, context_caps);
 #endif
         },
-        "Contrast", parameters, response);
+        "contrast", parameters, response);
     }
 
     uint32_t AVOutputTV::getSharpnessCapsV2(const JsonObject& parameters, JsonObject& response) {
@@ -818,7 +818,7 @@ namespace Plugin {
         return GetSharpnessCaps(max_sharpness, context_caps);
 #endif
         },
-        "Sharpness", parameters, response);
+        "sharpness", parameters, response);
     }
 
     uint32_t AVOutputTV::getSaturationCapsV2(const JsonObject& parameters, JsonObject& response) {
@@ -829,7 +829,7 @@ namespace Plugin {
         return GetSaturationCaps(max_saturation, context_caps);
 #endif
         },
-        "Saturation", parameters, response);
+        "saturation", parameters, response);
     }
 
     uint32_t AVOutputTV::getHueCapsV2(const JsonObject& parameters, JsonObject& response) {
@@ -840,7 +840,7 @@ namespace Plugin {
         return GetHueCaps(max_hue, context_caps);
 #endif
         },
-        "Hue", parameters, response);
+        "hue", parameters, response);
     }
 
     uint32_t AVOutputTV::getPrecisionDetailCaps(const JsonObject& parameters, JsonObject& response) {
@@ -851,7 +851,7 @@ namespace Plugin {
         return GetPrecisionDetailCaps(max_precision, context_caps);
 #endif
         },
-        "PrecisionDetail", parameters, response);
+        "precisionDetail", parameters, response);
     }
 
     uint32_t AVOutputTV::getLocalContrastEnhancementCaps(const JsonObject& parameters, JsonObject& response) {
@@ -862,7 +862,7 @@ namespace Plugin {
         return GetLocalContrastEnhancementCaps(max_val, context_caps);
 #endif
         },
-        "LocalContrastEnhancement", parameters, response);
+        "localContrastEnhancement", parameters, response);
     }
 
     uint32_t AVOutputTV::getMPEGNoiseReductionCaps(const JsonObject& parameters, JsonObject& response) {
@@ -873,7 +873,7 @@ namespace Plugin {
         return GetMPEGNoiseReductionCaps(max_val, context_caps);
 #endif
         },
-        "MPEGNoiseReduction", parameters, response);
+        "mpegNoiseReduction", parameters, response);
     }
 
     uint32_t AVOutputTV::getDigitalNoiseReductionCaps(const JsonObject& parameters, JsonObject& response) {
@@ -884,7 +884,7 @@ namespace Plugin {
         return GetDigitalNoiseReductionCaps(max_val, context_caps);
 #endif
         },
-        "DigitalNoiseReduction", parameters, response);
+        "digitalNoiseReduction", parameters, response);
     }
 
     uint32_t AVOutputTV::getAISuperResolutionCaps(const JsonObject& parameters, JsonObject& response) {
@@ -895,7 +895,7 @@ namespace Plugin {
         return GetAISuperResolutionCaps(max_val, context_caps);
 #endif
         },
-        "AISuperResolution", parameters, response);
+        "aiSuperResolution", parameters, response);
     }
 
     uint32_t AVOutputTV::getMultiPointWBCaps(const JsonObject& parameters, JsonObject& response)
@@ -962,7 +962,7 @@ namespace Plugin {
             return GetMEMCCaps(max_val, context_caps);
 #endif
         },
-        "MEMC", parameters, response);
+        "memc", parameters, response);
     }
 
     uint32_t AVOutputTV::getLowLatencyStateCapsV2(const JsonObject& parameters, JsonObject& response) {
@@ -973,7 +973,7 @@ namespace Plugin {
         return GetLowLatencyStateCaps(max_latency, context_caps);
 #endif
         },
-        "LowLatencyState", parameters, response);
+        "lowLatencyState", parameters, response);
     }
     // Forward lookup: string → enum
     const std::unordered_map<std::string, int> colorTempMap = {
@@ -1026,7 +1026,7 @@ namespace Plugin {
         colorTempJson["rangeInfo"] = rangeInfo;
         colorTempJson["platformSupport"] = true;
         colorTempJson["context"] = parseContextCaps(context_caps);
-        response["ColorTemperature"] = colorTempJson;
+        response["colorTemperature"] = colorTempJson;
 
         // TODO:: Review cleanup once HAL is available, as memory will be allocated in HAL.
 #if HAL_NOT_READY
@@ -1065,7 +1065,7 @@ namespace Plugin {
         sdrGammaJson["rangeInfo"] = rangeInfo;
         sdrGammaJson["platformSupport"] = true;
         sdrGammaJson["context"] = parseContextCaps(context_caps);
-        response["SDRGamma"] = sdrGammaJson;
+        response["sdrGamma"] = sdrGammaJson;
 #if HAL_NOT_READY
         free(sdr_gamma);
 #endif
@@ -1095,7 +1095,7 @@ namespace Plugin {
         dimmingModeJson["rangeInfo"] = rangeInfo;
         dimmingModeJson["platformSupport"] = true;
         dimmingModeJson["context"] = parseContextCaps(context_caps);
-        response["DimmingMode"] = dimmingModeJson;
+        response["dimmingMode"] = dimmingModeJson;
 #if HAL_NOT_READY
         free(dimming_mode);
 #endif
@@ -1116,7 +1116,7 @@ namespace Plugin {
         aspectRatioJson["rangeInfo"] = rangeInfo;
         aspectRatioJson["platformSupport"] = true;
         aspectRatioJson["context"] = parseContextCaps(m_aspectRatioCaps);
-        response["AspectRatio"] = aspectRatioJson;
+        response["zoomMode"] = aspectRatioJson;
 #if HAL_NOT_READY
         free(m_aspectRatio);
 #endif
@@ -1139,7 +1139,7 @@ namespace Plugin {
         pictureModeJson["rangeInfo"] = rangeInfo;
         pictureModeJson["platformSupport"] = true;
         pictureModeJson["context"] = parseContextCaps(m_pictureModeCaps);
-        response["PictureMode"] = pictureModeJson;
+        response["pictureMode"] = pictureModeJson;
 #if HAL_NOT_READY
         free(m_pictureModes);
 #endif
@@ -1174,7 +1174,7 @@ namespace Plugin {
         backlightModeJson["platformSupport"] = true;
 
         backlightModeJson["context"] = parseContextCaps(m_backlightModeCaps);
-        response["BacklightMode"] = backlightModeJson;
+        response["mode"] = backlightModeJson;
 #if HAL_NOT_READY
         // TODO:: Review cleanup once HAL is available, as memory will be allocated in HAL.
         free(m_backlightModes);
@@ -1182,42 +1182,46 @@ namespace Plugin {
         returnResponse(true);
     }
 
-    uint32_t AVOutputTV::getDVCalibrationCaps(const JsonObject& parameters, JsonObject& response) {
-        tvDVCalibrationSettings_t *min_values = nullptr;
-        tvDVCalibrationSettings_t *max_values = nullptr;
-        tvContextCaps_t *context_caps = nullptr;
+    uint32_t AVOutputTV::getDolbyVisionCalibrationCaps (const JsonObject& parameters, JsonObject& response) {
+        tvDVCalibrationSettings_t* min_values = nullptr;
+        tvDVCalibrationSettings_t* max_values = nullptr;
+        tvContextCaps_t* context_caps = nullptr;
 
         if (GetDVCalibrationCaps(&min_values, &max_values, &context_caps) != tvERROR_NONE) {
             returnResponse(false);
         }
 
-        JsonObject capsInfo;
-        JsonObject rangeInfo;
+        // Set platform support
+        response["platformSupport"] = true;
 
-        rangeInfo["Tmax"] = JsonObject({{"from", min_values->Tmax}, {"to", max_values->Tmax}});
-        rangeInfo["Tmin"] = JsonObject({{"from", min_values->Tmin}, {"to", max_values->Tmin}});
-        rangeInfo["Tgamma"] = JsonObject({{"from", min_values->Tgamma}, {"to", max_values->Tgamma}});
-        rangeInfo["Rx"] = JsonObject({{"from", min_values->Rx}, {"to", max_values->Rx}});
-        rangeInfo["Ry"] = JsonObject({{"from", min_values->Ry}, {"to", max_values->Ry}});
-        rangeInfo["Gx"] = JsonObject({{"from", min_values->Gx}, {"to", max_values->Gx}});
-        rangeInfo["Gy"] = JsonObject({{"from", min_values->Gy}, {"to", max_values->Gy}});
-        rangeInfo["Bx"] = JsonObject({{"from", min_values->Bx}, {"to", max_values->Bx}});
-        rangeInfo["By"] = JsonObject({{"from", min_values->By}, {"to", max_values->By}});
-        rangeInfo["Wx"] = JsonObject({{"from", min_values->Wx}, {"to", max_values->Wx}});
-        rangeInfo["Wy"] = JsonObject({{"from", min_values->Wy}, {"to", max_values->Wy}});
+        // Add all range fields (flattened as per expected JSON)
+        response["rangeTmax"] = JsonObject({{"from", min_values->Tmax}, {"to", max_values->Tmax}});
+        response["rangeTmin"] = JsonObject({{"from", min_values->Tmin}, {"to", max_values->Tmin}});
+        response["rangeTgamma"] = JsonObject({{"from", min_values->Tgamma}, {"to", max_values->Tgamma}});
+        response["rangeRx"] = JsonObject({{"from", min_values->Rx}, {"to", max_values->Rx}});
+        response["rangeRy"] = JsonObject({{"from", min_values->Ry}, {"to", max_values->Ry}});
+        response["rangeGx"] = JsonObject({{"from", min_values->Gx}, {"to", max_values->Gx}});
+        response["rangeGy"] = JsonObject({{"from", min_values->Gy}, {"to", max_values->Gy}});
+        response["rangeBx"] = JsonObject({{"from", min_values->Bx}, {"to", max_values->Bx}});
+        response["rangeBy"] = JsonObject({{"from", min_values->By}, {"to", max_values->By}});
+        response["rangeWx"] = JsonObject({{"from", min_values->Wx}, {"to", max_values->Wx}});
+        response["rangeWy"] = JsonObject({{"from", min_values->Wy}, {"to", max_values->Wy}});
 
-        capsInfo["rangeInfo"] = rangeInfo;
-        capsInfo["platformSupport"] = true;
-        capsInfo["context"] = parseContextCaps(context_caps);
+        // Add context list
+        response["context"] = parseContextCaps(context_caps);
 
-        response["DolbyVisionCalibration"] = capsInfo;
+        // Indicate success
+        response["success"] = true;
+
 #if HAL_NOT_READY
-        // TODO:: Review cleanup once HAL is available, as memory will be allocated in HAL.
+        // TODO: Clean up when HAL handles memory
         delete min_values;
         delete max_values;
 #endif
+
         returnResponse(true);
     }
+
 
     uint32_t AVOutputTV::getZoomModeCaps(const JsonObject& parameters, JsonObject& response)
     {
@@ -1598,7 +1602,7 @@ namespace Plugin {
             PQ_PARAM_PRECISION_DETAIL,
             precisionDetail);
         if (success) {
-            response["PrecisionDetail"] = precisionDetail;
+            response["precisionDetail"] = precisionDetail;
         }
         returnResponse(success);
     }
@@ -1612,7 +1616,7 @@ namespace Plugin {
             PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT,
             localContraseEnhancement);
         if (success) {
-            response["LocalContrastEnhancement"] = localContraseEnhancement;
+            response["localContrastEnhancement"] = localContraseEnhancement;
         }
         returnResponse(success);
     }
@@ -1626,7 +1630,7 @@ namespace Plugin {
             PQ_PARAM_MPEG_NOISE_REDUCTION,
             MPEGNoiseReduction);
         if (success) {
-            response["MPEGNoiseReduction"] = MPEGNoiseReduction;
+            response["mpegNoiseReduction"] = MPEGNoiseReduction;
         }
         returnResponse(success);
     }
@@ -1640,7 +1644,7 @@ namespace Plugin {
             PQ_PARAM_DIGITAL_NOISE_REDUCTION,
             digitalNoiseReduction);
         if (success) {
-            response["DigitalNoiseReduction"] = digitalNoiseReduction;
+            response["digitalNoiseReduction"] = digitalNoiseReduction;
         }
         returnResponse(success);
     }
@@ -1654,7 +1658,7 @@ namespace Plugin {
             PQ_PARAM_MEMC,
             MEMC);
         if (success) {
-            response["MEMC"] = MEMC;
+            response["memc"] = MEMC;
         }
         returnResponse(success);
     }
@@ -1668,7 +1672,7 @@ namespace Plugin {
             PQ_PARAM_AI_SUPER_RESOLUTION,
             aiSuperResolution);
         if (success) {
-            response["AISuperResolution"] = aiSuperResolution;
+            response["aiSuperResolution"] = aiSuperResolution;
         }
         returnResponse(success);
     }
@@ -1869,7 +1873,7 @@ namespace Plugin {
                 PQ_PARAM_BACKLIGHT,
                 backlight);
             if (success) {
-                response["Backlight"] = backlight;
+                response["backlight"] = backlight;
             }
             returnResponse(success);
 
@@ -2185,7 +2189,7 @@ namespace Plugin {
                 PQ_PARAM_BRIGHTNESS,
                 brightness);
             if (success) {
-                response["Brightness"] = brightness;
+                response["brightness"] = brightness;
             }
             returnResponse(success);
         }
@@ -2389,7 +2393,7 @@ namespace Plugin {
                 PQ_PARAM_CONTRAST,
                 contrast);
             if (success) {
-                response["Contrast"] = contrast;
+                response["contrast"] = contrast;
             }
             returnResponse(success);
 
@@ -2591,7 +2595,7 @@ namespace Plugin {
         {
             int saturation = 0;
             bool success = getPQParamFromContext(parameters,
-                "saturation",
+                "Saturation",
                 PQ_PARAM_SATURATION,
                 saturation);
             if (success) {
@@ -2801,7 +2805,7 @@ namespace Plugin {
                 PQ_PARAM_SHARPNESS,
                 sharpness);
             if (success) {
-                response["Sharpness"] = sharpness;
+                response["sharpness"] = sharpness;
             }
             returnResponse(success);
 
@@ -3008,7 +3012,7 @@ namespace Plugin {
                 PQ_PARAM_HUE,
                 hue);
             if (success) {
-                response["Hue"] = hue;
+                response["hue"] = hue;
             }
             returnResponse(success);
 
@@ -3468,7 +3472,7 @@ namespace Plugin {
             std::string mode;
             if (getEnumPQParamString(parameters, "DimmingMode",
                  PQ_PARAM_DIMMINGMODE, dimmingModeReverseMap, mode)) {
-                response["DimmingMode"] = mode;
+                response["dimmingMode"] = mode;
                 returnResponse(true);
             } else {
                 returnResponse(false);
@@ -5636,7 +5640,7 @@ namespace Plugin {
         }
         custom2PointWB["context"] = contextJson;
 
-        response["Custom2PointWhiteBalance"] = custom2PointWB;
+        response["Custom2PointWhiteBalance"] = custom2PointWB; //TODO:: review
 #if HAL_NOT_READY
         // Clean up dynamic memory
         delete[] colorArray;
