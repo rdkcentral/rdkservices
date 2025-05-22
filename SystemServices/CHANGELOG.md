@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [3.4.5] - 2025-06-02
+### Updated
+- Updated setDeepSleepTimer to accept timeout only for 10 days max sec
+
 ## [3.4.4] - 2025-05-28
 ### Security
 - Added catch to handle crash when reading territory
