@@ -936,9 +936,9 @@ namespace Plugin {
 
         // Generate storage key based on parameter type
         if (forParam == "CMS")
-            generateStorageIdentifierCMSV2(key, forParam, indexInfo);
+            generateStorageIdentifierCMS(key, forParam, indexInfo);
         else if (forParam == "WhiteBalance")
-            generateStorageIdentifierWBV2(key, forParam, indexInfo);
+            generateStorageIdentifierWB(key, forParam, indexInfo);
         else
             generateStorageIdentifierV2(key, forParam, indexInfo);
 
@@ -1681,7 +1681,7 @@ namespace Plugin {
         } else if( forParam.compare("WhiteBalance") == 0 ) {
             generateStorageIdentifierWB(key,forParam,indexInfo);
         } else {
-            generateStorageIdentifier(key,forParam,indexInfo);
+            generateStorageIdentifierV2(key,forParam,indexInfo);
         }
 
         if(key.empty()) {
@@ -1711,13 +1711,13 @@ namespace Plugin {
                 return 0;
             }
            else if( forParam.compare("DimmingMode") == 0 ) {
-               if (strncmp(param.value, "fixed", strlen(param.value))==0) {
+               if (strncmp(param.value, "Fixed", strlen(param.value))==0) {
                    value=tvDimmingMode_Fixed;
 	           }
-               else if (strncmp(param.value, "local", strlen(param.value))==0) {
+               else if (strncmp(param.value, "Local", strlen(param.value))==0) {
                    value=tvDimmingMode_Local;
 	           }
-               else if (strncmp(param.value, "global", strlen(param.value))==0) {
+               else if (strncmp(param.value, "Global", strlen(param.value))==0) {
                    value=tvDimmingMode_Global;
 	           }
                return 0;
@@ -1880,9 +1880,9 @@ namespace Plugin {
     void AVOutputTV::getDimmingModeStringFromEnum(int value, std::string &toStore)
     {
         const char *dimmingmode_string[] = {
-                    [tvDimmingMode_Fixed] = "fixed",
-                    [tvDimmingMode_Local] = "local",
-                    [tvDimmingMode_Global] = "global",
+                    [tvDimmingMode_Fixed] = "Fixed",
+                    [tvDimmingMode_Local] = "Local",
+                    [tvDimmingMode_Global] = "Global",
                 };
         toStore.clear();
         toStore+=dimmingmode_string[value];
@@ -2749,11 +2749,8 @@ namespace Plugin {
                 }
             }
         }
-        else
-        {
-            LOGWARN("No valid context found for %s with provided parameters", paramName.c_str());
-            validContext = {PQ_MODE_INVALID, VIDEO_FORMAT_NONE, VIDEO_SOURCE_ALL};
-        }
+        LOGWARN("No valid context found for %s with provided parameters", paramName.c_str());
+        validContext = {PQ_MODE_INVALID, VIDEO_FORMAT_NONE, VIDEO_SOURCE_ALL};
         return validContext;
     }
 
