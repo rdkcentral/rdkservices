@@ -1710,9 +1710,20 @@ namespace Plugin {
             currentFmt = VIDEO_FORMAT_SDR;
 
         char picMode[PIC_MODE_NAME_MAX] = {0};
-        if (getCurrentPictureMode(picMode)) {
-            currentPQMode = static_cast<tvPQModeIndex_t>(getPictureModeIndex(std::string(picMode)));
-        } else {
+        if (getCurrentPictureMode(picMode))
+        {
+            auto it = pqModeReverseMap.find(picMode);
+            if (it != pqModeReverseMap.end())
+            {
+                currentPQMode = static_cast<tvPQModeIndex_t>(it->second);
+            }
+            else
+            {
+                LOGERR("Unknown picture mode");
+            }
+        }
+        else
+        {
             LOGERR("Failed to get current picture mode");
         }
 
