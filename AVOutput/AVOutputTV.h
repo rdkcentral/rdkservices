@@ -537,7 +537,7 @@ class AVOutputTV : public AVOutputBase {
 		std::string getCurrentPictureModeAsString();
 		std::string getCurrentVideoFormatAsString();
 		std::string getCurrentVideoSourceAsString();
-		bool isSetRequiredForParam(const JsonObject& parameters);
+		bool isSetRequiredForParam(const JsonObject& parameters, const std::string& paramName);
 		tvContextCaps_t* getCapsForParam(const std::string& paramName);
 		bool isValidSource(const std::vector<std::string>& sourceArray, tvVideoSrcType_t sourceIndex);
 		bool isValidFormat(const std::vector<std::string>& formatArray, tvVideoFormatType_t formatIndex);

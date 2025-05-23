@@ -634,7 +634,7 @@ namespace Plugin {
         int intVal = it->second;
 
         // Only call HAL for current system context
-        if (isSetRequiredForParam(parameters)) {
+        if (isSetRequiredForParam(parameters, paramName)) {
             LOGINFO("Calling HAL for %s = %s", paramName.c_str(), value.c_str());
             tvError_t ret = halSetter(intVal);
             if (ret != tvERROR_NONE) {
@@ -683,7 +683,7 @@ namespace Plugin {
         return false;
         }
 
-        if (isSetRequiredForParam(parameters)) {
+        if (isSetRequiredForParam(parameters, paramName)) {
             LOGINFO("Proceed with set%s\n", paramName.c_str());
             ret = halSetter(paramValue);
             if (ret != tvERROR_NONE){
@@ -1729,7 +1729,7 @@ namespace Plugin {
 
         LOGINFO("currentPQMode: %d, currentFmt: %d, currentSrc: %d", currentPQMode, currentFmt, currentSrc);
 
-        if (isSetRequiredForParam(parameters)) {
+        if (isSetRequiredForParam(parameters, tr181ParamName)) {
     #if HAL_NOT_READY
     #else
             tvError_t ret = halSetter(currentSrc, currentPQMode, currentFmt, value);
@@ -1972,7 +1972,7 @@ namespace Plugin {
         }
 
         // If update succeeded, apply value from local config to HAL
-        if (isSetRequiredForParam(parameters))
+        if (isSetRequiredForParam(parameters, paramName))
         {
             inputInfo.pqmode = "Current";
             inputInfo.source = "Current";
@@ -2029,7 +2029,7 @@ namespace Plugin {
         }
 
         // If update succeeded, apply value from local config to HAL
-        if (isSetRequiredForParam(parameters))
+        if (isSetRequiredForParam(parameters, paramName))
         {
             inputInfo.pqmode = "Current";
             inputInfo.source = "Current";
@@ -3555,7 +3555,7 @@ namespace Plugin {
                 LOGERR("Input value %d is out of range (0 - %d) for DimmingMode", dimmingMode, tvDimmingMode_MAX);
                 returnResponse(false);
             }
-            if( isSetRequiredForParam(parameters) ) {
+            if( isSetRequiredForParam(parameters, "DimmingMode" ) ) {
                 LOGINFO("Proceed with %s\n",__FUNCTION__);
                 ret = SetTVDimmingMode(value.c_str());
             }
@@ -4665,7 +4665,7 @@ namespace Plugin {
             }
             else
             {
-                if(isSetRequiredForParam(parameters))
+                if(isSetRequiredForParam(parameters, "LowLatencyState"))
                 {
                     LOGINFO("Proceed with setLowLatencyState\n");
                     ret = SetLowLatencyState( lowLatencyIndex );

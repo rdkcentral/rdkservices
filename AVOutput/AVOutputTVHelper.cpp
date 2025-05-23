@@ -2907,7 +2907,7 @@ namespace Plugin {
         return convertVideoFormatToStringV2(formatIndex);
     }
 
-    bool AVOutputTV::isSetRequiredForParam(const JsonObject& parameters)
+    bool AVOutputTV::isSetRequiredForParam(const JsonObject& parameters, const std::string& paramName)
     {
         // Get current state once
         const std::string curPicMode = getCurrentPictureModeAsString();
@@ -2918,17 +2918,21 @@ namespace Plugin {
         auto resolveParam = [&](const std::string& label, const std::string& currentValue) -> std::vector<std::string> {
             std::vector<std::string> result;
 
-            if (!parameters.HasLabel(label.c_str()))
-                return { currentValue };
+            if (!parameters.HasLabel(label.c_str())){
+                result.push_back(currentValue);
+                return result;
+            }
 
             const auto& array = parameters[label.c_str()].Array();
-            if (array.Length() == 0)
-                return { currentValue };
+            if (array.Length() == 0){
+                result.push_back(currentValue);
+                return result;
+            }
 
             for (uint16_t i = 0; i < array.Length(); ++i) {
                 const std::string val = array[i].String();
                 if (val == "Current" || val == "Global" || val == "none") {
-                    return { currentValue };
+                    result.push_back(currentValue);
                 } else {
                     result.push_back(val);
                 }
@@ -2940,6 +2944,22 @@ namespace Plugin {
         const auto resolvedPicModes = resolveParam("pictureMode", curPicMode);
         const auto resolvedFormats  = resolveParam("videoFormat", curFormat);
         const auto resolvedSources  = resolveParam("videoSource", curSource);
+#if DEBUG
+        // Helper function to log vector content
+        auto logResolvedValues = [&](const std::string& label, const std::vector<std::string>& values) {
+            std::string joined;
+            for (const auto& val : values) {
+                if (!joined.empty()) joined += ", ";
+                joined += val;
+            }
+            LOGINFO("Resolved %s: [%s]", label.c_str(), joined.c_str());
+        };
+
+        // Debug logs
+        logResolvedValues("pictureMode", resolvedPicModes);
+        logResolvedValues("videoSource", resolvedSources);
+        logResolvedValues("videoFormat", resolvedFormats);
+#endif
 
         // Check if current combination exists in resolved sets
         for (const auto& pm : resolvedPicModes) {
@@ -2950,10 +2970,26 @@ namespace Plugin {
 
                 for (const auto& src : resolvedSources) {
                     if (src == curSource) {
-                        // Log the matched combination
-                        LOGINFO("isSetRequiredForParam: matched combination - pictureMode: %s, videoFormat: %s, videoSource: %s",
-                                pm.c_str(), fmt.c_str(), src.c_str());
-                        return true;
+                         tvContextCaps_t* caps = getCapsForParam(paramName);
+                         if (!caps) {
+                              LOGERR("No caps found for param: %s", paramName.c_str());
+                              return false;
+                         }
+                         for (size_t i = 0; i < caps->num_contexts; ++i) {
+                            const tvConfigContext_t& ctx = caps->contexts[i];
+                            std::string capPicMode = convertPictureIndexToStringV2(ctx.pq_mode);
+                            std::string capSource  = convertSourceIndexToStringV2(ctx.videoSrcType);
+                            std::string capFormat  = convertVideoFormatToStringV2(ctx.videoFormatType);
+                            if ((capPicMode == curPicMode) &&
+                                (capSource == curSource) &&
+                                (capFormat == curFormat))
+                            {
+                                // Log the matched combination
+                                LOGINFO("isSetRequiredForParam: matched combination - pictureMode: %s, videoFormat: %s, videoSource: %s",
+                                        pm.c_str(), fmt.c_str(), src.c_str());
+                                return true;
+                            }
+                        }
                     }
                 }
             }
