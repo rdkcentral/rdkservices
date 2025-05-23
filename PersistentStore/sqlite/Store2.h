@@ -87,9 +87,11 @@ namespace Plugin {
                 , _maxSize(maxSize)
                 , _maxValue(maxValue)
                 , _limit(limit)
+                , _corrupt(false)
             {
                 TempDirectoryCheck();
                 IntegrityCheck();
+                Backup();
                 Open();
             }
             ~Store2() override
@@ -115,23 +117,41 @@ namespace Plugin {
             void IntegrityCheck()
             {
                 Core::File file(_path);
-                Core::Directory(file.PathName().c_str()).CreatePath();
-                auto rc = sqlite3_open(_path.c_str(), &_data);
-                sqlite3_stmt* stmt;
-                sqlite3_prepare_v2(_data, "pragma integrity_check;",
-                    -1, &stmt, nullptr);
-                while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-                    TRACE(Trace::Information,
-                        (_T("%s %s"), __FUNCTION__,
-                            (const char*)sqlite3_column_text(stmt, 0)));
-                }
-                sqlite3_finalize(stmt);
-                sqlite3_close_v2(_data);
-                if (rc != SQLITE_DONE) {
-                    OnError(__FUNCTION__, rc);
-                    if ((rc == SQLITE_MISUSE) || (rc == SQLITE_CORRUPT)) {
+                if (file.Exists()) {
+                    sqlite3_open(file.Name().c_str(), &_data);
+                    auto rc = sqlite3_exec(_data,
+                        "pragma integrity_check;", 0, 0, 0);
+                    sqlite3_close_v2(_data);
+                    if ((rc == SQLITE_CORRUPT) || (rc == SQLITE_NOTADB)) {
+                        OnError(__FUNCTION__, rc);
                         ASSERT(file.Destroy());
+                        _corrupt = true;
                     }
+                }
+            }
+            void Backup()
+            {
+                Core::File file(_path);
+                Core::File fileB(_path + "-backup");
+                if (_corrupt ? fileB.Exists() : file.Exists()) {
+                    sqlite3* bkp;
+                    sqlite3_open(file.Name().c_str(), &_data);
+                    sqlite3_open(fileB.Name().c_str(), &bkp);
+                    auto to = _corrupt ? _data : bkp,
+                         from = _corrupt ? bkp : _data;
+                    auto ptr = sqlite3_backup_init(
+                        to, "main", from, "main");
+                    if (ptr != nullptr) {
+                        sqlite3_backup_step(ptr, -1);
+                        auto rc = sqlite3_backup_finish(ptr);
+                        if (rc != SQLITE_OK) {
+                            OnError(__FUNCTION__, rc);
+                        }
+                    } else {
+                        OnError(__FUNCTION__, sqlite3_errcode(to));
+                    }
+                    sqlite3_close_v2(bkp);
+                    sqlite3_close_v2(_data);
                 }
             }
             void Open()
@@ -631,6 +651,7 @@ namespace Plugin {
             sqlite3* _data;
             std::list<INotification*> _clients;
             Core::CriticalSection _clientLock;
+            bool _corrupt;
         };
 
     } // namespace Sqlite
