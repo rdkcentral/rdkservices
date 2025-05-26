@@ -443,20 +443,18 @@ index 0000000..0783bfa
 +} // namespace WPEFramework
 +
 diff --git a/interfaces/Ids.h b/interfaces/Ids.h
-index cf6d9ea..a80dc7b 100644
+index 7ef9a42..1837a42 100644
 --- a/interfaces/Ids.h
 +++ b/interfaces/Ids.h
-@@ -337,7 +337,12 @@ namespace Exchange {
- 
-         ID_NETWORKCONTROL                            = 0x000004D0,
-         ID_NETWORKCONTROL_NOTIFICATION               = ID_NETWORKCONTROL + 1,
--        ID_NETWORKCONTROL_NETWORK_INFO_ITERATOR      = ID_NETWORKCONTROL + 2
-+        ID_NETWORKCONTROL_NETWORK_INFO_ITERATOR      = ID_NETWORKCONTROL + 2,
-+
-+        ID_USER_SETTINGS                             = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x4F0,
-+        ID_USER_SETTINGS_NOTIFICATION                = ID_USER_SETTINGS + 1,
-+        ID_USER_SETTINGS_INSPECTOR                   = ID_USER_SETTINGS + 2,
-+        ID_USER_SETTINGS_MIGRATION_STATE_ITERATOR    = ID_USER_SETTINGS + 3,
+@@ -288,7 +288,10 @@ namespace Exchange {
+         ID_DTV_TRANSPORT,
+         ID_TEXT_TO_SPEECH,
+         ID_TEXT_TO_SPEECH_NOTIFICATION,
+-
++	ID_USER_SETTINGS,
++        ID_USER_SETTINGS_NOTIFICATION,
++        ID_USER_SETTINGS_INSPECTOR,
++        ID_USER_SETTINGS_MIGRATION_STATE_ITERATOR
      };
  }
  }
