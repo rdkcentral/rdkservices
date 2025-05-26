@@ -2713,8 +2713,9 @@ namespace Plugin {
                 if (_unresponsiveReplyNum <= kWebProcessUnresponsiveReplyDefaultLimit) {
                     _unresponsiveReplyNum = kWebProcessUnresponsiveReplyDefaultLimit;
                     Logging::DumpSystemFiles(webprocessPID);
-                    if (syscall(__NR_tgkill, webprocessPID, webprocessPID, SIGFPE) == -1) {
-                        SYSLOG(Logging::Error, (_T("tgkill failed, signal=%d process=%u errno=%d (%s)"), SIGFPE, webprocessPID, errno, strerror(errno)));
+                    // Kill with SIGHUP with no coredump/minidump
+                    if (syscall(__NR_tgkill, webprocessPID, webprocessPID, SIGHUP) == -1) {
+                        SYSLOG(Logging::Error, (_T("tgkill failed, signal=%d process=%u errno=%d (%s)"), SIGHUP, webprocessPID, errno, strerror(errno)));
                     }
                 } else {
                     DeactivateBrowser(PluginHost::IShell::FAILURE);

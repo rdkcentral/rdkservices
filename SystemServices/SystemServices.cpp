@@ -1739,10 +1739,17 @@ namespace WPEFramework {
         uint32_t SystemServices::setDeepSleepTimer(const JsonObject& parameters,
                 JsonObject& response)
 	{
+                LOGINFOMETHOD();
 		bool status = false;
 		IARM_Bus_PWRMgr_SetDeepSleepTimeOut_Param_t param;
 		if (parameters.HasLabel("seconds")) {
 			param.timeout = static_cast<unsigned int>(parameters["seconds"].Number());
+                        // if maintenence time is more then 10 days set to 0
+                        if(param.timeout<0 || param.timeout > 864000)
+                        {
+                            param.timeout = 0;
+                            LOGINFO("setDeepSleepTimer updated timeout to :%d",param.timeout);
+                        }
 			IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
 					IARM_BUS_PWRMGR_API_SetDeepSleepTimeOut, (void *)&param,
 					sizeof(param));
