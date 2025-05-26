@@ -99,6 +99,7 @@ include_directories(../../LocationSync
 	../../Miracast/MiracastPlayer
         ../../Miracast/MiracastPlayer/RTSP
 	../../Bluetooth
+	../../UserSettings
         )
 link_directories(../../LocationSync
         ../../SecurityAgent
@@ -135,6 +136,7 @@ link_directories(../../LocationSync
         ../../TextToSpeech
 	../../Miracast
 	../../Bluetooth
+	../../UserSettings
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -175,6 +177,7 @@ target_link_libraries(${PROJECT_NAME}
 	${NAMESPACE}MiracastService
 	${NAMESPACE}MiracastPlayer
 	${NAMESPACE}Bluetooth
+	${NAMESPACE}UserSettings
         )
 
 target_include_directories(${PROJECT_NAME}
