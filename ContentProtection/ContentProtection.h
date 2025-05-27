@@ -166,8 +166,8 @@ namespace Plugin {
             SetPlaybackSessionStateParams()
             {
                 Add(_T("clientId"), &ClientId);
-                Add(_T("sessionid"), &SessionId);
-                Add(_T("sessionstate"), &SessionState);
+                Add(_T("sessionId"), &SessionId);
+                Add(_T("sessionState"), &SessionState);
             }
             Core::JSON::String ClientId;
             Core::JSON::DecUInt32 SessionId;
@@ -180,7 +180,7 @@ namespace Plugin {
             ClosePlaybackSessionParams()
             {
                 Add(_T("clientId"), &ClientId);
-                Add(_T("sessionid"), &SessionId);
+                Add(_T("sessionId"), &SessionId);
             }
             Core::JSON::String ClientId;
             Core::JSON::DecUInt32 SessionId;
@@ -189,7 +189,7 @@ namespace Plugin {
         struct SetPlaybackSpeedStateParams : public Core::JSON::Container {
             SetPlaybackSpeedStateParams()
             {
-                Add(_T("sessionid"), &SessionId);
+                Add(_T("sessionId"), &SessionId);
                 Add(_T("playbackSpeed"), &PlaybackSpeed);
                 Add(_T("playbackPosition"), &PlaybackPosition);
             }
@@ -285,6 +285,7 @@ namespace Plugin {
 
     private:
         enum { Timeout = 1000 };
+        enum { OpenSessionTimeout = 5000 };
 
     private:
         using JSONRPCLink = WPEFramework::JSONRPC::SmartLinkType<
@@ -355,7 +356,7 @@ namespace Plugin {
                 out["licenseRequest"] = licenseRequest;
                 JsonObject in;
                 result = _parent._secManager->Invoke<JsonObject, JsonObject>(
-                    Timeout, _T("openPlaybackSession"), out, in);
+                    OpenSessionTimeout, _T("openPlaybackSession"), out, in);
                 if (result == Core::ERROR_NONE) {
                     if (!in["success"].Boolean()) {
                         result = Core::ERROR_GENERAL;
@@ -416,7 +417,7 @@ namespace Plugin {
                 JsonObject in;
                 result = _parent._secManager->Invoke<
                     JsonObject, JsonObject>(
-                    Timeout, _T("updatePlaybackSession"), out, in);
+                    OpenSessionTimeout, _T("updatePlaybackSession"), out, in);
                 if (result == Core::ERROR_NONE) {
                     if (!in["success"].Boolean()) {
                         result = Core::ERROR_GENERAL;
