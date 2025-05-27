@@ -180,6 +180,12 @@ namespace Plugin {
                     Exchange::JUserSettings::Event::OnVoiceGuidanceHintsChanged(_parent, hints);
                 }
 
+                void OnContentPinChanged(const string& contentPin) override
+                {
+                    LOGINFO("ContentPinChanged: %s\n", contentPin.c_str());
+                    Exchange::JUserSettings::Event::OnContentPinChanged(_parent, contentPin);
+                }
+
             private:
                 UserSettings& _parent;
         };
