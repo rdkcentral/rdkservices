@@ -67,6 +67,28 @@ protected:
         uint32_t InvokeServiceMethod(const char *callsign, const char *method, JsonObject &params, JsonObject &results);
 
        /**
+        * @brief Invoke a service method
+        *
+        * @param[in] callsign Service callsign
+        * @param[in] method Method name
+        * @param[in] params Method parameters
+        * @param[out] results Method results with string format
+        * @return Zero (Core::ERROR_NONE) on succes or another value on error
+        */
+        uint32_t InvokeServiceMethod(const char *callsign, const char *method, JsonObject &params, Core::JSON::String &results);
+
+       /**
+        * @brief Invoke a service method
+        *
+        * @param[in] callsign Service callsign
+        * @param[in] method Method name
+        * @param[in] params Method parameters
+        * @param[out] results Method results with string format
+        * @return Zero (Core::ERROR_NONE) on succes or another value on error
+        */
+        uint32_t InvokeServiceMethod(const char *callsign, const char *method, JsonObject &params, Core::JSON::Boolean &results);
+
+       /**
          * @brief Invoke a service method
          *
          * @param[in] callsign Service callsign
@@ -85,6 +107,16 @@ protected:
          * @return Zero (Core::ERROR_NONE) on succes or another value on error
          */
         uint32_t InvokeServiceMethod(const char *callsign, const char *method, Core::JSON::String &results);
+
+        /**
+          * @brief Invoke a service method
+          *
+          * @param[in] callsign Service callsign
+          * @param[in] method Method name
+          * @param[out] results Method results
+          * @return Zero (Core::ERROR_NONE) on succes or another value on error
+          */
+         uint32_t InvokeServiceMethod(const char *callsign, const char *method, Core::JSON::Double &results);
 
         /**
          * @brief Activate a service plugin

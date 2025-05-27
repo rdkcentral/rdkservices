@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [2.3.0] - 2025-05-27
+### Added
+- Add "contentPin" parameter in User Settings.
+
 ## [2.2.0] - 2025-02-18
 ### Added
 - Add user settings inspector interface to user settings plugin.

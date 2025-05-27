@@ -164,6 +164,64 @@ uint32_t L2TestMocks::InvokeServiceMethod(const char *callsign, const char *meth
  *
  * @param[in] callsign Service callsign
  * @param[in] method Method name
+ * @param[in] params Method parameters
+ * @param[out] results Method results
+ * @return Zero (Core::ERROR_NONE) on succes or another value on error
+ */
+uint32_t L2TestMocks::InvokeServiceMethod(const char *callsign, const char *method, JsonObject &params, Core::JSON::String &results)
+{
+
+   JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(std::string(callsign), TEST_CALLSIGN);
+   std::string message;
+   std::string reply;
+   uint32_t status = Core::ERROR_NONE;
+
+   params.ToString(message);
+   TEST_LOG("Invoking %s.%s, parameters %s\n", callsign, method, message.c_str());
+
+   status = jsonrpc.Invoke<JsonObject, Core::JSON::String>(INVOKE_TIMEOUT, std::string(method), params, results);
+
+   results.ToString(reply);
+   TEST_LOG("Status %u, results %s", status, reply.c_str());
+
+   return status;
+
+}
+
+/**
+ * @brief Invoke a service method
+ *
+ * @param[in] callsign Service callsign
+ * @param[in] method Method name
+ * @param[in] params Method parameters
+ * @param[out] results Method results with string format
+ * @return Zero (Core::ERROR_NONE) on succes or another value on error
+ */
+uint32_t L2TestMocks::InvokeServiceMethod(const char *callsign, const char *method, JsonObject &params, Core::JSON::Boolean &results)
+{
+
+   JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(std::string(callsign), TEST_CALLSIGN);
+   std::string message;
+   std::string reply;
+   uint32_t status = Core::ERROR_NONE;
+
+   params.ToString(message);
+   TEST_LOG("Invoking %s.%s, parameters %s\n", callsign, method, message.c_str());
+
+   status = jsonrpc.Invoke<JsonObject, Core::JSON::Boolean>(INVOKE_TIMEOUT, std::string(method), params, results);
+
+   results.ToString(reply);
+   TEST_LOG("Status %u, results %s", status, reply.c_str());
+
+   return status;
+
+}
+
+/**
+ * @brief Invoke a service method
+ *
+ * @param[in] callsign Service callsign
+ * @param[in] method Method name
  * @param[out] results Method results
  * @return Zero (Core::ERROR_NONE) on succes or another value on error
  */
@@ -202,6 +260,23 @@ uint32_t L2TestMocks::InvokeServiceMethod(const char *callsign, const char *meth
    TEST_LOG("Invoking %s.%s \n", callsign, method);
 
    status = jsonrpc.Invoke<void, Core::JSON::String>(INVOKE_TIMEOUT, std::string(method), results);
+
+   results.ToString(reply);
+   TEST_LOG("Status %u, results %s", status, reply.c_str());
+
+   return status;
+
+}
+
+uint32_t L2TestMocks::InvokeServiceMethod(const char *callsign, const char *method, Core::JSON::Double &results)
+{
+   JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(std::string(callsign), TEST_CALLSIGN);
+   std::string reply;
+   uint32_t status = Core::ERROR_NONE;
+
+   TEST_LOG("Invoking %s.%s \n", callsign, method);
+
+   status = jsonrpc.Invoke<void, Core::JSON::Double>(INVOKE_TIMEOUT, std::string(method), results);
 
    results.ToString(reply);
    TEST_LOG("Status %u, results %s", status, reply.c_str());
