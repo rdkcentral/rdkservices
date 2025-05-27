@@ -141,7 +141,6 @@ jobs:
         run: |
           cd ThunderInterfaces
           patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/DeviceInfo_brand_R2_L1tests.patch
-          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L1Tests/patches/L1Tests_RDKV-48604-User-Settings-Thunder-Plugin.patch
           cd ..
 
       - name: Build ThunderInterfaces
