@@ -1014,7 +1014,6 @@ namespace Plugin {
         }
 
         JsonObject colorTempJson;
-        JsonObject rangeInfo;
         JsonArray optionsArray;
         for (size_t i = 0; i < num_color_temp; ++i) {
             auto it = colorTempReverseMap.find(color_temp[i]);
@@ -1022,8 +1021,7 @@ namespace Plugin {
                 optionsArray.Add(it->second);
             }
         }
-        rangeInfo["options"] = optionsArray;
-        colorTempJson["rangeInfo"] = rangeInfo;
+        colorTempJson["options"] = optionsArray;
         colorTempJson["platformSupport"] = true;
         colorTempJson["context"] = parseContextCaps(context_caps);
         response["colorTemperature"] = colorTempJson;
@@ -1046,7 +1044,6 @@ namespace Plugin {
         }
 
         JsonObject sdrGammaJson;
-        JsonObject rangeInfo;
         JsonArray optionsArray;
         for (size_t i = 0; i < num_sdr_gamma; ++i) {
             switch (sdr_gamma[i]) {
@@ -1061,8 +1058,7 @@ namespace Plugin {
                 default: break;
             }
         }
-        rangeInfo["options"] = optionsArray;
-        sdrGammaJson["rangeInfo"] = rangeInfo;
+        sdrGammaJson["options"] = optionsArray;
         sdrGammaJson["platformSupport"] = true;
         sdrGammaJson["context"] = parseContextCaps(context_caps);
         response["sdrGamma"] = sdrGammaJson;
@@ -1083,7 +1079,6 @@ namespace Plugin {
         }
 
         JsonObject dimmingModeJson;
-        JsonObject rangeInfo;
         JsonArray optionsArray;
         for (size_t i = 0; i < num_dimming_mode; ++i) {
             auto it = dimmingModeReverseMap.find(dimming_mode[i]);
@@ -1091,8 +1086,7 @@ namespace Plugin {
                 optionsArray.Add(it->second);
             }
         }
-        rangeInfo["options"] = optionsArray;
-        dimmingModeJson["rangeInfo"] = rangeInfo;
+        dimmingModeJson["options"] = optionsArray;
         dimmingModeJson["platformSupport"] = true;
         dimmingModeJson["context"] = parseContextCaps(context_caps);
         response["dimmingMode"] = dimmingModeJson;
@@ -1104,7 +1098,6 @@ namespace Plugin {
 
     uint32_t AVOutputTV::getZoomModeCapsV2(const JsonObject& parameters, JsonObject& response) {
         JsonObject aspectRatioJson;
-        JsonObject rangeInfo;
         JsonArray optionsArray;
         for (size_t i = 0; i < m_numAspectRatio; ++i) {
             auto it = zoomModeReverseMap.find(m_aspectRatio[i]);
@@ -1112,8 +1105,7 @@ namespace Plugin {
                 optionsArray.Add(it->second);
             }
         }
-        rangeInfo["options"] = optionsArray;
-        aspectRatioJson["rangeInfo"] = rangeInfo;
+        aspectRatioJson["options"] = optionsArray;
         aspectRatioJson["platformSupport"] = true;
         aspectRatioJson["context"] = parseContextCaps(m_aspectRatioCaps);
         response["zoomMode"] = aspectRatioJson;
@@ -1125,7 +1117,6 @@ namespace Plugin {
 
     uint32_t AVOutputTV::getPictureModeCapsV2(const JsonObject& parameters, JsonObject& response) {
         JsonObject pictureModeJson;
-        JsonObject rangeInfo;
         JsonArray optionsArray;
 
         for (size_t i = 0; i < m_numPictureModes; ++i) {
@@ -1135,8 +1126,7 @@ namespace Plugin {
             }
         }
 
-        rangeInfo["options"] = optionsArray;
-        pictureModeJson["rangeInfo"] = rangeInfo;
+        pictureModeJson["options"] = optionsArray;
         pictureModeJson["platformSupport"] = true;
         pictureModeJson["context"] = parseContextCaps(m_pictureModeCaps);
         response["pictureMode"] = pictureModeJson;
@@ -1149,7 +1139,6 @@ namespace Plugin {
     uint32_t AVOutputTV::getAutoBacklightModeCapsV2(const JsonObject& parameters, JsonObject& response)
     {
         JsonObject backlightModeJson;
-        JsonObject rangeInfo;
         JsonArray optionsArray;
 
         for (size_t i = 0; i < m_numBacklightModes; ++i) {
@@ -1169,8 +1158,7 @@ namespace Plugin {
             }
         }
 
-        rangeInfo["options"] = optionsArray;
-        backlightModeJson["rangeInfo"] = rangeInfo;
+        backlightModeJson["options"] = optionsArray;
         backlightModeJson["platformSupport"] = true;
 
         backlightModeJson["context"] = parseContextCaps(m_backlightModeCaps);
