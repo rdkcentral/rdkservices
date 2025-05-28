@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [3.4.4] - 2025-05-28
+### Security
+- Added catch to handle crash when reading territory
+
 ## [3.4.3] - 2025-01-02
 ### Security
 - Resolved security vulnerabilities
