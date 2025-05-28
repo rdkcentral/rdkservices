@@ -67,7 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 3
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 3
+#define API_VERSION_NUMBER_PATCH 4
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -2711,7 +2711,8 @@ namespace WPEFramework {
 	bool SystemServices::readTerritoryFromFile()
 	{
 		bool retValue = true;
-		if(Utils::fileExists(TERRITORYFILE)){
+        try{
+		    if(Utils::fileExists(TERRITORYFILE)){
 			ifstream inFile(TERRITORYFILE);
 			string str;
 			getline (inFile, str);
@@ -2744,9 +2745,16 @@ namespace WPEFramework {
 			}
 			inFile.close();
 
-		}else{
-			LOGERR("Territory is not set");
-		}
+		    }else{
+		    	LOGERR("Territory is not set");
+		    }
+        }
+        catch(...){
+            LOGERR("Exception caught while reading territory file");
+            retValue = false;
+            m_strTerritory = "";
+            m_strRegion = "";
+        }
 		return retValue;
 	}
 
