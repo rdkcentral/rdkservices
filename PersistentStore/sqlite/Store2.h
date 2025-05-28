@@ -88,6 +88,7 @@ namespace Plugin {
                 , _maxValue(maxValue)
                 , _limit(limit)
             {
+                TempDirectoryCheck();
                 IntegrityCheck();
                 Open();
             }
@@ -97,6 +98,20 @@ namespace Plugin {
             }
 
         private:
+            void TempDirectoryCheck()
+            {
+                Core::File file(_path + "-journal");
+                if (file.IsDirectory()) { // It's supposed to be a file
+                    TRACE(Trace::Error, (_T("file system corruption")));
+                    if (!file.Move(file.Name() + "-old")) {
+                        perror("rename failed");
+                    }
+                    Core::Directory(file.Name().c_str()).Destroy();
+                    if (!file.Destroy()) {
+                        perror("remove failed");
+                    }
+                }
+            }
             void IntegrityCheck()
             {
                 Core::File file(_path);

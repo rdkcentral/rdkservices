@@ -76,6 +76,7 @@ jobs:
         run: |
           cd ${{github.workspace}}/Thunder
           patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/Use_Legact_Alt_Based_On_ThunderTools_R4.4.3.patch
+          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/error_code_R4_4.patch
           cd -
 
       - name: Checkout ThunderTools
@@ -273,6 +274,7 @@ jobs:
           -DPLUGIN_USBACCESS=ON
           -DPLUGIN_USERSETTINGS=ON
           -DPLUGIN_PERSISTENTSTORE=ON
+          -DPLUGIN_USERPREFERENCES=ON
           -DUSE_THUNDER_R4=ON
           -DPLUGIN_L2Tests=ON
           -DRDK_SERVICE_L2_TEST=ON
@@ -313,6 +315,7 @@ jobs:
           /opt/tmtryoptout
           /opt/fwdnldstatus.txt
           /opt/dcm.properties
+          /opt/user_preferences.conf
           /etc/device.properties
           /etc/dcm.properties
           /etc/authService.conf

@@ -138,11 +138,9 @@ jobs:
           ref: ${{env.INTERFACES_REF}}
 
       - name: Apply patches ThunderInterfaces
-        run: >
-          cd "${{github.workspace}}/ThunderInterfaces"
-          &&
-          git apply "${{github.workspace}}/rdkservices/Tests/L2Tests/patches/DeviceInfo_brand_R2_L1tests.patch"
-          &&
+        run: |
+          cd ThunderInterfaces
+          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/DeviceInfo_brand_R2_L1tests.patch
           cd ..
 
       - name: Build ThunderInterfaces
@@ -277,7 +275,7 @@ jobs:
           -DPLUGIN_SCREENCAPTURE=ON
           -DPLUGIN_USBACCESS=ON
           -DPLUGIN_LOGGINGPREFERENCES=ON
-          -DPLUGIN_USERPREFERENCES=ON
+          -DPLUGIN_USERPREFERENCES=OFF
           -DPLUGIN_MESSENGER=ON
           -DPLUGIN_DEVICEINFO=ON
           -DPLUGIN_SYSTEMSERVICES=ON

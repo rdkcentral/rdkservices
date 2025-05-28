@@ -23,6 +23,9 @@
 #include <stdint.h>
 #include <thread>
 #include <map>
+#include <time.h>
+#include <signal.h>
+#include <dirent.h>
 
 #include "Module.h"
 #include "tracing/Logging.h"
@@ -35,6 +38,46 @@
 #include "sysMgr.h"
 #include "rfcapi.h"
 #include "cSettings.h"
+
+/* ---- LOGGING ---- */
+#ifdef ENABLE_JOURNAL_LOGGING
+#include <systemd/sd-journal.h>
+#define JOURNAL_IDENTIFIER "MaintenanceManager"
+#define MM_FILE_NAME "MaintenanceManager.cpp"
+
+#define MM_LOG(priority, priority_str, format, ...)                                 \
+    sd_journal_send("MESSAGE=%s [%s:%d] %s: " format,                               \
+                    priority_str, MM_FILE_NAME, __LINE__, __func__, ##__VA_ARGS__,  \
+                    "PRIORITY=%i", priority,                                        \
+                    "SYSLOG_IDENTIFIER=%s", JOURNAL_IDENTIFIER,                     \
+                    NULL)
+
+#define MM_LOGINFO(format, ...) MM_LOG(LOG_INFO, "INFO", format, ##__VA_ARGS__)
+#define MM_LOGWARN(format, ...) MM_LOG(LOG_WARNING, "WARN", format, ##__VA_ARGS__)
+#define MM_LOGERR(format, ...)  MM_LOG(LOG_ERR, "ERROR", format, ##__VA_ARGS__)
+
+/* sendNotify() */
+#define MM_SEND_NOTIFY(event, params)                \
+{                                                    \
+    std::string json;                                \
+    params.ToString(json);                           \
+    MM_LOGINFO("Notify %s %s", event, json.c_str()); \
+}
+
+/* returnResponse() */
+#define MM_RETURN_RESPONSE(expr)                     \
+{                                                    \
+    bool s_Bool = expr;                              \
+    response["success"] = s_Bool;                    \
+    std::string json;                                \
+    response.ToString(json);                         \
+    MM_LOGINFO("response=%s", json.c_str());         \
+}
+#else /* else of ENABLE_JOURNAL_LOGGING */
+#define MM_LOGINFO(format, ...) LOGINFO(format, ##__VA_ARGS__)
+#define MM_LOGWARN(format, ...) LOGWARN(format, ##__VA_ARGS__)
+#define MM_LOGERR(format, ...)  LOGERR(format, ##__VA_ARGS__)
+#endif /* end of ENABLE_JOURNAL_LOGGING */
 
 /* MaintenanceManager Services Triggered Events. */
 #define EVT_ONMAINTMGRSAMPLEEVENT           "onSampleEvent"
@@ -64,6 +107,8 @@ typedef enum{
     UNSOLICITED_MAINTENANCE
 }Maintenance_Type_t;
 
+#define BASE_CLOCK CLOCK_BOOTTIME
+
 #define FOREGROUND_MODE "FOREGROUND"
 #define BACKGROUND_MODE "BACKGROUND"
 
@@ -72,17 +117,24 @@ typedef enum{
 #define MAINTENANCE_TASK_SKIPPED       0x200
 
 #define MAX_NETWORK_RETRIES             4
-#define MAX_ACTIVATION_RETRIES          4
-
+#define INTERNET_CONNECTED_STATE        3
 #define NETWORK_RETRY_INTERVAL          30
+
+#define MAX_ACTIVATION_RETRIES          4
 #define SECMGR_RETRY_INTERVAL           5
+
+#define TASK_RETRY_COUNT                1
+#define TASK_RETRY_DELAY                5
+#ifndef TASK_TIMEOUT
+#define TASK_TIMEOUT                    3600 /* Default Task Timeout (1 Hour i.e. 3600 seconds)  */
+#endif
 
 #define RFC_SUCCESS                     0
 #define RFC_COMPLETE                    1
 #define LOGUPLOAD_SUCCESS               2
 #define LOGUPLOAD_COMPLETE              3
-#define DIFD_SUCCESS                    4
-#define DIFD_COMPLETE                   5
+#define SWUPDATE_SUCCESS                4
+#define SWUPDATE_COMPLETE               5
 #define REBOOT_REQUIRED                 6
 #define TASK_SKIPPED                    7
 #define TASKS_STARTED                   8
@@ -94,18 +146,19 @@ typedef enum{
 namespace WPEFramework {
     namespace Plugin {
 
-        // This is a server for a JSONRPC communication channel.
-        // For a plugin to be capable to handle JSONRPC, inherit from PluginHost::JSONRPC.
-        // By inheriting from this class, the plugin realizes the interface PluginHost::IDispatcher.
-        // This realization of this interface implements, by default, the following methods on this plugin
-        // - exists
-        // - register
-        // - unregister
-        // Any other methood to be handled by this plugin  can be added can be added by using the
-        // templated methods Register on the PluginHost::JSONRPC class.
-        // As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
-        // this class exposes a public method called, Notify(), using this methods, all subscribed clients
-        // will receive a JSONRPC message as a notification, in case this method is called.
+        /* This is a server for a JSONRPC communication channel.
+        * For a plugin to be capable to handle JSONRPC, inherit from PluginHost::JSONRPC.
+        * By inheriting from this class, the plugin realizes the interface PluginHost::IDispatcher.
+        * This realization of this interface implements, by default, the following methods on this plugin
+        * - exists
+        * - register
+        * - unregister
+        * Any other methood to be handled by this plugin  can be added can be added by using the
+        * templated methods Register on the PluginHost::JSONRPC class.
+        * As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
+        * this class exposes a public method called, Notify(), using this methods, all subscribed clients
+        * will receive a JSONRPC message as a notification, in case this method is called.
+        */
 
         class MaintenanceManager : public PluginHost::IPlugin, public PluginHost::JSONRPC {
             private:
@@ -120,15 +173,10 @@ namespace WPEFramework {
                 string g_epoch_time;
 
                 IARM_Bus_MaintMGR_EventData_t *g_maintenance_data;
-
                 Maint_notify_status_t m_notify_status;
-
                 Maintenance_Type_t g_maintenance_type;
-
                 static cSettings m_setting;
-
                 bool m_abort_flag;
-
                 uint16_t g_task_status;
                 bool g_unsolicited_complete;
                 bool g_listen_to_nwevents = false;
@@ -170,11 +218,10 @@ namespace WPEFramework {
                 const string checkActivatedStatus(void);
                 int abortTask(const char*, int sig = SIGABRT);
                 pid_t getTaskPID(const char*);
-
                 string getLastRebootReason();
                 void iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
                 static void _MaintenanceMgrEventHandler(const char *owner,IARM_EventId_t eventId, void *data, size_t len);
-                // We do not allow this plugin to be copied !!
+                /* We do not allow this plugin to be copied !! */
                 MaintenanceManager(const MaintenanceManager&) = delete;
                 MaintenanceManager& operator=(const MaintenanceManager&) = delete;
 
@@ -186,6 +233,7 @@ namespace WPEFramework {
                     public:
                         void startTask();
                 };
+
             public:
                 MaintenanceManager();
                 virtual ~MaintenanceManager();
@@ -194,9 +242,18 @@ namespace WPEFramework {
                 virtual const string Initialize(PluginHost::IShell* service) override;
                 virtual void Deinitialize(PluginHost::IShell* service) override;
                 virtual string Information() const override { return {}; }
-                static int runScript(const std::string& script,
-                        const std::string& args, string *output = NULL,
-                        string *error = NULL, int timeout = 30000);
+                static int runScript(const std::string& script, const std::string& args, string *output = NULL, string *error = NULL, int timeout = 30000);
+
+                /* Timer Implementation */
+                static void timer_handler(int signo);
+                static timer_t timerid;
+                static string currentTask;
+                static bool g_task_timerCreated;
+
+                bool maintenance_initTimer();
+                bool task_startTimer();
+                bool task_stopTimer();
+                bool maintenance_deleteTimer();
 
                 BEGIN_INTERFACE_MAP(MaintenanceManager)
                 INTERFACE_ENTRY(PluginHost::IPlugin)
@@ -206,23 +263,21 @@ namespace WPEFramework {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
                 void InitializeIARM();
                 void DeinitializeIARM();
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
-
-                /* Events : Begin */
+#endif
+                /* Events */
                 void onMaintenanceStatusChange(Maint_notify_status_t status);
-                /* Events : End */
 
-                /* Methods : Begin */
+                /* Methods */
 #ifdef DEBUG
                 uint32_t sampleAPI(const JsonObject& parameters, JsonObject& response);
-#endif /* DEBUG */
-
+#endif
                 uint32_t getMaintenanceActivityStatus(const JsonObject& parameters, JsonObject& response);
                 uint32_t getMaintenanceStartTime(const JsonObject& parameters, JsonObject& response);
                 uint32_t setMaintenanceMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t startMaintenance(const JsonObject& parameters, JsonObject& response);
                 uint32_t stopMaintenance(const JsonObject& parameters, JsonObject& response);
                 uint32_t getMaintenanceMode(const JsonObject& parameters, JsonObject& response);
+
         }; /* end of MaintenanceManager service class */
     } /* end of plugin */
 } /* end of wpeframework */

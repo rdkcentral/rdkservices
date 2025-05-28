@@ -20,8 +20,8 @@
 #include "ContentProtection.h"
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_MINOR 1
+#define API_VERSION_NUMBER_PATCH 1
 
 namespace WPEFramework {
 namespace Plugin {
@@ -69,9 +69,9 @@ namespace Plugin {
         Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"),
             (_T("127.0.0.1:9998")));
         _secManager = Core::ProxyType<JSONRPCLink>::Create(
-            _T("SecManager"), _T(""), "token=" + token);
+            _T("org.rdk.SecManager"), _T(""), "token=" + token);
         _watermark = Core::ProxyType<JSONRPCLink>::Create(
-            _T("Watermark"), _T(""), "token=" + token);
+            _T("org.rdk.Watermark"), _T(""), "token=" + token);
         Subscribe();
 
         return result;

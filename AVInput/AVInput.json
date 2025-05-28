@@ -384,8 +384,8 @@
                     "typeOfInput":{
                         "$ref": "#/definitions/typeOfInput"
                     },
-		    "audioMix":{
-			    "$ref": "#/definitions/audioMix"
+		    "requestAudioMix":{
+			    "$ref": "#/definitions/requestAudioMix"
 	            },
 		    "planeType":{
 			    "$ref": "#/definitions/planeType"
