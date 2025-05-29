@@ -33,19 +33,41 @@
         "viewingRestrictions": {
             "summary": "A project-specific representation of the time interval when viewing.",
             "type": "string",
-            "example": "ALWAYS"
+	    "example": "{\\\"restrictions\\\": [{\\\"scheme\\\": \\\"US_TV\\\", \\\"restrict\\\": [\\\"TV-Y7/FV\\\"]}, {\\\"scheme\\\": \\\"MPAA\\\", \\\"restrict\\\": []}]}"
         },
         "viewingRestrictionsWindow": {
             "summary": "A project-specific representation of the time interval",
             "type": "string",
             "example": "ALWAYS"
+        },
+        "rate":
+        {
+            "summary": "voice guidance rate value",
+            "type": "number",
+            "example": 0.1
+        },
+		"MigrationStates": {
+            "summary": "Keys and it's migration states",
+            "type": "object",
+            "properties": {
+                "key": {
+                    "summary": "key of the property",
+                    "type": "string",
+                    "example": "PREFERRED_AUDIO_LANGUAGES"
+                },
+                "requiresMigration": {
+                    "summary": "The name of the USB device",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
         }
     },
     "methods": {
         "setAudioDescription": {
             "summary": "Setting Audio Description.",
 			"events": {
-                "OnAudioDescriptionChanged" : "Triggered when the audio description changes."
+                "onAudioDescriptionChanged" : "Triggered when the audio description changes."
             },
             "params": {
                 "type": "object",
@@ -168,7 +190,7 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled": {
+                    "pinControl": {
                         "summary": "PinControl Enabled: true/false",
                         "type": "boolean",
                         "example":true
@@ -181,10 +203,10 @@
                 "example": "null"
             }
         },
-	"setViewingRestrictions": {
+	    "setViewingRestrictions": {
             "summary": "Setting ViewingRestrictions.",
 			"events": {
-                "OnViewingRestrictionsChanged" : "Triggered when the viewingRestrictions changes."
+                "onViewingRestrictionsChanged" : "Triggered when the viewingRestrictions changes."
             },
             "params": {
                 "type": "object",
@@ -203,7 +225,7 @@
         "setViewingRestrictionsWindow": {
             "summary": "Setting viewingRestrictionsWindow.",
 			"events": {
-                "OnViewingRestrictionsWindowChanged" : "Triggered when the viewingRestrictionsWindow changes."
+                "onViewingRestrictionsWindowChanged" : "Triggered when the viewingRestrictionsWindow changes."
             },
             "params": {
                 "type": "object",
@@ -222,12 +244,12 @@
 	"setLiveWatershed": {
             "summary": "Setting LiveWatershed.",
 			"events": {
-                "OnLiveWatershedChanged" : "Triggered when the liveWatershed changes."
+                "onLiveWatershedChanged" : "Triggered when the liveWatershed changes."
             },
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled": {
+                    "liveWatershed": {
                         "summary": "LiveWatershed Enabled: true/false",
                         "type": "boolean",
                         "example":true
@@ -240,15 +262,15 @@
                 "example": "null"
             }
         },
-	"setPlaybackWatershed": {
+	    "setPlaybackWatershed": {
             "summary": "Setting PlaybackWatershed.",
 			"events": {
-                "OnPlaybackWatershedChanged" : "Triggered when the playbackWatershed changes."
+                "onPlaybackWatershedChanged" : "Triggered when the playbackWatershed changes."
             },
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled": {
+                    "playbackWatershed": {
                         "summary": "PlaybackWatershed Enabled: true/false",
                         "type": "boolean",
                         "example":true
@@ -261,15 +283,15 @@
                 "example": "null"
             }
         },
-	"setBlockNotRatedContent": {
+	    "setBlockNotRatedContent": {
             "summary": "Setting BlockNotRatedContent.",
 			"events": {
-                "OnBlockNotRatedContentChanged" : "Triggered when the blockNotRatedContent changes."
+                "onBlockNotRatedContentChanged" : "Triggered when the blockNotRatedContent changes."
             },
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled": {
+                    "blockNotRatedContent": {
                         "summary": "BlockNotRatedContent Enabled: true/false",
                         "type": "boolean",
                         "example":true
@@ -282,15 +304,15 @@
                 "example": "null"
             }
         },
-	"setPinOnPurchase": {
+	    "setPinOnPurchase": {
             "summary": "Setting setPinOnPurchase",
 			"events": {
-                "OnPinOnPurchaseChanged" : "Triggered when the pin on the purchase changes."
+                "onPinOnPurchaseChanged" : "Triggered when the pin on the purchase changes."
             },
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled": {
+                    "pinOnPurchase": {
                         "summary": "setPinOnPurchase Enabled: true/false",
                         "type": "boolean",
                         "example":true
@@ -303,7 +325,91 @@
                 "example": "null"
             }
         },
-        "getAudioDescription":{
+        "setHighContrast":
+        {
+            "summary": "Sets highContrast. Whether the app should display with high contrast or not.",
+            "events": {
+                "onHighContrastChanged" : "Triggers when the highContrast changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "summary": "high contrast enabled(true) or disabled(false).",
+                        "type": "boolean",
+                        "example":true
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
+        "setVoiceGuidance": {
+            "summary": "Sets voiceGuidance. Whether Voice Guidance is enabled or not.",
+            "events": {
+                "onVoiceGuidanceChanged" : "Triggers after the voice guidance enabled settings changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "summary": "voice guidance enabled(true) or disabled(false).",
+                        "type": "boolean",
+                        "example":true
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
+        "setVoiceGuidanceRate": {
+            "summary": "Sets voiceGuidanceRate. Setting voice guidance rate value. from 0.1 to 10 inclusive.",
+            "events": {
+                "onVoiceGuidanceRateChanged" : "Triggered after the voice guidance rate changed."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "rate": {
+                       "$ref": "#/definitions/rate"
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
+        "setVoiceGuidanceHints": {
+            "summary": "Sets voiceGuidanceHints ON/OFF. Whether Voice Guidance hints setting is switched on or not.",
+            "events": {
+                "onVoiceGuidanceHintsChanged" : "Triggered after the voice guidance hints changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "hints": {
+                        "summary": "voiceGuidanceHints enabled(true) or disabled(false).",
+                        "type": "boolean",
+                        "example":true
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
+        "getAudioDescription":
+		{
             "summary": "Returns Audio Description.",
             "result": {
                 "summary": "Audio Description Enabled: true/false",
@@ -343,7 +449,7 @@
                 "$ref": "#/definitions/preferredClosedCaptionService"
             }
         },
-	"getPinControl":{
+	    "getPinControl":{
             "summary": "Returns Pin Control.",
             "result": {
                 "summary": "Pin Control Enabled: true/false",
@@ -393,6 +499,69 @@
                 "summary": "PinOnPurchase Enabled: true/false",
                 "type": "boolean",
                 "example": true
+            }
+        },
+        "getHighContrast": {
+            "summary": "Gets the current highContrast setting.",
+            "result": {
+                "summary": "HighContrast Enabled: true/false",
+                "type": "boolean",
+                "example": true
+            }
+        },
+        "getVoiceGuidance": {
+            "summary": "Gets the current voiceGuidance setting.",
+            "result": {
+                "summary": "voiceGuidance Enabled: true/false",
+                "type": "boolean",
+                "example": true
+            }
+        },
+        "getVoiceGuidanceRate":
+        {
+            "summary": "Gets the current voiceGuidanceRate setting.",
+            "result": {
+              "$ref": "#/definitions/rate"
+            }
+        },
+        "getVoiceGuidanceHints":
+        {
+            "summary": "Gets the current voiceGuidanceHints setting.",
+            "result": {
+                "summary": "voiceGuidanceHints Enabled: true/false",
+                "type": "boolean",
+                "example": true
+            }
+        },
+        "getMigrationState":
+        {
+            "summary": "Gets the migration state of the respective key.",
+			"params": {
+                "type": "object",
+                "properties": {
+                    "key": {
+                        "summary": "the property key, for which we need to get migration state.",
+                        "type": "string",
+                        "example": "VOICE_GUIDANCE_RATE"
+                    }
+                },
+                "required": ["deviceName"]
+            },
+            "result": {
+                "summary": "migration state of the respective key true/false",
+                "type": "boolean",
+                "example": true
+            }
+        },
+        "getMigrationStates":
+        {
+            "summary": "Gets the migration state of all the defined keys.",
+            "result": {
+                "summary": "migration state of all the defined keys",
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/MigrationStates"
+                }
             }
         }
     },
@@ -493,19 +662,19 @@
                 ]
             }
         },
-	"onPinControlChanged": {
+        "onPinControlChanged": {
             "summary": "Triggered after the pin control changes (see `setPinControl`)",
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled":{
+                    "pinControl":{
                         "summary": "Receive pin control changes enable or not",
                         "type": "boolean",
                         "example": true
                     }
                 },
                 "required": [
-                    "enabled"
+                    "pinControl"
                 ]
             }
         },
@@ -514,14 +683,14 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled":{
-                        "summary": "Receive viewingRestrictions changes enable or not",
-                        "type": "boolean",
-                        "example": true
+                    "viewingRestrictions":{
+                        "summary": "Receive viewingRestrictions changes",
+                        "type": "string",
+			"example": "{\\\"restrictions\\\": [{\\\"scheme\\\": \\\"US_TV\\\", \\\"restrict\\\": [\\\"TV-Y7/FV\\\"]}, {\\\"scheme\\\": \\\"MPAA\\\", \\\"restrict\\\": []}]}"
                     }
                 },
                 "required": [
-                    "enabled"
+                    "viewingRestrictions"
                 ]
             }
         },
@@ -530,14 +699,14 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled":{
-                        "summary": "Receive viewingRestrictionsWindow changes enable or not",
-                        "type": "boolean",
-                        "example": true
+                    "viewingRestrictionsWindow":{
+                        "summary": "Receive viewingRestrictionsWindow changes.",
+                        "type": "string",
+                        "example": "ALWAYS"
                     }
                 },
                 "required": [
-                    "enabled"
+                    "viewingRestrictionsWindow"
                 ]
             }
         },
@@ -546,14 +715,14 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled":{
+                    "liveWatershed":{
                         "summary": "Receives liveWatershed changes enable or not",
                         "type": "boolean",
                         "example": true
                     }
                 },
                 "required": [
-                    "enabled"
+                    "liveWatershed"
                 ]
             }
         },
@@ -562,14 +731,14 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled":{
+                    "playbackWatershed":{
                         "summary": "Receive playbackWatershed changes enable or not",
                         "type": "boolean",
                         "example": true
                     }
                 },
                 "required": [
-                    "enabled"
+                    "playbackWatershed"
                 ]
             }
         },
@@ -578,8 +747,40 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled":{
+                    "blockNotRatedContent":{
                         "summary": "Receive blockNotRatedContent changes enable or not",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "blockNotRatedContent"
+                ]
+            }
+        },
+        "onPinOnPurchaseChanged": {
+            "summary": "Triggered after the pinOnPurchase changes (see `setPinOnPurchase`)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "pinOnPurchase":{
+                        "summary": "Receive pinOnPurchase changes enable or not",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "pinOnPurchase"
+                ]
+	    }
+        },
+        "onHighContrastChanged": {
+            "summary": "Triggered after the high contrast settings changes(see `SetHighContrast`)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enabled":{
+                        "summary": "Receive high contrast enabled or not.",
                         "type": "boolean",
                         "example": true
                     }
@@ -589,13 +790,13 @@
                 ]
             }
         },
-        "onPinOnPurchaseChanged": {
-            "summary": "Triggered after the pinOnPurchase changes (see `setPinOnPurchase`)",
+        "onVoiceGuidanceChanged": {
+            "summary": "Triggered after the voice guidance enabled settings changes.(see `SetVoiceGuidance`)",
             "params": {
                 "type": "object",
                 "properties": {
                     "enabled":{
-                        "summary": "Receive pinOnPurchase changes enable or not",
+                        "summary": "Receive voice guidance enabled or not.",
                         "type": "boolean",
                         "example": true
                     }
@@ -604,7 +805,36 @@
                     "enabled"
                 ]
             }
+        },
+        "onVoiceGuidanceRateChanged": {
+            "summary": "Triggered after the voice guidance rate changed.(see `SetVoiceGuidanceRate`)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "rate": {
+                        "$ref": "#/definitions/rate"
+                    }
+                },
+                "required": [
+                    "rate"
+                ]
+            }
+        },
+        "onVoiceGuidanceHintsChanged": {
+            "summary": "Triggered after the voice guidance hints changes.(see `SetVoiceGuidanceHints`)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "hints": {
+                        "summary": "Receive voice guidance hints enabled or not.",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [ "hints" ]
+            }
         }
     }
 }
+
 

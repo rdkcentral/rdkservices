@@ -22,7 +22,10 @@
 #include "Module.h"
 #include <interfaces/json/JsonData_UserSettings.h>
 #include <interfaces/json/JUserSettings.h>
+#include <interfaces/json/JUserSettingsInspector.h>
+#include <interfaces/json/JsonData_UserSettingsInspector.h>
 #include <interfaces/IUserSettings.h>
+#include <interfaces/IConfiguration.h>
 #include "UtilsLogging.h"
 #include "tracing/Logging.h"
 #include <mutex>
@@ -45,7 +48,10 @@ namespace Plugin {
             explicit Notification(UserSettings* parent)
                 : _parent(*parent)
                 {
-                    ASSERT(parent != nullptr);
+                    if (parent == nullptr)
+                    {
+                       LOGERR("parent is null");
+                    }
                 }
 
                 virtual ~Notification()
@@ -59,12 +65,10 @@ namespace Plugin {
 
                 void Activated(RPC::IRemoteConnection*) override
                 {
-                    LOGINFO("UserSettings Notification Activated");
                 }
 
                 void Deactivated(RPC::IRemoteConnection *connection) override
                 {
-                   LOGINFO("UserSettings Notification Deactivated");
                    _parent.Deactivated(connection);
                 }
 
@@ -110,10 +114,10 @@ namespace Plugin {
                     Exchange::JUserSettings::Event::OnPrivacyModeChanged(_parent, privacyMode);
                 }
 
-                void OnPinControlChanged(const bool enabled) override
+                void OnPinControlChanged(const bool pinControl) override
                 {
-                    LOGINFO("PinControlChanged: %d\n", enabled);
-                    Exchange::JUserSettings::Event::OnPinControlChanged(_parent, enabled);
+                    LOGINFO("PinControlChanged: %d\n", pinControl);
+                    Exchange::JUserSettings::Event::OnPinControlChanged(_parent, pinControl);
                 }
 
                 void OnViewingRestrictionsChanged(const string& viewingRestrictions) override
@@ -128,28 +132,58 @@ namespace Plugin {
                     Exchange::JUserSettings::Event::OnViewingRestrictionsWindowChanged(_parent, viewingRestrictionsWindow);
                 }
 
-                void OnLiveWatershedChanged(const bool enabled) override
+                void OnLiveWatershedChanged(const bool liveWatershed) override
                 {
-                    LOGINFO("LiveWatershedChanged: %d\n", enabled);
-                    Exchange::JUserSettings::Event::OnLiveWatershedChanged(_parent, enabled);
+                    LOGINFO("LiveWatershedChanged: %d\n", liveWatershed);
+                    Exchange::JUserSettings::Event::OnLiveWatershedChanged(_parent, liveWatershed);
                 }
 
-                void OnPlaybackWatershedChanged(const bool enabled) override
+                void OnPlaybackWatershedChanged(const bool playbackWatershed) override
                 {
-                    LOGINFO("PlaybackWatershedChanged: %d\n", enabled);
-                    Exchange::JUserSettings::Event::OnPlaybackWatershedChanged(_parent, enabled);
+                    LOGINFO("PlaybackWatershedChanged: %d\n", playbackWatershed);
+                    Exchange::JUserSettings::Event::OnPlaybackWatershedChanged(_parent, playbackWatershed);
                 }
 
-                void OnBlockNotRatedContentChanged(const bool enabled) override
+                void OnBlockNotRatedContentChanged(const bool blockNotRatedContent) override
                 {
-                    LOGINFO("BlockNotRatedContentChanged: %d\n", enabled);
-                    Exchange::JUserSettings::Event::OnBlockNotRatedContentChanged(_parent, enabled);
+                    LOGINFO("BlockNotRatedContentChanged: %d\n", blockNotRatedContent);
+                    Exchange::JUserSettings::Event::OnBlockNotRatedContentChanged(_parent, blockNotRatedContent);
                 }
 
-                void OnPinOnPurchaseChanged(const bool enabled) override
+                void OnPinOnPurchaseChanged(const bool pinOnPurchase) override
                 {
-                    LOGINFO("PinOnPurchaseChanged: %d\n", enabled);
-                    Exchange::JUserSettings::Event::OnPinOnPurchaseChanged(_parent, enabled);
+                    LOGINFO("PinOnPurchaseChanged: %d\n", pinOnPurchase);
+                    Exchange::JUserSettings::Event::OnPinOnPurchaseChanged(_parent, pinOnPurchase);
+                }
+
+                void OnHighContrastChanged(const bool enabled) override
+                {
+                    LOGINFO("HighContrastChanged: %d\n", enabled);
+                    Exchange::JUserSettings::Event::OnHighContrastChanged(_parent, enabled);
+                }
+
+                void OnVoiceGuidanceChanged(const bool enabled) override
+                {
+                    LOGINFO("VoiceGuidanceChanged: %d\n", enabled);
+                    Exchange::JUserSettings::Event::OnVoiceGuidanceChanged(_parent, enabled);
+                }
+
+                void OnVoiceGuidanceRateChanged(const double rate) override
+                {
+                    LOGINFO("GuidanceRateChanged: %lf\n", rate);
+                    Exchange::JUserSettings::Event::OnVoiceGuidanceRateChanged(_parent, rate);
+                }
+
+                void OnVoiceGuidanceHintsChanged(const bool hints) override
+                {
+                    LOGINFO("GuidanceHintsChanged: %d\n", hints);
+                    Exchange::JUserSettings::Event::OnVoiceGuidanceHintsChanged(_parent, hints);
+                }
+
+                void OnContentPinChanged(const string& contentPin) override
+                {
+                    LOGINFO("ContentPinChanged: %s\n", contentPin.c_str());
+                    Exchange::JUserSettings::Event::OnContentPinChanged(_parent, contentPin);
                 }
 
             private:
@@ -168,6 +202,7 @@ namespace Plugin {
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
             INTERFACE_AGGREGATE(Exchange::IUserSettings, _userSetting)
+            INTERFACE_AGGREGATE(Exchange::IUserSettingsInspector, _userSettingsInspector)
             END_INTERFACE_MAP
 
             //  IPlugin methods
@@ -183,7 +218,9 @@ namespace Plugin {
             PluginHost::IShell* _service{};
             uint32_t _connectionId{};
             Exchange::IUserSettings* _userSetting{};
+            Exchange::IUserSettingsInspector* _userSettingsInspector{};
             Core::Sink<Notification> _usersettingsNotification;
+            Exchange::IConfiguration* configure;
     };
 
 } // namespace Plugin
