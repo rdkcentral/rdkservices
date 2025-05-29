@@ -48,8 +48,7 @@ const std::map<string, string> UserSettingsImplementation::usersettingsDefaultMa
                          {USERSETTINGS_HIGH_CONTRAST_KEY, "false"},
                          {USERSETTINGS_VOICE_GUIDANCE_KEY, "false"},
                          {USERSETTINGS_VOICE_GUIDANCE_RATE_KEY, "1"},
-                         {USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY, "false"},
-                         {USERSETTINGS_CONTENT_PIN_KEY, ""}};
+                         {USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY, "false"}};
 
 const std::map<Exchange::IUserSettingsInspector::SettingsKey, string> UserSettingsImplementation::_userSettingsInspectorMap =
          {{Exchange::IUserSettingsInspector::SettingsKey::PREFERRED_AUDIO_LANGUAGES, USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY},
@@ -68,8 +67,7 @@ const std::map<Exchange::IUserSettingsInspector::SettingsKey, string> UserSettin
          {Exchange::IUserSettingsInspector::SettingsKey::PIN_ON_PURCHASE, USERSETTINGS_PIN_ON_PURCHASE_KEY},
          {Exchange::IUserSettingsInspector::SettingsKey::VOICE_GUIDANCE, USERSETTINGS_VOICE_GUIDANCE_KEY},
          {Exchange::IUserSettingsInspector::SettingsKey::VOICE_GUIDANCE_RATE, USERSETTINGS_VOICE_GUIDANCE_RATE_KEY},
-         {Exchange::IUserSettingsInspector::SettingsKey::VOICE_GUIDANCE_HINTS, USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY},
-         {Exchange::IUserSettingsInspector::SettingsKey::CONTENT_PIN, USERSETTINGS_CONTENT_PIN_KEY}};
+         {Exchange::IUserSettingsInspector::SettingsKey::VOICE_GUIDANCE_HINTS, USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY}};
 
 
 const double UserSettingsImplementation::minVGR = 0.1;
@@ -370,14 +368,6 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
               }
          break;
 
-         case CONTENT_PIN_CHANGED:
-              while (index != _userSettingNotification.end())
-              {
-                  (*index)->OnContentPinChanged(params.String());
-                  ++index;
-              }
-         break;
-
          default:
            break;
      }
@@ -460,10 +450,6 @@ void UserSettingsImplementation::ValueChanged(const Exchange::IStore2::ScopeType
     else if(0 == (ns.compare(USERSETTINGS_NAMESPACE)) && (0 == key.compare(USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY)))
     {
         dispatchEvent(VOICE_GUIDANCE_HINTS_CHANGED, JsonValue((bool)(value.compare("true")==0)?true:false));
-    }
-    else if(0 == (ns.compare(USERSETTINGS_NAMESPACE)) && (0 == key.compare(USERSETTINGS_CONTENT_PIN_KEY)))
-    {
-        dispatchEvent(CONTENT_PIN_CHANGED, JsonValue((string)value));
     }
     else
     {
@@ -1053,24 +1039,6 @@ Core::hresult UserSettingsImplementation::GetVoiceGuidanceHints(bool &hints) con
             hints = false;
         }
     }
-    return status;
-}
-
-Core::hresult UserSettingsImplementation::SetContentPin(const string& contentPin)
-{
-    Core::hresult status = Core::ERROR_GENERAL;
-
-    LOGINFO("contentPin: %s", contentPin.c_str());
-    status = SetUserSettingsValue(USERSETTINGS_CONTENT_PIN_KEY, contentPin);
-    return status;
-
-}
-
-Core::hresult UserSettingsImplementation::GetContentPin(string& contentPin) const
-{
-    Core::hresult status = Core::ERROR_GENERAL;
-
-    status = GetUserSettingsValue(USERSETTINGS_CONTENT_PIN_KEY, contentPin);
     return status;
 }
 

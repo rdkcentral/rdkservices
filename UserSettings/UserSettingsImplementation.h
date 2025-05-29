@@ -55,7 +55,6 @@
 #define USERSETTINGS_VOICE_GUIDANCE_KEY                       "voiceGuidance"
 #define USERSETTINGS_VOICE_GUIDANCE_RATE_KEY                  "voiceGuidanceRate"
 #define USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY                 "voiceGuidanceHints"
-#define USERSETTINGS_CONTENT_PIN_KEY                          "contentPin"
 
 namespace WPEFramework {
 namespace Plugin {
@@ -132,8 +131,7 @@ namespace Plugin {
             HIGH_CONTRAST_CHANGED,
             VOICE_GUIDANCE_CHANGED,
             VOICE_GUIDANCE_RATE_CHANGED,
-            VOICE_GUIDANCE_HINTS_CHANGED,
-            CONTENT_PIN_CHANGED
+            VOICE_GUIDANCE_HINTS_CHANGED
         };
 
         class EXTERNAL Job : public Core::IDispatch {
@@ -212,8 +210,6 @@ namespace Plugin {
         Core::hresult GetVoiceGuidanceRate(double &rate) const override;
         Core::hresult SetVoiceGuidanceHints(const bool hints) override;
         Core::hresult GetVoiceGuidanceHints(bool &hints) const override;
-        Core::hresult SetContentPin(const string& contentPin) override;
-        Core::hresult GetContentPin(string& contentPin) const override;
 
         // IUserSettingsInspector methods
         Core::hresult GetMigrationState(const SettingsKey key, bool &requiresMigration) const override;
