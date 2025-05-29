@@ -507,6 +507,11 @@ class AVOutputTV : public AVOutputBase {
 			const std::string& paramName,
 			tvPQParameterIndex_t pqIndex,
 			tvSetFunctionV2 halSetter);
+		bool resetEnumPQParamToDefault(const JsonObject& parameters,
+			const std::string& paramName,
+			tvPQParameterIndex_t pqIndex,
+			const std::unordered_map<int, std::string>& valueMap,
+			std::function<tvError_t(int, const std::unordered_map<int, std::string>&)> halSetter);
 		tvConfigContext_t getValidContextFromGetParameters(const JsonObject& parameters, const std::string& paramName);
 		bool getPQParamFromContext(const JsonObject& parameters,
 			const std::string& paramName,
@@ -521,17 +526,17 @@ class AVOutputTV : public AVOutputBase {
 		bool setIntPQParam(const JsonObject& parameters, const std::string& paramName,
 					tvPQParameterIndex_t pqType, tvSetFunction halSetter, int maxCap);
 		bool setEnumPQParam(const JsonObject& parameters,
-			const std::string& inputKey,           // e.g., "mode"
-			const std::string& paramName,          // e.g., "AutoBacklightMode"
+			const std::string& inputKey,
+			const std::string& paramName,
 			const std::unordered_map<std::string, int>& valueMap,
 			tvPQParameterIndex_t paramType,
 			std::function<tvError_t(int)> halSetter);
 		uint32_t setContextPQParam(const JsonObject& parameters, JsonObject& response,
-                                       const std::string& inputParamName,
-                                       const std::string& tr181ParamName,
-                                       int maxAllowedValue,
-                                       tvPQParameterIndex_t pqParamType,
-                                       std::function<tvError_t(tvVideoSrcType_t, tvPQModeIndex_t, tvVideoFormatType_t, int)> halSetter);
+					const std::string& inputParamName,
+					const std::string& tr181ParamName,
+					int maxAllowedValue,
+					tvPQParameterIndex_t pqParamType,
+					std::function<tvError_t(tvVideoSrcType_t, tvPQModeIndex_t, tvVideoFormatType_t, int)> halSetter);
 		bool setPictureModeV2(const JsonObject& parameters);
 		bool getPictureModeV2(const JsonObject& parameters, std::string& outMode);
 		std::string getCurrentPictureModeAsString();
@@ -652,12 +657,13 @@ class AVOutputTV : public AVOutputBase {
 		static const std::map<int, std::string> pqModeMap;
 		static const std::map<int, std::string> videoFormatMap;
 		static const std::map<int, std::string> videoSrcMap;
-		static const std::unordered_map<std::string, tvBacklightMode_t> backlightModeMap;
+		static const std::unordered_map<int, std::string> backlightModeMap;
 
 		// Reverse maps
 		static const std::map<std::string, int> pqModeReverseMap;
 		static const std::map<std::string, int> videoFormatReverseMap;
 		static const std::map<std::string, int> videoSrcReverseMap;
+		static const std::unordered_map<std::string, int> backlightModeReverseMap;
 
 		std::string convertPictureIndexToStringV2(int pqmode);
 		std::string convertVideoFormatToStringV2(int format);

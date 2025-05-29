@@ -613,8 +613,8 @@ namespace Plugin {
     }
 
     bool AVOutputTV::setEnumPQParam(const JsonObject& parameters,
-        const std::string& inputKey,           // e.g., "mode"
-        const std::string& paramName,          // e.g., "AutoBacklightMode"
+        const std::string& inputKey,
+        const std::string& paramName,
         const std::unordered_map<std::string, int>& valueMap,
         tvPQParameterIndex_t paramType,
         std::function<tvError_t(int)> halSetter)
@@ -975,6 +975,7 @@ namespace Plugin {
         },
         "lowLatencyState", parameters, response);
     }
+
     // Forward lookup: string → enum
     const std::unordered_map<std::string, int> colorTempMap = {
         {"Standard",            tvColorTemp_STANDARD},
@@ -1160,7 +1161,6 @@ namespace Plugin {
 
         backlightModeJson["options"] = optionsArray;
         backlightModeJson["platformSupport"] = true;
-
         backlightModeJson["context"] = parseContextCaps(m_backlightModeCaps);
         response["mode"] = backlightModeJson;
 #if HAL_NOT_READY
@@ -1938,6 +1938,62 @@ namespace Plugin {
         }
 
     }
+    bool AVOutputTV::resetEnumPQParamToDefault(
+        const JsonObject& parameters,
+        const std::string& paramName,
+        tvPQParameterIndex_t pqIndex,
+        const std::unordered_map<int, std::string>& valueMap,
+        std::function<tvError_t(int, const std::unordered_map<int, std::string>&)> halSetter)
+    {
+        LOGINFO("Entry: %s\n", paramName.c_str());
+
+        capDetails_t inputInfo;
+        paramIndex_t indexInfo;
+        int intVal = 0;
+        tvError_t ret = tvERROR_NONE;
+
+        // Step 1: Save reset state using V2 persistence
+        LOGINFO("Updating AVOutputTVParamV2 for: %s\n", paramName.c_str());
+        int retval = updateAVoutputTVParamV2("reset", paramName, parameters, pqIndex, intVal);
+        if (retval != 0) {
+            LOGERR("Failed to reset %s via updateAVoutputTVParamV2. retval: %d\n", paramName.c_str(), retval);
+            return false;
+        }
+
+        // Step 2: Apply value from persisted config to HAL if needed
+        if (isSetRequiredForParam(parameters, paramName)) {
+            inputInfo.pqmode = "Current";
+            inputInfo.source = "Current";
+            inputInfo.format = "Current";
+
+            if (getParamIndex(paramName, inputInfo, indexInfo) == 0 &&
+                getLocalparam(paramName, indexInfo, intVal, pqIndex) == 0)
+            {
+                LOGINFO("%s: getLocalparam success for %s [format=%d, source=%d, mode=%d] → value=%d\n",
+                    __FUNCTION__, paramName.c_str(), indexInfo.formatIndex,
+                    indexInfo.sourceIndex, indexInfo.pqmodeIndex, intVal);
+
+                if (valueMap.find(intVal) == valueMap.end()) {
+                    LOGERR("%s: Invalid enum value %d for %s\n", __FUNCTION__, intVal, paramName.c_str());
+                    return false;
+                }
+
+                ret = halSetter(intVal, valueMap);
+                if (ret != tvERROR_NONE) {
+                    LOGERR("%s: HAL setter failed for value %d\n", paramName.c_str(), intVal);
+                    return false;
+                }
+            }
+            else {
+                LOGERR("%s: Failed to get local param for %s\n", __FUNCTION__, paramName.c_str());
+                return false;
+            }
+        }
+
+        LOGINFO("Exit: resetEnumPQParamToDefault for %s successful (value: %d)\n", paramName.c_str(), intVal);
+        return true;
+    }
+
     bool AVOutputTV::resetPQParamToDefault(const JsonObject& parameters,
         const std::string& paramName,
         tvPQParameterIndex_t pqIndex,
@@ -3325,52 +3381,67 @@ namespace Plugin {
     {
 
         LOGINFO("Entry\n");
+        if(m_colorTempStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            paramIndex_t indexInfo;
+            int colortemp=0;
+            tvError_t ret = tvERROR_NONE;
 
-        capDetails_t inputInfo;
-        paramIndex_t indexInfo;
-        int colortemp=0;
-        tvError_t ret = tvERROR_NONE;
+            if (parsingSetInputArgument(parameters, "ColorTemperature", inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingSetInputArgument(parameters, "ColorTemperature", inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if( !isCapablityCheckPassed( "ColorTemperature", inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for colorTemperature\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if( !isCapablityCheckPassed( "ColorTemperature", inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for colorTemperature\n", __FUNCTION__);
-            returnResponse(false);
-        }
+            int retval= updateAVoutputTVParam("reset","ColorTemp", inputInfo,PQ_PARAM_COLOR_TEMPERATURE,colortemp);
 
-        int retval= updateAVoutputTVParam("reset","ColorTemp", inputInfo,PQ_PARAM_COLOR_TEMPERATURE,colortemp);
-
-        if(retval != 0 ) {
-            LOGERR("Failed to reset ColorTemperature\n");
-            returnResponse(false);
-        }
-        else {
-            if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
-                inputInfo.pqmode = "Current";
-                inputInfo.source = "Current";
-                inputInfo.format = "Current";
-                getParamIndex("ColorTemperature",inputInfo,indexInfo);
-                int err = getLocalparam("ColorTemp",indexInfo, colortemp, PQ_PARAM_COLOR_TEMPERATURE);
-                if( err == 0 ) {
-                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex, colortemp);
-                    ret = SetColorTemperature((tvColorTemp_t)colortemp);
-                }
-                else {
-                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
-                    ret = tvERROR_GENERAL;
+            if(retval != 0 ) {
+                LOGERR("Failed to reset ColorTemperature\n");
+                returnResponse(false);
+            }
+            else {
+                if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
+                    inputInfo.pqmode = "Current";
+                    inputInfo.source = "Current";
+                    inputInfo.format = "Current";
+                    getParamIndex("ColorTemperature",inputInfo,indexInfo);
+                    int err = getLocalparam("ColorTemp",indexInfo, colortemp, PQ_PARAM_COLOR_TEMPERATURE);
+                    if( err == 0 ) {
+                        LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex, colortemp);
+                        ret = SetColorTemperature((tvColorTemp_t)colortemp);
+                    }
+                    else {
+                        LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+                        ret = tvERROR_GENERAL;
+                    }
                 }
             }
-        }
 
-        if(ret != tvERROR_NONE) {
-            returnResponse(false);
+            if(ret != tvERROR_NONE) {
+                returnResponse(false);
+            }
+            else {
+                LOGINFO("Exit : resetColorTemperature Successful to value : %d \n",colortemp);
+                returnResponse(true);
+            }
         }
-        else {
-            LOGINFO("Exit : resetColorTemperature Successful to value : %d \n",colortemp);
-            returnResponse(true);
+        else
+        {
+            bool success = resetEnumPQParamToDefault(
+            parameters,
+            "ColorTemp",
+            PQ_PARAM_COLOR_TEMPERATURE,
+            colorTempReverseMap,
+            [](int val, const std::unordered_map<int, std::string>&) {
+                return SetColorTemperature(static_cast<tvColorTemp_t>(val));
+            });
+
+            returnResponse(success);
         }
     }
 
@@ -3568,55 +3639,78 @@ namespace Plugin {
     uint32_t AVOutputTV::resetBacklightDimmingMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
+        if(m_dimmingModeStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
 
-        capDetails_t inputInfo;
-        paramIndex_t indexInfo;
-        std::string dimmingMode;
-        int dMode=0;
-        tvError_t ret = tvERROR_NONE;
+            capDetails_t inputInfo;
+            paramIndex_t indexInfo;
+            std::string dimmingMode;
+            int dMode=0;
+            tvError_t ret = tvERROR_NONE;
 
-        if (parsingSetInputArgument(parameters, "DimmingMode", inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if (parsingSetInputArgument(parameters, "DimmingMode", inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if( !isCapablityCheckPassed( "DimmingMode" , inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for DimmingMode\n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if( !isCapablityCheckPassed( "DimmingMode" , inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for DimmingMode\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        int retval= updateAVoutputTVParam("reset","DimmingMode", inputInfo,PQ_PARAM_DIMMINGMODE,dMode);
+            int retval= updateAVoutputTVParam("reset","DimmingMode", inputInfo,PQ_PARAM_DIMMINGMODE,dMode);
 
-        if(retval != 0 ) {
-            LOGERR("Failed to reset ldim\n");
-            returnResponse(false);
-        }
+            if(retval != 0 ) {
+                LOGERR("Failed to reset ldim\n");
+                returnResponse(false);
+            }
 
-        else {
-            if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
-                inputInfo.pqmode = "Current";
-                inputInfo.source = "Current";
-                inputInfo.format = "Current";
-                getParamIndex("DimmingMode",inputInfo,indexInfo);
-                int err = getLocalparam("DimmingMode",indexInfo, dMode, PQ_PARAM_DIMMINGMODE);
-                if( err == 0 ) {
-                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex, dMode);
-                    getDimmingModeStringFromEnum(dMode,dimmingMode);
-                    ret = SetTVDimmingMode(dimmingMode.c_str());
-                }
-                else {
-                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
-                    ret = tvERROR_GENERAL;
+            else {
+                if (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
+                    inputInfo.pqmode = "Current";
+                    inputInfo.source = "Current";
+                    inputInfo.format = "Current";
+                    getParamIndex("DimmingMode",inputInfo,indexInfo);
+                    int err = getLocalparam("DimmingMode",indexInfo, dMode, PQ_PARAM_DIMMINGMODE);
+                    if( err == 0 ) {
+                        LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex, dMode);
+                        getDimmingModeStringFromEnum(dMode,dimmingMode);
+                        ret = SetTVDimmingMode(dimmingMode.c_str());
+                    }
+                    else {
+                        LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+                        ret = tvERROR_GENERAL;
+                    }
                 }
             }
-        }
 
-        if(ret != tvERROR_NONE) {
-            returnResponse(false);
+            if(ret != tvERROR_NONE) {
+                returnResponse(false);
+            }
+            else {
+                LOGINFO("Exit : resetBacklightDimmingMode Successful to value : %s \n",dimmingMode.c_str());
+                returnResponse(true);
+            }
         }
-        else {
-            LOGINFO("Exit : resetBacklightDimmingMode Successful to value : %s \n",dimmingMode.c_str());
-            returnResponse(true);
+        else
+        {
+            bool success = resetEnumPQParamToDefault(
+                            parameters,
+                            "DimmingMode",
+                            PQ_PARAM_DIMMINGMODE,
+                            dimmingModeReverseMap,
+                            [](int val, const std::unordered_map<int, std::string>& enumMap) -> tvError_t {
+                                auto it = enumMap.find(val);
+                                if (it != enumMap.end()) {
+                                    return SetTVDimmingMode(it->second.c_str());
+                                } else {
+                                    LOGERR("Invalid enum value: %d for DimmingMode\n", val);
+                                    return tvERROR_GENERAL;
+                                }
+                            });
+
+            returnResponse(success);
+
         }
     }
 
@@ -4245,7 +4339,7 @@ namespace Plugin {
                     continue;
                 }
             }
-
+//TODO:: Revisit this logic. Have to revert if HAL call fails.
             std::string tr181Param = std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM) + "." +
                 srcStr + ".Format." + fmtStr + ".PictureModeString";
 
@@ -4254,6 +4348,12 @@ namespace Plugin {
                 LOGERR("setLocalParam failed: %s => %s", tr181Param.c_str(), getTR181ErrorString(err));
                 continue;
             }
+            else {
+                LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM, mode.c_str());
+                int pqmodeindex = (int)getPictureModeIndex(mode);
+                SaveSourcePictureMode(ctx.videoSrcType, ctx.videoFormatType, pqmodeindex);
+            }
+
             contextHandled = true;
         }
 
@@ -5836,18 +5936,16 @@ namespace Plugin {
         else
         {
             bool success = false;
-#if 0
-            success = setEnumPQParam(
+            success =  setEnumPQParam(
                 parameters,
-                "mode",                           // input key
-                "AutoBacklightMode",              // internal param name
-                backlightModeMap,                 // map<string, enum>
-                PQ_PARAM_BACKLIGHT_MODE,    // enum param index
-                [this](int val) {
+                "mode",
+                "BacklightMode",
+                backlightModeReverseMap,
+                PQ_PARAM_BACKLIGHT_MODE,
+                [](int val) {
                     return SetCurrentBacklightMode(static_cast<tvBacklightMode_t>(val));
-                }
-            );
-#endif
+                });
+
             returnResponse(success);
         }
     }
@@ -5876,19 +5974,14 @@ namespace Plugin {
         }
         else
         {
-#if 0
-            int mode = 0;
-            if (getPQParamFromContext(parameters, "AutoBacklightMode", PQ_PARAM_BACKLIGHT_MODE, mode)) {
-                response["mode"] = std::to_string(mode);
-                LOGINFO("Exit : AutoBacklightMode Value: %d", mode);
+            std::string mode;
+            if (getEnumPQParamString(parameters, "BacklightMode",
+                 PQ_PARAM_BACKLIGHT_MODE, backlightModeMap, mode)) {
+                response["mode"] = mode;
                 returnResponse(true);
             } else {
-                LOGERR("Failed to get AutoBacklightMode");
                 returnResponse(false);
             }
-#else
-            returnResponse(false);
-#endif
         }
     
     }
@@ -5896,63 +5989,77 @@ namespace Plugin {
     uint32_t AVOutputTV::resetAutoBacklightMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
+        if(m_backlightModeStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            tvError_t ret = tvERROR_NONE;
 
-        tvError_t ret = tvERROR_NONE;
+            if (isPlatformSupport("AutoBacklightMode") != 0) {
+                returnResponse(false);
+            }
 
-	if (isPlatformSupport("AutoBacklightMode") != 0) {
-            returnResponse(false);
-        }
-
-        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM);
-        if ( err != tr181Success ) {
-            LOGWARN("clearLocalParam for %s Failed : %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
-            ret  = tvERROR_GENERAL;
-        }
-        else {
-            LOGINFO("clearLocalParam for %s Successful\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM);
-
-            TR181_ParamData_t param;
-            memset(&param, 0, sizeof(param));
-
-            tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM,&param);
+            tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM);
             if ( err != tr181Success ) {
-                LOGWARN("getLocalParam for %s Failed : %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
+                LOGWARN("clearLocalParam for %s Failed : %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
                 ret  = tvERROR_GENERAL;
             }
             else {
-                tvBacklightMode_t blMode = tvBacklightMode_NONE;
+                LOGINFO("clearLocalParam for %s Successful\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM);
 
-                if(!std::string(param.value).compare("none")) {
-                    blMode = tvBacklightMode_NONE;
-                }
-                else if (!std::string(param.value).compare("Manual")){
-                    blMode = tvBacklightMode_MANUAL;
-                }
-                else if (!std::string(param.value).compare("Ambient")){
-                    blMode = tvBacklightMode_AMBIENT;
-                }
-                else if (!std::string(param.value).compare("Eco")){
-                    blMode = tvBacklightMode_ECO;
+                TR181_ParamData_t param;
+                memset(&param, 0, sizeof(param));
+
+                tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM,&param);
+                if ( err != tr181Success ) {
+                    LOGWARN("getLocalParam for %s Failed : %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
+                    ret  = tvERROR_GENERAL;
                 }
                 else {
-                    blMode = tvBacklightMode_NONE;
+                    tvBacklightMode_t blMode = tvBacklightMode_NONE;
+
+                    if(!std::string(param.value).compare("none")) {
+                        blMode = tvBacklightMode_NONE;
+                    }
+                    else if (!std::string(param.value).compare("Manual")){
+                        blMode = tvBacklightMode_MANUAL;
+                    }
+                    else if (!std::string(param.value).compare("Ambient")){
+                        blMode = tvBacklightMode_AMBIENT;
+                    }
+                    else if (!std::string(param.value).compare("Eco")){
+                        blMode = tvBacklightMode_ECO;
+                    }
+                    else {
+                        blMode = tvBacklightMode_NONE;
+                    }
+                    ret = SetCurrentBacklightMode(blMode);
+                    if(ret != tvERROR_NONE) {
+                        LOGWARN("Autobacklight Mode set failed: %s\n",getErrorString(ret).c_str());
+                    }
+                    else {
+                        LOGINFO("Exit : Autobacklight Mode set successfully, value: %s\n", param.value);
+                    }
                 }
-                ret = SetCurrentBacklightMode(blMode);
-                if(ret != tvERROR_NONE) {
-                    LOGWARN("Autobacklight Mode set failed: %s\n",getErrorString(ret).c_str());
-                }
-                else {
-                    LOGINFO("Exit : Autobacklight Mode set successfully, value: %s\n", param.value);
-                }
-            } 
-        }
-        if(ret != tvERROR_NONE)
-        {
-            returnResponse(false);
+            }
+            if(ret != tvERROR_NONE)
+            {
+                returnResponse(false);
+            }
+            else
+            {
+                returnResponse(true);
+            }
         }
         else
         {
-            returnResponse(true);
+            bool success = resetEnumPQParamToDefault(
+                    parameters,
+                    "BacklightMode",
+                    PQ_PARAM_BACKLIGHT_MODE,
+                    backlightModeMap,
+                    [](int value, const std::unordered_map<int, std::string>&) -> tvError_t {
+                        return SetCurrentBacklightMode(static_cast<tvBacklightMode_t>(value));
+                    });
+            returnResponse(success);
         }
     }    
 

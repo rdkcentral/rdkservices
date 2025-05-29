@@ -957,7 +957,7 @@ namespace Plugin {
                 {"ColorTemp", [this](int v, std::string& s) { getColorTempStringFromEnum(v, s); }},
                 {"DimmingMode", [this](int v, std::string& s) { getDimmingModeStringFromEnum(v, s); }},
                 {"AspectRatio", [this](int v, std::string& s) { getDisplayModeStringFromEnum(v, s); }},
-                {"AutoBacklightMode", [this](int v, std::string& s) { getBacklightModeStringFromEnum(v, s); }}
+                {"BacklightMode", [this](int v, std::string& s) { getBacklightModeStringFromEnum(v, s); }}
             };
 
             // If there's a custom string conversion for this parameter, apply it
@@ -1333,6 +1333,10 @@ namespace Plugin {
 
         //Ambient Bakclight Mode
         m_backlightModeStatus = GetBacklightModeCaps(&m_backlightModes, &m_numBacklightModes, &m_backlightModeCaps);
+        if (m_backlightModeStatus == tvERROR_NONE) {
+            updateAVoutputTVParamV2("sync", "BacklightMode", paramJson, PQ_PARAM_MEMC, level);
+        }
+
         //AspectRatio
         m_aspectRatioStatus = GetAspectRatioCaps(&m_aspectRatio, &m_numAspectRatio, &m_aspectRatioCaps);
         //LowLatencyState
@@ -2603,10 +2607,10 @@ namespace Plugin {
         {VIDEO_SOURCE_IP, "IP"},
         {VIDEO_SOURCE_TUNER, "Tuner"}
     };
-    const std::unordered_map<std::string, tvBacklightMode_t> AVOutputTV::backlightModeMap = {
-        { "Manual",  tvBacklightMode_MANUAL },
-        { "Ambient", tvBacklightMode_AMBIENT },
-        { "Eco",     tvBacklightMode_ECO }
+    const std::unordered_map<int, std::string> AVOutputTV::backlightModeMap = {
+        {tvBacklightMode_MANUAL, "Manual"},
+        {tvBacklightMode_AMBIENT,  "Ambient"},
+        {tvBacklightMode_ECO, "Eco"}
     };
 
     const std::map<std::string, int> AVOutputTV::pqModeReverseMap = []{
@@ -2624,6 +2628,12 @@ namespace Plugin {
     const std::map<std::string, int> AVOutputTV::videoSrcReverseMap = []{
         std::map<std::string, int> m;
         for (const auto& pair : AVOutputTV::videoSrcMap) m[pair.second] = pair.first;
+        return m;
+    }();
+
+    const std::unordered_map<std::string, int> AVOutputTV::backlightModeReverseMap = []{
+        std::unordered_map<std::string, int> m;
+        for (const auto& pair : AVOutputTV::backlightModeMap) m[pair.second] = pair.first;
         return m;
     }();
 
@@ -2870,9 +2880,9 @@ namespace Plugin {
         else if (paramName == "DigitalNoiseReduction") caps = m_digitalNoiseReductionCaps;
         else if (paramName == "AISuperResolution") caps = m_AISuperResolutionCaps;
         else if (paramName == "MEMC") caps = m_MEMCCaps;
-        else if (paramName == "AutoBacklightMode") caps = m_backlightModeCaps;
+        else if (paramName == "BacklightMode") caps = m_backlightModeCaps;
         else {
-            LOGERR("Unknown tr181ParamName: %s", paramName.c_str());
+            LOGERR("Unknown ParamName: %s", paramName.c_str());
             return nullptr;
         }
         // Fallback to global pictureModeCaps if cap is empty
@@ -3229,8 +3239,15 @@ namespace Plugin {
                                 level);
             #endif
                     break;
-                //case PQ_PARAM_AUTO_BACKLIGHT_MODE:
-                   // break;
+            #if HAL_NOT_READY
+            #else
+                case PQ_PARAM_BACKLIGHT_MODE:
+                    ret |= SaveBacklightMode((tvVideoSrcType_t)paramIndex.sourceIndex,
+                                            (tvPQModeIndex_t)paramIndex.pqmodeIndex,
+                                            (tvVideoFormatType_t)paramIndex.formatIndex,
+                                            level);
+            #endif
+                    break;
                 case PQ_PARAM_HDR10_MODE:
                 case PQ_PARAM_HLG_MODE:
                 case PQ_PARAM_LDIM:
@@ -3520,9 +3537,9 @@ tvError_t AVOutputTV::GetBacklightModeCaps(tvBacklightMode_t** backlight_mode, s
 
     for (size_t i = 0; i < *num_backlight_mode; ++i) {
         std::string modeStr = optionsArray[i].String();
-        auto it = backlightModeMap.find(modeStr);
-        if (it != backlightModeMap.end()) {
-            (*backlight_mode)[i] = it->second;
+        auto it = backlightModeReverseMap.find(modeStr);
+        if (it != backlightModeReverseMap.end()) {
+            (*backlight_mode)[i] = static_cast<tvBacklightMode_t> (it->second);
         } else {
             (*backlight_mode)[i] = tvBacklightMode_INVALID;
         }
