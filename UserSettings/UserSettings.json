@@ -46,7 +46,12 @@
             "type": "number",
             "example": 0.1
         },
-		"MigrationStates": {
+        "contentPin": {
+            "summary": "contentPin",
+            "type": "string",
+            "example": "1234"
+        },
+        "MigrationStates": {
             "summary": "Keys and it's migration states",
             "type": "object",
             "properties": {
@@ -56,7 +61,7 @@
                     "example": "PREFERRED_AUDIO_LANGUAGES"
                 },
                 "requiresMigration": {
-                    "summary": "The name of the USB device",
+                    "summary": "migration state of the property",
                     "type": "boolean",
                     "example": true
                 }
@@ -408,6 +413,25 @@
                 "example": "null"
             }
         },
+        "setContentPin": {
+            "summary": "Setting ContentPin.",
+			"events": {
+                "onContentPinChanged" : "Triggered when the ContentPin changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "contentPin": {
+                        "$ref": "#/definitions/contentPin"
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
         "getAudioDescription":
 		{
             "summary": "Returns Audio Description.",
@@ -545,7 +569,7 @@
                         "example": "VOICE_GUIDANCE_RATE"
                     }
                 },
-                "required": ["deviceName"]
+                "required": ["key"]
             },
             "result": {
                 "summary": "migration state of the respective key true/false",
@@ -562,6 +586,12 @@
                 "items": {
                     "$ref": "#/definitions/MigrationStates"
                 }
+            }
+        },
+        "getContentPin":{
+            "summary": "Returns ContentPin.",
+            "result": {
+              "$ref": "#/definitions/contentPin"
             }
         }
     },
@@ -833,7 +863,21 @@
                 },
                 "required": [ "hints" ]
             }
-        }
+        },
+        "onContentPinChanged": {
+			"summary": "Triggered after the ContentPin changes (see `setContentPin`)",
+			"params": {
+				"type": "object",
+				"properties": {
+                    "contentPin": {
+                        "$ref": "#/definitions/contentPin"
+                    }
+				},
+				"required": [
+					"contentPin"
+				]
+			}
+		}
     }
 }
 

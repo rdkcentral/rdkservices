@@ -2,7 +2,7 @@
 <a name="UserSettings_Plugin"></a>
 # UserSettings Plugin
 
-**Version: [1.0.0]()**
+**Version: [2.3.0](https://github.com/rdkcentral/rdkservices/blob/main/UserSettings/CHANGELOG.md)**
 
 A org.rdk.UserSettings plugin for Thunder framework.
 
@@ -17,7 +17,7 @@ A org.rdk.UserSettings plugin for Thunder framework.
 <a name="Abbreviation,_Acronyms_and_Terms"></a>
 # Abbreviation, Acronyms and Terms
 
-[[Refer to this link](overview/aat.md)]
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -64,6 +64,7 @@ org.rdk.UserSettings interface methods:
 | [setVoiceGuidance](#setVoiceGuidance) | Sets voiceGuidance |
 | [setVoiceGuidanceRate](#setVoiceGuidanceRate) | Sets voiceGuidanceRate |
 | [setVoiceGuidanceHints](#setVoiceGuidanceHints) | Sets voiceGuidanceHints ON/OFF |
+| [setContentPin](#setContentPin) | Setting ContentPin |
 | [getAudioDescription](#getAudioDescription) | Returns Audio Description |
 | [getPreferredAudioLanguages](#getPreferredAudioLanguages) | Returns Preferred Audio Languages |
 | [getPresentationLanguage](#getPresentationLanguage) | Getting Presentation Languages |
@@ -83,6 +84,7 @@ org.rdk.UserSettings interface methods:
 | [getVoiceGuidanceHints](#getVoiceGuidanceHints) | Gets the current voiceGuidanceHints setting |
 | [getMigrationState](#getMigrationState) | Gets the migration state of the respective key |
 | [getMigrationStates](#getMigrationStates) | Gets the migration state of all the defined keys |
+| [getContentPin](#getContentPin) | Returns ContentPin |
 
 
 <a name="setAudioDescription"></a>
@@ -901,6 +903,54 @@ Sets voiceGuidanceHints ON/OFF. Whether Voice Guidance hints setting is switched
 }
 ```
 
+<a name="setContentPin"></a>
+## *setContentPin*
+
+Setting ContentPin.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onContentPinChanged](#onContentPinChanged) | Triggered when the ContentPin changes. |
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.contentPin | string | contentPin |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | string | On success null will be returned |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.setContentPin",
+    "params": {
+        "contentPin": "1234"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "null"
+}
+```
+
 <a name="getAudioDescription"></a>
 ## *getAudioDescription*
 
@@ -1664,8 +1714,8 @@ This method takes no parameters.
 | :-------- | :-------- | :-------- |
 | result | array | migration state of all the defined keys |
 | result[#] | object | Keys and it's migration states |
-| result[#].key | string | key of the property |
-| result[#].requiresMigration | boolean | Migration State Of the Property |
+| result[#]?.key | string | <sup>*(optional)*</sup> key of the property |
+| result[#]?.requiresMigration | boolean | <sup>*(optional)*</sup> migration state of the property |
 
 ### Example
 
@@ -1691,6 +1741,47 @@ This method takes no parameters.
             "requiresMigration": true
         }
     ]
+}
+```
+
+<a name="getContentPin"></a>
+## *getContentPin*
+
+Returns ContentPin.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | string | contentPin |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.getContentPin"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "1234"
 }
 ```
 
@@ -1722,6 +1813,7 @@ org.rdk.UserSettings interface events:
 | [onVoiceGuidanceChanged](#onVoiceGuidanceChanged) | Triggered after the voice guidance enabled settings changes |
 | [onVoiceGuidanceRateChanged](#onVoiceGuidanceRateChanged) | Triggered after the voice guidance rate changed |
 | [onVoiceGuidanceHintsChanged](#onVoiceGuidanceHintsChanged) | Triggered after the voice guidance hints changes |
+| [onContentPinChanged](#onContentPinChanged) | Triggered after the ContentPin changes (see `setContentPin`) |
 
 
 <a name="onAudioDescriptionChanged"></a>
@@ -2128,6 +2220,30 @@ Triggered after the voice guidance hints changes.(see `SetVoiceGuidanceHints`).
     "method": "client.events.onVoiceGuidanceHintsChanged",
     "params": {
         "hints": true
+    }
+}
+```
+
+<a name="onContentPinChanged"></a>
+## *onContentPinChanged*
+
+Triggered after the ContentPin changes (see `setContentPin`).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.contentPin | string | contentPin |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onContentPinChanged",
+    "params": {
+        "contentPin": "1234"
     }
 }
 ```
