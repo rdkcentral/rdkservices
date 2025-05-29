@@ -3245,7 +3245,7 @@ namespace Plugin {
                     ret |= SaveBacklightMode((tvVideoSrcType_t)paramIndex.sourceIndex,
                                             (tvPQModeIndex_t)paramIndex.pqmodeIndex,
                                             (tvVideoFormatType_t)paramIndex.formatIndex,
-                                            level);
+                                            static_cast<tvBacklightMode_t>(level));
             #endif
                     break;
                 case PQ_PARAM_HDR10_MODE:
