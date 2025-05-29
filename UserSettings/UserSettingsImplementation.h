@@ -23,6 +23,7 @@
 #include <interfaces/Ids.h>
 #include <interfaces/IUserSettings.h>
 #include <interfaces/IStore2.h>
+#include <interfaces/IConfiguration.h>
 #include "tracing/Logging.h"
 #include <vector>
 
@@ -50,13 +51,22 @@
 #define USERSETTINGS_PLAYBACK_WATERSHED_KEY                   "playbackWaterShed"
 #define USERSETTINGS_BLOCK_NOT_RATED_CONTENT_KEY              "blockNotRatedContent"
 #define USERSETTINGS_PIN_ON_PURCHASE_KEY                      "pinOnPurchase"
+#define USERSETTINGS_HIGH_CONTRAST_KEY                        "highContrast"
+#define USERSETTINGS_VOICE_GUIDANCE_KEY                       "voiceGuidance"
+#define USERSETTINGS_VOICE_GUIDANCE_RATE_KEY                  "voiceGuidanceRate"
+#define USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY                 "voiceGuidanceHints"
 
 namespace WPEFramework {
 namespace Plugin {
-    class UserSettingsImplementation : public Exchange::IUserSettings{
+    class UserSettingsImplementation : public Exchange::IUserSettings,
+                                       public Exchange::IUserSettingsInspector,
+                                       public Exchange::IConfiguration {
 
     public:
         static const std::map<string, string> usersettingsDefaultMap;
+        static const std::map<SettingsKey, string> _userSettingsInspectorMap;
+        static const double minVGR;
+        static const double maxVGR;
 
     private:
         class Store2Notification : public Exchange::IStore2::INotification {
@@ -98,25 +108,31 @@ namespace Plugin {
 
         BEGIN_INTERFACE_MAP(UserSettingsImplementation)
         INTERFACE_ENTRY(Exchange::IUserSettings)
+        INTERFACE_ENTRY(Exchange::IUserSettingsInspector)
+        INTERFACE_ENTRY(Exchange::IConfiguration)
         END_INTERFACE_MAP
 
     public:
-        enum Event {
-                AUDIO_DESCRIPTION_CHANGED,
-                PREFERRED_AUDIO_CHANGED,
-                PRESENTATION_LANGUAGE_CHANGED,
-                CAPTIONS_CHANGED,
-                PREFERRED_CAPTIONS_LANGUAGE_CHANGED,
-                PREFERRED_CLOSED_CAPTIONS_SERVICE_CHANGED,
-                PRIVACY_MODE_CHANGED,
-                PIN_CONTROL_CHANGED,
-                VIEWING_RESTRICTIONS_CHANGED,
-                VIEWING_RESTRICTIONS_WINDOW_CHANGED,
-                LIVE_WATERSHED_CHANGED,
-                PLAYBACK_WATERSHED_CHANGED,
-                BLOCK_NOT_RATED_CONTENT_CHANGED,
-                PIN_ON_PURCHASE_CHANGED
-            };
+        enum Event
+        {
+            AUDIO_DESCRIPTION_CHANGED,
+            PREFERRED_AUDIO_CHANGED,
+            PRESENTATION_LANGUAGE_CHANGED,
+            CAPTIONS_CHANGED,
+            PREFERRED_CAPTIONS_LANGUAGE_CHANGED,
+            PREFERRED_CLOSED_CAPTIONS_SERVICE_CHANGED,
+            PIN_CONTROL_CHANGED,
+            VIEWING_RESTRICTIONS_CHANGED,
+            VIEWING_RESTRICTIONS_WINDOW_CHANGED,
+            LIVE_WATERSHED_CHANGED,
+            PLAYBACK_WATERSHED_CHANGED,
+            BLOCK_NOT_RATED_CONTENT_CHANGED,
+            PIN_ON_PURCHASE_CHANGED,
+            HIGH_CONTRAST_CHANGED,
+            VOICE_GUIDANCE_CHANGED,
+            VOICE_GUIDANCE_RATE_CHANGED,
+            VOICE_GUIDANCE_HINTS_CHANGED
+        };
 
         class EXTERNAL Job : public Core::IDispatch {
         protected:
@@ -158,36 +174,49 @@ namespace Plugin {
         };
 
     public:
-        virtual uint32_t Register(Exchange::IUserSettings::INotification *notification ) override ;
-        virtual uint32_t Unregister(Exchange::IUserSettings::INotification *notification ) override ;
-        uint32_t SetAudioDescription(const bool enabled) override;
-        uint32_t GetAudioDescription(bool &enabled) const override;
-        uint32_t SetPreferredAudioLanguages(const string& preferredLanguages) override;
-        uint32_t GetPreferredAudioLanguages(string &preferredLanguages) const override;
-        uint32_t SetPresentationLanguage(const string& presentationLanguage) override;
-        uint32_t GetPresentationLanguage(string &presentationLanguage) const override;
-        uint32_t SetCaptions(const bool enabled) override;
-        uint32_t GetCaptions(bool &enabled) const override;
-        uint32_t SetPreferredCaptionsLanguages(const string& preferredLanguages) override;
-        uint32_t GetPreferredCaptionsLanguages(string &preferredLanguages) const override;
-        uint32_t SetPreferredClosedCaptionService(const string& service) override;
-        uint32_t GetPreferredClosedCaptionService(string &service) const override;
-        uint32_t SetPrivacyMode(const string& privacyMode) override;
-        uint32_t GetPrivacyMode(string &privacyMode) const override;
-        uint32_t SetPinControl(const bool enabled) override;
-        uint32_t GetPinControl(bool &enabled) const override;
-        uint32_t SetViewingRestrictions(const string& viewingRestrictions) override;
-        uint32_t GetViewingRestrictions(string &viewingRestrictions) const override;
-        uint32_t SetViewingRestrictionsWindow(const string& viewingRestrictionsWindow) override;
-        uint32_t GetViewingRestrictionsWindow(string &viewingRestrictionsWindow) const override;
-        uint32_t SetLiveWatershed(const bool enabled) override;
-        uint32_t GetLiveWatershed(bool &enabled) const override;
-        uint32_t SetPlaybackWatershed(const bool enabled) override;
-        uint32_t GetPlaybackWatershed(bool &enabled) const override;
-        uint32_t SetBlockNotRatedContent(const bool enabled) override;
-        uint32_t GetBlockNotRatedContent(bool &enabled) const override;
-        uint32_t SetPinOnPurchase(const bool enabled) override;
-        uint32_t GetPinOnPurchase(bool &enabled) const override;
+        virtual Core::hresult Register(Exchange::IUserSettings::INotification *notification ) override ;
+        virtual Core::hresult Unregister(Exchange::IUserSettings::INotification *notification ) override ;
+        Core::hresult SetAudioDescription(const bool enabled) override;
+        Core::hresult GetAudioDescription(bool &enabled) const override;
+        Core::hresult SetPreferredAudioLanguages(const string& preferredLanguages) override;
+        Core::hresult GetPreferredAudioLanguages(string &preferredLanguages) const override;
+        Core::hresult SetPresentationLanguage(const string& presentationLanguage) override;
+        Core::hresult GetPresentationLanguage(string &presentationLanguage) const override;
+        Core::hresult SetCaptions(const bool enabled) override;
+        Core::hresult GetCaptions(bool &enabled) const override;
+        Core::hresult SetPreferredCaptionsLanguages(const string& preferredLanguages) override;
+        Core::hresult GetPreferredCaptionsLanguages(string &preferredLanguages) const override;
+        Core::hresult SetPreferredClosedCaptionService(const string& service) override;
+        Core::hresult GetPreferredClosedCaptionService(string &service) const override;
+        Core::hresult SetPinControl(const bool pinControl) override;
+        Core::hresult GetPinControl(bool &pinControl) const override;
+        Core::hresult SetViewingRestrictions(const string& viewingRestrictions) override;
+        Core::hresult GetViewingRestrictions(string &viewingRestrictions) const override;
+        Core::hresult SetViewingRestrictionsWindow(const string& viewingRestrictionsWindow) override;
+        Core::hresult GetViewingRestrictionsWindow(string &viewingRestrictionsWindow) const override;
+        Core::hresult SetLiveWatershed(const bool liveWatershed) override;
+        Core::hresult GetLiveWatershed(bool &liveWatershed) const override;
+        Core::hresult SetPlaybackWatershed(const bool playbackWatershed) override;
+        Core::hresult GetPlaybackWatershed(bool &playbackWatershed) const override;
+        Core::hresult SetBlockNotRatedContent(const bool blockNotRatedContent) override;
+        Core::hresult GetBlockNotRatedContent(bool &blockNotRatedContent) const override;
+        Core::hresult SetPinOnPurchase(const bool pinOnPurchase) override;
+        Core::hresult GetPinOnPurchase(bool &pinOnPurchase) const override;
+        Core::hresult SetHighContrast(const bool enabled) override;
+        Core::hresult GetHighContrast(bool &enabled) const override;
+        Core::hresult SetVoiceGuidance(const bool enabled) override;
+        Core::hresult GetVoiceGuidance(bool &enabled) const override;
+        Core::hresult SetVoiceGuidanceRate(const double rate) override;
+        Core::hresult GetVoiceGuidanceRate(double &rate) const override;
+        Core::hresult SetVoiceGuidanceHints(const bool hints) override;
+        Core::hresult GetVoiceGuidanceHints(bool &hints) const override;
+
+        // IUserSettingsInspector methods
+        Core::hresult GetMigrationState(const SettingsKey key, bool &requiresMigration) const override;
+        Core::hresult GetMigrationStates(IUserSettingsMigrationStateIterator *&states) const override;
+
+        // IConfiguration methods
+        uint32_t Configure(PluginHost::IShell* service) override;
 
         void registerEventHandlers();
         void ValueChanged(const Exchange::IStore2::ScopeType scope, const string& ns, const string& key, const string& value);
@@ -198,13 +227,11 @@ namespace Plugin {
 
     private:
         mutable Core::CriticalSection _adminLock;
-        Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> _engine;
-        Core::ProxyType<RPC::CommunicatorClient> _communicatorClient;
-        PluginHost::IShell *_controller;
         Exchange::IStore2* _remotStoreObject;
         std::list<Exchange::IUserSettings::INotification*> _userSettingNotification;
         Core::Sink<Store2Notification> _storeNotification;
         bool _registeredEventHandlers;
+        PluginHost::IShell* _service;
 
 #ifdef HAS_RBUS
         rbusError_t _rbusHandleStatus;
