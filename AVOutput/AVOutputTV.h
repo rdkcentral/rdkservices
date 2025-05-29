@@ -484,7 +484,6 @@ class AVOutputTV : public AVOutputBase {
 #endif
 		uint32_t getPQCapabilityWithContext(
 			const std::function<tvError_t(tvContextCaps_t**, int*)>& getCapsFunc,
-			const char* key,
 			const JsonObject& parameters,
 			JsonObject& response);
 		JsonObject parseContextCaps(tvContextCaps_t* context_caps);

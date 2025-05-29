@@ -635,7 +635,7 @@ namespace Plugin {
 
         // Only call HAL for current system context
         if (isSetRequiredForParam(parameters, paramName)) {
-            LOGINFO("Calling HAL for %s = %s", paramName.c_str(), value.c_str());
+            LOGINFO("Calling HAL for %s = %s intVal %d", paramName.c_str(), value.c_str(), intVal);
             tvError_t ret = halSetter(intVal);
             if (ret != tvERROR_NONE) {
             LOGERR("HAL setter failed for %s", paramName.c_str());
@@ -703,31 +703,35 @@ namespace Plugin {
     }
 
     uint32_t AVOutputTV::getPQCapabilityWithContext(
-        const std::function<tvError_t( tvContextCaps_t**,int*)>& getCapsFunc,
-        const char* key,
+        const std::function<tvError_t(tvContextCaps_t**, int*)>& getCapsFunc,
         const JsonObject& parameters,
         JsonObject& response)
     {
         int max_value = 0;
         tvContextCaps_t* context_caps = nullptr;
+
         // Call the HAL function
-        tvError_t result = getCapsFunc( &context_caps, &max_value);
+        tvError_t result = getCapsFunc(&context_caps, &max_value);
         LOGWARN("AVOutputPlugins: %s: result: %d", __FUNCTION__, result);
+
         if (result != tvERROR_NONE) {
             returnResponse(false);
         }
-        JsonObject capsInfo;
-        JsonObject rangeInfo;
-        if (max_value){
+
+        response["platformSupport"] = true;
+
+        if (max_value > 0) {
+            JsonObject rangeInfo;
             rangeInfo["from"] = 0;
             rangeInfo["to"] = max_value;
-            capsInfo["rangeInfo"] = rangeInfo;
+            response["rangeInfo"] = rangeInfo;
         }
-        capsInfo["platformSupport"] = true;
-        capsInfo["context"] = parseContextCaps(context_caps);
-        response[key] = capsInfo;
+
+        response["context"] = parseContextCaps(context_caps);
+
         returnResponse(true);
     }
+
 
     JsonObject AVOutputTV::parseContextCaps(tvContextCaps_t* context_caps) {
         JsonObject contextObj;
@@ -785,7 +789,7 @@ namespace Plugin {
 #else
         return GetBacklightCaps(max_backlight, context_caps);
 #endif
-        }, "backlight", parameters, response);
+        }, parameters, response);
     }
 
     uint32_t AVOutputTV::getBrightnessCapsV2(const JsonObject& parameters, JsonObject& response) {
@@ -796,7 +800,7 @@ namespace Plugin {
         return GetBrightnessCaps(max_brightness, context_caps);
 #endif
         },
-        "brightness", parameters, response);
+        parameters, response);
     }
 
     uint32_t AVOutputTV::getContrastCapsV2(const JsonObject& parameters, JsonObject& response) {
@@ -807,7 +811,7 @@ namespace Plugin {
         return GetContrastCaps(max_contrast, context_caps);
 #endif
         },
-        "contrast", parameters, response);
+        parameters, response);
     }
 
     uint32_t AVOutputTV::getSharpnessCapsV2(const JsonObject& parameters, JsonObject& response) {
@@ -818,7 +822,7 @@ namespace Plugin {
         return GetSharpnessCaps(max_sharpness, context_caps);
 #endif
         },
-        "sharpness", parameters, response);
+        parameters, response);
     }
 
     uint32_t AVOutputTV::getSaturationCapsV2(const JsonObject& parameters, JsonObject& response) {
@@ -829,7 +833,7 @@ namespace Plugin {
         return GetSaturationCaps(max_saturation, context_caps);
 #endif
         },
-        "saturation", parameters, response);
+        parameters, response);
     }
 
     uint32_t AVOutputTV::getHueCapsV2(const JsonObject& parameters, JsonObject& response) {
@@ -840,7 +844,7 @@ namespace Plugin {
         return GetHueCaps(max_hue, context_caps);
 #endif
         },
-        "hue", parameters, response);
+        parameters, response);
     }
 
     uint32_t AVOutputTV::getPrecisionDetailCaps(const JsonObject& parameters, JsonObject& response) {
@@ -851,7 +855,7 @@ namespace Plugin {
         return GetPrecisionDetailCaps(max_precision, context_caps);
 #endif
         },
-        "precisionDetail", parameters, response);
+        parameters, response);
     }
 
     uint32_t AVOutputTV::getLocalContrastEnhancementCaps(const JsonObject& parameters, JsonObject& response) {
@@ -862,7 +866,7 @@ namespace Plugin {
         return GetLocalContrastEnhancementCaps(max_val, context_caps);
 #endif
         },
-        "localContrastEnhancement", parameters, response);
+        parameters, response);
     }
 
     uint32_t AVOutputTV::getMPEGNoiseReductionCaps(const JsonObject& parameters, JsonObject& response) {
@@ -873,7 +877,7 @@ namespace Plugin {
         return GetMPEGNoiseReductionCaps(max_val, context_caps);
 #endif
         },
-        "mpegNoiseReduction", parameters, response);
+        parameters, response);
     }
 
     uint32_t AVOutputTV::getDigitalNoiseReductionCaps(const JsonObject& parameters, JsonObject& response) {
@@ -884,7 +888,7 @@ namespace Plugin {
         return GetDigitalNoiseReductionCaps(max_val, context_caps);
 #endif
         },
-        "digitalNoiseReduction", parameters, response);
+        parameters, response);
     }
 
     uint32_t AVOutputTV::getAISuperResolutionCaps(const JsonObject& parameters, JsonObject& response) {
@@ -895,7 +899,7 @@ namespace Plugin {
         return GetAISuperResolutionCaps(max_val, context_caps);
 #endif
         },
-        "aiSuperResolution", parameters, response);
+        parameters, response);
     }
 
     uint32_t AVOutputTV::getMultiPointWBCaps(const JsonObject& parameters, JsonObject& response)
@@ -962,7 +966,7 @@ namespace Plugin {
             return GetMEMCCaps(max_val, context_caps);
 #endif
         },
-        "memc", parameters, response);
+        parameters, response);
     }
 
     uint32_t AVOutputTV::getLowLatencyStateCapsV2(const JsonObject& parameters, JsonObject& response) {
@@ -973,7 +977,7 @@ namespace Plugin {
         return GetLowLatencyStateCaps(max_latency, context_caps);
 #endif
         },
-        "lowLatencyState", parameters, response);
+        parameters, response);
     }
 
     // Forward lookup: string → enum
@@ -1014,7 +1018,8 @@ namespace Plugin {
             return err;
         }
 
-        JsonObject colorTempJson;
+        response["platformSupport"] = true;
+
         JsonArray optionsArray;
         for (size_t i = 0; i < num_color_temp; ++i) {
             auto it = colorTempReverseMap.find(color_temp[i]);
@@ -1022,19 +1027,18 @@ namespace Plugin {
                 optionsArray.Add(it->second);
             }
         }
-        colorTempJson["options"] = optionsArray;
-        colorTempJson["platformSupport"] = true;
-        colorTempJson["context"] = parseContextCaps(context_caps);
-        response["colorTemperature"] = colorTempJson;
+        response["options"] = optionsArray;
+        response["context"] = parseContextCaps(context_caps);
 
-        // TODO:: Review cleanup once HAL is available, as memory will be allocated in HAL.
-#if HAL_NOT_READY
+    #if HAL_NOT_READY
         free(color_temp);
-#endif
+    #endif
+
         returnResponse(true);
     }
 
-    uint32_t AVOutputTV::getSDRGammaCaps(const JsonObject& parameters, JsonObject& response) {
+    uint32_t AVOutputTV::getSDRGammaCaps(const JsonObject& parameters, JsonObject& response)
+    {
         tvSdrGamma_t* sdr_gamma = nullptr;
         size_t num_sdr_gamma = 0;
         tvContextCaps_t* context_caps = nullptr;
@@ -1044,32 +1048,35 @@ namespace Plugin {
             return err;
         }
 
-        JsonObject sdrGammaJson;
+        response["platformSupport"] = true;
+
         JsonArray optionsArray;
         for (size_t i = 0; i < num_sdr_gamma; ++i) {
             switch (sdr_gamma[i]) {
-                case tvSdrGamma_1_8: optionsArray.Add("1.8"); break;
-                case tvSdrGamma_1_9: optionsArray.Add("1.9"); break;
-                case tvSdrGamma_2_0: optionsArray.Add("2.0"); break;
-                case tvSdrGamma_2_1: optionsArray.Add("2.1"); break;
-                case tvSdrGamma_2_2: optionsArray.Add("2.2"); break;
-                case tvSdrGamma_2_3: optionsArray.Add("2.3"); break;
-                case tvSdrGamma_2_4: optionsArray.Add("2.4"); break;
+                case tvSdrGamma_1_8:     optionsArray.Add("1.8"); break;
+                case tvSdrGamma_1_9:     optionsArray.Add("1.9"); break;
+                case tvSdrGamma_2_0:     optionsArray.Add("2.0"); break;
+                case tvSdrGamma_2_1:     optionsArray.Add("2.1"); break;
+                case tvSdrGamma_2_2:     optionsArray.Add("2.2"); break;
+                case tvSdrGamma_2_3:     optionsArray.Add("2.3"); break;
+                case tvSdrGamma_2_4:     optionsArray.Add("2.4"); break;
                 case tvSdrGamma_BT_1886: optionsArray.Add("BT.1886"); break;
                 default: break;
             }
         }
-        sdrGammaJson["options"] = optionsArray;
-        sdrGammaJson["platformSupport"] = true;
-        sdrGammaJson["context"] = parseContextCaps(context_caps);
-        response["sdrGamma"] = sdrGammaJson;
-#if HAL_NOT_READY
+        response["options"] = optionsArray;
+
+        response["context"] = parseContextCaps(context_caps);
+
+    #if HAL_NOT_READY
         free(sdr_gamma);
-#endif
+    #endif
+
         returnResponse(true);
     }
 
-    uint32_t AVOutputTV::getBacklightDimmingModeCapsV2(const JsonObject& parameters, JsonObject& response) {
+    uint32_t AVOutputTV::getBacklightDimmingModeCapsV2(const JsonObject& parameters, JsonObject& response)
+    {
         tvDimmingMode_t* dimming_mode = nullptr;
         size_t num_dimming_mode = 0;
         tvContextCaps_t* context_caps = nullptr;
@@ -1079,7 +1086,8 @@ namespace Plugin {
             return err;
         }
 
-        JsonObject dimmingModeJson;
+        response["platformSupport"] = true;
+
         JsonArray optionsArray;
         for (size_t i = 0; i < num_dimming_mode; ++i) {
             auto it = dimmingModeReverseMap.find(dimming_mode[i]);
@@ -1087,18 +1095,21 @@ namespace Plugin {
                 optionsArray.Add(it->second);
             }
         }
-        dimmingModeJson["options"] = optionsArray;
-        dimmingModeJson["platformSupport"] = true;
-        dimmingModeJson["context"] = parseContextCaps(context_caps);
-        response["dimmingMode"] = dimmingModeJson;
-#if HAL_NOT_READY
+        response["options"] = optionsArray;
+
+        response["context"] = parseContextCaps(context_caps);
+
+    #if HAL_NOT_READY
         free(dimming_mode);
-#endif
+    #endif
+
         returnResponse(true);
     }
 
-    uint32_t AVOutputTV::getZoomModeCapsV2(const JsonObject& parameters, JsonObject& response) {
-        JsonObject aspectRatioJson;
+    uint32_t AVOutputTV::getZoomModeCapsV2(const JsonObject& parameters, JsonObject& response)
+    {
+        response["platformSupport"] = true;
+
         JsonArray optionsArray;
         for (size_t i = 0; i < m_numAspectRatio; ++i) {
             auto it = zoomModeReverseMap.find(m_aspectRatio[i]);
@@ -1106,42 +1117,44 @@ namespace Plugin {
                 optionsArray.Add(it->second);
             }
         }
-        aspectRatioJson["options"] = optionsArray;
-        aspectRatioJson["platformSupport"] = true;
-        aspectRatioJson["context"] = parseContextCaps(m_aspectRatioCaps);
-        response["zoomMode"] = aspectRatioJson;
-#if HAL_NOT_READY
+        response["options"] = optionsArray;
+
+        response["context"] = parseContextCaps(m_aspectRatioCaps);
+
+    #if HAL_NOT_READY
         free(m_aspectRatio);
-#endif
+    #endif
+
         returnResponse(true);
     }
 
-    uint32_t AVOutputTV::getPictureModeCapsV2(const JsonObject& parameters, JsonObject& response) {
-        JsonObject pictureModeJson;
-        JsonArray optionsArray;
+    uint32_t AVOutputTV::getPictureModeCapsV2(const JsonObject& parameters, JsonObject& response)
+    {
+        response["platformSupport"] = true;
 
+        JsonArray optionsArray;
         for (size_t i = 0; i < m_numPictureModes; ++i) {
             auto it = pqModeMap.find(m_pictureModes[i]);
             if (it != pqModeMap.end()) {
                 optionsArray.Add(it->second);
             }
         }
+        response["options"] = optionsArray;
 
-        pictureModeJson["options"] = optionsArray;
-        pictureModeJson["platformSupport"] = true;
-        pictureModeJson["context"] = parseContextCaps(m_pictureModeCaps);
-        response["pictureMode"] = pictureModeJson;
-#if HAL_NOT_READY
+        response["context"] = parseContextCaps(m_pictureModeCaps);
+
+    #if HAL_NOT_READY
         free(m_pictureModes);
-#endif
+    #endif
+
         returnResponse(true);
     }
 
     uint32_t AVOutputTV::getAutoBacklightModeCapsV2(const JsonObject& parameters, JsonObject& response)
     {
-        JsonObject backlightModeJson;
-        JsonArray optionsArray;
+        response["platformSupport"] = true;
 
+        JsonArray optionsArray;
         for (size_t i = 0; i < m_numBacklightModes; ++i) {
             switch (m_backlightModes[i]) {
                 case tvBacklightMode_MANUAL:
@@ -1154,23 +1167,24 @@ namespace Plugin {
                     optionsArray.Add("Eco");
                     break;
                 default:
-                    LOGINFO("Unknown backlightMode option \n");
+                    LOGINFO("Unknown backlightMode option\n");
                     break;
             }
         }
+        response["options"] = optionsArray;
 
-        backlightModeJson["options"] = optionsArray;
-        backlightModeJson["platformSupport"] = true;
-        backlightModeJson["context"] = parseContextCaps(m_backlightModeCaps);
-        response["mode"] = backlightModeJson;
-#if HAL_NOT_READY
-        // TODO:: Review cleanup once HAL is available, as memory will be allocated in HAL.
+        response["context"] = parseContextCaps(m_backlightModeCaps);
+
+    #if HAL_NOT_READY
+        // TODO: Review cleanup once HAL is available, as memory will be allocated in HAL.
         free(m_backlightModes);
-#endif
+    #endif
+
         returnResponse(true);
     }
 
-    uint32_t AVOutputTV::getDolbyVisionCalibrationCaps(const JsonObject& parameters, JsonObject& response) {
+    uint32_t AVOutputTV::getDolbyVisionCalibrationCaps(const JsonObject& parameters, JsonObject& response)
+    {
         tvDVCalibrationSettings_t* min_values = nullptr;
         tvDVCalibrationSettings_t* max_values = nullptr;
         tvContextCaps_t* context_caps = nullptr;
