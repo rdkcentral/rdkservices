@@ -3575,8 +3575,8 @@ namespace Plugin {
             tvError_t ret = tvERROR_NONE;
             std::string value;
 
-            value = parameters.HasLabel("DimmingMode") ? parameters["DimmingMode"].String() : "";
-            returnIfParamNotFound(parameters,"DimmingMode");
+            value = parameters.HasLabel("dimmingMode") ? parameters["dimmingMode"].String() : "";
+            returnIfParamNotFound(parameters,"dimmingMode");
 
             if (validateInputParameter("DimmingMode",value) != 0) {
                 LOGERR("%s: Range validation failed for DimmingMode\n", __FUNCTION__);
@@ -3620,8 +3620,8 @@ namespace Plugin {
             tvError_t ret = tvERROR_NONE;
             std::string value;
 
-            value = parameters.HasLabel("DimmingMode") ? parameters["DimmingMode"].String() : "";
-            returnIfParamNotFound(parameters,"DimmingMode");
+            value = parameters.HasLabel("dimmingMode") ? parameters["dimmingMode"].String() : "";
+            returnIfParamNotFound(parameters,"dimmingMode");
 
             dimmingMode = getDimmingModeIndex(value);
             if (dimmingMode < 0 || dimmingMode > tvDimmingMode_MAX) {
