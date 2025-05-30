@@ -19,6 +19,8 @@
 #include "SiftConfig.h"
 #include "UtilsLogging.h"
 
+#include "UtilsTelemetry.h"
+
 #include <algorithm>
 #include <cctype> 
 #include <fstream>
@@ -489,10 +491,7 @@ namespace WPEFramework
 
             if (config.FromString(configLine, error) == false)
             {
-                SYSLOG(Logging::ParsingError,
-                       (_T("Failed to parse config line, error: '%s', config line: '%s'."),
-                        (error.IsSet() ? error.Value().Message().c_str() : "Unknown"),
-                        configLine.c_str())); 
+                Utils::Telemetry::sendError("SiftConfig::ParsePluginConfig: Failed to parse config line");
             }
             else
             {
@@ -509,7 +508,7 @@ namespace WPEFramework
                 mAttributes.proposition = config.Sift.PlatformDfl.Value();
                 
                 mStoreConfig.path = config.Sift.StorePath.Value();
-                SYSLOG(Logging::Startup, ("Sift Store Path: %s", mStoreConfig.path.c_str()));
+                Utils::Telemetry::sendMessage("SiftConfig::ParsePluginConfig: Sift Store Path: %s", mStoreConfig.path.c_str());
                 mStoreConfig.eventsLimit = config.Sift.EventsLimit.Value();
 
                 mUploaderConfig.url = config.Sift.Url.Value();
@@ -520,7 +519,7 @@ namespace WPEFramework
                 mUploaderConfig.maxRetryPeriod = config.Sift.MaxRetryPeriod.Value();
                 mUploaderConfig.exponentialPeriodicFactor = config.Sift.ExponentialPeriodicFactor.Value();
                 
-                SYSLOG(Logging::Startup, (_T("Parsed Analytics config: '%s', '%s', '%s', '%s', '%s', '%s', '%s'."),
+                Utils::Telemetry::sendMessage("SiftConfig::ParsePluginConfig: Parsed Analytics config: '%s', '%s', '%s', '%s', '%s', '%s', '%s'.",
                                           mAttributes.commonSchema.c_str(),
                                           mAttributes.env.c_str(),
                                           mAttributes.productName.c_str(),
@@ -528,7 +527,8 @@ namespace WPEFramework
                                           mAttributes.loggerVersion.c_str(),
                                           mAttributes.platform.c_str(),
                                           mAttributes.deviceOsName.c_str()
-                    ));
+                    );
+
             }
         }
 
@@ -578,7 +578,7 @@ namespace WPEFramework
                 uint32_t result = mAuthServiceLink->Subscribe<JsonObject>(JSONRPC_THUNDER_TIMEOUT, _T("onActivationStatusChanged"), &SiftConfig::OnActivationStatusChanged, this);
                 if (result != Core::ERROR_NONE)
                 {
-                    LOGERR("Failed to subscribe to onActivationStatusChanged");
+                    Utils::Telemetry::sendError("SiftConfig::Initialize: Failed to subscribe to onActivationStatusChanged");
                 }
 
                 JsonObject params;
@@ -590,12 +590,12 @@ namespace WPEFramework
                 {
                     mMutex.lock();
                     mAttributes.partnerId = response["partnerId"].String();
-                    LOGINFO("Got partnerId %s", mAttributes.partnerId.c_str());
+                    Utils::Telemetry::sendMessage("SiftConfig::Initialize: Got partnerId %s", mAttributes.partnerId.c_str());
                     mMutex.unlock();
                 }
                 else
                 {
-                    LOGERR("Failed to get partnerId: %d", result);
+                    Utils::Telemetry::sendError("SiftConfig::Initialize: Failed to get partnerId");
                 }
 
                 // Get current activation status from AuthService.getActivationStatus
@@ -614,12 +614,12 @@ namespace WPEFramework
                 }
                 else
                 {
-                    LOGERR("Failed to get activation status");
+                    Utils::Telemetry::sendError("SiftConfig::Initialize: Failed to get activation status");
                 }
             }
             else
             {
-                LOGERR("Failed to get AuthService link");
+                Utils::Telemetry::sendError("SiftConfig::Initialize: Failed to get AuthService link");
                 mMutex.lock();
                 mAttributes.activated = false;
                 mMutex.unlock();
@@ -729,12 +729,11 @@ namespace WPEFramework
             auto interface = mShell->QueryInterfaceByCallsign<Exchange::IStore>(PERSISTENT_STORE_CALLSIGN);
             if (interface == nullptr)
             {
-                LOGERR("No IStore");
+                Utils::Telemetry::sendError("SiftConfig::Initialize: Failed to get IStore");
             }
             else
             {
-                uint32_t result = interface->Register(&mMonitorKeys);
-                LOGINFO("IStore status %d", result);
+                interface->Register(&mMonitorKeys);
                 interface->Release();
             }
 
@@ -762,7 +761,7 @@ namespace WPEFramework
             if (interface == nullptr)
             {
                 result = Core::ERROR_UNAVAILABLE;
-                LOGERR("No IStore");
+                Utils::Telemetry::sendError("SiftConfig::GetValueFromPersistent: Failed to get IStore");
             }
             else
             {
@@ -802,7 +801,7 @@ namespace WPEFramework
                 }
                 else
                 {
-                    LOGERR("Failed to get xboAccountId");
+                    Utils::Telemetry::sendError("SiftConfig::UpdateXboValues: Failed to get xboAccountId");
                 }
             }
 
@@ -821,7 +820,7 @@ namespace WPEFramework
                 }
                 else
                 {
-                    LOGERR("Failed to get xboDeviceId");
+                    Utils::Telemetry::sendError("SiftConfig::UpdateXboValues: Failed to get xboDeviceId");
                 }
             }
         }
@@ -890,7 +889,7 @@ namespace WPEFramework
                 }
                 else
                 {
-                    LOGERR("Failed to create JSONRPCDirectLink");
+                    Utils::Telemetry::sendError("SiftConfig::ActivatePlugin: Failed to create JSONRPCDirectLink");
                 }
             }
         }

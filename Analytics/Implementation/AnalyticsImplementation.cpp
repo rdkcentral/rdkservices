@@ -21,6 +21,8 @@
 #include "UtilsLogging.h"
 #include "SystemTime.h"
 
+#include "UtilsTelemetry.h"
+
 #include <fstream>
 #include <streambuf>
 #include <sys/sysinfo.h>
@@ -61,6 +63,7 @@ namespace Plugin {
         mSysTimeValid(false),
         mShell(nullptr)
     {
+        Utils::Telemetry::init();
         mThread = std::thread(&AnalyticsImplementation::ActionLoop, this);
     }
 
@@ -107,6 +110,10 @@ namespace Plugin {
         LOGINFO("Uptime Timestamp: %" PRIu64, uptimeTimestamp);
         LOGINFO("Event Payload: %s", eventPayload.c_str());
 
+        Utils::Telemetry::sendMessage("AnalyticsImplementation::SendEvent: Event Name: %s, Event Version: %s,"
+            "Event Source: %s, Event Source Version: %s, Epoch Timestamp: %" PRIu64 ", Uptime Timestamp: %" PRIu64 ", Event Payload: %s",
+            eventName.c_str(), eventVersion.c_str(), eventSource.c_str(), eventSourceVersion.c_str(), epochTimestamp, uptimeTimestamp, eventPayload.c_str());
+
         bool valid = true;
         if (eventName.empty())
         {
@@ -131,6 +138,7 @@ namespace Plugin {
 
         if (valid == false)
         {
+            Utils::Telemetry::sendError("AnalyticsImplementation::SendEvent: Invalid event parameters");
             return Core::ERROR_GENERAL;
         }
 
@@ -157,7 +165,7 @@ namespace Plugin {
         mSysTime = std::make_shared<SystemTime>(shell);
         if(mSysTime == nullptr)
         {
-            LOGERR("Failed to create SystemTime instance");
+            Utils::Telemetry::sendError("AnalyticsImplementation::Configure - Failed to create SystemTime instance");
         }
 
         for (auto &backend : mBackends)
@@ -172,6 +180,7 @@ namespace Plugin {
 
         if (config.FromString(configLine, error) == false)
         {
+            Utils::Telemetry::sendError("AnalyticsImplementation::Configure - Failed to parse config line");
             SYSLOG(Logging::ParsingError,
                    (_T("Failed to parse config line, error: '%s', config line: '%s'."),
                     (error.IsSet() ? error.Value().Message().c_str() : "Unknown"),
@@ -271,7 +280,7 @@ namespace Plugin {
                         {
                             // Store the event in the queue with uptime only
                             mEventQueue.push(*action.payload);
-                            LOGINFO("SysTime not ready, event awaiting in queue: %s", action.payload->eventName.c_str());
+                            Utils::Telemetry::sendError("AnalyticsImplementation::ActionLoop - SysTime not ready, event awaiting in queue");
                         }
                     }
                     break;
@@ -321,11 +330,11 @@ namespace Plugin {
         //TODO: Add mapping of event source/name to the desired backend
         if (mBackends.empty())
         {
-            LOGINFO("No backends available!");
+            Utils::Telemetry::sendError("AnalyticsImplementation::SendEventToBackend - No backends available");
         }
         else if (mBackends.find(IAnalyticsBackend::SIFT) != mBackends.end())
         {
-            LOGINFO("Sending event to Sift backend: %s", backendEvent.eventName.c_str());
+            Utils::Telemetry::sendMessage("AnalyticsImplementation::SendEventToBackend: Sending event to Sift backend: %s", backendEvent.eventName.c_str());
             mBackends.at(IAnalyticsBackend::SIFT)->SendEvent(backendEvent);
         }
     }
@@ -334,7 +343,7 @@ namespace Plugin {
     {
         if (eventsMapFile.empty())
         {
-            LOGINFO("Events map file path is empty, skipping parsing");
+            Utils::Telemetry::sendError("AnalyticsImplementation::ParseEventsMapFile - Events map file path is empty");
             return;
         }
         std::ifstream t(eventsMapFile);
@@ -391,7 +400,7 @@ namespace Plugin {
 
         if (array.Length() == 0)
         {
-            LOGERR("Empty or corrupted events map json array");
+            Utils::Telemetry::sendError("AnalyticsImplementation::EventMapper::FromString - Empty or corrupted events map json array");
             return;
         }
 
@@ -408,11 +417,13 @@ namespace Plugin {
 
                 std::string mapped_event_name = entry["mapped_event_name"].String();
                 map[key] = mapped_event_name;
-                LOGINFO("Index %d: Mapped event: %s -> %s", i, entry["event_name"].String().c_str(), mapped_event_name.c_str());
+
+                Utils::Telemetry::sendMessage("AnalyticsImplementation::EventMapper::FromString: Mapped event: %s -> %s",
+                    entry["event_name"].String().c_str(), mapped_event_name.c_str());
             }
             else
             {
-                LOGERR("Invalid entry in events map file at index %d", i);
+                Utils::Telemetry::sendError("AnalyticsImplementation::EventMapper::FromString - Invalid entry in events map json array");
             }
         }
     }

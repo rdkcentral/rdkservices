@@ -19,6 +19,8 @@
 #include "SiftBackend.h"
 #include "UtilsLogging.h"
 
+#include "UtilsTelemetry.h"
+
 #include <fstream>
 #include <iomanip>
 #include <random>
@@ -190,7 +192,7 @@ namespace WPEFramework
 
                         if (!mEventQueue.empty())
                         {
-                            LOGERR("Failed to send all events from queue");
+                            Utils::Telemetry::sendError("SiftBackend::ActionLoop: Failed to send all events from queue");
                             configValid = false;
                         }
                     }
@@ -329,7 +331,7 @@ namespace WPEFramework
                 }
                 else
                 {
-                    LOGWARN(" Account ID, Device ID, or Partner ID is empty for: %s", event.eventName.c_str());
+                    Utils::Telemetry::sendMessage("SiftBackend::SendEventInternal: Account ID, Device ID, or Partner ID is empty for: %s", event.eventName.c_str());
                 }
 
                 eventJson["app_name"] = attributes.deviceAppName;
@@ -349,12 +351,11 @@ namespace WPEFramework
             if (mStorePtr != nullptr
                 && mStorePtr->PostEvent(json))
             {
-                LOGINFO("Event %s sent to store", event.eventName.c_str());
+                Utils::Telemetry::sendMessage("SiftBackend::SendEventInternal: Event %s sent to store", event.eventName.c_str());
                 return true;
             }
 
-            LOGERR("Failed to send event %s to store", event.eventName.c_str());
-
+            Utils::Telemetry::sendError("SiftBackend::SendEventInternal: Failed to send event %s to store", event.eventName.c_str());
             return false;
         }
 
