@@ -1334,7 +1334,7 @@ namespace Plugin {
         //Ambient Bakclight Mode
         m_backlightModeStatus = GetBacklightModeCaps(&m_backlightModes, &m_numBacklightModes, &m_backlightModeCaps);
         if (m_backlightModeStatus == tvERROR_NONE) {
-            updateAVoutputTVParamV2("sync", "BacklightMode", paramJson, PQ_PARAM_MEMC, level);
+            updateAVoutputTVParamV2("sync", "BacklightMode", paramJson, PQ_PARAM_BACKLIGHT_MODE, level);
         }
 
         //AspectRatio
