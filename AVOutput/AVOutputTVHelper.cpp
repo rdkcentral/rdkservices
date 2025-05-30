@@ -1726,6 +1726,21 @@ namespace Plugin {
 	           }
                return 0;
            }
+           else if ( forParam.compare("BacklightMode") == 0 ) {
+                if (strncmp(param.value, "Manual", strlen(param.value)) == 0) {
+                    value = tvBacklightMode_MANUAL;
+                }
+                else if (strncmp(param.value, "Ambient", strlen(param.value)) == 0) {
+                    value = tvBacklightMode_AMBIENT;
+                }
+                else if (strncmp(param.value, "Eco", strlen(param.value)) == 0) {
+                    value = tvBacklightMode_ECO;
+                }
+                else {
+                    value = tvBacklightMode_MANUAL; // Default fallback
+                }
+                return 0;
+            }
            else if ( forParam.compare("DolbyVisionMode") == 0) {
                if (strncmp(param.value, "Dark", strlen(param.value)) == 0) {
                    value = tvDolbyMode_Dark;
