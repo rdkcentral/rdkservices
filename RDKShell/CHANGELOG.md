@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.6.8] - 2025-05-30
+### Fixed
+- RDKTV-35867: WPEframework crash fingerprint 41002687 at Cobalt::set_state
+
 ## [1.6.7] - 2025-02-27
 ### Fixed
 - Increase Hibernation delay to 30sec and get from RFC

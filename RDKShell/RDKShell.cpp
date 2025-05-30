@@ -718,6 +718,10 @@ namespace WPEFramework {
 	    {
 		return Core::ERROR_GENERAL;
 	    }
+            if(message->Error.IsSet()) {
+        	std::cout << "Call failed: " << message->Designator.Value() << " error: " <<  message->Error.Code.Value() << "\n";
+            	return message->Error.Code.Value();
+             }
 #elif (THUNDER_VERSION == 2)
             auto resp =  dispatcher_->Invoke(sThunderSecurityToken, channelId, *message);
 #else
