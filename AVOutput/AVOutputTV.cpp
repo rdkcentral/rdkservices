@@ -3530,17 +3530,17 @@ namespace Plugin {
                 switch(dimmingMode) {
                     case tvDimmingMode_Fixed:
                         LOGINFO("DimmingMode Value: Fixed\n");
-                        response["DimmingMode"] = "fixed";
+                        response["dimmingMode"] = "Fixed";
                         break;
 
                     case tvDimmingMode_Local:
                         LOGINFO("DimmingMode Value: Local\n");
-                        response["DimmingMode"] = "local";
+                        response["dimmingMode"] = "Local";
                         break;
 
                     case tvDimmingMode_Global:
                         LOGINFO("DimmingMode Value: Global\n");
-                        response["DimmingMode"] = "global";
+                        response["dimmingMode"] = "Global";
                         break;
 
                 }
