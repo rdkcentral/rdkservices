@@ -26,4 +26,7 @@ if boolean("@PLUGIN_ANALYTICS_SIFT_BACKEND_ENABLED@"):
     sift.add("storepath", "@PLUGIN_ANALYTICS_SIFT_STORE_PATH@")
     sift.add("eventslimit", "@PLUGIN_ANALYTICS_SIFT_STORE_EVENTS_LIMIT@")
     sift.add("url", "@PLUGIN_ANALYTICS_SIFT_URL@")
+    sift.add("cetmap", @PLUGIN_ANALYTICS_SIFT_CET_MAP@)
+    sift.add("cetdroponalltags", "@PLUGIN_ANALYTICS_SIFT_CET_DROP_ON_ALL_TAGS@")
+    sift.add("ceteventtype", "@PLUGIN_ANALYTICS_SIFT_CET_EVENT_TYPE@")
     configuration.add("sift", sift)
