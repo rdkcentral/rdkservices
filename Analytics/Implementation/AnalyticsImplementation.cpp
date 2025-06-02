@@ -34,6 +34,28 @@ namespace Plugin {
         private:
             AnalyticsConfig(const AnalyticsConfig&) = delete;
             AnalyticsConfig& operator=(const AnalyticsConfig&) = delete;
+
+            class Backend : public Core::JSON::Container {
+            public:
+                Backend(const Backend&) = delete;
+                Backend& operator=(const Backend&) = delete;
+
+                Backend()
+                    : Core::JSON::Container()
+                    , LibraryPath()
+                    , Config()
+
+                {
+                    Add(_T("librarypath"), &LibraryPath);
+                    Add(_T("config"), &Config);
+                }
+                ~Backend() = default;
+
+            public:
+                Core::JSON::String LibraryPath;
+                Core::JSON::VariantContainer Config;
+
+            };
           
         public:
             AnalyticsConfig()
@@ -41,6 +63,7 @@ namespace Plugin {
                 , EventsMap()
             {
                 Add(_T("eventsmap"), &EventsMap);
+                Add(_T("backends"), &Backends);
             }
             ~AnalyticsConfig()
             {
@@ -48,6 +71,7 @@ namespace Plugin {
 
         public:
             Core::JSON::String EventsMap;
+            Core::JSON::ArrayType<Backend> Backends;
         };
 
     SERVICE_REGISTRATION(AnalyticsImplementation, 1, 0);
@@ -57,7 +81,8 @@ namespace Plugin {
         mQueueCondition(),
         mActionQueue(),
         mEventQueue(),
-        mBackends(IAnalyticsBackendAdministrator::Create()),
+        mBackends(),
+        mBackendLoader(),
         mSysTimeValid(false),
         mShell(nullptr)
     {
@@ -81,6 +106,7 @@ namespace Plugin {
                                     IStringIterator* const& cetList,
                                     const uint64_t epochTimestamp,
                                     const uint64_t uptimeTimestamp,
+                                    const string& appId,
                                     const string& eventPayload)
     {
         std::shared_ptr<Event> event = std::make_shared<Event>();
@@ -101,6 +127,7 @@ namespace Plugin {
         }
         event->epochTimestamp = epochTimestamp;
         event->uptimeTimestamp = uptimeTimestamp;
+        event->appId = appId;
         event->eventPayload = eventPayload;
 
         LOGINFO("Epoch Timestamp:  %" PRIu64, epochTimestamp);
@@ -160,11 +187,6 @@ namespace Plugin {
             LOGERR("Failed to create SystemTime instance");
         }
 
-        for (auto &backend : mBackends)
-        {
-            LOGINFO("Configuring backend: %s", backend.first.c_str());
-            backend.second->Configure(shell, mSysTime);
-        }
 
         std::string configLine = mShell->ConfigLine();
         Core::OptionalType<Core::JSON::Error> error;
@@ -180,6 +202,9 @@ namespace Plugin {
 
         LOGINFO("EventsMap: %s", config.EventsMap.Value().c_str());
         ParseEventsMapFile(config.EventsMap.Value());
+
+        // Load backends
+        mBackendLoader.Load("libWPEFrameworkAnalyticsSiftBackend.so");
 
         return result;
     }
@@ -316,6 +341,7 @@ namespace Plugin {
         backendEvent.eventSourceVersion = event.eventSourceVersion;
         backendEvent.epochTimestamp = event.epochTimestamp;
         backendEvent.eventPayload = event.eventPayload;
+        backendEvent.appId = event.appId;
         backendEvent.cetList = event.cetList;
 
         //TODO: Add mapping of event source/name to the desired backend
@@ -323,10 +349,10 @@ namespace Plugin {
         {
             LOGINFO("No backends available!");
         }
-        else if (mBackends.find(IAnalyticsBackend::SIFT) != mBackends.end())
+        else //send to the first backend
         {
-            LOGINFO("Sending event to Sift backend: %s", backendEvent.eventName.c_str());
-            mBackends.at(IAnalyticsBackend::SIFT)->SendEvent(backendEvent);
+            LOGINFO("Sending event to backend: %s", mBackend.begin()->first.c_str());
+            mBackend.begin()->second->SendEvent(backendEvent);
         }
     }
 
