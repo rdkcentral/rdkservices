@@ -124,7 +124,9 @@ namespace Plugin {
                     sqlite3_close_v2(_data);
                     if ((rc == SQLITE_CORRUPT) || (rc == SQLITE_NOTADB)) {
                         OnError(__FUNCTION__, rc);
-                        ASSERT(file.Destroy());
+                        if (!file.Destroy()) {
+                            perror("remove failed");
+                        }
                         _corrupt = true;
                     }
                 }
