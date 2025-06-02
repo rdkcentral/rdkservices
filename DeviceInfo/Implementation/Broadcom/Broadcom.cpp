@@ -18,16 +18,14 @@
  */
  
 #include "../../Module.h"
-#ifndef USE_THUNDER_R4
 #include <interfaces/IDeviceIdentification.h>
-#endif /* USE_THUNDER_R4 */
-
+#include <interfaces/IConfiguration.h>
 #include <fstream>
 
 namespace WPEFramework {
 namespace Plugin {
 
-class DeviceImplementation : public PluginHost::ISubSystem::IIdentifier {
+class DeviceImplementation : public Exchange::IDeviceIdentification, public PluginHost::ISubSystem::IIdentifier {
     static constexpr const TCHAR* PlatformFile = _T("/proc/brcm/platform");
 
 public:
@@ -60,7 +58,6 @@ public:
         return _firmwareVersion;
     }
 
-    // Identifier interface
     uint8_t Identifier(const uint8_t length, uint8_t buffer[]) const override
     {
         uint8_t ret = 0;
@@ -71,7 +68,27 @@ public:
         return ret;
     }
 
+    // IDeviceIdentification interface
+
+    Core::hresult Identification(DeviceInfo& info) const override
+    {
+        info.deviceID = "";
+        uint8_t myBuffer[64];
+
+        myBuffer[0] = Identifier(sizeof(myBuffer) - 1, &(myBuffer[1]));
+
+        if (myBuffer[0] != 0) {
+            info.deviceID = Core::SystemInfo::Instance().Id(myBuffer, ~0);
+        }
+
+        info.firmwareVersion = FirmwareVersion();
+        info.chipset = Chipset();
+
+        return Core::ERROR_NONE;
+    }
+
     BEGIN_INTERFACE_MAP(DeviceImplementation)
+        INTERFACE_ENTRY(Exchange::IDeviceIdentification)
         INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
     END_INTERFACE_MAP
 
