@@ -925,6 +925,7 @@ namespace Plugin {
             LOGWARN("GetMultiPointWBCaps failed: %s", getErrorString(ret).c_str());
             returnResponse(false);
         }
+        response["platformSupport"] = true;
 
         response["numHalMatrixPoints"] = num_hal_matrix_points;
         response["rgbMin"] = rgb_min;
@@ -937,19 +938,7 @@ namespace Plugin {
             uiPosArray.Add(ui_matrix_positions[i]);
         }
         response["uiMatrixPositions"] = uiPosArray;
-
-        // Add contextCaps
-        JsonArray contextArray;
-        if (context_caps) {
-            for (uint32_t i = 0; i < context_caps->num_contexts; ++i) {
-                JsonObject ctx;
-                ctx["pictureMode"] = convertPictureIndexToStringV2(context_caps->contexts[i].pq_mode);
-                ctx["videoFormat"] = convertVideoFormatToStringV2(context_caps->contexts[i].videoFormatType);
-                ctx["videoSource"] = convertSourceIndexToStringV2(context_caps->contexts[i].videoSrcType);
-                contextArray.Add(ctx);
-            }
-        }
-        response["contextCaps"] = contextArray;
+        response["context"] = parseContextCaps(context_caps);
 #if HAL_NOT_READY
         // TODO:: Review cleanup once HAL is available, as memory will be allocated in HAL.
         delete[] ui_matrix_positions;
