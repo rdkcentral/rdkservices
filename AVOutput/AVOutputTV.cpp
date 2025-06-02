@@ -3378,7 +3378,7 @@ namespace Plugin {
         }
         else
         {
-            return setEnumPQParam(
+            bool success = setEnumPQParam(
                 parameters,
                 "colorTemperature",
                 "ColorTemp",
@@ -3386,8 +3386,15 @@ namespace Plugin {
                 PQ_PARAM_COLOR_TEMPERATURE,
                 [](int val) {
                     return SetColorTemperature(static_cast<tvColorTemp_t>(val));
-                }
-            );
+                });
+
+            if (!success) {
+                LOGERR("setColorTemperature failed");
+                returnResponse(false);
+            }
+
+            LOGINFO("setColorTemperature: Success");
+            returnResponse(true);
         }
     }
 
@@ -5186,6 +5193,7 @@ namespace Plugin {
             LOGERR("GetCMSCaps failed with error: %d", ret);
             returnResponse(false);
         }
+        response["platformSupport"] = true;
 
         // Range Info
         JsonObject rangeHue, rangeSaturation, rangeLuma;
@@ -5213,19 +5221,7 @@ namespace Plugin {
             componentJson.Add(getCMSComponentStringFromEnum(componentArray[i]));
         }
         response["component"] = componentJson;
-
-        // Context Info
-        JsonArray contextArray;
-        if (context_caps) {
-            for (uint32_t i = 0; i < context_caps->num_contexts; ++i) {
-                JsonObject ctx;
-                ctx["pictureMode"] = convertPictureIndexToStringV2(context_caps->contexts[i].pq_mode);
-                ctx["videoFormat"] = convertVideoFormatToStringV2(context_caps->contexts[i].videoFormatType);
-                ctx["videoSource"] = convertSourceIndexToStringV2(context_caps->contexts[i].videoSrcType);
-                contextArray.Add(ctx);
-            }
-        }
-        response["contextCaps"] = contextArray;
+        response["context"] = parseContextCaps(context_caps);
 #if HAL_NOT_READY
         // Clean up dynamic memory
         delete[] colorArray;
@@ -5688,6 +5684,7 @@ namespace Plugin {
             returnResponse(true);
         }
     }
+
     uint32_t AVOutputTV::get2PointWBCapsV2(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry: get2PointWBCapsV2");
@@ -5698,7 +5695,6 @@ namespace Plugin {
         size_t num_color = 0, num_control = 0;
         tvContextCaps_t* context_caps = nullptr;
 
-        // Call to GetCustom2PointWhiteBalanceCaps to fetch white balance capabilities
         tvError_t ret = GetCustom2PointWhiteBalanceCaps(&min_gain, &min_offset, &max_gain, &max_offset,
                                                         &colorArray, &controlArray,
                                                         &num_color, &num_control, &context_caps);
@@ -5708,60 +5704,42 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        // Range Info: Gain and Offset
+        response["platformSupport"] = true;
+
+        // Range Info
         JsonObject rangeGain, rangeOffset;
         rangeGain["from"] = min_gain;
         rangeGain["to"] = max_gain;
         rangeOffset["from"] = min_offset;
         rangeOffset["to"] = max_offset;
 
-        JsonObject custom2PointWB;
-        custom2PointWB["rangeGain"] = rangeGain;
-        custom2PointWB["rangeOffset"] = rangeOffset;
+        response["rangeGain"] = rangeGain;
+        response["rangeOffset"] = rangeOffset;
 
         // Control Info
         JsonArray controlJson;
         for (size_t i = 0; i < num_control; ++i) {
-            controlJson.Add(getWBControlStringFromEnum(controlArray[i])); // Convert control enum to string
+            controlJson.Add(getWBControlStringFromEnum(controlArray[i]));
         }
-        custom2PointWB["control"] = controlJson;
+        response["control"] = controlJson;
 
         // Color Info
         JsonArray colorJson;
         for (size_t i = 0; i < num_color; ++i) {
-            colorJson.Add(getWBColorStringFromEnum(colorArray[i])); // Convert color enum to string
+            colorJson.Add(getWBColorStringFromEnum(colorArray[i]));
         }
-        custom2PointWB["color"] = colorJson;
+        response["color"] = colorJson;
+        response["context"] = parseContextCaps(context_caps);
 
-        // Platform Support Info
-        custom2PointWB["platformSupport"] = true; // Assuming platform supports this, set true or retrieve dynamically if needed
-
-        // Context Info
-        JsonObject contextJson;
-        if (context_caps) {
-            for (uint32_t i = 0; i < context_caps->num_contexts; ++i) {
-                JsonObject ctx;
-                ctx["pictureMode"] = convertPictureIndexToStringV2(context_caps->contexts[i].pq_mode);
-                ctx["videoFormat"] = convertVideoFormatToStringV2(context_caps->contexts[i].videoFormatType);
-                ctx["videoSource"] = convertSourceIndexToStringV2(context_caps->contexts[i].videoSrcType);
-
-                // Context key is picture mode, and value is a list of formats
-                JsonArray formatArray;
-                formatArray.Add(ctx["videoFormat"]);
-                contextJson[convertPictureIndexToStringV2(context_caps->contexts[i].pq_mode).c_str()] = formatArray;
-            }
-        }
-        custom2PointWB["context"] = contextJson;
-
-        response["Custom2PointWhiteBalance"] = custom2PointWB; //TODO:: review
 #if HAL_NOT_READY
-        // Clean up dynamic memory
         delete[] colorArray;
         delete[] controlArray;
 #endif
+
         LOGINFO("Exit: get2PointWBCapsV2");
         returnResponse(true);
     }
+
 
     uint32_t AVOutputTV::get2PointWBCaps(const JsonObject& parameters, JsonObject& response)
     {
