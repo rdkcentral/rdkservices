@@ -67,7 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 3
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 4
+#define API_VERSION_NUMBER_PATCH 5
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -1742,10 +1742,17 @@ namespace WPEFramework {
         uint32_t SystemServices::setDeepSleepTimer(const JsonObject& parameters,
                 JsonObject& response)
 	{
+                LOGINFOMETHOD();
 		bool status = false;
 		IARM_Bus_PWRMgr_SetDeepSleepTimeOut_Param_t param;
 		if (parameters.HasLabel("seconds")) {
 			param.timeout = static_cast<unsigned int>(parameters["seconds"].Number());
+                        // if maintenence time is more then 10 days set to 0
+                        if(param.timeout<0 || param.timeout > 864000)
+                        {
+                            param.timeout = 0;
+                            LOGINFO("setDeepSleepTimer updated timeout to :%d",param.timeout);
+                        }
 			IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
 					IARM_BUS_PWRMGR_API_SetDeepSleepTimeOut, (void *)&param,
 					sizeof(param));

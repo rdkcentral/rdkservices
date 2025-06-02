@@ -1547,7 +1547,7 @@
             }
         },
         "setDeepSleepTimer": {
-            "summary": "Sets the deep sleep timeout period.",
+            "summary": "Sets the deep sleep timeout period. Max accepted value 864000(10 days). If larger value passed it will consider a 0",
             "params": {
                 "type":"object",
                 "properties": {
