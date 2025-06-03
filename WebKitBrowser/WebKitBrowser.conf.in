@@ -46,7 +46,8 @@ configuration.add("localstorage", "@PLUGIN_WEBKITBROWSER_LOCALSTORAGE@")
 configuration.add("cookiestorage", "@PLUGIN_WEBKITBROWSER_COOKIESTORAGE@")
 configuration.add("indexeddbenabled", "@PLUGIN_WEBKITBROWSER_INDEXEDDB_ENABLE@")
 configuration.add("indexeddbpath", "@PLUGIN_WEBKITBROWSER_INDEXEDDB_PATH@")
-configuration.add("indexeddbsize", "@PLUGIN_WEBKITBROWSER_INDEXEDDB_SIZE@")
+configuration.add("originstorageratio", "@PLUGIN_WEBKITBROWSER_ORIGIN_STORAGE_RATIO@")
+configuration.add("totalstorageratio", "@PLUGIN_WEBKITBROWSER_TOTAL_STORAGE_RATIO@")
 
 if boolean("@PLUGIN_WEBKITBROWSER_WINDOWCLOSE@"):
     configuration.add("windowclose", "@PLUGIN_WEBKITBROWSER_WINDOWCLOSE@")

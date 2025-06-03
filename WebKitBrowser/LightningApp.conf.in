@@ -39,7 +39,8 @@ configuration.add("localstoragesize", "@PLUGIN_LIGHTNING_APP_LOCALSTORAGESIZE@")
 configuration.add("cookiestorage", "@PLUGIN_LIGHTNING_APP_COOKIESTORAGE@")
 configuration.add("indexeddbenabled", "@PLUGIN_LIGHTNING_APP_INDEXEDDB_ENABLE@")
 configuration.add("indexeddbpath", "@PLUGIN_LIGHTNING_APP_INDEXEDDB_PATH@")
-configuration.add("indexeddbsize", "@PLUGIN_LIGHTNING_APP_INDEXEDDB_SIZE@")
+configuration.add("originstorageratio", "@PLUGIN_LIGHTNING_APP_ORIGIN_STORAGE_RATIO@")
+configuration.add("totalstorageratio", "@PLUGIN_LIGHTNING_APP_TOTAL_STORAGE_RATIO@")
 
 if boolean("@PLUGIN_LIGHTNING_APP_WINDOWCLOSE@"):
     configuration.add("windowclose", "true")
