@@ -430,6 +430,18 @@ class AVOutputTV : public AVOutputBase {
 			return (it != reverseMap.end()) ? it->second : defaultVal;
 		}
 
+		static const std::map<int, std::string> pqModeMap;
+		static const std::map<int, std::string> videoFormatMap;
+		static const std::map<int, std::string> videoSrcMap;
+		static const std::unordered_map<int, std::string> backlightModeMap;
+
+		static std::unordered_map<std::string, tvPQModeIndex_t> pqModeReverseMap;
+		static std::unordered_map<std::string, tvVideoFormatType_t> videoFormatReverseMap;
+		static std::unordered_map<std::string, tvVideoSrcType_t> videoSrcReverseMap;
+		static bool reverseMapsInitialized;
+		static void initializeReverseMaps();
+		static const std::unordered_map<std::string, int> backlightModeReverseMap;
+
 		tvError_t ReadJsonFile(JsonObject& root);
 		tvError_t ExtractContextCaps(const JsonObject& data, tvContextCaps_t** context_caps);
 		tvError_t ExtractRangeInfo(const JsonObject& data, int* max_value);
@@ -652,17 +664,6 @@ class AVOutputTV : public AVOutputBase {
 		tvDVCalibrationSettings_t* m_maxValues;
 		tvContextCaps_t* m_DVCalibrationCaps = nullptr;
 		tvError_t m_DVCalibrationStatus = tvERROR_NONE;
-
-		static const std::map<int, std::string> pqModeMap;
-		static const std::map<int, std::string> videoFormatMap;
-		static const std::map<int, std::string> videoSrcMap;
-		static const std::unordered_map<int, std::string> backlightModeMap;
-
-		// Reverse maps
-		static const std::map<std::string, int> pqModeReverseMap;
-		static const std::map<std::string, int> videoFormatReverseMap;
-		static const std::map<std::string, int> videoSrcReverseMap;
-		static const std::unordered_map<std::string, int> backlightModeReverseMap;
 
 		std::string convertPictureIndexToStringV2(int pqmode);
 		std::string convertVideoFormatToStringV2(int format);
