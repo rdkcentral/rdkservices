@@ -19,11 +19,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 ## [1.1.29] - 2025-06-05
 ### Fixed
-- 
+- Fixed Numeric Truncation Error
 
 ## [1.1.28] - 2025-06-04
 ### Fixed
-- Fixed Numeric Truncation Error
+- virtual function was overridden incorrectly
 
 ## [1.1.27] - 2024-12-18
 ### Fixed
