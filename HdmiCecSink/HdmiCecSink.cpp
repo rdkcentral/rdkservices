@@ -615,7 +615,9 @@ namespace WPEFramework
                 HdmiCecSink::_instance->Process_InitiateArc();
             } else {
                 LOGINFO("Command: INITIATE_ARC InitiateArc ignore %s \n",HdmiCecSink::_instance->deviceList[0x5].m_physicalAddr.toString().c_str());
-            }
+               	LOGINFO("Run command to disable arc");
+		system("echo 0xff603614 0x14910490 > /sys/kernel/debug/aml_reg/paddr");
+	    }
        }
        void HdmiCecSinkProcessor::process (const TerminateArc &msg, const Header &header)
        {
