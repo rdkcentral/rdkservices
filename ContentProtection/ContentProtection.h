@@ -436,7 +436,8 @@ namespace Plugin {
                 return result;
             }
 
-            uint32_t CloseDrmSession(uint32_t sessionId) override
+            uint32_t CloseDrmSession(uint32_t sessionId,
+                string& /*response*/) override
             {
                 auto session = _parent._sessionStorage.Get(sessionId);
                 if (!session.IsSet()) {
