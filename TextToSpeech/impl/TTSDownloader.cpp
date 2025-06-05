@@ -131,8 +131,8 @@ bool TTSDownloader::downloadFile(std::string ttsRequest)
                 saveConfiguration(CONFIG_PATH);
             }
             curl_easy_cleanup(curl);
-            fclose(fp);
         }
+        fclose(fp);
     }
     else
     {

@@ -110,11 +110,13 @@ int SocketServer::Open(const string& address, int port, const function<void (con
   if (rc == 0)
   {
     LOGERR("SocketServer::Open inet_pton %s invalid ip format", address.c_str());
+    close(sock);
     return -1;
   }
   else if (rc < 0)
   {
     LOGERR("SocketServer::Open inet_pton %s failed: %s", address.c_str(), strerror(errno));
+    close(sock);
     return -1;
   }
   
@@ -124,6 +126,7 @@ int SocketServer::Open(const string& address, int port, const function<void (con
   if (sock_flags < 0)
   {
     LOGERR("SocketServer::Open fcntl get failed: %s", strerror(errno));
+    close(sock);
     return -1;
   }
 
@@ -132,18 +135,21 @@ int SocketServer::Open(const string& address, int port, const function<void (con
   if (fcntl(sock, F_SETFD, sock_flags) < 0)
   {
     LOGERR("SocketServer::Open fcntl set failed: %s", strerror(errno));
+    close(sock);
     return -1;
   }
 
   if (bind(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0)
   {
     LOGERR("SocketServer::Open bind failed: %s", strerror(errno));
+    close(sock);
     return -1;
   }
 
   if (listen(sock, 4) < 0)
   {
     LOGERR("SocketServer::Open listen failed: %s", strerror(errno));
+    close(sock);
     return -1;
   }
 
