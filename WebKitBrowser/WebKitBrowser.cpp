@@ -21,7 +21,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 1
-#define API_VERSION_NUMBER_PATCH 28
+#define API_VERSION_NUMBER_PATCH 29
 
 namespace WPEFramework {
 
@@ -210,7 +210,7 @@ namespace Plugin {
 
         Core::ProxyType<Web::Response> result(PluginHost::IFactories::Instance().Response());
         Core::TextSegmentIterator index(
-            Core::TextFragment(request.Path, _skipURL, request.Path.length() - _skipURL), false, '/');
+            Core::TextFragment(request.Path, static_cast<uint32_t>(_skipURL), static_cast<uint32_t>(request.Path.length() - _skipURL)), false, '/');
 
         result->ErrorCode = Web::STATUS_BAD_REQUEST;
         result->Message = "Unknown error";
