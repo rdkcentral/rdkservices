@@ -59,15 +59,18 @@ namespace {
 
     char *ld_paths = getenv("LD_LIBRARY_PATH");
     if (ld_paths) {
-      ld_paths = strdup(ld_paths);
-
+      
+      char *ld_pathBackup = strdup(ld_paths);
+      ld_paths = ld_pathBackup;
       char *p = nullptr;
       char *saveptr = nullptr;
       while ((p = strtok_r(ld_paths, ":", &saveptr)) != nullptr) {
         paths.push_back(string(p));
         ld_paths = nullptr;
       }
-      free(ld_paths);
+      if (ld_pathBackup) {
+        free(ld_pathBackup);
+      }
     }
     return paths;
   }
