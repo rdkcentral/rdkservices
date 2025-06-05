@@ -17,9 +17,13 @@ All notable changes to this RDK Service will be documented in this file.
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
 
-## [1.1.28] - 2025-04-06
+## [1.1.29] - 2025-06-05
 ### Fixed
-- virtual function was overridden incorrectly
+- 
+
+## [1.1.28] - 2025-06-04
+### Fixed
+- Fixed Numeric Truncation Error
 
 ## [1.1.27] - 2024-12-18
 ### Fixed
