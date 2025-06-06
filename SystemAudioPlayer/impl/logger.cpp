@@ -36,7 +36,7 @@ namespace SAP {
             setvbuf(stdout, NULL, _IOLBF, 0);
     }
 
-    const char* methodName(const std::string& prettyFunction)
+    std::string methodName(const std::string& prettyFunction)
     {
         size_t colons = prettyFunction.find("::");
         size_t begin = prettyFunction.substr(0,colons).rfind(" ") + 1;

@@ -186,7 +186,7 @@ namespace Plugin {
                 DynamicAppConfig* pDynamicAppConfig = (DynamicAppConfig*) malloc (sizeof(DynamicAppConfig));
                 if (pDynamicAppConfig)
                 {
-                    memset ((void*)pDynamicAppConfig, '0', sizeof(DynamicAppConfig));
+                    memset ((void*)pDynamicAppConfig, '\0', sizeof(DynamicAppConfig));
                     memset (pDynamicAppConfig->appName, '\0', sizeof(pDynamicAppConfig->appName));
                     memset (pDynamicAppConfig->prefixes, '\0', sizeof(pDynamicAppConfig->prefixes));
                     memset (pDynamicAppConfig->cors, '\0', sizeof(pDynamicAppConfig->cors));
