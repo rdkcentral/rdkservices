@@ -2508,10 +2508,12 @@ namespace Plugin {
                      "enable-service-worker", _config.ServiceWorkerEnabled.Value(), nullptr);
 
             // ICE candidate filtering
+            bool enableIceCandidateFiltering = false; // disable by default
             if (_config.ICECandidateFilteringEnabled.IsSet()) {
-                g_object_set(G_OBJECT(preferences),
-                     "enable-ice-candidate-filtering",  _config.ICECandidateFilteringEnabled.Value(), nullptr);
+                enableIceCandidateFiltering = _config.ICECandidateFilteringEnabled.Value();
             }
+            g_object_set(G_OBJECT(preferences),
+                "enable-ice-candidate-filtering",  enableIceCandidateFiltering, nullptr);
 
             _view = WEBKIT_WEB_VIEW(g_object_new(WEBKIT_TYPE_WEB_VIEW,
                 "backend", webkit_web_view_backend_new(wpe_view_backend_create(), nullptr, nullptr),
