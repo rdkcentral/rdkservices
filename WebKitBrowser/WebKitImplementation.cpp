@@ -2448,6 +2448,8 @@ namespace Plugin {
             webkit_settings_set_enable_media_stream(preferences, TRUE);
             webkit_settings_set_enable_page_cache(preferences, FALSE);
             webkit_settings_set_enable_directory_upload(preferences, FALSE);
+            // Default to false but can be enabled by the config ICECandidateFilteringEnabled
+            webkit_settings_set_enable_ice_candidate_filtering(preferences, FALSE);
 
 #if WEBKIT_CHECK_VERSION(2, 38, 0)
             webkit_settings_set_enable_webrtc(preferences, TRUE);
