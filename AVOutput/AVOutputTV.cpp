@@ -2171,6 +2171,8 @@ namespace Plugin {
             returnResponse(false);
         }
         else {
+            response["platformSupport"] = (info.isPlatformSupportVector[0].compare("true") == 0 ) ? true : false;
+
             for (index = 0; index < info.rangeVector.size(); index++) {
                 supportedDimmingModeArray.Add(info.rangeVector[index]);
             }
