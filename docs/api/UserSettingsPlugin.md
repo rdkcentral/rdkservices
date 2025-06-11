@@ -1,6 +1,6 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="UserSettings_Plugin"></a>
-# UserSettings Plugin
+<a name="head.UserSettings_API"></a>
+# UserSettings API
 
 **Version: [1.0.0]()**
 
@@ -8,37 +8,35 @@ A org.rdk.UserSettings plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
-- [Description](#Description)
-- [Configuration](#Configuration)
-- [Methods](#Methods)
-- [Notifications](#Notifications)
+- [Abbreviation, Acronyms and Terms](#head.Abbreviation,_Acronyms_and_Terms)
+- [Description](#head.Description)
+- [Configuration](#head.Configuration)
+- [Methods](#head.Methods)
+- [Notifications](#head.Notifications)
 
-<a name="Abbreviation,_Acronyms_and_Terms"></a>
+<a name="head.Abbreviation,_Acronyms_and_Terms"></a>
 # Abbreviation, Acronyms and Terms
 
-[[Refer to this link](overview/aat.md)]
+[[Refer to this link](userguide/aat.md)]
 
-<a name="Description"></a>
+<a name="head.Description"></a>
 # Description
 
-The `UserSettings` that is responsible for persisting and notifying listeners of any change of these settings.
+The `UserSettings`, that is responsible for persisting and notifying listeners of any change of these settings..
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
-<a name="Configuration"></a>
+<a name="head.Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| callsign | string | Plugin instance name (default: *org.rdk.UserSettings*) |
 | classname | string | Class name: *org.rdk.UserSettings* |
-| locator | string | Library name: *libWPEFrameworkUserSettings.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="Methods"></a>
+<a name="head.Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.UserSettings plugin:
@@ -47,46 +45,48 @@ org.rdk.UserSettings interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [setAudioDescription](#setAudioDescription) | Setting Audio Description |
-| [setPreferredAudioLanguages](#setPreferredAudioLanguages) | Setting Preferred Audio Languages |
-| [setPresentationLanguage](#setPresentationLanguage) | Setting Presentation Languages |
-| [setCaptions](#setCaptions) | Setting Captions |
-| [setPreferredCaptionsLanguages](#setPreferredCaptionsLanguages) | Setting PreferredCaption Languages |
-| [setPreferredClosedCaptionService](#setPreferredClosedCaptionService) | Setting Preferred Closed Caption Service |
-| [setPinControl](#setPinControl) | Setting PinControl |
-| [setViewingRestrictions](#setViewingRestrictions) | Setting ViewingRestrictions |
-| [setViewingRestrictionsWindow](#setViewingRestrictionsWindow) | Setting viewingRestrictionsWindow |
-| [setLiveWatershed](#setLiveWatershed) | Setting LiveWatershed |
-| [setPlaybackWatershed](#setPlaybackWatershed) | Setting PlaybackWatershed |
-| [setBlockNotRatedContent](#setBlockNotRatedContent) | Setting BlockNotRatedContent |
-| [setPinOnPurchase](#setPinOnPurchase) | Setting setPinOnPurchase |
-| [setHighContrast](#setHighContrast) | Sets highContrast |
-| [setVoiceGuidance](#setVoiceGuidance) | Sets voiceGuidance |
-| [setVoiceGuidanceRate](#setVoiceGuidanceRate) | Sets voiceGuidanceRate |
-| [setVoiceGuidanceHints](#setVoiceGuidanceHints) | Sets voiceGuidanceHints ON/OFF |
-| [getAudioDescription](#getAudioDescription) | Returns Audio Description |
-| [getPreferredAudioLanguages](#getPreferredAudioLanguages) | Returns Preferred Audio Languages |
-| [getPresentationLanguage](#getPresentationLanguage) | Getting Presentation Languages |
-| [getCaptions](#getCaptions) | Getting Captions Enabled |
-| [getPreferredCaptionsLanguages](#getPreferredCaptionsLanguages) | Getting Preferred Caption Languages |
-| [getPreferredClosedCaptionService](#getPreferredClosedCaptionService) | Getting Preferred ClosedCaption Service |
-| [getPinControl](#getPinControl) | Returns Pin Control |
-| [getViewingRestrictions](#getViewingRestrictions) | Returns Get Viewing Restrictions |
-| [getViewingRestrictionsWindow](#getViewingRestrictionsWindow) | Returns Get Viewing Restrictions Window |
-| [getLiveWatershed](#getLiveWatershed) | Returns Live Watershed |
-| [getPlaybackWatershed](#getPlaybackWatershed) | Returns Playback Watershed |
-| [getBlockNotRatedContent](#getBlockNotRatedContent) | Returns BlockNotRatedContent |
-| [getPinOnPurchase](#getPinOnPurchase) | Returns PinOnPurchase |
-| [getHighContrast](#getHighContrast) | Gets the current highContrast setting |
-| [getVoiceGuidance](#getVoiceGuidance) | Gets the current voiceGuidance setting |
-| [getVoiceGuidanceRate](#getVoiceGuidanceRate) | Gets the current voiceGuidanceRate setting |
-| [getVoiceGuidanceHints](#getVoiceGuidanceHints) | Gets the current voiceGuidanceHints setting |
-| [getMigrationState](#getMigrationState) | Gets the migration state of the respective key |
-| [getMigrationStates](#getMigrationStates) | Gets the migration state of all the defined keys |
+| [setAudioDescription](#method.setAudioDescription) | Setting Audio Description |
+| [setPreferredAudioLanguages](#method.setPreferredAudioLanguages) | Setting Preferred Audio Languages |
+| [setPresentationLanguage](#method.setPresentationLanguage) | Setting Presentation Languages |
+| [setCaptions](#method.setCaptions) | Setting Captions |
+| [setPreferredCaptionsLanguages](#method.setPreferredCaptionsLanguages) | Setting PreferredCaption Languages |
+| [setPreferredClosedCaptionService](#method.setPreferredClosedCaptionService) | Setting Preferred Closed Caption Service |
+| [setPrivacyMode](#method.setPrivacyMode) | Setting Privacy Mode |
+| [setPinControl](#method.setPinControl) | Setting PinControl |
+| [setViewingRestrictions](#method.setViewingRestrictions) | Setting ViewingRestrictions |
+| [setViewingRestrictionsWindow](#method.setViewingRestrictionsWindow) | Setting viewingRestrictionsWindow |
+| [setLiveWatershed](#method.setLiveWatershed) | Setting LiveWatershed |
+| [setPlaybackWatershed](#method.setPlaybackWatershed) | Setting PlaybackWatershed |
+| [setBlockNotRatedContent](#method.setBlockNotRatedContent) | Setting BlockNotRatedContent |
+| [setPinOnPurchase](#method.setPinOnPurchase) | Setting setPinOnPurchase |
+| [setHighContrast](#method.setHighContrast) | Sets highContrast |
+| [setVoiceGuidance](#method.setVoiceGuidance) | Sets voiceGuidance |
+| [setVoiceGuidanceRate](#method.setVoiceGuidanceRate) | Sets voiceGuidanceRate |
+| [setVoiceGuidanceHints](#method.setVoiceGuidanceHints) | Sets voiceGuidanceHints ON/OFF |
+| [getAudioDescription](#method.getAudioDescription) | Returns Audio Description |
+| [getPreferredAudioLanguages](#method.getPreferredAudioLanguages) | Returns Preferred Audio Languages |
+| [getPresentationLanguage](#method.getPresentationLanguage) | Getting Presentation Languages |
+| [getCaptions](#method.getCaptions) | Getting Captions Enabled |
+| [getPreferredCaptionsLanguages](#method.getPreferredCaptionsLanguages) | Getting Preferred Caption Languages |
+| [getPreferredClosedCaptionService](#method.getPreferredClosedCaptionService) | Getting Preferred ClosedCaption Service |
+| [getPrivacyMode](#method.getPrivacyMode) | Getting Privacy Mode |
+| [getPinControl](#method.getPinControl) | Returns Pin Control |
+| [getViewingRestrictions](#method.getViewingRestrictions) | Returns Get Viewing Restrictions |
+| [getViewingRestrictionsWindow](#method.getViewingRestrictionsWindow) | Returns Get Viewing Restrictions Window |
+| [getLiveWatershed](#method.getLiveWatershed) | Returns Live Watershed |
+| [getPlaybackWatershed](#method.getPlaybackWatershed) | Returns Playback Watershed |
+| [getBlockNotRatedContent](#method.getBlockNotRatedContent) | Returns BlockNotRatedContent |
+| [getPinOnPurchase](#method.getPinOnPurchase) | Returns PinOnPurchase |
+| [getHighContrast](#method.getHighContrast) | Gets the current highContrast setting |
+| [getVoiceGuidance](#method.getVoiceGuidance) | Gets the current voiceGuidance setting |
+| [getVoiceGuidanceRate](#method.getVoiceGuidanceRate) | Gets the current voiceGuidanceRate setting |
+| [getVoiceGuidanceHints](#method.getVoiceGuidanceHints) | Gets the current voiceGuidanceHints setting |
+| [getMigrationState](#method.getMigrationState) | Gets the migration state of the respective key |
+| [getMigrationStates](#method.getMigrationStates) | Gets the migration state of all the defined keys |
 
 
-<a name="setAudioDescription"></a>
-## *setAudioDescription*
+<a name="method.setAudioDescription"></a>
+## *setAudioDescription [<sup>method</sup>](#head.Methods)*
 
 Setting Audio Description.
 
@@ -94,7 +94,7 @@ Setting Audio Description.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onAudioDescriptionChanged](#onAudioDescriptionChanged) | Triggered when the audio description changes. |
+| [onAudioDescriptionChanged](#event.onAudioDescriptionChanged) | Triggered when the audio description changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -133,8 +133,8 @@ Setting Audio Description.
 }
 ```
 
-<a name="setPreferredAudioLanguages"></a>
-## *setPreferredAudioLanguages*
+<a name="method.setPreferredAudioLanguages"></a>
+## *setPreferredAudioLanguages [<sup>method</sup>](#head.Methods)*
 
 Setting Preferred Audio Languages.
 
@@ -142,7 +142,7 @@ Setting Preferred Audio Languages.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onPreferredAudioLanguagesChanged](#onPreferredAudioLanguagesChanged) | Triggered when the audio preferred Audio languages changes. |
+| [onPreferredAudioLanguagesChanged](#event.onPreferredAudioLanguagesChanged) | Triggered when the audio preferred Audio languages changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -181,8 +181,8 @@ Setting Preferred Audio Languages.
 }
 ```
 
-<a name="setPresentationLanguage"></a>
-## *setPresentationLanguage*
+<a name="method.setPresentationLanguage"></a>
+## *setPresentationLanguage [<sup>method</sup>](#head.Methods)*
 
 Setting Presentation Languages.
 
@@ -190,7 +190,7 @@ Setting Presentation Languages.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onPresentationLanguageChanged](#onPresentationLanguageChanged) | Triggered when the presentation Language changes. |
+| [onPresentationLanguageChanged](#event.onPresentationLanguageChanged) | Triggered when the presentation Language changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -229,8 +229,8 @@ Setting Presentation Languages.
 }
 ```
 
-<a name="setCaptions"></a>
-## *setCaptions*
+<a name="method.setCaptions"></a>
+## *setCaptions [<sup>method</sup>](#head.Methods)*
 
 Setting Captions.
 
@@ -238,7 +238,7 @@ Setting Captions.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onCaptionsChanged](#onCaptionsChanged) | Triggered when the captions changes. |
+| [onCaptionsChanged](#event.onCaptionsChanged) | Triggered when the captions changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -277,8 +277,8 @@ Setting Captions.
 }
 ```
 
-<a name="setPreferredCaptionsLanguages"></a>
-## *setPreferredCaptionsLanguages*
+<a name="method.setPreferredCaptionsLanguages"></a>
+## *setPreferredCaptionsLanguages [<sup>method</sup>](#head.Methods)*
 
 Setting PreferredCaption Languages.
 
@@ -286,7 +286,7 @@ Setting PreferredCaption Languages.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onPreferredCaptionsLanguagesChanged](#onPreferredCaptionsLanguagesChanged) | Triggered when the PreferredCaption Languages changes. |
+| [onPreferredCaptionsLanguagesChanged](#event.onPreferredCaptionsLanguagesChanged) | Triggered when the PreferredCaption Languages changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -325,8 +325,8 @@ Setting PreferredCaption Languages.
 }
 ```
 
-<a name="setPreferredClosedCaptionService"></a>
-## *setPreferredClosedCaptionService*
+<a name="method.setPreferredClosedCaptionService"></a>
+## *setPreferredClosedCaptionService [<sup>method</sup>](#head.Methods)*
 
 Setting Preferred Closed Caption Service.
 
@@ -334,7 +334,7 @@ Setting Preferred Closed Caption Service.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onPreferredClosedCaptionServiceChanged](#onPreferredClosedCaptionServiceChanged) | Triggered when the Preferred Closed Caption changes. |
+| [onPreferredClosedCaptionServiceChanged](#event.onPreferredClosedCaptionServiceChanged) | Triggered when the Preferred Closed Caption changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -373,8 +373,56 @@ Setting Preferred Closed Caption Service.
 }
 ```
 
-<a name="setPinControl"></a>
-## *setPinControl*
+<a name="method.setPrivacyMode"></a>
+## *setPrivacyMode [<sup>method</sup>](#head.Methods)*
+
+Setting Privacy Mode.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onPrivacyModeChanged](#event.onPrivacyModeChanged) | Triggered when the Privacy Mode changes. |
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.privacyMode | string | The Privacy Mode. Valid values are SHARE, DO_NOT_SHARE |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | string | On success null will be returned |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.setPrivacyMode",
+    "params": {
+        "privacyMode": "SHARE"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "null"
+}
+```
+
+<a name="method.setPinControl"></a>
+## *setPinControl [<sup>method</sup>](#head.Methods)*
 
 Setting PinControl.
 
@@ -382,7 +430,7 @@ Setting PinControl.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onPinControlChanged](#onPinControlChanged) | Triggered when the pincontrol changes. |
+| [onPinControlChanged](#event.onPinControlChanged) | Triggered when the pincontrol changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -421,8 +469,8 @@ Setting PinControl.
 }
 ```
 
-<a name="setViewingRestrictions"></a>
-## *setViewingRestrictions*
+<a name="method.setViewingRestrictions"></a>
+## *setViewingRestrictions [<sup>method</sup>](#head.Methods)*
 
 Setting ViewingRestrictions.
 
@@ -430,7 +478,7 @@ Setting ViewingRestrictions.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onViewingRestrictionsChanged](#onViewingRestrictionsChanged) | Triggered when the viewingRestrictions changes. |
+| [onViewingRestrictionsChanged](#event.onViewingRestrictionsChanged) | Triggered when the viewingRestrictions changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -469,8 +517,8 @@ Setting ViewingRestrictions.
 }
 ```
 
-<a name="setViewingRestrictionsWindow"></a>
-## *setViewingRestrictionsWindow*
+<a name="method.setViewingRestrictionsWindow"></a>
+## *setViewingRestrictionsWindow [<sup>method</sup>](#head.Methods)*
 
 Setting viewingRestrictionsWindow.
 
@@ -478,7 +526,7 @@ Setting viewingRestrictionsWindow.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onViewingRestrictionsWindowChanged](#onViewingRestrictionsWindowChanged) | Triggered when the viewingRestrictionsWindow changes. |
+| [onViewingRestrictionsWindowChanged](#event.onViewingRestrictionsWindowChanged) | Triggered when the viewingRestrictionsWindow changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -517,8 +565,8 @@ Setting viewingRestrictionsWindow.
 }
 ```
 
-<a name="setLiveWatershed"></a>
-## *setLiveWatershed*
+<a name="method.setLiveWatershed"></a>
+## *setLiveWatershed [<sup>method</sup>](#head.Methods)*
 
 Setting LiveWatershed.
 
@@ -526,7 +574,7 @@ Setting LiveWatershed.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onLiveWatershedChanged](#onLiveWatershedChanged) | Triggered when the liveWatershed changes. |
+| [onLiveWatershedChanged](#event.onLiveWatershedChanged) | Triggered when the liveWatershed changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -565,8 +613,8 @@ Setting LiveWatershed.
 }
 ```
 
-<a name="setPlaybackWatershed"></a>
-## *setPlaybackWatershed*
+<a name="method.setPlaybackWatershed"></a>
+## *setPlaybackWatershed [<sup>method</sup>](#head.Methods)*
 
 Setting PlaybackWatershed.
 
@@ -574,7 +622,7 @@ Setting PlaybackWatershed.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onPlaybackWatershedChanged](#onPlaybackWatershedChanged) | Triggered when the playbackWatershed changes. |
+| [onPlaybackWatershedChanged](#event.onPlaybackWatershedChanged) | Triggered when the playbackWatershed changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -613,8 +661,8 @@ Setting PlaybackWatershed.
 }
 ```
 
-<a name="setBlockNotRatedContent"></a>
-## *setBlockNotRatedContent*
+<a name="method.setBlockNotRatedContent"></a>
+## *setBlockNotRatedContent [<sup>method</sup>](#head.Methods)*
 
 Setting BlockNotRatedContent.
 
@@ -622,7 +670,7 @@ Setting BlockNotRatedContent.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onBlockNotRatedContentChanged](#onBlockNotRatedContentChanged) | Triggered when the blockNotRatedContent changes. |
+| [onBlockNotRatedContentChanged](#event.onBlockNotRatedContentChanged) | Triggered when the blockNotRatedContent changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -661,8 +709,8 @@ Setting BlockNotRatedContent.
 }
 ```
 
-<a name="setPinOnPurchase"></a>
-## *setPinOnPurchase*
+<a name="method.setPinOnPurchase"></a>
+## *setPinOnPurchase [<sup>method</sup>](#head.Methods)*
 
 Setting setPinOnPurchase.
 
@@ -670,7 +718,7 @@ Setting setPinOnPurchase.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onPinOnPurchaseChanged](#onPinOnPurchaseChanged) | Triggered when the pin on the purchase changes. |
+| [onPinOnPurchaseChanged](#event.onPinOnPurchaseChanged) | Triggered when the pin on the purchase changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -709,8 +757,8 @@ Setting setPinOnPurchase.
 }
 ```
 
-<a name="setHighContrast"></a>
-## *setHighContrast*
+<a name="method.setHighContrast"></a>
+## *setHighContrast [<sup>method</sup>](#head.Methods)*
 
 Sets highContrast. Whether the app should display with high contrast or not.
 
@@ -718,7 +766,7 @@ Sets highContrast. Whether the app should display with high contrast or not.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onHighContrastChanged](#onHighContrastChanged) | Triggers when the highContrast changes. |
+| [onHighContrastChanged](#event.onHighContrastChanged) | Triggers when the highContrast changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -757,8 +805,8 @@ Sets highContrast. Whether the app should display with high contrast or not.
 }
 ```
 
-<a name="setVoiceGuidance"></a>
-## *setVoiceGuidance*
+<a name="method.setVoiceGuidance"></a>
+## *setVoiceGuidance [<sup>method</sup>](#head.Methods)*
 
 Sets voiceGuidance. Whether Voice Guidance is enabled or not.
 
@@ -766,7 +814,7 @@ Sets voiceGuidance. Whether Voice Guidance is enabled or not.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onVoiceGuidanceChanged](#onVoiceGuidanceChanged) | Triggers after the voice guidance enabled settings changes. |
+| [onVoiceGuidanceChanged](#event.onVoiceGuidanceChanged) | Triggers after the voice guidance enabled settings changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -805,8 +853,8 @@ Sets voiceGuidance. Whether Voice Guidance is enabled or not.
 }
 ```
 
-<a name="setVoiceGuidanceRate"></a>
-## *setVoiceGuidanceRate*
+<a name="method.setVoiceGuidanceRate"></a>
+## *setVoiceGuidanceRate [<sup>method</sup>](#head.Methods)*
 
 Sets voiceGuidanceRate. Setting voice guidance rate value. from 0.1 to 10 inclusive.
 
@@ -814,7 +862,7 @@ Sets voiceGuidanceRate. Setting voice guidance rate value. from 0.1 to 10 inclus
 
 | Event | Description |
 | :-------- | :-------- |
-| [onVoiceGuidanceRateChanged](#onVoiceGuidanceRateChanged) | Triggered after the voice guidance rate changed. |
+| [onVoiceGuidanceRateChanged](#event.onVoiceGuidanceRateChanged) | Triggered after the voice guidance rate changed. |
 ### Parameters
 
 | Name | Type | Description |
@@ -853,8 +901,8 @@ Sets voiceGuidanceRate. Setting voice guidance rate value. from 0.1 to 10 inclus
 }
 ```
 
-<a name="setVoiceGuidanceHints"></a>
-## *setVoiceGuidanceHints*
+<a name="method.setVoiceGuidanceHints"></a>
+## *setVoiceGuidanceHints [<sup>method</sup>](#head.Methods)*
 
 Sets voiceGuidanceHints ON/OFF. Whether Voice Guidance hints setting is switched on or not.
 
@@ -862,7 +910,7 @@ Sets voiceGuidanceHints ON/OFF. Whether Voice Guidance hints setting is switched
 
 | Event | Description |
 | :-------- | :-------- |
-| [onVoiceGuidanceHintsChanged](#onVoiceGuidanceHintsChanged) | Triggered after the voice guidance hints changes. |
+| [onVoiceGuidanceHintsChanged](#event.onVoiceGuidanceHintsChanged) | Triggered after the voice guidance hints changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -901,8 +949,8 @@ Sets voiceGuidanceHints ON/OFF. Whether Voice Guidance hints setting is switched
 }
 ```
 
-<a name="getAudioDescription"></a>
-## *getAudioDescription*
+<a name="method.getAudioDescription"></a>
+## *getAudioDescription [<sup>method</sup>](#head.Methods)*
 
 Returns Audio Description.
 
@@ -942,8 +990,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getPreferredAudioLanguages"></a>
-## *getPreferredAudioLanguages*
+<a name="method.getPreferredAudioLanguages"></a>
+## *getPreferredAudioLanguages [<sup>method</sup>](#head.Methods)*
 
 Returns Preferred Audio Languages.
 
@@ -983,8 +1031,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getPresentationLanguage"></a>
-## *getPresentationLanguage*
+<a name="method.getPresentationLanguage"></a>
+## *getPresentationLanguage [<sup>method</sup>](#head.Methods)*
 
 Getting Presentation Languages.
 
@@ -1024,8 +1072,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getCaptions"></a>
-## *getCaptions*
+<a name="method.getCaptions"></a>
+## *getCaptions [<sup>method</sup>](#head.Methods)*
 
 Getting Captions Enabled.
 
@@ -1065,8 +1113,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getPreferredCaptionsLanguages"></a>
-## *getPreferredCaptionsLanguages*
+<a name="method.getPreferredCaptionsLanguages"></a>
+## *getPreferredCaptionsLanguages [<sup>method</sup>](#head.Methods)*
 
 Getting Preferred Caption Languages.
 
@@ -1106,8 +1154,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getPreferredClosedCaptionService"></a>
-## *getPreferredClosedCaptionService*
+<a name="method.getPreferredClosedCaptionService"></a>
+## *getPreferredClosedCaptionService [<sup>method</sup>](#head.Methods)*
 
 Getting Preferred ClosedCaption Service.
 
@@ -1147,8 +1195,49 @@ This method takes no parameters.
 }
 ```
 
-<a name="getPinControl"></a>
-## *getPinControl*
+<a name="method.getPrivacyMode"></a>
+## *getPrivacyMode [<sup>method</sup>](#head.Methods)*
+
+Getting Privacy Mode.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | string | The Privacy Mode. Valid values are SHARE, DO_NOT_SHARE |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.getPrivacyMode"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "SHARE"
+}
+```
+
+<a name="method.getPinControl"></a>
+## *getPinControl [<sup>method</sup>](#head.Methods)*
 
 Returns Pin Control.
 
@@ -1188,8 +1277,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getViewingRestrictions"></a>
-## *getViewingRestrictions*
+<a name="method.getViewingRestrictions"></a>
+## *getViewingRestrictions [<sup>method</sup>](#head.Methods)*
 
 Returns Get Viewing Restrictions.
 
@@ -1229,8 +1318,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getViewingRestrictionsWindow"></a>
-## *getViewingRestrictionsWindow*
+<a name="method.getViewingRestrictionsWindow"></a>
+## *getViewingRestrictionsWindow [<sup>method</sup>](#head.Methods)*
 
 Returns Get Viewing Restrictions Window.
 
@@ -1270,8 +1359,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getLiveWatershed"></a>
-## *getLiveWatershed*
+<a name="method.getLiveWatershed"></a>
+## *getLiveWatershed [<sup>method</sup>](#head.Methods)*
 
 Returns Live Watershed.
 
@@ -1311,8 +1400,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getPlaybackWatershed"></a>
-## *getPlaybackWatershed*
+<a name="method.getPlaybackWatershed"></a>
+## *getPlaybackWatershed [<sup>method</sup>](#head.Methods)*
 
 Returns Playback Watershed.
 
@@ -1352,8 +1441,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getBlockNotRatedContent"></a>
-## *getBlockNotRatedContent*
+<a name="method.getBlockNotRatedContent"></a>
+## *getBlockNotRatedContent [<sup>method</sup>](#head.Methods)*
 
 Returns BlockNotRatedContent.
 
@@ -1393,8 +1482,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getPinOnPurchase"></a>
-## *getPinOnPurchase*
+<a name="method.getPinOnPurchase"></a>
+## *getPinOnPurchase [<sup>method</sup>](#head.Methods)*
 
 Returns PinOnPurchase.
 
@@ -1434,8 +1523,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getHighContrast"></a>
-## *getHighContrast*
+<a name="method.getHighContrast"></a>
+## *getHighContrast [<sup>method</sup>](#head.Methods)*
 
 Gets the current highContrast setting.
 
@@ -1475,8 +1564,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getVoiceGuidance"></a>
-## *getVoiceGuidance*
+<a name="method.getVoiceGuidance"></a>
+## *getVoiceGuidance [<sup>method</sup>](#head.Methods)*
 
 Gets the current voiceGuidance setting.
 
@@ -1516,8 +1605,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getVoiceGuidanceRate"></a>
-## *getVoiceGuidanceRate*
+<a name="method.getVoiceGuidanceRate"></a>
+## *getVoiceGuidanceRate [<sup>method</sup>](#head.Methods)*
 
 Gets the current voiceGuidanceRate setting.
 
@@ -1557,8 +1646,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getVoiceGuidanceHints"></a>
-## *getVoiceGuidanceHints*
+<a name="method.getVoiceGuidanceHints"></a>
+## *getVoiceGuidanceHints [<sup>method</sup>](#head.Methods)*
 
 Gets the current voiceGuidanceHints setting.
 
@@ -1598,8 +1687,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getMigrationState"></a>
-## *getMigrationState*
+<a name="method.getMigrationState"></a>
+## *getMigrationState [<sup>method</sup>](#head.Methods)*
 
 Gets the migration state of the respective key.
 
@@ -1612,7 +1701,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.key | string | the property key, for which we need to get migration state |
+| params?.key | string | <sup>*(optional)*</sup> the property key, for which we need to get migration state |
 
 ### Result
 
@@ -1645,8 +1734,8 @@ No Events
 }
 ```
 
-<a name="getMigrationStates"></a>
-## *getMigrationStates*
+<a name="method.getMigrationStates"></a>
+## *getMigrationStates [<sup>method</sup>](#head.Methods)*
 
 Gets the migration state of all the defined keys.
 
@@ -1664,8 +1753,8 @@ This method takes no parameters.
 | :-------- | :-------- | :-------- |
 | result | array | migration state of all the defined keys |
 | result[#] | object | Keys and it's migration states |
-| result[#].key | string | key of the property |
-| result[#].requiresMigration | boolean | Migration State Of the Property |
+| result[#]?.key | string | <sup>*(optional)*</sup> key of the property |
+| result[#]?.requiresMigration | boolean | <sup>*(optional)*</sup> The name of the USB device |
 
 ### Example
 
@@ -1694,10 +1783,10 @@ This method takes no parameters.
 }
 ```
 
-<a name="Notifications"></a>
+<a name="head.Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.UserSettings plugin:
 
@@ -1705,27 +1794,28 @@ org.rdk.UserSettings interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onAudioDescriptionChanged](#onAudioDescriptionChanged) | Triggered after the audio description changes (see `SetAudioDescription`) |
-| [onPreferredAudioLanguagesChanged](#onPreferredAudioLanguagesChanged) | Triggered after the audio preferred Audio languages changes (see `SetPreferredAudioLanguages`) |
-| [onPresentationLanguageChanged](#onPresentationLanguageChanged) | Triggered after the Presentation Language changes (see `SetPresentationLanguage`) |
-| [onCaptionsChanged](#onCaptionsChanged) | Triggered after the captions changes (see `SetCaptions`) |
-| [onPreferredCaptionsLanguagesChanged](#onPreferredCaptionsLanguagesChanged) | Triggered after the PreferredCaption Languages changes (see `SetPreferredCaptionsLanguages`) |
-| [onPreferredClosedCaptionServiceChanged](#onPreferredClosedCaptionServiceChanged) | Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCaptionService`) |
-| [onPinControlChanged](#onPinControlChanged) | Triggered after the pin control changes (see `setPinControl`) |
-| [onViewingRestrictionsChanged](#onViewingRestrictionsChanged) | Triggered after the viewingRestrictions changes (see `setViewingRestrictions`) |
-| [onViewingRestrictionsWindowChanged](#onViewingRestrictionsWindowChanged) | Triggered after the viewingRestrictionsWindow changes (see `setViewingRestrictionsWindow`) |
-| [onLiveWatershedChanged](#onLiveWatershedChanged) | Triggered after the liveWatershed changes (see `setLiveWatershed`) |
-| [onPlaybackWatershedChanged](#onPlaybackWatershedChanged) | Triggered after the playbackWatershed changes (see `setPlaybackWatershed`) |
-| [onBlockNotRatedContentChanged](#onBlockNotRatedContentChanged) | Triggered after the blockNotRatedContent changes (see `setBlockNotRatedContent`) |
-| [onPinOnPurchaseChanged](#onPinOnPurchaseChanged) | Triggered after the pinOnPurchase changes (see `setPinOnPurchase`) |
-| [onHighContrastChanged](#onHighContrastChanged) | Triggered after the high contrast settings changes(see `SetHighContrast`) |
-| [onVoiceGuidanceChanged](#onVoiceGuidanceChanged) | Triggered after the voice guidance enabled settings changes |
-| [onVoiceGuidanceRateChanged](#onVoiceGuidanceRateChanged) | Triggered after the voice guidance rate changed |
-| [onVoiceGuidanceHintsChanged](#onVoiceGuidanceHintsChanged) | Triggered after the voice guidance hints changes |
+| [onAudioDescriptionChanged](#event.onAudioDescriptionChanged) | Triggered after the audio description changes (see `SetAudioDescription`) |
+| [onPreferredAudioLanguagesChanged](#event.onPreferredAudioLanguagesChanged) | Triggered after the audio preferred Audio languages changes (see `SetPreferredAudioLanguages`) |
+| [onPresentationLanguageChanged](#event.onPresentationLanguageChanged) | Triggered after the Presentation Language changes (see `SetPresentationLanguage`) |
+| [onCaptionsChanged](#event.onCaptionsChanged) | Triggered after the captions changes (see `SetCaptions`) |
+| [onPreferredCaptionsLanguagesChanged](#event.onPreferredCaptionsLanguagesChanged) | Triggered after the PreferredCaption Languages changes (see `SetPreferredCaptionsLanguages`) |
+| [onPreferredClosedCaptionServiceChanged](#event.onPreferredClosedCaptionServiceChanged) | Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCaptionService`) |
+| [onPrivacyModeChanged](#event.onPrivacyModeChanged) | Triggered after the Privacy Mode changes (see `SetPrivacyMode`) |
+| [onPinControlChanged](#event.onPinControlChanged) | Triggered after the pin control changes (see `setPinControl`) |
+| [onViewingRestrictionsChanged](#event.onViewingRestrictionsChanged) | Triggered after the viewingRestrictions changes (see `setViewingRestrictions`) |
+| [onViewingRestrictionsWindowChanged](#event.onViewingRestrictionsWindowChanged) | Triggered after the viewingRestrictionsWindow changes (see `setViewingRestrictionsWindow`) |
+| [onLiveWatershedChanged](#event.onLiveWatershedChanged) | Triggered after the liveWatershed changes (see `setLiveWatershed`) |
+| [onPlaybackWatershedChanged](#event.onPlaybackWatershedChanged) | Triggered after the playbackWatershed changes (see `setPlaybackWatershed`) |
+| [onBlockNotRatedContentChanged](#event.onBlockNotRatedContentChanged) | Triggered after the blockNotRatedContent changes (see `setBlockNotRatedContent`) |
+| [onPinOnPurchaseChanged](#event.onPinOnPurchaseChanged) | Triggered after the pinOnPurchase changes (see `setPinOnPurchase`) |
+| [onHighContrastChanged](#event.onHighContrastChanged) | Triggered after the high contrast settings changes(see `SetHighContrast`) |
+| [onVoiceGuidanceChanged](#event.onVoiceGuidanceChanged) | Triggered after the voice guidance enabled settings changes |
+| [onVoiceGuidanceRateChanged](#event.onVoiceGuidanceRateChanged) | Triggered after the voice guidance rate changed |
+| [onVoiceGuidanceHintsChanged](#event.onVoiceGuidanceHintsChanged) | Triggered after the voice guidance hints changes |
 
 
-<a name="onAudioDescriptionChanged"></a>
-## *onAudioDescriptionChanged*
+<a name="event.onAudioDescriptionChanged"></a>
+## *onAudioDescriptionChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the audio description changes (see `SetAudioDescription`).
 
@@ -1748,8 +1838,8 @@ Triggered after the audio description changes (see `SetAudioDescription`).
 }
 ```
 
-<a name="onPreferredAudioLanguagesChanged"></a>
-## *onPreferredAudioLanguagesChanged*
+<a name="event.onPreferredAudioLanguagesChanged"></a>
+## *onPreferredAudioLanguagesChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the audio preferred Audio languages changes (see `SetPreferredAudioLanguages`).
 
@@ -1772,8 +1862,8 @@ Triggered after the audio preferred Audio languages changes (see `SetPreferredAu
 }
 ```
 
-<a name="onPresentationLanguageChanged"></a>
-## *onPresentationLanguageChanged*
+<a name="event.onPresentationLanguageChanged"></a>
+## *onPresentationLanguageChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the Presentation Language changes (see `SetPresentationLanguage`).
 
@@ -1796,8 +1886,8 @@ Triggered after the Presentation Language changes (see `SetPresentationLanguage`
 }
 ```
 
-<a name="onCaptionsChanged"></a>
-## *onCaptionsChanged*
+<a name="event.onCaptionsChanged"></a>
+## *onCaptionsChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the captions changes (see `SetCaptions`).
 
@@ -1820,8 +1910,8 @@ Triggered after the captions changes (see `SetCaptions`).
 }
 ```
 
-<a name="onPreferredCaptionsLanguagesChanged"></a>
-## *onPreferredCaptionsLanguagesChanged*
+<a name="event.onPreferredCaptionsLanguagesChanged"></a>
+## *onPreferredCaptionsLanguagesChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the PreferredCaption Languages changes (see `SetPreferredCaptionsLanguages`).
 
@@ -1844,8 +1934,8 @@ Triggered after the PreferredCaption Languages changes (see `SetPreferredCaption
 }
 ```
 
-<a name="onPreferredClosedCaptionServiceChanged"></a>
-## *onPreferredClosedCaptionServiceChanged*
+<a name="event.onPreferredClosedCaptionServiceChanged"></a>
+## *onPreferredClosedCaptionServiceChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCaptionService`).
 
@@ -1868,8 +1958,32 @@ Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCap
 }
 ```
 
-<a name="onPinControlChanged"></a>
-## *onPinControlChanged*
+<a name="event.onPrivacyModeChanged"></a>
+## *onPrivacyModeChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered after the Privacy Mode changes (see `SetPrivacyMode`).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.privacyMode | string | Receive Privacy Mode changes |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onPrivacyModeChanged",
+    "params": {
+        "privacyMode": "DO_NOT_SHARE"
+    }
+}
+```
+
+<a name="event.onPinControlChanged"></a>
+## *onPinControlChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the pin control changes (see `setPinControl`).
 
@@ -1892,8 +2006,8 @@ Triggered after the pin control changes (see `setPinControl`).
 }
 ```
 
-<a name="onViewingRestrictionsChanged"></a>
-## *onViewingRestrictionsChanged*
+<a name="event.onViewingRestrictionsChanged"></a>
+## *onViewingRestrictionsChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the viewingRestrictions changes (see `setViewingRestrictions`).
 
@@ -1916,8 +2030,8 @@ Triggered after the viewingRestrictions changes (see `setViewingRestrictions`).
 }
 ```
 
-<a name="onViewingRestrictionsWindowChanged"></a>
-## *onViewingRestrictionsWindowChanged*
+<a name="event.onViewingRestrictionsWindowChanged"></a>
+## *onViewingRestrictionsWindowChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the viewingRestrictionsWindow changes (see `setViewingRestrictionsWindow`).
 
@@ -1940,8 +2054,8 @@ Triggered after the viewingRestrictionsWindow changes (see `setViewingRestrictio
 }
 ```
 
-<a name="onLiveWatershedChanged"></a>
-## *onLiveWatershedChanged*
+<a name="event.onLiveWatershedChanged"></a>
+## *onLiveWatershedChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the liveWatershed changes (see `setLiveWatershed`).
 
@@ -1964,8 +2078,8 @@ Triggered after the liveWatershed changes (see `setLiveWatershed`).
 }
 ```
 
-<a name="onPlaybackWatershedChanged"></a>
-## *onPlaybackWatershedChanged*
+<a name="event.onPlaybackWatershedChanged"></a>
+## *onPlaybackWatershedChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the playbackWatershed changes (see `setPlaybackWatershed`).
 
@@ -1988,8 +2102,8 @@ Triggered after the playbackWatershed changes (see `setPlaybackWatershed`).
 }
 ```
 
-<a name="onBlockNotRatedContentChanged"></a>
-## *onBlockNotRatedContentChanged*
+<a name="event.onBlockNotRatedContentChanged"></a>
+## *onBlockNotRatedContentChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the blockNotRatedContent changes (see `setBlockNotRatedContent`).
 
@@ -2012,8 +2126,8 @@ Triggered after the blockNotRatedContent changes (see `setBlockNotRatedContent`)
 }
 ```
 
-<a name="onPinOnPurchaseChanged"></a>
-## *onPinOnPurchaseChanged*
+<a name="event.onPinOnPurchaseChanged"></a>
+## *onPinOnPurchaseChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the pinOnPurchase changes (see `setPinOnPurchase`).
 
@@ -2036,8 +2150,8 @@ Triggered after the pinOnPurchase changes (see `setPinOnPurchase`).
 }
 ```
 
-<a name="onHighContrastChanged"></a>
-## *onHighContrastChanged*
+<a name="event.onHighContrastChanged"></a>
+## *onHighContrastChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the high contrast settings changes(see `SetHighContrast`).
 
@@ -2060,8 +2174,8 @@ Triggered after the high contrast settings changes(see `SetHighContrast`).
 }
 ```
 
-<a name="onVoiceGuidanceChanged"></a>
-## *onVoiceGuidanceChanged*
+<a name="event.onVoiceGuidanceChanged"></a>
+## *onVoiceGuidanceChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the voice guidance enabled settings changes.(see `SetVoiceGuidance`).
 
@@ -2084,8 +2198,8 @@ Triggered after the voice guidance enabled settings changes.(see `SetVoiceGuidan
 }
 ```
 
-<a name="onVoiceGuidanceRateChanged"></a>
-## *onVoiceGuidanceRateChanged*
+<a name="event.onVoiceGuidanceRateChanged"></a>
+## *onVoiceGuidanceRateChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the voice guidance rate changed.(see `SetVoiceGuidanceRate`).
 
@@ -2108,8 +2222,8 @@ Triggered after the voice guidance rate changed.(see `SetVoiceGuidanceRate`).
 }
 ```
 
-<a name="onVoiceGuidanceHintsChanged"></a>
-## *onVoiceGuidanceHintsChanged*
+<a name="event.onVoiceGuidanceHintsChanged"></a>
+## *onVoiceGuidanceHintsChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the voice guidance hints changes.(see `SetVoiceGuidanceHints`).
 
