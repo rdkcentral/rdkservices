@@ -19,6 +19,7 @@
 
 #include "UserSettingsImplementation.h"
 #include <sys/prctl.h>
+#include <regex>
 #include "UtilsJsonRpc.h"
 #include <mutex>
 #include "tracing/Logging.h"
@@ -1018,11 +1019,19 @@ Core::hresult UserSettingsImplementation::GetVoiceGuidanceHints(bool &hints) con
 Core::hresult UserSettingsImplementation::SetContentPin(const string& contentPin)
 {
     Core::hresult status = Core::ERROR_GENERAL;
+    std::regex decimalRegex(R"(^\d{4}$)");
+    bool validPin = std::regex_match(contentPin, decimalRegex);
 
     LOGINFO("contentPin: %s", contentPin.c_str());
-    status = SetUserSettingsValue(USERSETTINGS_CONTENT_PIN_KEY, contentPin);
+    if (validPin == true || contentPin.empty())
+    {
+        status = SetUserSettingsValue(USERSETTINGS_CONTENT_PIN_KEY, contentPin);
+    }
+    else
+    {
+        status = Core::ERROR_INVALID_PARAMETER;
+    }
     return status;
-
 }
 
 Core::hresult UserSettingsImplementation::GetContentPin(string& contentPin) const
