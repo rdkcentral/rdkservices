@@ -1,6 +1,6 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.System_API"></a>
-# System API
+<a name="head.System_Plugin"></a>
+# System Plugin
 
 **Version: [1.0.0]()**
 

@@ -1,6 +1,6 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.UserSettings_API"></a>
-# UserSettings API
+<a name="head.UserSettings_Plugin"></a>
+# UserSettings Plugin
 
 **Version: [1.0.0]()**
 
