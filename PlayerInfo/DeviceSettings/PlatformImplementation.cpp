@@ -475,7 +475,8 @@ private:
             {"video/mpeg, mpegversion=(int)4, systemstream=(boolean)false", Exchange::IPlayerProperties::VideoCodec::VIDEO_MPEG4},
             {"video/x-vp8", Exchange::IPlayerProperties::VideoCodec::VIDEO_VP8},
             {"video/x-vp9", Exchange::IPlayerProperties::VideoCodec::VIDEO_VP9},
-            {"video/x-vp10", Exchange::IPlayerProperties::VideoCodec::VIDEO_VP10}
+            {"video/x-vp10", Exchange::IPlayerProperties::VideoCodec::VIDEO_VP10},
+	     {"video/x-av1", Exchange::IPlayerProperties::VideoCodec::VIDEO_AV1}
         };
         if (GstUtils::GstRegistryCheckElementsForMediaTypes(videoCaps, _videoCodecs) != true) {
             TRACE(Trace::Warning, (_T("There is no Video Codec support available")));
