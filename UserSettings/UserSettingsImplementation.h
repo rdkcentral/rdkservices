@@ -31,10 +31,6 @@
 #include <core/core.h>
 #include <plugins/plugins.h>
 
-#ifdef HAS_RBUS
-#include "rbus.h"
-#endif
-
 #define USERSETTINGS_NAMESPACE "UserSettings"
 
 #define USERSETTINGS_AUDIO_DESCRIPTION_KEY                    "audioDescription"
@@ -236,10 +232,6 @@ namespace Plugin {
         bool _registeredEventHandlers;
 	PluginHost::IShell* _service;
 
-#ifdef HAS_RBUS
-        rbusError_t _rbusHandleStatus;
-        rbusHandle_t _rbusHandle;
-#endif
         void dispatchEvent(Event, const JsonValue &params);
         void Dispatch(Event event, const JsonValue params);
 

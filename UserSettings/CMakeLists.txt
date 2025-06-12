@@ -49,24 +49,7 @@ add_library(${PLUGIN_IMPLEMENTATION} SHARED
     UserSettingsImplementation.cpp
     Module.cpp)
 
-
-find_path(RBUS_API_HEADER NAMES rbus.h PATH_SUFFIXES rbus)
-
-if (NOT ${RBUS_API_HEADER} STREQUAL "RBUS_API_HEADER-NOTFOUND")
-    message("Found rbus.h ${RBUS_API_HEADER}")
-    add_definitions (-DHAS_RBUS)
-    set(RBUS_API_HEADERS ${RBUS_API_HEADER})
-find_library(RBUS_LIBRARY NAMES rbus)
-endif()
-
-set(RBUS_LIBRARIES "")
-if (NOT ${RBUS_LIBRARY} STREQUAL "RBUS_LIBRARY-NOTFOUND")
-    set(RBUS_LIBRARIES ${RBUS_LIBRARY})
-endif()
-
-
 include_directories(
-   ${RBUS_API_HEADERS}
    ../helpers)
 
 set_target_properties(${PLUGIN_IMPLEMENTATION} PROPERTIES
@@ -86,8 +69,7 @@ endif (RDK_SERVICES_L2_TEST)
 target_link_libraries(${PLUGIN_IMPLEMENTATION}
     PRIVATE
         CompileSettingsDebug::CompileSettingsDebug
-        ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-         ${RBUS_LIBRARIES})
+        ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
 
 install(TARGETS ${PLUGIN_IMPLEMENTATION}
     DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)

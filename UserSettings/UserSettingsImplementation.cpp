@@ -23,10 +23,6 @@
 #include <mutex>
 #include "tracing/Logging.h"
 
-#ifdef HAS_RBUS
-#define RBUS_COMPONENT_NAME "UserSettingsThunderPlugin"
-#define RBUS_PRIVACY_MODE_EVENT_NAME "Device.X_RDKCENTRAL-COM_UserSettings.PrivacyModeChanged"
-#endif
 namespace WPEFramework {
 namespace Plugin {
 
@@ -79,9 +75,6 @@ UserSettingsImplementation::UserSettingsImplementation()
 , _storeNotification(*this)
 , _registeredEventHandlers(false)
 , _service(nullptr)
-#ifdef HAS_RBUS
-, _rbusHandleStatus(RBUS_ERROR_NOT_INITIALIZED)
-#endif
 {
     LOGINFO("Create UserSettingsImplementation Instance");
     UserSettingsImplementation::instance(this);
@@ -142,15 +135,6 @@ UserSettingsImplementation::~UserSettingsImplementation()
        _service = nullptr;
     }
     _registeredEventHandlers = false;
-    
-#ifdef HAS_RBUS
-    if (RBUS_ERROR_SUCCESS == _rbusHandleStatus)
-    {
-        rbus_close(_rbusHandle);
-        _rbusHandleStatus = RBUS_ERROR_NOT_INITIALIZED;
-    }
-
-#endif
 }
 
 void UserSettingsImplementation::registerEventHandlers()
@@ -674,38 +658,6 @@ uint32_t UserSettingsImplementation::SetPrivacyMode(const string& privacyMode)
 
         if (privacyMode != oldPrivacyMode)
         {
-#ifdef HAS_RBUS
-            if (Core::ERROR_NONE == status)
-            {
-                if (RBUS_ERROR_SUCCESS != _rbusHandleStatus)
-                {
-                    _rbusHandleStatus = rbus_open(&_rbusHandle, RBUS_COMPONENT_NAME);
-                }
-
-                if (RBUS_ERROR_SUCCESS == _rbusHandleStatus)
-                {
-                    rbusValue_t value;
-                    rbusSetOptions_t opts = {true, 0};
-
-                    rbusValue_Init(&value);
-                    rbusValue_SetString(value, privacyMode.c_str());
-                    int rc = rbus_set(_rbusHandle, RBUS_PRIVACY_MODE_EVENT_NAME, value, &opts);
-                    if (rc != RBUS_ERROR_SUCCESS)
-                    {
-                        std::stringstream str;
-                        str << "Failed to set property " << RBUS_PRIVACY_MODE_EVENT_NAME << ": " << rc;
-                        LOGERR("%s", str.str().c_str());
-                    }
-                    rbusValue_Release(value);
-                }
-                else
-                {
-                    std::stringstream str;
-                    str << "rbus_open failed with error code " << _rbusHandleStatus;
-                    LOGERR("%s", str.str().c_str());
-                }
-            }
-#endif
             status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PRIVACY_MODE_KEY, privacyMode, 0);
         }
     }

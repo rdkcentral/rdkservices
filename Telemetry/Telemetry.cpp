@@ -54,10 +54,10 @@
 #define T2_PERSISTENT_FOLDER "/opt/.t2reportprofiles/"
 #define DEFAULT_PROFILES_FILE "/etc/t2profiles/default.json"
 
-#define SYSTEMSERVICES_CALLSIGN "org.rdk.System"
+#define USERSETTINGS_CALLSIGN "org.rdk.UserSettings"
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 3
+#define API_VERSION_NUMBER_MINOR 4
 #define API_VERSION_NUMBER_PATCH 0
 
 #ifdef HAS_RBUS
@@ -96,6 +96,10 @@ namespace WPEFramework
 
         Telemetry::Telemetry()
         : PluginHost::JSONRPC()
+#ifdef HAS_RBUS
+        , _userSettingsPlugin(nullptr)
+        , _userSettingsNotification(*this)
+#endif
         {
             Telemetry::_instance = this;
 
@@ -117,43 +121,22 @@ namespace WPEFramework
 
 #ifdef HAS_RBUS
             PluginHost::IShell::state state;
-            if ((Utils::getServiceState(service, SYSTEMSERVICES_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
-                Utils::activatePlugin(service, SYSTEMSERVICES_CALLSIGN);
 
-            if ((Utils::getServiceState(service, SYSTEMSERVICES_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+            if ((Utils::getServiceState(service, USERSETTINGS_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                Utils::activatePlugin(service, USERSETTINGS_CALLSIGN);
+
+            if ((Utils::getServiceState(service, USERSETTINGS_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
             {
-                m_systemServiceConnection = Utils::getThunderControllerClient(SYSTEMSERVICES_CALLSIGN);
+                ASSERT(service != nullptr);
 
-                if (!m_systemServiceConnection)
+                _userSettingsPlugin = service->QueryInterfaceByCallsign<WPEFramework::Exchange::IUserSettings>(USERSETTINGS_CALLSIGN);
+                if (_userSettingsPlugin)
                 {
-                    LOGERR("%s plugin initialisation failed", SYSTEMSERVICES_CALLSIGN);
-                }
-                else
-                {
-                    uint32_t err = m_systemServiceConnection->Subscribe<JsonObject>(2000, "onPrivacyModeChanged", [this](const JsonObject& parameters) {
-                        
-                        if (parameters.HasLabel("privacyMode"))
-                        {
-                            std::string privacyMode = parameters["privacyMode"].String();
-                            notifyT2PrivacyMode(privacyMode);
-                        }
-                        else
-                        {
-                            LOGERR("No 'privacyMode' parameter");
-                        }
-                    });
+                    _userSettingsPlugin->Register(&_userSettingsNotification);
 
-                    if (err != Core::ERROR_NONE)
+                    std::string privacyMode;
+                    if (_userSettingsPlugin->GetPrivacyMode(privacyMode) == Core::ERROR_NONE)
                     {
-                        LOGERR("Failed to subscribe to onPrivacyModeChanged: %d", err);
-                    }
-
-                    JsonObject params;
-                    JsonObject res;
-                    m_systemServiceConnection->Invoke<JsonObject, JsonObject>(2000, "getPrivacyMode", params, res);
-                    if (res["success"].Boolean())
-                    {
-                        std::string privacyMode = res["privacyMode"].String();
                         notifyT2PrivacyMode(privacyMode);
                     }
                     else
@@ -164,7 +147,7 @@ namespace WPEFramework
             }
             else
             {
-                LOGERR("%s plugin is not activated", SYSTEMSERVICES_CALLSIGN);
+                LOGERR("Failed to activate %s", USERSETTINGS_CALLSIGN);
             }
 #endif
 
@@ -257,6 +240,12 @@ namespace WPEFramework
             {
                 rbus_close(rbusHandle);
                 rbusHandleStatus = RBUS_ERROR_NOT_INITIALIZED;
+            }
+
+            if (_userSettingsPlugin) {
+                 _userSettingsPlugin->Unregister(&_userSettingsNotification);
+                 _userSettingsPlugin->Release();
+                 _userSettingsPlugin = nullptr;
             }
 #endif
         }

@@ -1985,35 +1985,6 @@
                 ]
             }
         },
-        "setPrivacyMode": {
-            "summary": "Setting Privacy Mode.",          
-            "events": {
-                "onPrivacyModeChanged" : "Triggered when the Privacy Mode changes."
-            },
-            "params": {
-                "type": "object",
-                "properties": {
-                    "privacyMode": {
-                        "summary": "New Privacy Mode",
-                        "type": "string",
-                        "example": "DO_NOT_SHARE"
-                    }
-                }
-            },
-            "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
-            }
-        },
-        "getPrivacyMode":{
-            "summary": "Getting Privacy Mode",
-            "result": {
-                "summary": "Current Privacy Mode",
-                "type": "string",
-                "example": "DO_NOT_SHARE"
-            }
-        },
         "getBootTypeInfo":{
             "summary": "Getting Boot Type",
             "result": {
@@ -2415,22 +2386,6 @@
                 },
                 "required":[
                     "logUploadStatus"
-                ]
-            }
-        },
-        "onPrivacyModeChanged": {
-            "summary": "Triggered after the Privacy Mode changes (see `SetPrivacyMode`)",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "privacyMode":{
-                        "summary": "Receive Privacy Mode changes",
-                        "type": "string",
-                        "example": "DO_NOT_SHARE"
-                    }
-                },
-                "required": [
-                    "privacyMode"
                 ]
             }
         },

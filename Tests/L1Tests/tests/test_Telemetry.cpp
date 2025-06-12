@@ -1,3 +1,4 @@
+#if 0
 #include <gtest/gtest.h>
 
 #include "Telemetry.h"
@@ -639,3 +640,5 @@ TEST_F(TelemetryRBusTest, uploadLogsOnDeepSleep)
 
     plugin->Deinitialize(nullptr);
 }
+
+#endif

@@ -2,7 +2,7 @@
 <a name="System_Plugin"></a>
 # System Plugin
 
-**Version: [3.4.3](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
+**Version: [3.5.0](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
 
 A org.rdk.System plugin for Thunder framework.
 
@@ -118,8 +118,6 @@ org.rdk.System interface methods:
 | [getThunderStartReason](#getThunderStartReason) | Returns the Thunder start reason |
 | [setFSRFlag](#setFSRFlag) | Set the FSR flag into the emmc raw area |
 | [getFSRFlag](#getFSRFlag) | Get the FSR flag from the emmc raw area |
-| [setPrivacyMode](#setPrivacyMode) | Setting Privacy Mode |
-| [getPrivacyMode](#getPrivacyMode) | Getting Privacy Mode |
 | [getBootTypeInfo](#getBootTypeInfo) | Getting Boot Type |
 
 
@@ -2492,7 +2490,7 @@ No Events
 <a name="setDeepSleepTimer"></a>
 ## *setDeepSleepTimer*
 
-Sets the deep sleep timeout period.
+Sets the deep sleep timeout period. Max accepted value 864000(10 days). If larger value passed it will consider a 0.
 
 ### Events
 
@@ -3732,95 +3730,6 @@ This method takes no parameters.
 }
 ```
 
-<a name="setPrivacyMode"></a>
-## *setPrivacyMode*
-
-Setting Privacy Mode.
-
-### Events
-
-| Event | Description |
-| :-------- | :-------- |
-| [onPrivacyModeChanged](#onPrivacyModeChanged) | Triggered when the Privacy Mode changes. |
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.privacyMode | string | New Privacy Mode |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.System.setPrivacyMode",
-    "params": {
-        "privacyMode": "DO_NOT_SHARE"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": "null"
-}
-```
-
-<a name="getPrivacyMode"></a>
-## *getPrivacyMode*
-
-Getting Privacy Mode.
-
-### Events
-
-No Events
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | string | Current Privacy Mode |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.System.getPrivacyMode"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": "DO_NOT_SHARE"
-}
-```
-
 <a name="getBootTypeInfo"></a>
 ## *getBootTypeInfo*
 
@@ -3889,7 +3798,6 @@ org.rdk.System interface events:
 | [onDeviceMgtUpdateReceived](#onDeviceMgtUpdateReceived) | Triggered when the device management update completes |
 | [onTimeZoneDSTChanged](#onTimeZoneDSTChanged) | Triggered when device time zone changed |
 | [onLogUpload](#onLogUpload) | Triggered when logs upload process is done or stopped |
-| [onPrivacyModeChanged](#onPrivacyModeChanged) | Triggered after the Privacy Mode changes (see `SetPrivacyMode`) |
 | [onBlocklistChanged](#onBlocklistChanged) | Triggers when the blocklist flag is modified |
 
 
@@ -4334,30 +4242,6 @@ Triggered when logs upload process is done or stopped.
     "method": "client.events.onLogUpload",
     "params": {
         "logUploadStatus": "UPLOAD_SUCCESS"
-    }
-}
-```
-
-<a name="onPrivacyModeChanged"></a>
-## *onPrivacyModeChanged*
-
-Triggered after the Privacy Mode changes (see `SetPrivacyMode`).
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.privacyMode | string | Receive Privacy Mode changes |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.onPrivacyModeChanged",
-    "params": {
-        "privacyMode": "DO_NOT_SHARE"
     }
 }
 ```

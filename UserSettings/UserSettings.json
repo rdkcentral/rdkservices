@@ -25,6 +25,11 @@
             "type": "string",
             "example": "CC3"
         },
+        "privacyMode": {
+            "summary": "The Privacy Mode. Valid values are SHARE, DO_NOT_SHARE",
+            "type": "string",
+            "example": "SHARE"
+        },
         "presentationLanguage": {
             "summary": "The preferred presentationLanguage in a full BCP 47 value, including script, * region, variant The language set and used by Immerse UI",
             "type": "string",
@@ -173,6 +178,25 @@
                 "properties": {
                     "service": {
                         "$ref": "#/definitions/preferredClosedCaptionService"
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
+        "setPrivacyMode": {
+            "summary": "Setting Privacy Mode.",          
+            "events": {
+                "onPrivacyModeChanged" : "Triggered when the Privacy Mode changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "privacyMode": {
+                        "$ref": "#/definitions/privacyMode"
                     }
                 }
             },
@@ -449,6 +473,12 @@
                 "$ref": "#/definitions/preferredClosedCaptionService"
             }
         },
+        "getPrivacyMode":{
+            "summary": "Getting Privacy Mode",
+            "result": {
+                "$ref": "#/definitions/privacyMode"
+            }
+        },
 	    "getPinControl":{
             "summary": "Returns Pin Control.",
             "result": {
@@ -659,6 +689,22 @@
                 },
                 "required": [
                     "service"
+                ]
+            }
+        },
+        "onPrivacyModeChanged": {
+            "summary": "Triggered after the Privacy Mode changes (see `SetPrivacyMode`)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "privacyMode":{
+                        "summary": "Receive Privacy Mode changes",
+                        "type": "string",
+                        "example": "DO_NOT_SHARE"
+                    }
+                },
+                "required": [
+                    "privacyMode"
                 ]
             }
         },
