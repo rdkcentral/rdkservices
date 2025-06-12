@@ -348,8 +348,10 @@ namespace Plugin {
                 override
             {
                 uint32_t result;
+                Core::JSON::String jsonString;
+                jsonString.FromString(initData);
                 JsonObject out;
-                out.FromString(initData);
+                out.FromString(jsonString);
                 out["clientId"] = clientId;
                 out["keySystem"] = Core::JSON::EnumType<KeySystem>(keySystem)
                                        .Data();
@@ -362,7 +364,9 @@ namespace Plugin {
                         result = Core::ERROR_GENERAL;
                     } else {
                         sessionId = in["sessionId"].Number();
-                        in.ToString(response);
+                        string inStr;
+                        in.ToString(inStr);
+                        response = Core::ToQuotedString('\"', inStr);
 
                         _parent._sessionStorage.Set(sessionId,
                             { clientId, appId, keySystem });
@@ -406,8 +410,10 @@ namespace Plugin {
                 }
 
                 uint32_t result;
+                Core::JSON::String jsonString;
+                jsonString.FromString(initData);
                 JsonObject out;
-                out.FromString(initData);
+                out.FromString(jsonString);
                 out["clientId"] = session.Value().ClientId;
                 out["sessionId"] = sessionId;
                 out["keySystem"] = Core::JSON::EnumType<KeySystem>(
@@ -422,7 +428,9 @@ namespace Plugin {
                     if (!in["success"].Boolean()) {
                         result = Core::ERROR_GENERAL;
                     } else {
-                        in.ToString(response);
+                        string inStr;
+                        in.ToString(inStr);
+                        response = Core::ToQuotedString('\"', inStr);
                     }
                 }
                 return result;
