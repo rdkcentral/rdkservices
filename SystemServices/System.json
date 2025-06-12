@@ -2,7 +2,7 @@
     "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
-        "title": "System Plugin", 
+        "title": "System API", 
         "class": "org.rdk.System",
         "description": "The `System` plugin is used to manage various system-level features such as power settings and firmware updates."
     },

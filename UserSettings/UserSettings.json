@@ -2,7 +2,7 @@
     "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
-        "title": "UserSettings Plugin",
+        "title": "UserSettings API",
         "class": "org.rdk.UserSettings",
         "description": "The `UserSettings`, that is responsible for persisting and notifying listeners of any change of these settings.."
     },
