@@ -280,12 +280,7 @@ jobs:
           -DRDK_SERVICE_L2_TEST=ON
           -DDS_FOUND=ON
           -DPLUGIN_ANALYTICS=ON
-          -DPLUGIN_ANALYTICS_SIFT_BACKEND=ON
-          -DPLUGIN_ANALYTICS_SIFT_2_0_ENABLED="true"
-          -DPLUGIN_ANALYTICS_SIFT_MAX_RANDOMISATION_WINDOW_TIME=15
-          -DPLUGIN_ANALYTICS_SIFT_STORE_PATH="/tmp/AnalyticsSiftStore"
-          -DPLUGIN_ANALYTICS_SIFT_URL="127.0.0.1:12345"
-          -DPLUGIN_ANALYTICS_EVENTS_MAP="/tmp/AnalyticsEventsMap.json"
+          -DPLUGIN_ANALYTICS_BACKEND_LIBRARY_NAME="libAnalyticsBackendMock.so"
           &&
           cmake --build build/rdkservices -j8
           &&

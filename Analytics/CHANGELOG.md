@@ -14,6 +14,9 @@ All notable changes to this RDK Service will be documented in this file.
 
     For more details, refer to versioning section under Main README.
 
+## [1.0.4] - 2025-06-12
+- Backend as an external dynamic library
+
 ## [1.0.3] - 2025-02-07
 ### Fixed
 - Fix hang on call to zdump
