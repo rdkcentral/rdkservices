@@ -16,17 +16,29 @@ namespace Utils
 #endif
         };
 
-        static void sendMessage(char* message)
-        {
-#ifdef ENABLE_TELEMETRY_LOGGING
-            t2_event_s((char *)"THUNDER_MESSAGE", message);
-#endif
-        };
-
         static void sendMessage(char *marker, char* message)
         {
 #ifdef ENABLE_TELEMETRY_LOGGING
             t2_event_s(marker, message);
+#endif
+        };
+
+        static void sendMessage(const char* format, ...)
+        {
+#ifdef ENABLE_TELEMETRY_LOGGING
+            va_list parameters;
+            va_start(parameters, format);
+            std::string message;
+            WPEFramework::Trace::Format(message, format, parameters);
+            va_end(parameters);
+
+            // get rid of const for t2_event_s
+            char* msg = strdup(message.c_str());
+            t2_event_s((char *)"THUNDER_MESSAGE", msg);
+            if (msg)
+            {
+                free(msg);
+            }
 #endif
         };
 

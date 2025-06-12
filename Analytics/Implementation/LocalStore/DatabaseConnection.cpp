@@ -18,6 +18,7 @@
  */
 #include "DatabaseConnection.h"
 #include "UtilsLogging.h"
+#include "UtilsTelemetry.h"
 
 namespace WPEFramework {
     namespace Plugin {
@@ -35,7 +36,7 @@ namespace WPEFramework {
             if (!databaseName.empty()) {
                 // If a connection is already open close it first
                 if (mDataBaseHandle != NULL && DisConnect() != DB_OK) {
-                    LOGERR("Database %s open failed: could not close existing "
+                    Utils::Telemetry::sendError("DatabaseConnection::Connect: Database %s open failed: could not close existing "
                         "connection",
                         databaseName.c_str());
                 } else {
@@ -50,14 +51,15 @@ namespace WPEFramework {
                         ret = true;
                         LOGINFO("Database %s open succeeded", databaseName.c_str());
                     } else {
-                        LOGERR("Database %s open failed: %s db err code %d",
+                        Utils::Telemetry::sendError("DatabaseConnection::Connect: Database %s open failed: %s db err code %d",
                             databaseName.c_str(),
                             DB_ERRMSG(mDataBaseHandle),
                             queryRet);
                     }
                 }
             } else {
-                LOGERR("Database open failed: invalid db name %s", databaseName.c_str());
+                Utils::Telemetry::sendError("DatabaseConnection::Connect: Database open failed: invalid db name %s",
+                    databaseName.c_str());
             }
 
             return ret;
@@ -78,7 +80,7 @@ namespace WPEFramework {
                     mDatabaseName.clear();
                     mDataBaseHandle = NULL;
                 } else {
-                    LOGERR("Database %s close failed: %s db err code %d",
+                    Utils::Telemetry::sendError("DatabaseConnection::DisConnect: Database %s close failed: %s db err code %d",
                         mDatabaseName.c_str(),
                         DB_ERRMSG(mDataBaseHandle),
                         queryRet);
@@ -110,7 +112,7 @@ namespace WPEFramework {
                     // Note that row data could be large and therefore cannot log query
                     ret = true;
                 } else {
-                    LOGERR("Database %s query failed errmsg: %s db err code %d",
+                    Utils::Telemetry::sendError("DatabaseConnection::Exec: Database %s query failed errmsg: %s db err code %d",
                         mDatabaseName.c_str(),
                         errmsg,
                         queryRet);
@@ -119,7 +121,7 @@ namespace WPEFramework {
                     DB_FREE(errmsg);
                 }
             } else {
-                LOGERR("Database connection not established for %s. "
+                Utils::Telemetry::sendError("DatabaseConnection::Exec: Database connection not established for %s. "
                     "Query failed.",
                     mDatabaseName.c_str());
             }
@@ -152,7 +154,7 @@ namespace WPEFramework {
                     modifiedRows = DB_CHANGES(mDataBaseHandle);
                     ret = true;
                 } else {
-                    LOGERR("Database %s query failed errmsg: %s db err code %d",
+                    Utils::Telemetry::sendError("DatabaseConnection::ExecAndGetModified: Database %s query failed errmsg: %s db err code %d",
                         mDatabaseName.c_str(),
                         errmsg,
                         queryRet);
@@ -161,7 +163,7 @@ namespace WPEFramework {
                     DB_FREE(errmsg);
                 }
             } else {
-                LOGERR("Database connection not established for %s. "
+                Utils::Telemetry::sendError("DatabaseConnection::ExecAndGetModified: Database connection not established for %s. "
                     "Query failed.",
                     mDatabaseName.c_str());
             }
@@ -192,14 +194,15 @@ namespace WPEFramework {
                     ret = true;
                     table = result;
                 } else {
-                    LOGERR("Database %s query failed with error: %s db err code %d",
+                    Utils::Telemetry::sendError("DatabaseConnection::ExecAndGetResults: Database %s query failed with error: %s db err code %d",
                         mDatabaseName.c_str(),
                         errmsg,
                         queryRet);
                     DB_FREE(errmsg);
                 }
             } else {
-                LOGERR("Database connection not established for %s. Query failed.",
+                Utils::Telemetry::sendError("DatabaseConnection::ExecAndGetResults: Database connection not established for %s. "
+                    "Query failed.",
                     mDatabaseName.c_str());
             }
 

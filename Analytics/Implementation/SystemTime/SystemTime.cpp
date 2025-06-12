@@ -20,6 +20,8 @@
 #include "UtilsLogging.h"
 #include "secure_wrapper.h"
 
+#include "UtilsTelemetry.h"
+
 #define JSONRPC_THUNDER_TIMEOUT 2000
 #define THUNDER_ACCESS_DEFAULT_VALUE "127.0.0.1:9998"
 #define SYSTEM_CALLSIGN "org.rdk.System.1"
@@ -193,7 +195,7 @@ namespace WPEFramework
             }
             else
             {
-                LOGERR("getTimeStatus not available, assuming time is OK");
+                Utils::Telemetry::sendError("SystemTime::UpdateTimeStatus: getTimeStatus not available, assuming time is OK");
                 std::lock_guard<std::mutex> guard(mLock);
                 mIsSystemTimeAvailable = true;
             }
@@ -278,7 +280,7 @@ namespace WPEFramework
             }
             else
             {
-                LOGERR( "There is no time transition information for this timezone: %s", mTimeZone.c_str());
+                Utils::Telemetry::sendError("SystemTime::ParseTimeZone: There is no time transition information for this timezone: %s", mTimeZone.c_str());
                 result.second = 0;
                 result.first = ACC_UNDEFINED;
             }
@@ -375,7 +377,7 @@ namespace WPEFramework
                 }
                 else
                 {
-                    LOGERR("popen of zdump -v %s failed", mTimeZone.c_str());
+                    Utils::Telemetry::sendError("SystemTime::PopulateTimeZoneTransitionMap: popen of zdump -v %s failed", mTimeZone.c_str());
                 }
             }
         }
@@ -409,7 +411,7 @@ namespace WPEFramework
                         }
                         else
                         {
-                            LOGERR("Failed to create JSONRPC link with %s", SYSTEM_CALLSIGN);
+                            Utils::Telemetry::sendError("SystemTime::EventLoop: Failed to create JSONRPC link with %s", SYSTEM_CALLSIGN);
                         }
                     }
                 }

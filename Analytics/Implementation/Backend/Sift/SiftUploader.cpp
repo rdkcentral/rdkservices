@@ -21,6 +21,8 @@
 #include "UtilsLogging.h"
 #include "../../../Module.h"
 
+#include "UtilsTelemetry.h"
+
 #include <vector>
 #include <curl/curl.h>
 #include <random>
@@ -109,13 +111,13 @@ namespace WPEFramework
                         }
                         else
                         {
-                            LOGERR("No collected events to be got");
+                            Utils::Telemetry::sendError("SiftUploader::Run: No events to be collected");
                         }
                     }
 
                     if (eventsCollected)
                     {
-                        LOGINFO("Successfully collected events from analytics Store");
+                        Utils::Telemetry::sendMessage("SiftUploader::Run: Collected %zu events from analytics store", collectedEvents.size());
                         mUploaderState = UploaderState::POST_ANALYTICS;
                         // Falling through to the POST_ANALYTICS case as we have successfully collected events
                     }
@@ -136,8 +138,6 @@ namespace WPEFramework
 
                     long respcode;
 
-                    LOGINFO("Posting analytics events: %s", jsonEventPayload.c_str());
-
                     do
                     {
                         respcode = PostJson(mUrl, jsonEventPayload, resp);
@@ -147,21 +147,17 @@ namespace WPEFramework
                     {
                         if (respcode == 400)
                         {
-                            LOGWARN("Received a 400 response - deleting the events as the end point refuses them");
+                            Utils::Telemetry::sendError("SiftUploader::Run: Received a 400 response - deleting the events as the end point refuses them");
                         }
 
                         if (!mEvents.empty() && mStorePtr->RemoveEvents(mEventStartIndex, mEventStartIndex + mEvents.size() - 1))
                         {
                             LOGINFO("Collected events successfully deleted");
                         }
-                        else
-                        {
-                            LOGERR("No collected events to be deleted");
-                        }
                     }
                     else
                     {
-                        LOGERR("Failed to post analytics event - respcode: %ld, response: %s", respcode, resp.c_str());
+                        Utils::Telemetry::sendError("SiftUploader::Run: Failed to post analytics event - respcode: %ld, response: %s", respcode, resp.c_str());
                     }
 
                     if (!resp.empty())
@@ -301,7 +297,8 @@ namespace WPEFramework
                     }
                     else
                     {
-                        LOGWARN("Dropping an invalid/malformed event since it would be rejected by the backend anyway");
+                        Utils::Telemetry::sendError("SiftUploader::ComposeJSONEventArrayToBeUploaded: Dropping an invalid/malformed"
+                            " event since it would be rejected by the backend anyway");
                     }
                 }
 
@@ -328,7 +325,7 @@ namespace WPEFramework
 
             if (!responseJson.HasLabel("Events") && responseJson["Events"].Content() != WPEFramework::Core::JSON::Variant::type::ARRAY)
             {
-                LOGERR("Response does not contain Events array");
+                Utils::Telemetry::sendError("SiftUploader::validateResponse: Response does not contain Events array");
                 return;
             }
 
@@ -351,12 +348,12 @@ namespace WPEFramework
                             found = true;
                             if (responseEvent.HasLabel("Status") && responseEvent["Status"].String() != "valid")
                             {
-                                LOGERR("Event was rejected by the backend: %s", event.c_str());
+                                Utils::Telemetry::sendError("SiftUploader::validateResponse: Event was rejected by the backend: %s", event.c_str());
                                 if (responseEvent.HasLabel("Errors"))
                                 {
                                     std::string errors;
                                     responseEvent.ToString(errors);
-                                    LOGERR("Backend response for rejected event: %s", errors.c_str());
+                                    Utils::Telemetry::sendError("SiftUploader::validateResponse: Backend response for rejected event: %s", errors.c_str());
                                 }
                             }
                             break;
@@ -366,7 +363,7 @@ namespace WPEFramework
 
                 if (!found)
                 {
-                    LOGERR("Event Id '%s'  was not found in the response", eventId.c_str());
+                    Utils::Telemetry::sendError("SiftUploader::validateResponse: Event Id '%s' was not found in the response", eventId.c_str());
                 }
             }
         }
@@ -384,14 +381,14 @@ namespace WPEFramework
 
             if (url.empty() || json.empty())
             {
-                LOGERR("Invalid parameters for postJson");
+                Utils::Telemetry::sendError("SiftUploader::PostJson: Invalid parameters for postJson");
                 return retHttpCode;
             }
 
             curl = curl_easy_init();
             if (!curl)
             {
-                LOGERR("Failed to initialize curl");
+                Utils::Telemetry::sendError("SiftUploader::PostJson: Failed to initialize curl");
                 return retHttpCode;
             }
 
@@ -414,7 +411,7 @@ namespace WPEFramework
             // Check for errors
             if (res != CURLE_OK)
             {
-                LOGERR("curl_easy_perform() failed: %s", curl_easy_strerror(res));
+                Utils::Telemetry::sendError("SiftUploader::PostJson: curl_easy_perform() failed: %s", curl_easy_strerror(res));
             }
             else
             {
