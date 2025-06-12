@@ -20,7 +20,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 3)
+set(VERSION_PATCH 4)
 
 add_compile_definitions(ANALYTICS_MAJOR_VERSION=${VERSION_MAJOR})
 add_compile_definitions(ANALYTICS_MINOR_VERSION=${VERSION_MINOR})
@@ -28,32 +28,17 @@ add_compile_definitions(ANALYTICS_PATCH_VERSION=${VERSION_PATCH})
 
 set(MODULE_VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 
-option(PLUGIN_ANALYTICS_SIFT_BACKEND "Enable Sift backend" OFF)
-
 set(PLUGIN_ANALYTICS_STARTUPORDER "" CACHE STRING "To configure startup order of Analytics plugin")
 set(PLUGIN_ANALYTICS_AUTOSTART "false" CACHE STRING "Automatically start Analytics plugin")
-set(PLUGIN_ANALYTICS_DEVICE_OS_NAME "rdk" CACHE STRING "Device OS name")
 set(PLUGIN_ANALYTICS_EVENTS_MAP "" CACHE STRING "Optional path to events mapping file")
-
-set(PLUGIN_ANALYTICS_SIFT_BACKEND_ENABLED ${PLUGIN_ANALYTICS_SIFT_BACKEND} CACHE BOOL "Enable Sift backend configuration")
-set(PLUGIN_ANALYTICS_SIFT_2_0_ENABLED "false" CACHE STRING "Enable Sift 2.0 schema")
-set(PLUGIN_ANALYTICS_SIFT_COMMON_SCHEMA "entos/common/v1" CACHE STRING "Sift common schema")
-set(PLUGIN_ANALYTICS_SIFT_ENV "prod" CACHE STRING "Sift environment")
-set(PLUGIN_ANALYTICS_SIFT_PRODUCT_NAME "entos" CACHE STRING "Sift product name") #entos-immerse in Sift2.0
-set(PLUGIN_ANALYTICS_SIFT_LOGGER_NAME "Analytics" CACHE STRING "Sift logger name")
-set(PLUGIN_ANALYTICS_SIFT_LOGGER_VERSION "${MODULE_VERSION}" CACHE STRING "Sift logger version")
-set(PLUGIN_ANALYTICS_SIFT_PLATFORM_DEFAULT "entos:rdk" CACHE STRING "Sift platform default value")
-set(PLUGIN_ANALYTICS_SIFT_MAX_RANDOMISATION_WINDOW_TIME 300 CACHE STRING "Sift max randomisation window time of posting queued events")
-set(PLUGIN_ANALYTICS_SIFT_MAX_EVENTS_IN_POST 10 CACHE STRING "Sift max events in post")
-set(PLUGIN_ANALYTICS_SIFT_MAX_RETRIES 10 CACHE STRING "Sift max retries posting events")
-set(PLUGIN_ANALYTICS_SIFT_MIN_RETRY_PERIOD 1 CACHE STRING "Sift min retry period seconds")
-set(PLUGIN_ANALYTICS_SIFT_MAX_RETRY_PERIOD 30 CACHE STRING "Sift max retry period seconds")
-set(PLUGIN_ANALYTICS_SIFT_EXPONENTIAL_PERIODIC_FACTOR 2 CACHE STRING "Sift exponential periodic factor")
-set(PLUGIN_ANALYTICS_SIFT_STORE_PATH "/persistent/AnalyticsSiftStore" CACHE STRING "Sift store path")
-set(PLUGIN_ANALYTICS_SIFT_STORE_EVENTS_LIMIT 1000 CACHE STRING "Sift store events limit")
-set(PLUGIN_ANALYTICS_SIFT_URL "" CACHE STRING "Sift URL")
+set(PLUGIN_ANALYTICS_LOGGER_NAME "${PLUGIN_NAME}" CACHE STRING "Logger name")
+set(PLUGIN_ANALYTICS_LOGGER_VERSION "${MODULE_VERSION}" CACHE STRING "Logger version")
+set(PLUGIN_ANALYTICS_BACKEND_LIBRARY_NAME "" CACHE STRING "Analytics backend library name")
 
 message("Setup ${MODULE_NAME} v${MODULE_VERSION}")
+
+set(PLUGIN_ANALYTICS_INTERFACES_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include/${NAMESPACE}/interfaces/analytics/")
+set(PLUGIN_ANALYTICS_LIBLOADER_DFL_DIR "${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins/")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
@@ -66,8 +51,16 @@ add_library(${MODULE_NAME} SHARED
 
 target_include_directories(${MODULE_NAME} PRIVATE Implementation)
 target_include_directories(${MODULE_NAME} PRIVATE Implementation/SystemTime)
+target_include_directories(${MODULE_NAME} PRIVATE Implementation/LocalStore)
+target_include_directories(${MODULE_NAME} PRIVATE Implementation/Backend)
+target_include_directories(${MODULE_NAME} PRIVATE Implementation/Interfaces)
 target_include_directories(${MODULE_NAME} PRIVATE ../)
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
+
+file(GLOB PLUGIN_ANALYTICS_INTERFACES_HEADERS Implementation/Interfaces/I*.h)
+message(STATUS "Installing Analytics interfaces: ${PLUGIN_ANALYTICS_INTERFACES_HEADERS} into ${PLUGIN_ANALYTICS_INTERFACES_INSTALL_DIR}")
+install(FILES ${PLUGIN_ANALYTICS_INTERFACES_HEADERS}
+        DESTINATION ${PLUGIN_ANALYTICS_INTERFACES_INSTALL_DIR})
 
 add_subdirectory(Implementation/SystemTime)
 add_subdirectory(Implementation/LocalStore)
@@ -78,6 +71,7 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD_REQUIRED YES)
 
 target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
+target_compile_definitions(${MODULE_NAME} PRIVATE LIBLOADER_DFL_DIR="${PLUGIN_ANALYTICS_LIBLOADER_DFL_DIR}")
 
 target_link_libraries(${MODULE_NAME}
         PRIVATE
@@ -85,7 +79,8 @@ target_link_libraries(${MODULE_NAME}
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
         ${MODULE_NAME}Backends
-        ${MODULE_NAME}SystemTime)
+        ${MODULE_NAME}SystemTime
+        ${MODULE_NAME}LocalStore)
 
 if (RDK_SERVICE_L2_TEST)
     target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
