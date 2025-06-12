@@ -26,25 +26,26 @@
 #include <memory>
 
 #include "../../Module.h"
+#include "ILocalStore.h"
 #include "DatabaseConnection.h"
 
 namespace WPEFramework
 {
     namespace Plugin
     {
-        class LocalStore
+        class LocalStore: public ILocalStore
         {
         public:
             LocalStore();
             ~LocalStore();
 
-            bool Open(const std::string &path);
-            bool CreateTable(const std::string &table);
-            bool SetLimit(const std::string &table, uint32_t limit);
-            std::pair<uint32_t, uint32_t> GetEntriesCount(const std::string &table, uint32_t start, uint32_t maxCount) const;
-            std::vector<std::string> GetEntries(const std::string &table, uint32_t start, uint32_t count) const;
-            bool RemoveEntries(const std::string &table, uint32_t start, uint32_t end);
-            bool AddEntry(const std::string &table, const std::string &entry);
+            bool Open(const std::string &path) override;
+            bool CreateTable(const std::string &table) override;
+            bool SetLimit(const std::string &table, uint32_t limit) override;
+            std::pair<uint32_t, uint32_t> GetEntriesCount(const std::string &table, uint32_t start, uint32_t maxCount) const override;
+            std::vector<std::string> GetEntries(const std::string &table, uint32_t start, uint32_t count) const override;
+            bool RemoveEntries(const std::string &table, uint32_t start, uint32_t end) override;
+            bool AddEntry(const std::string &table, const std::string &entry) override;
         private:
 
             std::string buildGetEventsQuery(const std::string &table, uint32_t start, uint32_t count) const;

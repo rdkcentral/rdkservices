@@ -27,27 +27,21 @@
 #include <queue>
 
 #include "../../Module.h"
+#include "ISystemTime.h"
 
 namespace WPEFramework
 {
     namespace Plugin
     {
-        class SystemTime
+        class SystemTime: public ISystemTime
         {
         public:
-            enum TimeZoneAccuracy
-            {
-                INITIAL,
-                INTERIM,
-                FINAL,
-                ACC_UNDEFINED
-            };
 
             SystemTime(PluginHost::IShell *shell);
             ~SystemTime();
 
-            bool IsSystemTimeAvailable();
-            TimeZoneAccuracy GetTimeZoneOffset(int32_t &offsetSec);
+            bool IsSystemTimeAvailable() override;
+            TimeZoneAccuracy GetTimeZoneOffset(int32_t &offsetSec) override;
 
         private:
             enum EventType
