@@ -155,5 +155,42 @@ namespace Plugin {
             ? Core::ERROR_NONE
             : GetRFCData(_T("Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId"), distributorId);
     }
+
+
+    Core::hresult DeviceInfoImplementation::ReleaseVersion(string& releaseVersion ) const
+    {
+        const std::string defaultVersion = "99.99.0.0";
+        std::regex pattern(R"((\d+)\.(\d+)[sp])");
+        std::smatch match;
+        std::string imagename = "";
+        if(Core::ERROR_NONE == GetFileRegex(_T("/version.txt"), std::regex("^imagename:([^\\n]+)$"), imagename))
+        {
+            if (std::regex_search(imagename, match, pattern)) {
+                std::string major = match[1];
+                std::string minor = match[2];
+                releaseVersion = major + "." + minor + ".0.0";
+            }
+            else
+            {
+                releaseVersion = defaultVersion ;
+                LOGERR("Unable to get releaseVersion of the Image:%s.So default releaseVersion is: %s ",imagename.c_str(),releaseVersion.c_str());
+            }
+        }
+        else
+        {
+                releaseVersion = defaultVersion ;
+                LOGERR("Unable to read from /version.txt So default releaseVersion is: %s ",releaseVersion.c_str());
+
+        }
+
+        return Core::ERROR_NONE; 
+    }
+
+    uint32_t DeviceInfoImplementation::ChipSet(string& chipset) const
+    {
+        auto result = GetFileRegex(_T("/etc/device.properties"),std::regex("^CHIPSET_NAME(?:\\s*)=(?:\\s*)(?:\"{0,1})([^\"\\n]+)(?:\"{0,1})(?:\\s*)$"), chipset);
+        return result; 
+    }
+
 }
 }

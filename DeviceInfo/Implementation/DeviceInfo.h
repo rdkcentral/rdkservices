@@ -30,6 +30,8 @@ namespace Plugin {
         uint32_t DeviceType(string& deviceType) const override;
         uint32_t DistributorId(string& distributorId) const override;
         uint32_t Brand(string& brand) const override;
+        Core::hresult ReleaseVersion(string& releaseVersion ) const override;
+        Core::hresult ChipSet(string& chipSet ) const override;
     };
 }
 }
