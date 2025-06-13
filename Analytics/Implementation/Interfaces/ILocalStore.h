@@ -18,37 +18,28 @@
  */
 #pragma once
 
-#include "../../../Module.h"
-#include "../../LocalStore/LocalStore.h"
-
-#include <mutex>
 #include <string>
 #include <vector>
+#include <map>
 #include <memory>
 
 namespace WPEFramework
 {
     namespace Plugin
     {
-
-        class SiftStore
+        struct ILocalStore
         {
-        public:
-            SiftStore(const std::string &path, uint32_t eventsLimit);
-            ~SiftStore();
-
-            std::pair<uint32_t, uint32_t> GetEventCount() const;
-            std::vector<std::string> GetEvents(uint32_t start, uint32_t count) const;
-            bool RemoveEvents(uint32_t start, uint32_t end);
-            bool PostEvent(const std::string &entry);
-
-        private:
-            uint32_t mEventsLimit;
-            LocalStore mLocalStore;
-            mutable std::mutex mMutex;
+            virtual ~ILocalStore() = default;
+            virtual bool Open(const std::string &path) = 0;
+            virtual bool CreateTable(const std::string &table) = 0;
+            virtual bool SetLimit(const std::string &table, uint32_t limit) = 0;
+            virtual std::pair<uint32_t, uint32_t> GetEntriesCount(const std::string &table, uint32_t start, uint32_t maxCount) const = 0;
+            virtual std::vector<std::string> GetEntries(const std::string &table, uint32_t start, uint32_t count) const = 0;
+            virtual bool RemoveEntries(const std::string &table, uint32_t start, uint32_t end) = 0;
+            virtual bool AddEntry(const std::string &table, const std::string &entry) = 0;
         };
 
-        typedef std::shared_ptr<SiftStore> SiftStorePtr;
+        using ILocalStorePtr = std::shared_ptr<ILocalStore>;
 
     }
 }

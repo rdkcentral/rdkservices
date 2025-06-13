@@ -5,25 +5,8 @@ startuporder = "@PLUGIN_ANALYTICS_STARTUPORDER@"
 
 configuration = JSON()
 
-configuration.add("deviceosname", "@PLUGIN_ANALYTICS_DEVICE_OS_NAME@")
 configuration.add("eventsmap", "@PLUGIN_ANALYTICS_EVENTS_MAP@")
+configuration.add("loggername", "@PLUGIN_ANALYTICS_LOGGER_NAME@")
+configuration.add("loggerversion", "@PLUGIN_ANALYTICS_LOGGER_VERSION@")
+configuration.add("backendlib", "@PLUGIN_ANALYTICS_BACKEND_LIBRARY_NAME@")
 
-if boolean("@PLUGIN_ANALYTICS_SIFT_BACKEND_ENABLED@"):
-    sift = JSON()
-    sift.add("schema2", "@PLUGIN_ANALYTICS_SIFT_2_0_ENABLED@")
-    sift.add("commonschema", "@PLUGIN_ANALYTICS_SIFT_COMMON_SCHEMA@")
-    sift.add("env", "@PLUGIN_ANALYTICS_SIFT_ENV@")
-    sift.add("productname", "@PLUGIN_ANALYTICS_SIFT_PRODUCT_NAME@")
-    sift.add("loggername", "@PLUGIN_ANALYTICS_SIFT_LOGGER_NAME@")
-    sift.add("loggerversion", "@PLUGIN_ANALYTICS_SIFT_LOGGER_VERSION@")
-    sift.add("platformdefault", "@PLUGIN_ANALYTICS_SIFT_PLATFORM_DEFAULT@")
-    sift.add("maxrandomisationwindowtime", "@PLUGIN_ANALYTICS_SIFT_MAX_RANDOMISATION_WINDOW_TIME@")
-    sift.add("maxeventsinpost", "@PLUGIN_ANALYTICS_SIFT_MAX_EVENTS_IN_POST@")
-    sift.add("maxretries", "@PLUGIN_ANALYTICS_SIFT_MAX_RETRIES@")
-    sift.add("minretryperiod", "@PLUGIN_ANALYTICS_SIFT_MIN_RETRY_PERIOD@")
-    sift.add("maxretryperiod", "@PLUGIN_ANALYTICS_SIFT_MAX_RETRY_PERIOD@")
-    sift.add("exponentialperiodicfactor", "@PLUGIN_ANALYTICS_SIFT_EXPONENTIAL_PERIODIC_FACTOR@")
-    sift.add("storepath", "@PLUGIN_ANALYTICS_SIFT_STORE_PATH@")
-    sift.add("eventslimit", "@PLUGIN_ANALYTICS_SIFT_STORE_EVENTS_LIMIT@")
-    sift.add("url", "@PLUGIN_ANALYTICS_SIFT_URL@")
-    configuration.add("sift", sift)
