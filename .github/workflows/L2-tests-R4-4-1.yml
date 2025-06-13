@@ -280,7 +280,8 @@ jobs:
           -DRDK_SERVICE_L2_TEST=ON
           -DDS_FOUND=ON
           -DPLUGIN_ANALYTICS=ON
-          -DPLUGIN_ANALYTICS_BACKEND_LIBRARY_NAME="libAnalyticsBackendMock.so"
+          -DPLUGIN_ANALYTICS_BACKEND_LIBRARY_NAME="libWPEFrameworkAnalyticsBackendMock.so"
+          -DPLUGIN_ANALYTICS_EVENTS_MAP="/tmp/AnalyticsEventsMap.json"
           &&
           cmake --build build/rdkservices -j8
           &&
