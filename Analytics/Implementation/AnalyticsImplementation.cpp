@@ -364,7 +364,7 @@ namespace Plugin {
         }
         else //send to the first backend
         {
-            LOGINFO("Sending event to backend: %s", mBackends.begin()->first.c_str());
+            LOGINFO("Sending event '%s' to backend: %s", backendEvent.eventName.c_str(), mBackends.begin()->first.c_str());
             mBackends.begin()->second->SendEvent(backendEvent);
         }
     }
