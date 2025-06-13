@@ -93,6 +93,8 @@ if (RDK_SERVICE_L2_TEST)
     else (TESTMOCKLIB_LIBRARIES)
         message ("Require ${TESTMOCKLIB_LIBRARIES} library")
     endif (TESTMOCKLIB_LIBRARIES)
+
+    add_subdirectory(Tests/AnalyticsBackendMock)
 endif (RDK_SERVICES_L2_TEST)
 
 install(TARGETS ${MODULE_NAME}
