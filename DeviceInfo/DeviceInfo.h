@@ -120,6 +120,8 @@ namespace Plugin {
         uint32_t get_brandname(JsonData::DeviceInfo::BrandnameData& response) const;
         uint32_t get_devicetype(JsonData::DeviceInfo::DevicetypeData& response) const;
         uint32_t get_distributorid(JsonData::DeviceInfo::DistributoridData& response) const;
+        uint32_t get_releaseversion(JsonData::DeviceInfo::ReleaseversionData& response) const;
+        uint32_t get_chipset(JsonData::DeviceInfo::ChipsetData& response) const;
         uint32_t get_supportedaudioports(JsonData::DeviceInfo::SupportedaudioportsData& response) const;
         uint32_t get_supportedvideodisplays(JsonData::DeviceInfo::SupportedvideodisplaysData& response) const;
         uint32_t get_hostedid(JsonData::DeviceInfo::HostedidData& response) const;
