@@ -299,7 +299,7 @@ TEST_F(AnalyticsTest, SendAndReceiveSignleEventQueued)
     eventArray.FromString(eventMsg);
     EXPECT_EQ(eventArray.Length(), 1);
     JsonObject eventObj = eventArray[0].Object();
-    JsonObject eventPayloadObj = eventObj["event_payload"].Object();
+    JsonObject eventPayloadObj = eventObj["eventPayload"].Object();
     EXPECT_TRUE(eventPayloadObj.HasLabel("data"));
     EXPECT_EQ(eventPayloadObj["data"].String(), "random data");
 }
@@ -346,6 +346,9 @@ TEST_F(AnalyticsTest, EventsMapping)
     status = InvokeServiceMethod("org.rdk.Analytics", "sendEvent", paramsJson, resultJson);
     EXPECT_EQ(status, Core::ERROR_NONE);
 
+    ServerMock server;
+    EXPECT_TRUE(server.Start());
+
     // Set TimeZone to FINAL what allows event to be decorated and sent to server
     paramsJson.Clear();
     paramsJson["timeZone"] = "America/New_York";
@@ -353,16 +356,12 @@ TEST_F(AnalyticsTest, EventsMapping)
     status = InvokeServiceMethod("org.rdk.System", "setTimeZoneDST", paramsJson, resultJson);
     EXPECT_EQ(status, Core::ERROR_NONE);
 
-
-    ServerMock server;
-    EXPECT_TRUE(server.Start());
-
     string eventsMsg = server.AwaitData(SERVER_TIMEOUT_SEC);
 
     // Check if the event message contains the expected fields
     JsonArray eventArray;
     eventArray.FromString(eventsMsg);
-    int retry = 3;
+    int retry = 5;
     while (eventArray.Length() < 4 && retry-- > 0) {
         // If not all events are received, wait for the rest
         string eventsMsg2 = server.AwaitData(SERVER_TIMEOUT_SEC);
@@ -376,19 +375,19 @@ TEST_F(AnalyticsTest, EventsMapping)
 
     if (eventArray.Length() == 4) {
         JsonObject eventObj = eventArray[0].Object();
-        EXPECT_TRUE(eventObj.HasLabel("event_name"));
-        EXPECT_EQ(eventObj["event_name"].String(), "L2TestEventMappedExact");
+        EXPECT_TRUE(eventObj.HasLabel("eventName"));
+        EXPECT_EQ(eventObj["eventName"].String(), "L2TestEventMappedExact");
 
         eventObj = eventArray[1].Object();
-        EXPECT_TRUE(eventObj.HasLabel("event_name"));
-        EXPECT_EQ(eventObj["event_name"].String(), "L2TestEventMappedGeneric");
+        EXPECT_TRUE(eventObj.HasLabel("eventName"));
+        EXPECT_EQ(eventObj["eventName"].String(), "L2TestEventMappedGeneric");
 
         eventObj = eventArray[2].Object();
-        EXPECT_TRUE(eventObj.HasLabel("event_name"));
-        EXPECT_EQ(eventObj["event_name"].String(), "L2TestEventMappedGenericVersion");
+        EXPECT_TRUE(eventObj.HasLabel("eventName"));
+        EXPECT_EQ(eventObj["eventName"].String(), "L2TestEventMappedGenericVersion");
 
         eventObj = eventArray[3].Object();
-        EXPECT_TRUE(eventObj.HasLabel("event_name"));
-        EXPECT_EQ(eventObj["event_name"].String(), "L2TestEventMappedGenericSourceVersion");
+        EXPECT_TRUE(eventObj.HasLabel("eventName"));
+        EXPECT_EQ(eventObj["eventName"].String(), "L2TestEventMappedGenericSourceVersion");
     }
 }
