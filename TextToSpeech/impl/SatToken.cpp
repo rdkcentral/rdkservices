@@ -84,6 +84,17 @@ string SatToken::getSecurityToken() {
      return token;
 }
 
+std::string SatToken::getSAT() {
+    if (m_tokenUpdated.load(std::memory_order_acquire)) { 
+        TTSLOG_INFO("TTS token updated..hence need to refetch");
+        getServiceAccessToken();
+        TTSLOG_INFO("TTS token updated..reset flag");
+        m_tokenUpdated.store(false, std::memory_order_release);
+    }
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_SatToken;
+}
+
 void SatToken::getServiceAccessToken() {
     if(m_authService != nullptr) {
         JsonObject joGetParams, joGetResult;
@@ -108,8 +119,8 @@ void SatToken::getServiceAccessToken() {
 }
 
 void SatToken::serviceAccessTokenChangedEventHandler(const JsonObject& parameters) {
-    TTSLOG_INFO("SAT changed");
-    getServiceAccessToken();
+     TTSLOG_INFO("TTS - SAT token updated notification");
+     m_tokenUpdated.store(true, std::memory_order_release);
 }
 
 }
