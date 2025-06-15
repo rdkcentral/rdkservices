@@ -21,7 +21,7 @@
 #include "../Module.h"
 #include <interfaces/IAnalytics.h>
 #include <interfaces/IConfiguration.h>
-#include "Backend/AnalyticsBackend.h"
+#include "AnalyticsBackendLoader.h"
 #include "SystemTime.h"
 
 #include <mutex>
@@ -66,6 +66,7 @@ namespace Plugin {
             std::list<std::string> cetList;
             uint64_t epochTimestamp;
             uint64_t uptimeTimestamp;
+            std::string appId;
             std::string eventPayload;
         };
 
@@ -134,6 +135,7 @@ namespace Plugin {
                                    IStringIterator* const& cetList,
                                    const uint64_t epochTimestamp,
                                    const uint64_t uptimeTimestamp,
+                                   const string& appId,
                                    const string& eventPayload) override;
 
 
@@ -154,7 +156,8 @@ namespace Plugin {
         std::thread mThread;
         std::queue<Action> mActionQueue;
         std::queue<Event> mEventQueue;
-        const IAnalyticsBackends mBackends;
+        std::map<std::string, IAnalyticsBackendPtr> mBackends;
+        AnalyticsBackendLoader mBackendLoader;
         bool mSysTimeValid;
         PluginHost::IShell* mShell;
         SystemTimePtr mSysTime;

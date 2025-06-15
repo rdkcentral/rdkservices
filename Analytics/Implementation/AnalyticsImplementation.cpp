@@ -17,9 +17,8 @@
  * limitations under the License.
  */
 #include "AnalyticsImplementation.h"
-#include "Backend/AnalyticsBackend.h"
 #include "UtilsLogging.h"
-#include "SystemTime.h"
+#include "LocalStore.h"
 
 #include <fstream>
 #include <streambuf>
@@ -39,8 +38,10 @@ namespace Plugin {
             AnalyticsConfig()
                 : Core::JSON::Container()
                 , EventsMap()
+                , BackendLib()
             {
                 Add(_T("eventsmap"), &EventsMap);
+                Add(_T("backendlib"), &BackendLib);
             }
             ~AnalyticsConfig()
             {
@@ -48,6 +49,7 @@ namespace Plugin {
 
         public:
             Core::JSON::String EventsMap;
+            Core::JSON::String BackendLib;
         };
 
     SERVICE_REGISTRATION(AnalyticsImplementation, 1, 0);
@@ -57,7 +59,8 @@ namespace Plugin {
         mQueueCondition(),
         mActionQueue(),
         mEventQueue(),
-        mBackends(IAnalyticsBackendAdministrator::Create()),
+        mBackends(),
+        mBackendLoader(),
         mSysTimeValid(false),
         mShell(nullptr)
     {
@@ -81,6 +84,7 @@ namespace Plugin {
                                     IStringIterator* const& cetList,
                                     const uint64_t epochTimestamp,
                                     const uint64_t uptimeTimestamp,
+                                    const string& appId,
                                     const string& eventPayload)
     {
         std::shared_ptr<Event> event = std::make_shared<Event>();
@@ -101,6 +105,7 @@ namespace Plugin {
         }
         event->epochTimestamp = epochTimestamp;
         event->uptimeTimestamp = uptimeTimestamp;
+        event->appId = appId;
         event->eventPayload = eventPayload;
 
         LOGINFO("Epoch Timestamp:  %" PRIu64, epochTimestamp);
@@ -160,11 +165,6 @@ namespace Plugin {
             LOGERR("Failed to create SystemTime instance");
         }
 
-        for (auto &backend : mBackends)
-        {
-            LOGINFO("Configuring backend: %s", backend.first.c_str());
-            backend.second->Configure(shell, mSysTime);
-        }
 
         std::string configLine = mShell->ConfigLine();
         Core::OptionalType<Core::JSON::Error> error;
@@ -180,6 +180,44 @@ namespace Plugin {
 
         LOGINFO("EventsMap: %s", config.EventsMap.Value().c_str());
         ParseEventsMapFile(config.EventsMap.Value());
+
+        // TODO: Add support for multiple backends
+        uint32_t ret = mBackendLoader.Load(config.BackendLib.Value());
+        if (ret != Core::ERROR_NONE)
+        {
+            LOGERR("Failed to load backend library: %s, error code: %u",
+                   config.BackendLib.Value().c_str(), ret);
+        }
+        else
+        {
+            IAnalyticsBackendPtr backend = mBackendLoader.GetBackend();
+            if (backend != nullptr)
+            {
+                mBackends[backend->Name()] = backend;
+                LOGINFO("Created backend: %s", backend->Name().c_str());
+                // Configure backend
+                ILocalStorePtr localStore = std::make_shared<LocalStore>();
+                if (localStore == nullptr)
+                {
+                    LOGERR("Failed to create LocalStore instance");
+                    result = Core::ERROR_GENERAL;
+                }
+                if (backend->Configure(mShell, mSysTime, std::move(localStore)) != Core::ERROR_NONE)
+                {
+                    LOGERR("Failed to configure backend: %s", backend->Name().c_str());
+                    result = Core::ERROR_GENERAL;
+                }
+                else
+                {
+                    LOGINFO("Backend %s configured successfully", backend->Name().c_str());
+                }
+            }
+            else
+            {
+                LOGERR("Failed to get backend from loader");
+                result = Core::ERROR_GENERAL;
+            }
+        }
 
         return result;
     }
@@ -316,6 +354,7 @@ namespace Plugin {
         backendEvent.eventSourceVersion = event.eventSourceVersion;
         backendEvent.epochTimestamp = event.epochTimestamp;
         backendEvent.eventPayload = event.eventPayload;
+        backendEvent.appId = event.appId;
         backendEvent.cetList = event.cetList;
 
         //TODO: Add mapping of event source/name to the desired backend
@@ -323,10 +362,10 @@ namespace Plugin {
         {
             LOGINFO("No backends available!");
         }
-        else if (mBackends.find(IAnalyticsBackend::SIFT) != mBackends.end())
+        else //send to the first backend
         {
-            LOGINFO("Sending event to Sift backend: %s", backendEvent.eventName.c_str());
-            mBackends.at(IAnalyticsBackend::SIFT)->SendEvent(backendEvent);
+            LOGINFO("Sending event '%s' to backend: %s", backendEvent.eventName.c_str(), mBackends.begin()->first.c_str());
+            mBackends.begin()->second->SendEvent(backendEvent);
         }
     }
 
@@ -422,6 +461,10 @@ namespace Plugin {
                                             const std::string &eventSourceVersion,
                                             const std::string &eventVersion) const
     {
+        if (map.empty())
+        {
+            return eventName; // No mapping available, return original event name
+        }
         // Try exact match
         AnalyticsImplementation::EventMapper::Key key{eventName, eventSource, eventSourceVersion, eventVersion};
         auto it = map.find(key);
