@@ -2,7 +2,7 @@
 <a name="UserSettings_Plugin"></a>
 # UserSettings Plugin
 
-**Version: [1.0.0]()**
+**Version: [2.3.0](https://github.com/rdkcentral/rdkservices/blob/main/UserSettings/CHANGELOG.md)**
 
 A org.rdk.UserSettings plugin for Thunder framework.
 
@@ -17,7 +17,7 @@ A org.rdk.UserSettings plugin for Thunder framework.
 <a name="Abbreviation,_Acronyms_and_Terms"></a>
 # Abbreviation, Acronyms and Terms
 
-[[Refer to this link](overview/aat.md)]
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -53,6 +53,7 @@ org.rdk.UserSettings interface methods:
 | [setCaptions](#setCaptions) | Setting Captions |
 | [setPreferredCaptionsLanguages](#setPreferredCaptionsLanguages) | Setting PreferredCaption Languages |
 | [setPreferredClosedCaptionService](#setPreferredClosedCaptionService) | Setting Preferred Closed Caption Service |
+| [setPrivacyMode](#setPrivacyMode) | Setting Privacy Mode |
 | [setPinControl](#setPinControl) | Setting PinControl |
 | [setViewingRestrictions](#setViewingRestrictions) | Setting ViewingRestrictions |
 | [setViewingRestrictionsWindow](#setViewingRestrictionsWindow) | Setting viewingRestrictionsWindow |
@@ -70,6 +71,7 @@ org.rdk.UserSettings interface methods:
 | [getCaptions](#getCaptions) | Getting Captions Enabled |
 | [getPreferredCaptionsLanguages](#getPreferredCaptionsLanguages) | Getting Preferred Caption Languages |
 | [getPreferredClosedCaptionService](#getPreferredClosedCaptionService) | Getting Preferred ClosedCaption Service |
+| [getPrivacyMode](#getPrivacyMode) | Getting Privacy Mode |
 | [getPinControl](#getPinControl) | Returns Pin Control |
 | [getViewingRestrictions](#getViewingRestrictions) | Returns Get Viewing Restrictions |
 | [getViewingRestrictionsWindow](#getViewingRestrictionsWindow) | Returns Get Viewing Restrictions Window |
@@ -359,6 +361,54 @@ Setting Preferred Closed Caption Service.
     "method": "org.rdk.UserSettings.setPreferredClosedCaptionService",
     "params": {
         "service": "CC3"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "null"
+}
+```
+
+<a name="setPrivacyMode"></a>
+## *setPrivacyMode*
+
+Setting Privacy Mode.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onPrivacyModeChanged](#onPrivacyModeChanged) | Triggered when the Privacy Mode changes. |
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.privacyMode | string | The Privacy Mode. Valid values are SHARE, DO_NOT_SHARE |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | string | On success null will be returned |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.setPrivacyMode",
+    "params": {
+        "privacyMode": "SHARE"
     }
 }
 ```
@@ -1147,6 +1197,47 @@ This method takes no parameters.
 }
 ```
 
+<a name="getPrivacyMode"></a>
+## *getPrivacyMode*
+
+Getting Privacy Mode.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | string | The Privacy Mode. Valid values are SHARE, DO_NOT_SHARE |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.getPrivacyMode"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "SHARE"
+}
+```
+
 <a name="getPinControl"></a>
 ## *getPinControl*
 
@@ -1612,7 +1703,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.key | string | the property key, for which we need to get migration state |
+| params?.key | string | <sup>*(optional)*</sup> the property key, for which we need to get migration state |
 
 ### Result
 
@@ -1664,8 +1755,8 @@ This method takes no parameters.
 | :-------- | :-------- | :-------- |
 | result | array | migration state of all the defined keys |
 | result[#] | object | Keys and it's migration states |
-| result[#].key | string | key of the property |
-| result[#].requiresMigration | boolean | Migration State Of the Property |
+| result[#]?.key | string | <sup>*(optional)*</sup> key of the property |
+| result[#]?.requiresMigration | boolean | <sup>*(optional)*</sup> The name of the USB device |
 
 ### Example
 
@@ -1711,6 +1802,7 @@ org.rdk.UserSettings interface events:
 | [onCaptionsChanged](#onCaptionsChanged) | Triggered after the captions changes (see `SetCaptions`) |
 | [onPreferredCaptionsLanguagesChanged](#onPreferredCaptionsLanguagesChanged) | Triggered after the PreferredCaption Languages changes (see `SetPreferredCaptionsLanguages`) |
 | [onPreferredClosedCaptionServiceChanged](#onPreferredClosedCaptionServiceChanged) | Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCaptionService`) |
+| [onPrivacyModeChanged](#onPrivacyModeChanged) | Triggered after the Privacy Mode changes (see `SetPrivacyMode`) |
 | [onPinControlChanged](#onPinControlChanged) | Triggered after the pin control changes (see `setPinControl`) |
 | [onViewingRestrictionsChanged](#onViewingRestrictionsChanged) | Triggered after the viewingRestrictions changes (see `setViewingRestrictions`) |
 | [onViewingRestrictionsWindowChanged](#onViewingRestrictionsWindowChanged) | Triggered after the viewingRestrictionsWindow changes (see `setViewingRestrictionsWindow`) |
@@ -1864,6 +1956,30 @@ Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCap
     "method": "client.events.onPreferredClosedCaptionServiceChanged",
     "params": {
         "service": "CC3"
+    }
+}
+```
+
+<a name="onPrivacyModeChanged"></a>
+## *onPrivacyModeChanged*
+
+Triggered after the Privacy Mode changes (see `SetPrivacyMode`).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.privacyMode | string | Receive Privacy Mode changes |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onPrivacyModeChanged",
+    "params": {
+        "privacyMode": "DO_NOT_SHARE"
     }
 }
 ```

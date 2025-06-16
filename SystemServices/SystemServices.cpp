@@ -66,8 +66,8 @@
 using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 3
-#define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 5
+#define API_VERSION_NUMBER_MINOR 5
+#define API_VERSION_NUMBER_PATCH 0
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -98,7 +98,6 @@ using namespace std;
 #define LOG_UPLOAD_STATUS_FAILURE "UPLOAD_FAILURE"
 #define LOG_UPLOAD_STATUS_ABORTED "UPLOAD_ABORTED"
 
-#define PRIVACY_MODE_FILE "/opt/secure/persistent/System/privacymode.txt"
 #define BOOTVERSION "/opt/.bootversion"
 
 /**
@@ -496,8 +495,6 @@ namespace WPEFramework {
             registerMethod("setFSRFlag", &SystemServices::setFSRFlag, this);
             registerMethod("getFSRFlag", &SystemServices::getFSRFlag, this);
 
-            registerMethod("setPrivacyMode", &SystemServices::setPrivacyMode, this);
-            registerMethod("getPrivacyMode", &SystemServices::getPrivacyMode, this);
             registerMethod("getBootTypeInfo", &SystemServices::getBootTypeInfo, this);
 
         }
@@ -4756,58 +4753,6 @@ namespace WPEFramework {
             returnResponse(true);
         }
 
-        uint32_t SystemServices::setPrivacyMode(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-
-            string privacyMode = parameters["privacyMode"].String();
-
-            if (privacyMode != "SHARE" && privacyMode != "DO_NOT_SHARE")
-            {
-                LOGERR("Wrong privacyMode value: '%s'", privacyMode.c_str());
-                returnResponse(false);
-            }
-            
-            makePersistentDir();
-
-            ofstream optfile;
-    		
-            optfile.open(PRIVACY_MODE_FILE, ios::out);
-            if (optfile)
-            {
-                optfile << privacyMode;
-                optfile.close();
-            }
-
-            JsonObject params;
-            params["privacyMode"] = privacyMode;
-            sendNotify(EVT_ONPRIVACYMODECHANGED, params);
-
-            returnResponse(true);
-        }
-
-        uint32_t SystemServices::getPrivacyMode(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-
-            string privacyMode = "";
-
-            string optOutStatus;
-
-            getFileContent(PRIVACY_MODE_FILE, privacyMode);
-            if (privacyMode != "SHARE" && privacyMode != "DO_NOT_SHARE")
-            {
-                LOGWARN("Wrong privacyMode value: '%s', returning default", privacyMode.c_str());
-                privacyMode = "SHARE";
-            }
-
-            response["privacyMode"] = privacyMode;
-
-            returnResponse(true);
-        }
-       
-
-        
         /***
          * @brief : To set the fsr flag into the emmc raw area.
          * @param1[in] : {"params":{"fsrFlag":<bool>}
