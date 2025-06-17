@@ -595,6 +595,50 @@
         }
       ]
     },
+    "releaseversion": {
+        "summary": "Release version of Image . If unable to find the Release version default value is 99.99.0.0",
+        "readonly": true,
+        "params": {
+            "type": "object",
+            "properties": {
+                "releaseversion": {
+                    "type": "string",
+                    "example": "8.2.0.0"
+                }
+            },
+            "required": [
+                "releaseversion"
+            ]
+        },
+        "errors": [
+            {
+                "description": "General error",
+                "$ref": "#/common/errors/general"
+            }
+        ]
+    },
+    "chipset": {
+        "summary": "Chipset used for this device",
+        "readonly": true,
+        "params": {
+            "type": "object",
+            "properties": {
+                "chipset": {
+                    "type": "string",
+                    "example": "T962X3"
+                }
+            },
+            "required": [
+                "chipset"
+            ]
+        },
+        "errors": [
+            {
+                "description": "General error",
+                "$ref": "#/common/errors/general"
+            }
+        ]
+    },
     "distributorid": {
       "summary": "Partner ID or distributor ID for device",
       "readonly": true,
