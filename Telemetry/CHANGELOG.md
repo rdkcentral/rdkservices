@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.4.0] - 2025-6-10
+### Changed
+- Changed to use UserSettings plugin instead of SystemServices to get Privacy Mode.
+
 ## [1.3.0] - 2024-10-3
 ### Added
 - Added notifications for Telemetry component about changes in PrivacyMode.
