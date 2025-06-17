@@ -179,7 +179,7 @@ namespace Plugin {
         else
         {
                 releaseVersion = defaultVersion ;
-                LOGERR("Unable to read from /version.txt. So default releaseVersion is: %s ",releaseVersion.c_str());
+                LOGERR("Unable to read from /version.txt.  So default releaseVersion is: %s ",releaseVersion.c_str());
 
         }
 
