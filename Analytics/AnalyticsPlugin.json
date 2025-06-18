@@ -5,7 +5,7 @@
      "callsign":"org.rdk.Analytics",
      "locator":"libWPEFrameworkAnalytics.so",
      "status":"development",
-     "description":"The `Analytics` plugin allows to send analytics events to dedicated backends. Currently the SIFT backend is supported."
+     "description":"The `Analytics` plugin allows to send analytics events to dedicated backends"
   },
   "configuration":{
      "type":"object",
@@ -13,104 +13,27 @@
         "configuration":{
            "type":"object",
            "properties":{
-              "deviceosname":{
-                 "description":"Device OS name",
+              "loggername":{
+                 "description":"Logger name used by backend",
+                 "type":"string"
+              },
+              "loggerversion":{
+                 "description":"Logger version used by backend",
                  "type":"string"
               },
               "eventsmap":{
                "description":"Optional path to json file with array of mapped events name",
                "type":"string"
               },
-              "sift":{
-                 "type":"object",
-                 "properties":{
-                    "schema2":{
-                       "description":"If true, enables Sift 2.0 schema, otherwise uses Sift 1.0 schema",
-                       "type":"boolean"
-                    },
-                    "commonschema":{
-                       "description":"Sift schema common schema",
-                       "type":"string"
-                    },
-                    "env":{
-                       "description":"Sift schema environment",
-                       "type":"string"
-                    },
-                    "productname":{
-                       "description":"Sift schema product name",
-                       "type":"string"
-                    },
-                    "loggername":{
-                       "description":"Sift schema logger name",
-                       "type":"string"
-                    },
-                    "loggerversion":{
-                       "description":"Sift schema logger version",
-                       "type":"string"
-                    },
-                    "platformdefault":{
-                       "description":"Sift schema platform default value",
-                       "type":"string"
-                    },
-                    "maxrandomisationwindowtime":{
-                       "description":"Sift uploader max randomisation window time of posting queued events in seconds",
-                       "type":"number"
-                    },
-                    "maxeventsinpost":{
-                       "description":"Sift uploader max events in single post",
-                       "type":"number"
-                    },
-                    "maxretries":{
-                       "description":"Sift uploader max retries posting events",
-                       "type":"number"
-                    },
-                    "minretryperiod":{
-                       "description":"Sift uploader min retry period seconds",
-                       "type":"number"
-                    },
-                    "maxretryperiod":{
-                       "description":"Sift uploader max retry period seconds",
-                       "type":"number"
-                    },
-                    "exponentialperiodicfactor":{
-                       "description":"Sift uploader exponential periodic factor for retry delay",
-                       "type":"number"
-                    },
-                    "storepath":{
-                       "description":"Sift store path to persistent queue with events",
-                       "type":"number"
-                    },
-                    "eventslimit":{
-                       "description":"Sift store events limit",
-                       "type":"number"
-                    },
-                    "url":{
-                       "description":"URL to Sift server endpoint",
-                       "type":"string"
-                    }
-                 },
-                 "required":[
-                    "schema2",
-                    "commonschema",
-                    "productname",
-                    "loggername",
-                    "loggerversion",
-                    "platformdefault",
-                    "maxrandomisationwindowtime",
-                    "maxeventsinpost",
-                    "maxretries",
-                    "minretryperiod",
-                    "maxretryperiod",
-                    "exponentialperiodicfactor",
-                    "storepath",
-                    "eventslimit",
-                    "url"
-                 ]
+              "backendlib":{
+               "description":"Name of backend library",
+               "type":"string"
               }
            },
            "required":[
-              "deviceosname",
-              "sift"
+              "loggername",
+              "loggerversion",
+              "backendlib"
            ]
         }
      },
