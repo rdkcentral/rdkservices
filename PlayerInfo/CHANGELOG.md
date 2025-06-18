@@ -16,6 +16,9 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.1] - 2025-06-13
+### Fixed
+- Added support for PlayerInfo to report AV1 codec
 
 ## [1.1.0] - 2024-06-04
 ### Fixed
