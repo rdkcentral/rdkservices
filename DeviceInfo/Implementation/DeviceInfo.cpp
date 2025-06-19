@@ -142,7 +142,7 @@ namespace Plugin {
             : GetFileRegex(_T("/etc/device.properties"),
                                         std::regex("^DEVICE_TYPE(?:\\s*)=(?:\\s*)(?:\"{0,1})([^\"\\n]+)(?:\"{0,1})(?:\\s*)$"), deviceType);
         device_type = deviceType.c_str();
-        deviceType = (strcmp("mediaclient",device_type)==0)?("IpStb"):((strcmp("hybrid",device_type)==0)?("QamIpStb"):("TV"));
+        deviceType = (strcmp("mediaclient",device_type)==0)?("IpStb"):((strcmp("hybrid",device_type)==0)?("QamIpStb"):("IpTv"));
         return result;
 #endif
     }
