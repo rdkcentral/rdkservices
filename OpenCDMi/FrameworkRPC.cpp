@@ -744,11 +744,13 @@ namespace Plugin {
                     return (Exchange::OCDM_RESULT)_mediaKeySessionExt->SetDrmHeader(drmHeader, drmHeaderLength);
                 }
 
-                Exchange::OCDM_RESULT GetChallengeDataExt(uint8_t* challenge, uint16_t& challengeSize, uint32_t isLDL) override
+                Exchange::OCDM_RESULT GetChallengeDataExt(uint8_t* challenge, uint16_t& challengeSize, uint32_t isLDL, uint8_t* url, uint16_t& urlSize) override
                 {
                     uint32_t resultSize = challengeSize;
-                    Exchange::OCDM_RESULT outcome = static_cast<Exchange::OCDM_RESULT>(_mediaKeySessionExt->GetChallengeDataExt(challenge, resultSize, isLDL));
+                    uint32_t urlBufferSize = urlSize;
+                    Exchange::OCDM_RESULT outcome = static_cast<Exchange::OCDM_RESULT>(_mediaKeySessionExt->GetChallengeDataExt(challenge, resultSize, isLDL, url, urlBufferSize));
                     challengeSize = (resultSize & 0xFFFF);
+                    urlSize = (urlBufferSize & 0xFFFF);
                     return (outcome);
                 }
 
