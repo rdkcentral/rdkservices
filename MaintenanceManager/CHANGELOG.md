@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.44] - 2025-06-19
+### Fixed
+- Fixed coverity reported issues
+
 ## [1.0.43] - 2025-005-05
 ### Fixed
 - Fixed stopMaintenance() jsonRPC API to set MAINTENANCE_ERROR only for an actively running Maintenance.
