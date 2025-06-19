@@ -57,7 +57,7 @@ namespace {
   {
     std::vector<string> paths  = {};
 
-    char *ld_paths = getenv("LD_LIBRARY_PATH");Add commentMore actions
+    char *ld_paths = getenv("LD_LIBRARY_PATH");
     if (ld_paths) {
       char *ld_pathBackup = strdup(ld_paths);
       ld_paths = ld_pathBackup;

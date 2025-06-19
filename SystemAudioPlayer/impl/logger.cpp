@@ -42,7 +42,7 @@ namespace SAP {
         size_t begin = prettyFunction.substr(0,colons).rfind(" ") + 1;
         size_t end = prettyFunction.rfind("(") - begin;
 
-        return prettyFunction.substr(begin, end);
+        return prettyFunction.substr(begin,end);
     }
 
 #ifdef USE_RDK_LOGGER
