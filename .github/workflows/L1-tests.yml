@@ -141,6 +141,7 @@ jobs:
         run: |
           cd ThunderInterfaces
           patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/DeviceInfo_brand_R2_L1tests.patch
+          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-RDKEMW-2565-Add-deviceIdentification-plugin-details-.patch
           cd ..
 
       - name: Build ThunderInterfaces
