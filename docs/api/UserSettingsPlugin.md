@@ -17,7 +17,7 @@ A org.rdk.UserSettings plugin for Thunder framework.
 <a name="Abbreviation,_Acronyms_and_Terms"></a>
 # Abbreviation, Acronyms and Terms
 
-[[Refer to this link](userguide/aat.md)]
+[[Refer to this link](overview/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -53,6 +53,7 @@ org.rdk.UserSettings interface methods:
 | [setCaptions](#setCaptions) | Setting Captions |
 | [setPreferredCaptionsLanguages](#setPreferredCaptionsLanguages) | Setting PreferredCaption Languages |
 | [setPreferredClosedCaptionService](#setPreferredClosedCaptionService) | Setting Preferred Closed Caption Service |
+| [setPrivacyMode](#setPrivacyMode) | Setting Privacy Mode |
 | [setPinControl](#setPinControl) | Setting PinControl |
 | [setViewingRestrictions](#setViewingRestrictions) | Setting ViewingRestrictions |
 | [setViewingRestrictionsWindow](#setViewingRestrictionsWindow) | Setting viewingRestrictionsWindow |
@@ -71,6 +72,7 @@ org.rdk.UserSettings interface methods:
 | [getCaptions](#getCaptions) | Getting Captions Enabled |
 | [getPreferredCaptionsLanguages](#getPreferredCaptionsLanguages) | Getting Preferred Caption Languages |
 | [getPreferredClosedCaptionService](#getPreferredClosedCaptionService) | Getting Preferred ClosedCaption Service |
+| [getPrivacyMode](#getPrivacyMode) | Getting Privacy Mode |
 | [getPinControl](#getPinControl) | Returns Pin Control |
 | [getViewingRestrictions](#getViewingRestrictions) | Returns Get Viewing Restrictions |
 | [getViewingRestrictionsWindow](#getViewingRestrictionsWindow) | Returns Get Viewing Restrictions Window |
@@ -108,7 +110,7 @@ Setting Audio Description.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
+| result | null | On success null will be returned |
 
 ### Example
 
@@ -131,7 +133,7 @@ Setting Audio Description.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "null"
+    "result": null
 }
 ```
 
@@ -156,7 +158,7 @@ Setting Preferred Audio Languages.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
+| result | null | On success null will be returned |
 
 ### Example
 
@@ -179,7 +181,7 @@ Setting Preferred Audio Languages.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "null"
+    "result": null
 }
 ```
 
@@ -204,7 +206,7 @@ Setting Presentation Languages.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
+| result | null | On success null will be returned |
 
 ### Example
 
@@ -227,7 +229,7 @@ Setting Presentation Languages.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "null"
+    "result": null
 }
 ```
 
@@ -252,7 +254,7 @@ Setting Captions.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
+| result | null | On success null will be returned |
 
 ### Example
 
@@ -275,7 +277,7 @@ Setting Captions.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "null"
+    "result": null
 }
 ```
 
@@ -300,7 +302,7 @@ Setting PreferredCaption Languages.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
+| result | null | On success null will be returned |
 
 ### Example
 
@@ -323,7 +325,7 @@ Setting PreferredCaption Languages.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "null"
+    "result": null
 }
 ```
 
@@ -348,7 +350,7 @@ Setting Preferred Closed Caption Service.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
+| result | null | On success null will be returned |
 
 ### Example
 
@@ -371,7 +373,55 @@ Setting Preferred Closed Caption Service.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "null"
+    "result": null
+}
+```
+
+<a name="setPrivacyMode"></a>
+## *setPrivacyMode*
+
+Setting Privacy Mode.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onPrivacyModeChanged](#onPrivacyModeChanged) | Triggered when the Privacy Mode changes. |
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.privacyMode | string | The Privacy Mode. Valid values are SHARE, DO_NOT_SHARE |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | null | On success null will be returned |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.setPrivacyMode",
+    "params": {
+        "privacyMode": "SHARE"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": null
 }
 ```
 
@@ -396,7 +446,7 @@ Setting PinControl.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
+| result | null | On success null will be returned |
 
 ### Example
 
@@ -419,7 +469,7 @@ Setting PinControl.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "null"
+    "result": null
 }
 ```
 
@@ -444,7 +494,7 @@ Setting ViewingRestrictions.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
+| result | null | On success null will be returned |
 
 ### Example
 
@@ -467,7 +517,7 @@ Setting ViewingRestrictions.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "null"
+    "result": null
 }
 ```
 
@@ -492,7 +542,7 @@ Setting viewingRestrictionsWindow.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
+| result | null | On success null will be returned |
 
 ### Example
 
@@ -515,7 +565,7 @@ Setting viewingRestrictionsWindow.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "null"
+    "result": null
 }
 ```
 
@@ -540,7 +590,7 @@ Setting LiveWatershed.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
+| result | null | On success null will be returned |
 
 ### Example
 
@@ -563,7 +613,7 @@ Setting LiveWatershed.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "null"
+    "result": null
 }
 ```
 
@@ -588,7 +638,7 @@ Setting PlaybackWatershed.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
+| result | null | On success null will be returned |
 
 ### Example
 
@@ -611,7 +661,7 @@ Setting PlaybackWatershed.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "null"
+    "result": null
 }
 ```
 
@@ -636,7 +686,7 @@ Setting BlockNotRatedContent.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
+| result | null | On success null will be returned |
 
 ### Example
 
@@ -659,7 +709,7 @@ Setting BlockNotRatedContent.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "null"
+    "result": null
 }
 ```
 
@@ -684,7 +734,7 @@ Setting setPinOnPurchase.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
+| result | null | On success null will be returned |
 
 ### Example
 
@@ -707,7 +757,7 @@ Setting setPinOnPurchase.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "null"
+    "result": null
 }
 ```
 
@@ -732,7 +782,7 @@ Sets highContrast. Whether the app should display with high contrast or not.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
+| result | null | On success null will be returned |
 
 ### Example
 
@@ -755,7 +805,7 @@ Sets highContrast. Whether the app should display with high contrast or not.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "null"
+    "result": null
 }
 ```
 
@@ -780,7 +830,7 @@ Sets voiceGuidance. Whether Voice Guidance is enabled or not.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
+| result | null | On success null will be returned |
 
 ### Example
 
@@ -803,7 +853,7 @@ Sets voiceGuidance. Whether Voice Guidance is enabled or not.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "null"
+    "result": null
 }
 ```
 
@@ -828,7 +878,7 @@ Sets voiceGuidanceRate. Setting voice guidance rate value. from 0.1 to 10 inclus
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
+| result | null | On success null will be returned |
 
 ### Example
 
@@ -851,7 +901,7 @@ Sets voiceGuidanceRate. Setting voice guidance rate value. from 0.1 to 10 inclus
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "null"
+    "result": null
 }
 ```
 
@@ -876,7 +926,7 @@ Sets voiceGuidanceHints ON/OFF. Whether Voice Guidance hints setting is switched
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
+| result | null | On success null will be returned |
 
 ### Example
 
@@ -899,7 +949,7 @@ Sets voiceGuidanceHints ON/OFF. Whether Voice Guidance hints setting is switched
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "null"
+    "result": null
 }
 ```
 
@@ -924,7 +974,7 @@ Setting ContentPin.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | On success null will be returned |
+| result | null | On success null will be returned |
 
 ### Example
 
@@ -947,7 +997,7 @@ Setting ContentPin.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "null"
+    "result": null
 }
 ```
 
@@ -1194,6 +1244,47 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": "CC3"
+}
+```
+
+<a name="getPrivacyMode"></a>
+## *getPrivacyMode*
+
+Getting Privacy Mode.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | string | The Privacy Mode. Valid values are SHARE, DO_NOT_SHARE |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.getPrivacyMode"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "SHARE"
 }
 ```
 
@@ -1802,6 +1893,7 @@ org.rdk.UserSettings interface events:
 | [onCaptionsChanged](#onCaptionsChanged) | Triggered after the captions changes (see `SetCaptions`) |
 | [onPreferredCaptionsLanguagesChanged](#onPreferredCaptionsLanguagesChanged) | Triggered after the PreferredCaption Languages changes (see `SetPreferredCaptionsLanguages`) |
 | [onPreferredClosedCaptionServiceChanged](#onPreferredClosedCaptionServiceChanged) | Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCaptionService`) |
+| [onPrivacyModeChanged](#onPrivacyModeChanged) | Triggered after the Privacy Mode changes (see `SetPrivacyMode`) |
 | [onPinControlChanged](#onPinControlChanged) | Triggered after the pin control changes (see `setPinControl`) |
 | [onViewingRestrictionsChanged](#onViewingRestrictionsChanged) | Triggered after the viewingRestrictions changes (see `setViewingRestrictions`) |
 | [onViewingRestrictionsWindowChanged](#onViewingRestrictionsWindowChanged) | Triggered after the viewingRestrictionsWindow changes (see `setViewingRestrictionsWindow`) |
@@ -1956,6 +2048,30 @@ Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCap
     "method": "client.events.onPreferredClosedCaptionServiceChanged",
     "params": {
         "service": "CC3"
+    }
+}
+```
+
+<a name="onPrivacyModeChanged"></a>
+## *onPrivacyModeChanged*
+
+Triggered after the Privacy Mode changes (see `SetPrivacyMode`).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.privacyMode | string | Receive Privacy Mode changes |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onPrivacyModeChanged",
+    "params": {
+        "privacyMode": "DO_NOT_SHARE"
     }
 }
 ```
