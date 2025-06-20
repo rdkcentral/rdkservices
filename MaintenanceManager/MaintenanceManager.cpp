@@ -64,7 +64,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 43
+#define API_VERSION_NUMBER_PATCH 44
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 #define PROC_DIR "/proc"
@@ -1185,7 +1185,7 @@ namespace WPEFramework
              * activated - run normal */
             bool ret_result = false;
             string activationStatus;
-            Auth_activation_status_t result;
+            Auth_activation_status_t result = INVALID_ACTIVATION;
             const std::unordered_map<std::string, std::function<void()>> act{
                 {"activation-connect", [&]()
                  { result = ACTIVATION_CONNECT; }},

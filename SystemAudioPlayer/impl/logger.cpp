@@ -36,13 +36,13 @@ namespace SAP {
             setvbuf(stdout, NULL, _IOLBF, 0);
     }
 
-    const char* methodName(const std::string& prettyFunction)
+    std::string methodName(const std::string& prettyFunction)
     {
         size_t colons = prettyFunction.find("::");
         size_t begin = prettyFunction.substr(0,colons).rfind(" ") + 1;
         size_t end = prettyFunction.rfind("(") - begin;
 
-        return prettyFunction.substr(begin,end).c_str();
+        return prettyFunction.substr(begin,end);
     }
 
 #ifdef USE_RDK_LOGGER

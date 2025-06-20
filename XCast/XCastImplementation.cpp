@@ -36,7 +36,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 2
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 3
 
 #define LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS  5000  //5 seconds
 #define LOCATE_CAST_SECOND_TIMEOUT_IN_MILLIS 10000  //10 seconds
@@ -186,7 +186,7 @@ namespace Plugin {
                 DynamicAppConfig* pDynamicAppConfig = (DynamicAppConfig*) malloc (sizeof(DynamicAppConfig));
                 if (pDynamicAppConfig)
                 {
-                    memset ((void*)pDynamicAppConfig, '0', sizeof(DynamicAppConfig));
+                    memset ((void*)pDynamicAppConfig, '\0', sizeof(DynamicAppConfig));
                     memset (pDynamicAppConfig->appName, '\0', sizeof(pDynamicAppConfig->appName));
                     memset (pDynamicAppConfig->prefixes, '\0', sizeof(pDynamicAppConfig->prefixes));
                     memset (pDynamicAppConfig->cors, '\0', sizeof(pDynamicAppConfig->cors));

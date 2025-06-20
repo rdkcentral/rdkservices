@@ -29,7 +29,7 @@
 
 namespace TTS {
 
-const char* methodName(const std::string& prettyFunction);
+std::string methodName(const std::string& prettyFunction);
 #define __METHOD_NAME__ TTS::methodName(__PRETTY_FUNCTION__)
 
 /**
