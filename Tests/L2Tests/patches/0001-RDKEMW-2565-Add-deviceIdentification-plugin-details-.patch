@@ -1,0 +1,87 @@
+From 63ee428b1ec6585c8cf4b7bf30b1b3ecb052abdc Mon Sep 17 00:00:00 2001
+From: ramkumarpraba <Ramkumar_Prabaharan@comcast.com>
+Date: Fri, 13 Jun 2025 13:39:27 +0000
+Subject: [PATCH] RDKEMW-2565 Add deviceIdentification plugin details into
+ deviceinfo
+
+Reason for change: Add chipset and ReleaseVersion  property to DeviceInfo Plugin
+Test Procedure: verify build success and basic test
+Risks: Low
+Priority: P1
+Signed-off-by: ramkumar_prabaharan@comcast.com
+---
+ interfaces/IDeviceInfo2.h |  2 ++
+ jsonrpc/DeviceInfo.json   | 44 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 46 insertions(+)
+
+diff --git a/interfaces/IDeviceInfo2.h b/interfaces/IDeviceInfo2.h
+index 0e56da9..1ebdc9a 100644
+--- a/interfaces/IDeviceInfo2.h
++++ b/interfaces/IDeviceInfo2.h
+@@ -19,6 +19,8 @@ namespace Exchange {
+         virtual uint32_t DeviceType(string& deviceType /* @out */) const = 0;
+         virtual uint32_t DistributorId(string& distributorId /* @out */) const = 0;
+ 	virtual uint32_t Brand(string& brand /* @out */) const = 0;
++    virtual Core::hresult ReleaseVersion(string& releaseVersion /* @out */) const = 0;
++    virtual Core::hresult ChipSet(string& chipSet /* @out */) const = 0;
+     };
+ 
+     struct EXTERNAL IDeviceAudioCapabilities : virtual public Core::IUnknown {
+diff --git a/jsonrpc/DeviceInfo.json b/jsonrpc/DeviceInfo.json
+index 1f7997e..d90879c 100644
+--- a/jsonrpc/DeviceInfo.json
++++ b/jsonrpc/DeviceInfo.json
+@@ -524,6 +524,50 @@
+         }
+       ]
+     },
++    "releaseversion": {
++      "summary": "Release version of Image",
++      "readonly": true,
++      "params": {
++        "type": "object",
++        "properties": {
++          "releaseversion": {
++            "type": "string",
++            "example": "8.2.0.0"
++          }
++        },
++        "required": [
++          "releaseversion"
++        ]
++      },
++      "errors": [
++        {
++          "description": "General error",
++          "$ref": "#/common/errors/general"
++        }
++      ]
++    },
++    "chipset": {
++        "summary": "Chipset used for this device",
++        "readonly": true,
++        "params": {
++            "type": "object",
++            "properties": {
++                "chipset": {
++                    "type": "string",
++                    "example": "T962X3"
++                }
++            },
++            "required": [
++                "chipset"
++            ]
++        },
++        "errors": [
++            {
++                "description": "General error",
++                "$ref": "#/common/errors/general"
++            }
++        ]
++    },
+     "make": {
+       "summary": "Device manufacturer",
+       "readonly": true,
+-- 
+2.25.1
+
