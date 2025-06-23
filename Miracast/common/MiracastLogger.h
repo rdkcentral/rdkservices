@@ -31,7 +31,7 @@
 
 namespace MIRACAST {
 
-const char* methodName(const std::string& prettyFunction);
+std::string methodName(const std::string& prettyFunction);
 #define __METHOD_NAME__ MIRACAST::methodName(__PRETTY_FUNCTION__)
 
 /**

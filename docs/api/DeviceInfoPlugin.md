@@ -2,7 +2,7 @@
 <a name="DeviceInfo_Plugin"></a>
 # DeviceInfo Plugin
 
-**Version: [1.0.15](https://github.com/rdkcentral/rdkservices/blob/main/DeviceInfo/CHANGELOG.md)**
+**Version: [1.1.0](https://github.com/rdkcentral/rdkservices/blob/main/DeviceInfo/CHANGELOG.md)**
 
 A DeviceInfo plugin for Thunder framework.
 
@@ -418,9 +418,12 @@ DeviceInfo interface properties:
 | [firmwareversion](#firmwareversion) <sup>RO</sup> | Versions maintained in version |
 | [serialnumber](#serialnumber) <sup>RO</sup> | Serial number set by manufacturer |
 | [modelid](#modelid) <sup>RO</sup> | Device model number or SKU |
+| [brandname](#brandname) <sup>RO</sup> | Device brand name |
 | [make](#make) <sup>RO</sup> | Device manufacturer |
 | [modelname](#modelname) <sup>RO</sup> | Friendly device model name |
 | [devicetype](#devicetype) <sup>RO</sup> | Device type |
+| [releaseversion](#releaseversion) <sup>RO</sup> | Release version of Image  |
+| [chipset](#chipset) <sup>RO</sup> | Chipset used for this device |
 | [distributorid](#distributorid) <sup>RO</sup> | Partner ID or distributor ID for device |
 | [supportedaudioports](#supportedaudioports) <sup>RO</sup> | Audio ports supported on the device (all ports that are physically present) |
 | [supportedvideodisplays](#supportedvideodisplays) <sup>RO</sup> | Video ports supported on the device (all ports that are physically present) |
@@ -740,6 +743,54 @@ No Events
 }
 ```
 
+<a name="brandname"></a>
+## *brandname*
+
+Provides access to the device brand name.
+
+> This property is **read-only**.
+
+### Events
+
+No Events
+
+### Value
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| (property) | object | Device brand name |
+| (property)?.brandname | string | <sup>*(optional)*</sup>  |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 1 | ```ERROR_GENERAL``` | General error |
+
+### Example
+
+#### Get Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "DeviceInfo.brandname"
+}
+```
+
+#### Get Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "brandname": "Comcast"
+    }
+}
+```
+
 <a name="make"></a>
 ## *make*
 
@@ -852,7 +903,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | (property) | object | Device type |
-| (property).devicetype | string | Device type (must be one of the following: *tv*, *IpStb*, *QamIpStb*) |
+| (property).devicetype | string | Device type (must be one of the following: *IpTv*, *IpStb*, *QamIpStb*) |
 
 ### Errors
 
@@ -880,6 +931,102 @@ No Events
     "id": 42,
     "result": {
         "devicetype": "IpStb"
+    }
+}
+```
+
+<a name="releaseversion"></a>
+## *releaseversion*
+
+Provides access to the release version of Image . If unable to find the Release version default value is 99.99.0.0.
+
+> This property is **read-only**.
+
+### Events
+
+No Events
+
+### Value
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| (property) | object | Release version of Image . If unable to find the Release version default value is 99.99.0.0 |
+| (property).releaseversion | string |  |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 1 | ```ERROR_GENERAL``` | General error |
+
+### Example
+
+#### Get Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "DeviceInfo.releaseversion"
+}
+```
+
+#### Get Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "releaseversion": "8.2.0.0"
+    }
+}
+```
+
+<a name="chipset"></a>
+## *chipset*
+
+Provides access to the chipset used for this device.
+
+> This property is **read-only**.
+
+### Events
+
+No Events
+
+### Value
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| (property) | object | Chipset used for this device |
+| (property).chipset | string |  |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 1 | ```ERROR_GENERAL``` | General error |
+
+### Example
+
+#### Get Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "DeviceInfo.chipset"
+}
+```
+
+#### Get Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "chipset": "T962X3"
     }
 }
 ```

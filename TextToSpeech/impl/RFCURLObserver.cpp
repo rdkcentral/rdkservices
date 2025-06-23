@@ -15,7 +15,6 @@
 #define SYSTEMSERVICE_CALLSIGN "org.rdk.System"
 #define SYSTEMSERVICE_CALLSIGN_VER SYSTEMSERVICE_CALLSIGN".1"
 
-#define MAX_RETRIES 3 // Define the maximum number of retries
 #define RETRY_DELAY_MS 2000 // Define the delay between retries in milliseconds
 
 using namespace WPEFramework;
@@ -109,8 +108,7 @@ void RFCURLObserver::registerNotification() {
             m_systemService = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(SYSTEMSERVICE_CALLSIGN_VER),"", false, token);
         }
 
-	int retries = 0;
-        while (retries < MAX_RETRIES) {		
+        while (!m_eventRegistered) {		
             if (m_systemService->Subscribe<JsonObject>(3000, "onDeviceMgtUpdateReceived",
                 &RFCURLObserver::onDeviceMgtUpdateReceivedHandler, this) == Core::ERROR_NONE) {
                 m_eventRegistered = true;
@@ -119,13 +117,8 @@ void RFCURLObserver::registerNotification() {
             } else {
                 TTSLOG_ERROR("Failed to subscribe to notification handler: onDeviceMgtUpdateReceived..Retrying");
                 std::this_thread::sleep_for(std::chrono::milliseconds(RETRY_DELAY_MS));
-                retries++;
             }
         }
-
-       if (!m_eventRegistered) {
-            TTSLOG_ERROR("Failed to subscribe to notification handler after maximum retries.");
-       }
     }
 }
 
