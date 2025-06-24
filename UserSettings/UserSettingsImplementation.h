@@ -51,6 +51,7 @@
 #define USERSETTINGS_VOICE_GUIDANCE_KEY                       "voiceGuidance"
 #define USERSETTINGS_VOICE_GUIDANCE_RATE_KEY                  "voiceGuidanceRate"
 #define USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY                 "voiceGuidanceHints"
+#define USERSETTINGS_CONTENT_PIN_KEY                          "contentPin"
 
 namespace WPEFramework {
 namespace Plugin {
@@ -61,8 +62,8 @@ namespace Plugin {
     public:
         static const std::map<string, string> usersettingsDefaultMap;
         static const std::map<SettingsKey, string> _userSettingsInspectorMap;
-	static const double minVGR;
-	static const double maxVGR;
+        static const double minVGR;
+        static const double maxVGR;
 
     private:
         class Store2Notification : public Exchange::IStore2::INotification {
@@ -128,7 +129,8 @@ namespace Plugin {
                 HIGH_CONTRAST_CHANGED,
                 VOICE_GUIDANCE_CHANGED,
                 VOICE_GUIDANCE_RATE_CHANGED,
-                VOICE_GUIDANCE_HINTS_CHANGED
+                VOICE_GUIDANCE_HINTS_CHANGED,
+                CONTENT_PIN_CHANGED
             };
 
         class EXTERNAL Job : public Core::IDispatch {
@@ -171,44 +173,46 @@ namespace Plugin {
         };
 
     public:
-        virtual uint32_t Register(Exchange::IUserSettings::INotification *notification ) override ;
-        virtual uint32_t Unregister(Exchange::IUserSettings::INotification *notification ) override ;
-        uint32_t SetAudioDescription(const bool enabled) override;
-        uint32_t GetAudioDescription(bool &enabled) const override;
-        uint32_t SetPreferredAudioLanguages(const string& preferredLanguages) override;
-        uint32_t GetPreferredAudioLanguages(string &preferredLanguages) const override;
-        uint32_t SetPresentationLanguage(const string& presentationLanguage) override;
-        uint32_t GetPresentationLanguage(string &presentationLanguage) const override;
-        uint32_t SetCaptions(const bool enabled) override;
-        uint32_t GetCaptions(bool &enabled) const override;
-        uint32_t SetPreferredCaptionsLanguages(const string& preferredLanguages) override;
-        uint32_t GetPreferredCaptionsLanguages(string &preferredLanguages) const override;
-        uint32_t SetPreferredClosedCaptionService(const string& service) override;
-        uint32_t GetPreferredClosedCaptionService(string &service) const override;
-        uint32_t SetPrivacyMode(const string& privacyMode) override;
-        uint32_t GetPrivacyMode(string &privacyMode) const override;
-        uint32_t SetPinControl(const bool pinControl) override;
-        uint32_t GetPinControl(bool &pinControl) const override;
-        uint32_t SetViewingRestrictions(const string& viewingRestrictions) override;
-        uint32_t GetViewingRestrictions(string &viewingRestrictions) const override;
-        uint32_t SetViewingRestrictionsWindow(const string& viewingRestrictionsWindow) override;
-        uint32_t GetViewingRestrictionsWindow(string &viewingRestrictionsWindow) const override;
-        uint32_t SetLiveWatershed(const bool liveWatershed) override;
-        uint32_t GetLiveWatershed(bool &liveWatershed) const override;
-        uint32_t SetPlaybackWatershed(const bool playbackWatershed) override;
-        uint32_t GetPlaybackWatershed(bool &playbackWatershed) const override;
-        uint32_t SetBlockNotRatedContent(const bool blockNotRatedContent) override;
-        uint32_t GetBlockNotRatedContent(bool &blockNotRatedContent) const override;
-        uint32_t SetPinOnPurchase(const bool pinOnPurchase) override;
-        uint32_t GetPinOnPurchase(bool &pinOnPurchase) const override;
-        uint32_t SetHighContrast(const bool enabled) override;
-        uint32_t GetHighContrast(bool &enabled) const override;
-        uint32_t SetVoiceGuidance(const bool enabled) override;
-        uint32_t GetVoiceGuidance(bool &enabled) const override;
-        uint32_t SetVoiceGuidanceRate(const double rate) override;
-        uint32_t GetVoiceGuidanceRate(double &rate) const override;
-        uint32_t SetVoiceGuidanceHints(const bool hints) override;
-        uint32_t GetVoiceGuidanceHints(bool &hints) const override;
+        virtual Core::hresult Register(Exchange::IUserSettings::INotification *notification ) override ;
+        virtual Core::hresult Unregister(Exchange::IUserSettings::INotification *notification ) override ;
+        Core::hresult SetAudioDescription(const bool enabled) override;
+        Core::hresult GetAudioDescription(bool &enabled) const override;
+        Core::hresult SetPreferredAudioLanguages(const string& preferredLanguages) override;
+        Core::hresult GetPreferredAudioLanguages(string &preferredLanguages) const override;
+        Core::hresult SetPresentationLanguage(const string& presentationLanguage) override;
+        Core::hresult GetPresentationLanguage(string &presentationLanguage) const override;
+        Core::hresult SetCaptions(const bool enabled) override;
+        Core::hresult GetCaptions(bool &enabled) const override;
+        Core::hresult SetPreferredCaptionsLanguages(const string& preferredLanguages) override;
+        Core::hresult GetPreferredCaptionsLanguages(string &preferredLanguages) const override;
+        Core::hresult SetPreferredClosedCaptionService(const string& service) override;
+        Core::hresult GetPreferredClosedCaptionService(string &service) const override;
+        Core::hresult SetPrivacyMode(const string& privacyMode) override;
+        Core::hresult GetPrivacyMode(string &privacyMode) const override;
+        Core::hresult SetPinControl(const bool pinControl) override;
+        Core::hresult GetPinControl(bool &pinControl) const override;
+        Core::hresult SetViewingRestrictions(const string& viewingRestrictions) override;
+        Core::hresult GetViewingRestrictions(string &viewingRestrictions) const override;
+        Core::hresult SetViewingRestrictionsWindow(const string& viewingRestrictionsWindow) override;
+        Core::hresult GetViewingRestrictionsWindow(string &viewingRestrictionsWindow) const override;
+        Core::hresult SetLiveWatershed(const bool liveWatershed) override;
+        Core::hresult GetLiveWatershed(bool &liveWatershed) const override;
+        Core::hresult SetPlaybackWatershed(const bool playbackWatershed) override;
+        Core::hresult GetPlaybackWatershed(bool &playbackWatershed) const override;
+        Core::hresult SetBlockNotRatedContent(const bool blockNotRatedContent) override;
+        Core::hresult GetBlockNotRatedContent(bool &blockNotRatedContent) const override;
+        Core::hresult SetPinOnPurchase(const bool pinOnPurchase) override;
+        Core::hresult GetPinOnPurchase(bool &pinOnPurchase) const override;
+        Core::hresult SetHighContrast(const bool enabled) override;
+        Core::hresult GetHighContrast(bool &enabled) const override;
+        Core::hresult SetVoiceGuidance(const bool enabled) override;
+        Core::hresult GetVoiceGuidance(bool &enabled) const override;
+        Core::hresult SetVoiceGuidanceRate(const double rate) override;
+        Core::hresult GetVoiceGuidanceRate(double &rate) const override;
+        Core::hresult SetVoiceGuidanceHints(const bool hints) override;
+        Core::hresult GetVoiceGuidanceHints(bool &hints) const override;
+        Core::hresult SetContentPin(const string& contentPin) override;
+        Core::hresult GetContentPin(string& contentPin) const override;
 
         // IUserSettingsInspector methods
         Core::hresult GetMigrationState(const SettingsKey key, bool &requiresMigration) const override;
@@ -230,7 +234,7 @@ namespace Plugin {
         std::list<Exchange::IUserSettings::INotification*> _userSettingNotification;
         Core::Sink<Store2Notification> _storeNotification;
         bool _registeredEventHandlers;
-	PluginHost::IShell* _service;
+        PluginHost::IShell* _service;
 
         void dispatchEvent(Event, const JsonValue &params);
         void Dispatch(Event event, const JsonValue params);

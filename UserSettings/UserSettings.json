@@ -51,7 +51,12 @@
             "type": "number",
             "example": 0.1
         },
-		"MigrationStates": {
+        "contentPin": {
+            "summary": "contentPin",
+            "type": "string",
+            "example": "1234"
+        },
+        "MigrationStates": {
             "summary": "Keys and it's migration states",
             "type": "object",
             "properties": {
@@ -61,7 +66,7 @@
                     "example": "PREFERRED_AUDIO_LANGUAGES"
                 },
                 "requiresMigration": {
-                    "summary": "The name of the USB device",
+                    "summary": "migration state of the property",
                     "type": "boolean",
                     "example": true
                 }
@@ -85,9 +90,8 @@
                 }
             },
             "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
             }
         },
         "setPreferredAudioLanguages": {
@@ -104,9 +108,8 @@
                 }
             },
             "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
             }
         },
         "setPresentationLanguage": {
@@ -123,9 +126,8 @@
                 }
             },
             "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
             }
         },
         "setCaptions": {
@@ -144,9 +146,8 @@
                 }
             },
             "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
             }
         },
         "setPreferredCaptionsLanguages": {
@@ -163,9 +164,8 @@
                 }
             },
             "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
             }
         },
         "setPreferredClosedCaptionService": {
@@ -182,9 +182,8 @@
                 }
             },
             "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
             }
         },
         "setPrivacyMode": {
@@ -201,9 +200,8 @@
                 }
             },
             "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
             }
         },
 	"setPinControl": {
@@ -222,9 +220,8 @@
                 }
             },
             "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
             }
         },
 	    "setViewingRestrictions": {
@@ -241,9 +238,8 @@
                 }
             },
             "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
             }
         },
         "setViewingRestrictionsWindow": {
@@ -260,9 +256,8 @@
                 }
             },
             "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
             }
         },
 	"setLiveWatershed": {
@@ -281,9 +276,8 @@
                 }
             },
             "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
             }
         },
 	    "setPlaybackWatershed": {
@@ -302,9 +296,8 @@
                 }
             },
             "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
             }
         },
 	    "setBlockNotRatedContent": {
@@ -323,9 +316,8 @@
                 }
             },
             "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
             }
         },
 	    "setPinOnPurchase": {
@@ -344,9 +336,8 @@
                 }
             },
             "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
             }
         },
         "setHighContrast":
@@ -366,9 +357,8 @@
                 }
             },
             "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
             }
         },
         "setVoiceGuidance": {
@@ -387,9 +377,8 @@
                 }
             },
             "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
             }
         },
         "setVoiceGuidanceRate": {
@@ -406,9 +395,8 @@
                 }
             },
             "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
             }
         },
         "setVoiceGuidanceHints": {
@@ -427,9 +415,26 @@
                 }
             },
             "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
+            }
+        },
+        "setContentPin": {
+            "summary": "Setting ContentPin.",
+			"events": {
+                "onContentPinChanged" : "Triggered when the ContentPin changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "contentPin": {
+                        "$ref": "#/definitions/contentPin"
+                    }
+                }
+            },
+            "result": {
+                "description": "On success null will be returned",
+                "$ref": "#/common/results/void"
             }
         },
         "getAudioDescription":
@@ -575,7 +580,7 @@
                         "example": "VOICE_GUIDANCE_RATE"
                     }
                 },
-                "required": ["deviceName"]
+                "required": ["key"]
             },
             "result": {
                 "summary": "migration state of the respective key true/false",
@@ -592,6 +597,12 @@
                 "items": {
                     "$ref": "#/definitions/MigrationStates"
                 }
+            }
+        },
+        "getContentPin":{
+            "summary": "Returns ContentPin.",
+            "result": {
+              "$ref": "#/definitions/contentPin"
             }
         }
     },
@@ -879,8 +890,21 @@
                 },
                 "required": [ "hints" ]
             }
-        }
+        },
+        "onContentPinChanged": {
+			"summary": "Triggered after the ContentPin changes (see `setContentPin`)",
+			"params": {
+				"type": "object",
+				"properties": {
+                    "contentPin": {
+                        "$ref": "#/definitions/contentPin"
+                    }
+				},
+				"required": [
+					"contentPin"
+				]
+			}
+		}
     }
 }
-
 
