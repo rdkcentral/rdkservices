@@ -18,11 +18,13 @@
 **/
 
 #include "WifiManager.h"
+#include "WifiManagerDefines.h"
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
 
 #include <vector>
 #include <utility>
+#include <fstream>
 
 #include "libIBus.h"
 
@@ -32,6 +34,8 @@
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 6
+
+#define WPA_SUPPLICANT_CONF "/opt/secure/wifi/wpa_supplicant.conf"
 
 namespace {
     using WPEFramework::Plugin::WifiManager;
@@ -83,6 +87,7 @@ namespace WPEFramework
             registerMethod("startScan", &WifiManager::startScan, this);
             registerMethod("isSignalThresholdChangeEnabled", &WifiManager::isSignalThresholdChangeEnabled, this);
             registerMethod("getSupportedSecurityModes", &WifiManager::getSupportedSecurityModes, this);
+            registerMethod("retrieveSSID", &WifiManager::retrieveSSID, this);
 
             /* Version 1 only API */
             Register("initiateWPSPairing", &WifiManager::initiateWPSPairing, this);
@@ -169,6 +174,97 @@ namespace WPEFramework
             uint32_t result = wifiState.getConnectedSSID(parameters, response);
 
             return result;
+        }
+
+        uint32_t WifiManager::retrieveSSID (const JsonObject& parameters, JsonObject& response)
+        {
+            uint32_t rc = Core::ERROR_GENERAL;
+            std::string line;
+            std::string securityPattern = "key_mgmt=";
+            std::string ssidPattern = "ssid=";
+            std::string passphrasePattern = "psk=";
+            std::string security, ssid, passphrase;
+
+            std::ifstream configFile(WPA_SUPPLICANT_CONF);
+            if (!configFile.is_open())
+            {
+                LOGERR("Not able to open the file %s", WPA_SUPPLICANT_CONF);
+                response["success"] = false;
+                rc = Core::ERROR_NOT_EXIST;
+                return rc;
+            }
+
+            while (std::getline(configFile, line))
+            {
+                LOGINFO("Attempting to read the configuration to populate SSID specific information");
+                size_t pos;
+
+                // Fetch ssid value
+                if (ssid.empty()) {
+                    pos = line.find(ssidPattern);
+                    if (pos != std::string::npos)
+                    {
+                        pos = ssidPattern.length();
+                        size_t end = line.find('"', pos  1);
+                        if (end == std::string::npos)
+                        {
+                            end = line.length();
+                        }
+                        ssid = line.substr(pos  1, end - pos - 1);
+                        LOGINFO("SSID found");
+                        continue;
+                    }
+                }
+
+                if (!ssid.empty()) {
+                    // Fetch security value
+                    pos = line.find(securityPattern);
+                    if (pos != std::string::npos)
+                    {
+                        pos = securityPattern.length();
+                        size_t end = line.find(' ', pos);
+                        if (end == std::string::npos)
+                        {
+                            end = line.length();
+                        }
+                        security = line.substr(pos, end - pos);
+                        continue;
+                    }
+
+                    // Fetch passphare value
+                    pos = line.find(passphrasePattern);
+                    if (pos != std::string::npos)
+                    {
+                        pos = passphrasePattern.length();
+                        size_t end = line.find('"', pos  1);
+                        if (end == std::string::npos)
+                        {
+                            end = line.length();
+                        }
+                        passphrase = line.substr(pos  1, end - pos - 1);
+                    }
+                    LOGINFO("Fetched SSID = %s, security = %s", ssid.c_str(), security.c_str());
+                }
+            }
+            configFile.close();
+            if (!ssid.empty())
+            {
+                response["ssid"] = ssid;
+                //As enterprise data is not persisted, WPA_EAP mode is not considered here
+                if(security == "NONE")
+                    response["securityMode"] = JsonValue((int)SecurityMode::NONE);
+                else if(security == "SAE")
+                    response["securityMode"] = JsonValue((int)SecurityMode::WPA3_SAE);
+                else
+                    response["securityMode"] = JsonValue((int)SecurityMode::WPA2_PSK_AES);
+                /* WPA3_PSK_AES has backward compatibility for PSK. So WPA-PSK is considered as default */
+                response["passphrase"] = passphrase;
+                response["success"] = true;
+                rc = Core::ERROR_NONE;
+            }
+            else
+                response["success"] = false;
+            return rc;
         }
 
         uint32_t WifiManager::setEnabled(const JsonObject &parameters, JsonObject &response)

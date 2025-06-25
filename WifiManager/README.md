@@ -18,6 +18,8 @@ curl -X POST http://127.0.0.1:9998/Service/ -d '{"jsonrpc": "2.0", "id": 3, "met
 curl -X POST http://127.0.0.1:9998/Service/ -d '{"jsonrpc": "2.0", "id": 3, "method": "org.rdk.Wifi.1.isSignalThresholdChangeEnabled"}'
 curl -X POST http://127.0.0.1:9998/Service/ -d '{"jsonrpc": "2.0", "id": 3, "method": "org.rdk.Wifi.1.setSignalThresholdChangeEnabled", "params": {"enabled": true, "interval": 1000}}'
 
+SSID Information : curl -H "Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '"' -f 4`" -d '{"jsonrpc":"2.0","id":"42","method": "org.rdk.Wifi.retrieveSSID"}' http://127.0.0.1:9998/jsonrpc
+
 onWifiSignalTresholdChanged:
 this requires event handling and can't be done in curl, see "test/thunder-wifimanager-test.js"
 

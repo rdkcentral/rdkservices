@@ -207,6 +207,34 @@
                 ]
             }
         },
+        "retrieveSSID":{
+            "summary": "Returns the connected SSID information.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "ssid": {
+                        "$ref": "#/definitions/ssid"
+                    },
+                    "security":{
+                        "summary": "The security mode. See the `connect` method",
+                        "type": "string",
+                        "example": "5"
+                    },
+                    "passphrase": {
+                        "$ref": "#/definitions/passphrase"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "ssid",
+                    "security",
+                    "passphrase",
+                    "success"
+                ]
+            }
+        },
         "getCurrentState": {
             "summary": "Returns the current Wifi State. The possible Wifi states are as follows.  \n**Wifi States**  \n* `0`: UNINSTALLED - The device was in an installed state and was uninstalled; or, the device does not have a Wifi radio installed   \n* `1`: DISABLED - The device is installed but not yet enabled  \n* `2`: DISCONNECTED - The device is installed and enabled, but not yet connected to a network  \n* `3`: PAIRING - The device is in the process of pairing, but not yet connected to a network  \n* `4`: CONNECTING - The device is attempting to connect to a network  \n* `5`: CONNECTED - The device is successfully connected to a network  \n* `6`: FAILED - The device has encountered an unrecoverable error with the Wifi adapter.",
             "result": {
