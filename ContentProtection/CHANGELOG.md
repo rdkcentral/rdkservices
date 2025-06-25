@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [2.1.0] - 2025-06-25
+### Changed
+- Support for returning video platform data in closeDrmSession result
+
 ## [2.0.0] - 2025-06-12
 ### Changed
 - Parameters initData, openSessionResponse, updateSessionResponse to be stringified json instead of json
