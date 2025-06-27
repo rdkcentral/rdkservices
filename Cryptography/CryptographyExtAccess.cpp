@@ -19,6 +19,10 @@
 
 #include "CryptographyExtAccess.h"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -26,7 +30,7 @@ namespace Plugin {
 
         static Metadata<CryptographyExtAccess> metadata(
             // Version
-            1, 0, 0,
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
             // Preconditions
             { subsystem::PLATFORM },
             // Terminations
