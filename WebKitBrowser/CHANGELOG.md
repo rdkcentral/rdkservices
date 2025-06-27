@@ -17,6 +17,10 @@ All notable changes to this RDK Service will be documented in this file.
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
 
+## [1.1.30] - 2025-06-27
+### Fixed
+- Change kill signal for unresponsive suspended WebProcess
+
 ## [1.1.29] - 2025-06-05
 ### Fixed
 - Fixed Numeric Truncation Error
