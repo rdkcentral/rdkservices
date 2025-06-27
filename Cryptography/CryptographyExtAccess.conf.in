@@ -1,0 +1,12 @@
+autostart = "@PLUGIN_CRYPTOGRAPHYEXTACCESS_AUTOSTART@"
+
+callsign = "org.rdk.Cryptography"
+
+configuration = JSON()
+
+rootobject = JSON()
+rootobject.add("mode", "@PLUGIN_CRYPTOGRAPHYEXTACCESS_MODE@")
+rootobject.add("user", "@PLUGIN_CRYPTOGRAPHYEXTACCESS_USER@")
+rootobject.add("group", "@PLUGIN_CRYPTOGRAPHYEXTACCESS_GROUP@")
+
+configuration.add("root", rootobject)
