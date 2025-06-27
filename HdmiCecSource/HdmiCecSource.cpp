@@ -94,7 +94,8 @@ static LogicalAddress logicalAddress = 0xF;
 static OSDName osdName = "TV Box";
 static int32_t powerState = 1;
 static PowerStatus tvPowerState = 1;
-static bool isDeviceActiveSource = false;
+static std::atomic<bool> isDeviceActiveSource(false);
+static std::atomic<bool> isRetryOTPSuccess(false);
 static bool isLGTvConnected = false;
 
 namespace WPEFramework
@@ -144,7 +145,7 @@ namespace WPEFramework
                  isDeviceActiveSource = true;
              else
                  isDeviceActiveSource = false;
-             LOGINFO("ActiveSource isDeviceActiveSource status :%d \n", isDeviceActiveSource);
+             LOGINFO("ActiveSource isDeviceActiveSource status :%d \n", isDeviceActiveSource.load());
              HdmiCecSource::_instance->sendActiveSourceEvent();
              HdmiCecSource::_instance->addDevice(header.from.toInt());
        }
@@ -169,7 +170,7 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: RequestActiveSource\n");
-             if(isDeviceActiveSource)
+             if(isDeviceActiveSource.load())
              {
                   LOGINFO("sending  ActiveSource\n");
                   try
@@ -284,7 +285,7 @@ namespace WPEFramework
                  isDeviceActiveSource = true;
              else
                  isDeviceActiveSource = false;
-             LOGINFO("physical_addr : %s isDeviceActiveSource :%d \n",physical_addr.toString().c_str(),isDeviceActiveSource);
+             LOGINFO("physical_addr : %s isDeviceActiveSource :%d \n",physical_addr.toString().c_str(),isDeviceActiveSource.load());
              HdmiCecSource::_instance->sendActiveSourceEvent();
        }
        void HdmiCecSourceProcessor::process (const RoutingInformation &msg, const Header &header)
@@ -295,7 +296,7 @@ namespace WPEFramework
                  isDeviceActiveSource = true;
              else
                  isDeviceActiveSource = false;
-             LOGINFO("physical_addr : %s isDeviceActiveSource :%d \n",physical_addr.toString().c_str(),isDeviceActiveSource);
+             LOGINFO("physical_addr : %s isDeviceActiveSource :%d \n",physical_addr.toString().c_str(),isDeviceActiveSource.load());
              HdmiCecSource::_instance->sendActiveSourceEvent();
        }
        void HdmiCecSourceProcessor::process (const SetStreamPath &msg, const Header &header)
@@ -306,7 +307,7 @@ namespace WPEFramework
                  isDeviceActiveSource = true;
              else
                  isDeviceActiveSource = false;
-             LOGINFO("physical_addr : %s isDeviceActiveSource :%d \n",physical_addr.toString().c_str(),isDeviceActiveSource);
+             LOGINFO("physical_addr : %s isDeviceActiveSource :%d \n",physical_addr.toString().c_str(),isDeviceActiveSource.load());
              HdmiCecSource::_instance->sendActiveSourceEvent();
 
        }
@@ -523,7 +524,7 @@ namespace WPEFramework
 
        uint32_t HdmiCecSource::getActiveSourceStatus(const JsonObject& parameters, JsonObject& response)
        {
-            response["status"] = isDeviceActiveSource;
+            response["status"] = isDeviceActiveSource.load();
             returnResponse(true);
        }
 
@@ -754,6 +755,10 @@ namespace WPEFramework
 
             LOGINFO("Pocessing IARM_BUS_CECMGR_EVENT_STATUS_UPDATED LA:%d \r\n", data);
             HdmiCecSource::_instance->cecStatusUpdated(data);
+	    LOGINFO("notifying CEC status update...\n");
+	    std::unique_lock<std::mutex> lk(_instance->m_retryOTPMutex);
+            HdmiCecSource::_instance->m_retryOTP = true;
+	    HdmiCecSource::_instance->m_retryOTPCV.notify_one();
             LOGINFO("Exit threadCecStatusUpdateHandler \r\n");
         }
 
@@ -832,6 +837,25 @@ namespace WPEFramework
            }
        }
 
+       bool HdmiCecSource::cecOTPExceptionHandler()
+       {
+	       try{
+		       {
+		       std::unique_lock<std::mutex> lk(m_retryOTPMutex);
+		       m_retryOTP = false;
+		       }
+		       if(m_retryOTPThread.get().joinable()) {
+			       m_retryOTPThread.get().join();
+		       }
+		       m_retryOTPThread = Utils::ThreadRAII(std::thread(threadRetryOTP));
+		       m_retryOTPThread.get().join(); //wait for the OTP retry
+	       } catch(const std::system_error& e) {
+		       LOGERR("exception in creating threadRetryOTP %s",e.what());
+		       isRetryOTPSuccess = false;
+	       }
+	       return isRetryOTPSuccess.load();
+       }
+
        void HdmiCecSource::onCECDaemonInit()
        {
             if(true == getEnabled())
@@ -878,8 +902,8 @@ namespace WPEFramework
        void HdmiCecSource::sendActiveSourceEvent()
        {
            JsonObject params;
-           params["status"] = isDeviceActiveSource;
-           LOGWARN(" sendActiveSourceEvent isDeviceActiveSource: %d ",isDeviceActiveSource);
+           params["status"] = isDeviceActiveSource.load();
+           LOGWARN(" sendActiveSourceEvent isDeviceActiveSource: %d ",isDeviceActiveSource.load());
            sendNotify(eventString[HDMICECSOURCE_EVENT_ACTIVE_SOURCE_STATUS_UPDATED], params);
        }
 
@@ -1464,6 +1488,20 @@ namespace WPEFramework
             LOGINFO("getOTPEnabled :%d ",cecOTPSettingEnabled);
         }
 
+	void HdmiCecSource::sendOTPMsg()
+	{
+		if(!(_instance->smConnection))
+			return;
+		LOGINFO("Command: sending ImageViewOn TV \r\n");
+                _instance->smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(ImageViewOn()),0,Throw_e());
+                usleep(10000);
+                LOGINFO("Command: sending ActiveSource  physical_addr :%s \r\n",physical_addr.toString().c_str());
+                _instance->smConnection->sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(ActiveSource(physical_addr)),0,Throw_e());
+                usleep(10000);
+                isDeviceActiveSource = true;
+                LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
+                _instance->smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(GiveDevicePowerStatus()),0,Throw_e());
+	}
         bool HdmiCecSource::performOTPAction()
         {
             LOGINFO("performOTPAction ");
@@ -1477,20 +1515,13 @@ namespace WPEFramework
                 if (smConnection)  {
                     try
                     {
-                        LOGINFO("Command: sending ImageViewOn TV \r\n");
-                        smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(ImageViewOn()));
-                        usleep(10000);
-                        LOGINFO("Command: sending ActiveSource  physical_addr :%s \r\n",physical_addr.toString().c_str());
-                        smConnection->sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(ActiveSource(physical_addr)));
-                        usleep(10000);
-                        isDeviceActiveSource = true;
-                        LOGINFO("Command: sending GiveDevicePowerStatus \r\n");
-                        smConnection->sendTo(LogicalAddress::TV, MessageEncoder().encode(GiveDevicePowerStatus()));
+		        sendOTPMsg();
                         ret = true;
                     }
                     catch(...)
                     {
                         LOGWARN("Exception while processing performOTPAction");
+			ret = cecOTPExceptionHandler();
                     }
                 }
                 else {
@@ -1843,6 +1874,29 @@ namespace WPEFramework
 		}
 		pthread_mutex_unlock(&(_instance->m_lockUpdate));
 	        LOGINFO("%s: Thread exited", __FUNCTION__);
+	}
+
+	void HdmiCecSource::threadRetryOTP()
+	{
+		if(!HdmiCecSource::_instance)
+			return;
+		std::unique_lock<std::mutex> lk(_instance->m_retryOTPMutex);
+		if(_instance->m_retryOTPCV.wait_for(lk, std::chrono::seconds(3),[]{return (_instance->m_retryOTP == true);}))
+		{
+			LOGINFO("%s: waiting done..Retry OTP",__FUNCTION__);
+			try{
+			        _instance->sendOTPMsg();
+			        isRetryOTPSuccess = true;
+			}catch(...)
+			{
+				LOGERR("Exception while retrying OTP...");
+				isRetryOTPSuccess = false;
+			}
+		}else{
+			LOGERR("%s: waiting timedout..",__FUNCTION__);
+		        isRetryOTPSuccess = false;
+		}
+		LOGINFO("%s: Thread exited",__FUNCTION__);
 	}
 
     } // namespace Plugin
