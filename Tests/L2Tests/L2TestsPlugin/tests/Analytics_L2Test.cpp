@@ -4,7 +4,6 @@
 #include <fstream>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <interfaces/IAnalytics.h>
 #include <mutex>
 #include <string>
 #include <sys/socket.h>
@@ -19,26 +18,9 @@
 #define ANALYTICS_CALLSIGN _T("org.rdk.Analytics")
 #define ANALYTICSL2TEST_CALLSIGN _T("L2tests.1")
 
-#define SIFT_SERVER_IP "127.0.0.1"
-#define SIFT_SERVER_PORT 12345
-#define SIFT_SERVER_TIMEOUT_SEC (30)
-
-#define ZDUMP_MOCK_OUT_AMERICA "America/New_York  Sun Mar  9 07:00:00 2008 UT = Sun Mar  9 03:00:00 2008 EDT isdst=1 gmtoff=-14400\n" \
-                       "America/New_York  Sun Nov  2 05:59:59 2008 UT = Sun Nov  2 01:59:59 2008 EDT isdst=1 gmtoff=-14400\n" \
-                       "America/New_York  Sun Nov  2 06:00:00 2008 UT = Sun Nov  2 01:00:00 2008 EST isdst=0 gmtoff=-18000\n" \
-                       "America/New_York  Sun Mar  8 06:59:59 2009 UT = Sun Mar  8 01:59:59 2009 EST isdst=0 gmtoff=-18000\n" \
-                       "America/New_York  Sun Mar  8 07:00:00 2009 UT = Sun Mar  8 03:00:00 2009 EDT isdst=1 gmtoff=-14400"
-
-#define ZDUMP_MOCK_OUT_AUSTRALIA "Australia/Sydney  Sat Oct 27 15:59:59 2007 UT = Sun Oct 28 01:59:59 2007 AEST isdst=0 gmtoff=36000\n" \
-                        "Australia/Sydney  Sat Oct 27 16:00:00 2007 UT = Sun Oct 28 03:00:00 2007 AEDT isdst=1 gmtoff=39600\n" \
-                        "Australia/Sydney  Sat Apr  5 15:59:59 2008 UT = Sun Apr  6 02:59:59 2008 AEDT isdst=1 gmtoff=39600\n" \
-                        "Australia/Sydney  Sat Apr  5 16:00:00 2008 UT = Sun Apr  6 02:00:00 2008 AEST isdst=0 gmtoff=36000\n" \
-                        "Australia/Sydney  Sat Oct  4 15:59:59 2008 UT = Sun Oct  5 01:59:59 2008 AEST isdst=0 gmtoff=36000\n" \
-                        "Australia/Sydney  Sat Oct  4 16:00:00 2008 UT = Sun Oct  5 03:00:00 2008 AEDT isdst=1 gmtoff=39600\n" \
-                        "Australia/Sydney  Sat Apr  4 15:59:59 2009 UT = Sun Apr  5 02:59:59 2009 AEDT isdst=1 gmtoff=39600"
-
-
-#define TIME_MOCK_OUT 1212537600 // 2008-06-04 12:00:00
+#define SERVER_IP "127.0.0.1"
+#define SERVER_PORT 12345
+#define SERVER_TIMEOUT_SEC (30)
 
 #define EVENTS_MAP "[ \
                 { \
@@ -73,15 +55,15 @@ using testing::StrictMock;
 
 char gPipeBuffer[4 * 1024];
 
-class SiftServerMock {
+class ServerMock {
 public:
-    SiftServerMock()
+    ServerMock()
         : mSocket(-1)
     {
         memset(&mAddress, 0, sizeof(mAddress));
     }
 
-    ~SiftServerMock()
+    ~ServerMock()
     {
         if (mSocket != -1) {
             close(mSocket);
@@ -104,8 +86,8 @@ public:
         }
 
         mAddress.sin_family = AF_INET;
-        mAddress.sin_addr.s_addr = inet_addr(SIFT_SERVER_IP);
-        mAddress.sin_port = htons(SIFT_SERVER_PORT);
+        mAddress.sin_addr.s_addr = inet_addr(SERVER_IP);
+        mAddress.sin_port = htons(SERVER_PORT);
 
         if (bind(mSocket, (struct sockaddr*)&mAddress, sizeof(mAddress)) == -1) {
             TEST_LOG("Bind error");
@@ -206,87 +188,12 @@ AnalyticsTest::AnalyticsTest()
     uint32_t status = Core::ERROR_GENERAL;
 
     // Activate plugin in constructor
-    status = ActivateService("org.rdk.PersistentStore");
-    EXPECT_EQ(Core::ERROR_NONE, status);
     status = ActivateService("org.rdk.System");
     EXPECT_EQ(Core::ERROR_NONE, status);
 
     JsonObject paramsJson;
     JsonObject resultJson;
 
-    // Set PersistentStore values required by Sift
-    paramsJson["namespace"] = "Analytics";
-    paramsJson["key"] = "deviceType";
-    paramsJson["value"] = "STB";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "modelNumber";
-    paramsJson["value"] = "L2Test_STB";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "manufacturer";
-    paramsJson["value"] = "L2Test_Manufacturer";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "serialNumber";
-    paramsJson["value"] = "L2Test_SerialNumber";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "entertainmentOSVersion";
-    paramsJson["value"] = "L2Test_EntertainmentOSVersion";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "deviceAppName";
-    paramsJson["value"] = "L2Test_AppName";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "deviceAppVersion";
-    paramsJson["value"] = "L2Test_AppVersion";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson.Clear();
-    paramsJson["namespace"] = "accountProfile";
-    paramsJson["key"] = "proposition";
-    paramsJson["value"] = "L2Test_Proposition";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "retailer";
-    paramsJson["value"] = "L2Test_Retailer";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "jvagent";
-    paramsJson["value"] = "L2Test_JVAgent";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "coam";
-    paramsJson["value"] = "true";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "accountType";
-    paramsJson["value"] = "L2Test_AccountType";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "operator";
-    paramsJson["value"] = "L2Test_Operator";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "detailType";
-    paramsJson["value"] = "L2Test_DetailType";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
 
     // Set SystemService fake values
     paramsJson.Clear();
@@ -302,39 +209,6 @@ AnalyticsTest::AnalyticsTest()
     file << "echo 'friendly_id=rdkglobal'\n";
     file.close();
 
-#if 0 // In L2 popen/pclose is not enabled to be mocked
-    ON_CALL(*p_wrapsImplMock, popen(::testing::_, ::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [&](const char* command, const char* type) -> FILE* {
-                const char* valueToReturn = NULL;
-                if (strcmp(command, "zdump -v America/New_York") == 0) {
-                    valueToReturn = ZDUMP_MOCK_OUT_AMERICA;
-                }
-                if (strcmp(command, "zdump -v Australia/Sydney") == 0) {
-                    valueToReturn = ZDUMP_MOCK_OUT_AUSTRALIA;
-                }
-                if (valueToReturn != NULL) {
-                    memset(gPipeBuffer, 0, sizeof(gPipeBuffer));
-                    strcpy(gPipeBuffer, valueToReturn);
-                    FILE* pipe = fmemopen(gPipeBuffer, strlen(gPipeBuffer), "r");
-                    return pipe;
-                } else {
-                    return nullptr;
-                }
-            }));
-
-    ON_CALL(*p_wrapsImplMock, pclose(::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [&](FILE* pipe){
-                return __real_pclose(pipe);
-            }));
-
-    ON_CALL(*p_wrapsImplMock, time(::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [&](time_t* arg) -> time_t {
-                return TIME_MOCK_OUT;
-            }));
-#endif
 
     // Mock event mapping file
     std::ofstream eventsMapFile("/tmp/AnalyticsEventsMap.json");
@@ -360,24 +234,15 @@ AnalyticsTest::~AnalyticsTest()
     status = DeactivateService("org.rdk.System");
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    status = DeactivateService("org.rdk.PersistentStore");
-    EXPECT_EQ(Core::ERROR_NONE, status);
 
     sleep(5);
-    int file_status = remove("/tmp/secure/persistent/rdkservicestore");
-    // Check if the file has been successfully removed
-    if (file_status != 0) {
-        TEST_LOG("Error deleting file[/tmp/secure/persistent/rdkservicestore]");
-    } else {
-        TEST_LOG("File[/tmp/secure/persistent/rdkservicestore] successfully deleted");
-    }
 
-    file_status = remove("/tmp/AnalyticsSiftStore.db");
+    int file_status = remove("/tmp/AnalyticsStore.db");
     // Check if the file has been successfully removed
     if (file_status != 0) {
-        TEST_LOG("Error deleting file[/tmp/AnalyticsSiftStore.db]");
+        TEST_LOG("Error deleting file[/tmp/AnalyticsStore.db]");
     } else {
-        TEST_LOG("File[/tmp/AnalyticsSiftStore.db] successfully deleted");
+        TEST_LOG("File[/tmp/AnalyticsStore.db] successfully deleted");
     }
 
     file_status = remove("/opt/persistent/timeZoneDST");
@@ -409,24 +274,24 @@ TEST_F(AnalyticsTest, SendAndReceiveSignleEventQueued)
     eventPayload["data"] = "random data";
     paramsJson["eventPayload"] = eventPayload;
 
-    SiftServerMock siftServer;
-    EXPECT_TRUE(siftServer.Start());
+    ServerMock server;
+    EXPECT_TRUE(server.Start());
 
     uint32_t status = InvokeServiceMethod("org.rdk.Analytics", "sendEvent", paramsJson, resultJson);
     EXPECT_EQ(status, Core::ERROR_NONE);
 
     // TimeZone not set, check if data will not come
-    string eventMsg = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC);
+    string eventMsg = server.AwaitData(SERVER_TIMEOUT_SEC);
     EXPECT_EQ(eventMsg, "");
 
-    // Set TimeZone to FINAL what allows event to be decorated and sent to Sift server
+    // Set TimeZone to FINAL what allows event to be decorated and sent to server
     paramsJson.Clear();
     paramsJson["timeZone"] = "America/New_York";
     paramsJson["accuracy"] = "FINAL";
     status = InvokeServiceMethod("org.rdk.System", "setTimeZoneDST", paramsJson, resultJson);
     EXPECT_EQ(status, Core::ERROR_NONE);
 
-    eventMsg = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC);
+    eventMsg = server.AwaitData(SERVER_TIMEOUT_SEC);
     EXPECT_NE(eventMsg, "");
 
     // Check if the event message contains the expected fields
@@ -434,575 +299,10 @@ TEST_F(AnalyticsTest, SendAndReceiveSignleEventQueued)
     eventArray.FromString(eventMsg);
     EXPECT_EQ(eventArray.Length(), 1);
     JsonObject eventObj = eventArray[0].Object();
-
-    EXPECT_TRUE(eventObj.HasLabel("common_schema"));
-    EXPECT_TRUE(eventObj.HasLabel("env"));
-    EXPECT_TRUE(eventObj.HasLabel("product_name"));
-    EXPECT_TRUE(eventObj.HasLabel("product_version"));
-    EXPECT_TRUE(eventObj.HasLabel("event_schema"));
-    EXPECT_TRUE(eventObj.HasLabel("event_name"));
-    EXPECT_TRUE(eventObj.HasLabel("timestamp"));
-    EXPECT_TRUE(eventObj.HasLabel("event_id"));
-    EXPECT_TRUE(eventObj.HasLabel("event_source"));
-    EXPECT_TRUE(eventObj.HasLabel("event_source_version"));
-    EXPECT_TRUE(eventObj.HasLabel("logger_name"));
-    EXPECT_TRUE(eventObj.HasLabel("logger_version"));
-    EXPECT_TRUE(eventObj.HasLabel("partner_id"));
-    EXPECT_TRUE(eventObj.HasLabel("device_model"));
-    EXPECT_TRUE(eventObj.HasLabel("device_type"));
-    EXPECT_TRUE(eventObj.HasLabel("device_timezone"));
-    EXPECT_TRUE(eventObj.HasLabel("device_os_name"));
-    EXPECT_TRUE(eventObj.HasLabel("device_os_version"));
-    EXPECT_TRUE(eventObj.HasLabel("platform"));
-    EXPECT_TRUE(eventObj.HasLabel("device_manufacturer"));
-    EXPECT_TRUE(eventObj.HasLabel("authenticated"));
-    EXPECT_TRUE(eventObj.HasLabel("session_id"));
-    EXPECT_TRUE(eventObj.HasLabel("proposition"));
-    EXPECT_TRUE(eventObj.HasLabel("retailer"));
-    EXPECT_TRUE(eventObj.HasLabel("jv_agent"));
-    EXPECT_TRUE(eventObj.HasLabel("coam"));
-    EXPECT_TRUE(eventObj.HasLabel("device_serial_number"));
-    EXPECT_TRUE(eventObj.HasLabel("device_mac_address"));
-    EXPECT_TRUE(eventObj.HasLabel("country"));
-    EXPECT_TRUE(eventObj.HasLabel("region"));
-    EXPECT_TRUE(eventObj.HasLabel("account_type"));
-    EXPECT_TRUE(eventObj.HasLabel("operator"));
-    EXPECT_TRUE(eventObj.HasLabel("account_detail_type"));
-    EXPECT_TRUE(eventObj.HasLabel("event_payload"));
-
-    EXPECT_EQ(eventObj["common_schema"].String(), "entos/common/v1");
-    EXPECT_EQ(eventObj["env"].String(), "prod");
-    EXPECT_EQ(eventObj["product_name"].String(), "entos");
-    EXPECT_EQ(eventObj["product_version"].String(), "L2Test_EntertainmentOSVersion");
-    EXPECT_EQ(eventObj["event_schema"].String(), "entos/L2TestEvent/1");
-    EXPECT_EQ(eventObj["event_name"].String(), "L2TestEvent");
-    EXPECT_EQ(eventObj["event_source"].String(), "L2Test");
-    EXPECT_EQ(eventObj["event_source_version"].String(), "1.0.0");
-    EXPECT_EQ(eventObj["logger_name"].String(), "Analytics");
-    EXPECT_EQ(eventObj["partner_id"].String(), "rdkglobal");
-    EXPECT_EQ(eventObj["device_model"].String(), "RDK");
-    EXPECT_EQ(eventObj["device_type"].String(), "STB");
-    //EXPECT_EQ(eventObj["device_timezone"].Number(), -14400000);
-    EXPECT_EQ(eventObj["device_os_name"].String(), "rdk");
-    EXPECT_EQ(eventObj["device_os_version"].String(), "L2Test_STB");
-    EXPECT_EQ(eventObj["platform"].String(), "L2Test_Proposition");
-    EXPECT_EQ(eventObj["device_manufacturer"].String(), "L2Test_Manufacturer");
-    EXPECT_EQ(eventObj["proposition"].String(), "L2Test_Proposition");
-    EXPECT_EQ(eventObj["retailer"].String(), "L2Test_Retailer");
-    EXPECT_EQ(eventObj["jv_agent"].String(), "L2Test_JVAgent");
-    EXPECT_EQ(eventObj["coam"].Boolean(), true);
-    EXPECT_EQ(eventObj["device_serial_number"].String(), "L2Test_SerialNumber");
-    EXPECT_EQ(eventObj["device_mac_address"].String(), "01:02:03:04:05:06");
-    EXPECT_EQ(eventObj["country"].String(), "USA");
-    EXPECT_EQ(eventObj["region"].String(), "US-USA");
-    EXPECT_EQ(eventObj["account_type"].String(), "L2Test_AccountType");
-    EXPECT_EQ(eventObj["operator"].String(), "L2Test_Operator");
-    EXPECT_EQ(eventObj["account_detail_type"].String(), "L2Test_DetailType");
-
-    JsonObject eventPayloadObj = eventObj["event_payload"].Object();
+    JsonObject eventPayloadObj = eventObj["eventPayload"].Object();
     EXPECT_TRUE(eventPayloadObj.HasLabel("data"));
     EXPECT_EQ(eventPayloadObj["data"].String(), "random data");
 }
-
-TEST_F(AnalyticsTest, SendAndReceiveMultipleEventsQueued)
-{
-    uint32_t status = Core::ERROR_GENERAL;
-    JsonObject paramsJson;
-    JsonObject resultJson;
-    paramsJson["eventName"] = "L2TestEvent";
-    paramsJson["eventVersion"] = "1";
-    paramsJson["eventSource"] = "L2Test";
-    paramsJson["eventSourceVersion"] = "1.0.0";
-    JsonObject eventPayload;
-    eventPayload["data"] = "random data";
-    paramsJson["eventPayload"] = eventPayload;
-
-    SiftServerMock siftServer;
-    EXPECT_TRUE(siftServer.Start());
-
-    // Sift Uploader should send up to 10 events per POST by default
-    const int eventsRcvMaxDfl = 10;
-    const int eventsSentNbr = 2 * eventsRcvMaxDfl;
-
-    for (int i = 0; i < eventsSentNbr; ++i) {
-        status = InvokeServiceMethod("org.rdk.Analytics", "sendEvent", paramsJson, resultJson);
-        EXPECT_EQ(status, Core::ERROR_NONE);
-    }
-
-    // TimeZone not set, check if data will not come
-    string eventMsg = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC);
-    EXPECT_EQ(eventMsg, "");
-
-    // Set TimeZone to FINAL what allows event to be decorated and sent to Sift server
-    paramsJson.Clear();
-    paramsJson["timeZone"] = "America/New_York";
-    paramsJson["accuracy"] = "FINAL";
-    status = InvokeServiceMethod("org.rdk.System", "setTimeZoneDST", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    // Collect all events
-    eventMsg = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC);
-    JsonArray eventArray;
-    eventArray.FromString(eventMsg);
-    int retry = eventsSentNbr;
-    while (eventArray.Length() < eventsSentNbr && retry-- > 0) {
-        // If not all events are received, wait for the rest
-        string eventsMsg2 = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC);
-        JsonArray eventArray2;
-        eventArray2.FromString(eventsMsg2);
-        for (int i = 0; i < eventArray2.Length(); ++i) {
-            eventArray.Add(eventArray2[i]);
-        }
-    }
-
-    EXPECT_EQ(eventArray.Length(), eventsSentNbr);
-
-    for (int n = 0; n < eventsSentNbr; ++n) {
-        JsonObject eventObj = eventArray[n].Object();
-
-        EXPECT_TRUE(eventObj.HasLabel("common_schema"));
-        EXPECT_TRUE(eventObj.HasLabel("env"));
-        EXPECT_TRUE(eventObj.HasLabel("product_name"));
-        EXPECT_TRUE(eventObj.HasLabel("product_version"));
-        EXPECT_TRUE(eventObj.HasLabel("event_schema"));
-        EXPECT_TRUE(eventObj.HasLabel("event_name"));
-        EXPECT_TRUE(eventObj.HasLabel("timestamp"));
-        EXPECT_TRUE(eventObj.HasLabel("event_id"));
-        EXPECT_TRUE(eventObj.HasLabel("event_source"));
-        EXPECT_TRUE(eventObj.HasLabel("event_source_version"));
-        EXPECT_TRUE(eventObj.HasLabel("logger_name"));
-        EXPECT_TRUE(eventObj.HasLabel("logger_version"));
-        EXPECT_TRUE(eventObj.HasLabel("partner_id"));
-        EXPECT_TRUE(eventObj.HasLabel("device_model"));
-        EXPECT_TRUE(eventObj.HasLabel("device_type"));
-        EXPECT_TRUE(eventObj.HasLabel("device_timezone"));
-        EXPECT_TRUE(eventObj.HasLabel("device_os_name"));
-        EXPECT_TRUE(eventObj.HasLabel("device_os_version"));
-        EXPECT_TRUE(eventObj.HasLabel("platform"));
-        EXPECT_TRUE(eventObj.HasLabel("device_manufacturer"));
-        EXPECT_TRUE(eventObj.HasLabel("authenticated"));
-        EXPECT_TRUE(eventObj.HasLabel("session_id"));
-        EXPECT_TRUE(eventObj.HasLabel("proposition"));
-        EXPECT_TRUE(eventObj.HasLabel("retailer"));
-        EXPECT_TRUE(eventObj.HasLabel("jv_agent"));
-        EXPECT_TRUE(eventObj.HasLabel("coam"));
-        EXPECT_TRUE(eventObj.HasLabel("device_serial_number"));
-        EXPECT_TRUE(eventObj.HasLabel("device_mac_address"));
-        EXPECT_TRUE(eventObj.HasLabel("country"));
-        EXPECT_TRUE(eventObj.HasLabel("region"));
-        EXPECT_TRUE(eventObj.HasLabel("account_type"));
-        EXPECT_TRUE(eventObj.HasLabel("operator"));
-        EXPECT_TRUE(eventObj.HasLabel("account_detail_type"));
-        EXPECT_TRUE(eventObj.HasLabel("event_payload"));
-
-        EXPECT_EQ(eventObj["common_schema"].String(), "entos/common/v1");
-        EXPECT_EQ(eventObj["env"].String(), "prod");
-        EXPECT_EQ(eventObj["product_name"].String(), "entos");
-        EXPECT_EQ(eventObj["product_version"].String(), "L2Test_EntertainmentOSVersion");
-        EXPECT_EQ(eventObj["event_schema"].String(), "entos/L2TestEvent/1");
-        EXPECT_EQ(eventObj["event_name"].String(), "L2TestEvent");
-        EXPECT_EQ(eventObj["event_source"].String(), "L2Test");
-        EXPECT_EQ(eventObj["event_source_version"].String(), "1.0.0");
-        EXPECT_EQ(eventObj["logger_name"].String(), "Analytics");
-        EXPECT_EQ(eventObj["partner_id"].String(), "rdkglobal");
-        EXPECT_EQ(eventObj["device_model"].String(), "RDK");
-        EXPECT_EQ(eventObj["device_type"].String(), "STB");
-        //EXPECT_EQ(eventObj["device_timezone"].Number(), -14400000);
-        EXPECT_EQ(eventObj["device_os_name"].String(), "rdk");
-        EXPECT_EQ(eventObj["device_os_version"].String(), "L2Test_STB");
-        EXPECT_EQ(eventObj["platform"].String(), "L2Test_Proposition");
-        EXPECT_EQ(eventObj["device_manufacturer"].String(), "L2Test_Manufacturer");
-        EXPECT_EQ(eventObj["proposition"].String(), "L2Test_Proposition");
-        EXPECT_EQ(eventObj["retailer"].String(), "L2Test_Retailer");
-        EXPECT_EQ(eventObj["jv_agent"].String(), "L2Test_JVAgent");
-        EXPECT_EQ(eventObj["coam"].Boolean(), true);
-        EXPECT_EQ(eventObj["device_serial_number"].String(), "L2Test_SerialNumber");
-        EXPECT_EQ(eventObj["device_mac_address"].String(), "01:02:03:04:05:06");
-        EXPECT_EQ(eventObj["country"].String(), "USA");
-        EXPECT_EQ(eventObj["region"].String(), "US-USA");
-        EXPECT_EQ(eventObj["account_type"].String(), "L2Test_AccountType");
-        EXPECT_EQ(eventObj["operator"].String(), "L2Test_Operator");
-        EXPECT_EQ(eventObj["account_detail_type"].String(), "L2Test_DetailType");
-
-        JsonObject eventPayloadObj = eventObj["event_payload"].Object();
-        EXPECT_TRUE(eventPayloadObj.HasLabel("data"));
-        EXPECT_EQ(eventPayloadObj["data"].String(), "random data");
-    }
-}
-
-TEST_F(AnalyticsTest, SendAndReceiveMultipleEventsTimeOk)
-{
-    // Set TimeZone to FINAL what allows event to be decorated and sent to Sift server
-    JsonObject paramsJson;
-    JsonObject resultJson;
-    paramsJson["timeZone"] = "America/New_York";
-    paramsJson["accuracy"] = "FINAL";
-    uint32_t status = InvokeServiceMethod("org.rdk.System", "setTimeZoneDST", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    sleep(5);
-
-    paramsJson.Clear();
-    paramsJson["eventName"] = "L2TestEvent";
-    paramsJson["eventVersion"] = "1";
-    paramsJson["eventSource"] = "L2Test";
-    paramsJson["eventSourceVersion"] = "1.0.0";
-    JsonObject eventPayload;
-    eventPayload["data"] = "random data";
-    paramsJson["eventPayload"] = eventPayload;
-
-    const int eventsSentNbr = 6;
-
-    for (int i = 0; i < eventsSentNbr; ++i) {
-        status = InvokeServiceMethod("org.rdk.Analytics", "sendEvent", paramsJson, resultJson);
-        EXPECT_EQ(status, Core::ERROR_NONE);
-    }
-
-    // wait for all events to be stored in the analytics store
-    sleep(3);
-
-    SiftServerMock siftServer;
-    EXPECT_TRUE(siftServer.Start());
-
-    string eventMsg = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC);
-
-    // Check if the event message contains the expected fields
-    JsonArray eventArray;
-    eventArray.FromString(eventMsg);
-    int retry = eventsSentNbr;
-    while (eventArray.Length() < eventsSentNbr && retry-- > 0) {
-        // If not all events are received, wait for the rest
-        string eventMsg2 = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC);
-        JsonArray eventArray2;
-        eventArray2.FromString(eventMsg2);
-        for (int i = 0; i < eventArray2.Length(); ++i) {
-            eventArray.Add(eventArray2[i]);
-        }
-    }
-    EXPECT_EQ(eventArray.Length(), eventsSentNbr);
-
-    for (int n = 0; n < eventsSentNbr; ++n) {
-        JsonObject eventObj = eventArray[n].Object();
-
-        EXPECT_TRUE(eventObj.HasLabel("common_schema"));
-        EXPECT_TRUE(eventObj.HasLabel("env"));
-        EXPECT_TRUE(eventObj.HasLabel("product_name"));
-        EXPECT_TRUE(eventObj.HasLabel("product_version"));
-        EXPECT_TRUE(eventObj.HasLabel("event_schema"));
-        EXPECT_TRUE(eventObj.HasLabel("event_name"));
-        EXPECT_TRUE(eventObj.HasLabel("timestamp"));
-        EXPECT_TRUE(eventObj.HasLabel("event_id"));
-        EXPECT_TRUE(eventObj.HasLabel("event_source"));
-        EXPECT_TRUE(eventObj.HasLabel("event_source_version"));
-        EXPECT_TRUE(eventObj.HasLabel("logger_name"));
-        EXPECT_TRUE(eventObj.HasLabel("logger_version"));
-        EXPECT_TRUE(eventObj.HasLabel("partner_id"));
-        EXPECT_TRUE(eventObj.HasLabel("device_model"));
-        EXPECT_TRUE(eventObj.HasLabel("device_type"));
-        EXPECT_TRUE(eventObj.HasLabel("device_timezone"));
-        EXPECT_TRUE(eventObj.HasLabel("device_os_name"));
-        EXPECT_TRUE(eventObj.HasLabel("device_os_version"));
-        EXPECT_TRUE(eventObj.HasLabel("platform"));
-        EXPECT_TRUE(eventObj.HasLabel("device_manufacturer"));
-        EXPECT_TRUE(eventObj.HasLabel("authenticated"));
-        EXPECT_TRUE(eventObj.HasLabel("session_id"));
-        EXPECT_TRUE(eventObj.HasLabel("proposition"));
-        EXPECT_TRUE(eventObj.HasLabel("retailer"));
-        EXPECT_TRUE(eventObj.HasLabel("jv_agent"));
-        EXPECT_TRUE(eventObj.HasLabel("coam"));
-        EXPECT_TRUE(eventObj.HasLabel("device_serial_number"));
-        EXPECT_TRUE(eventObj.HasLabel("device_mac_address"));
-        EXPECT_TRUE(eventObj.HasLabel("country"));
-        EXPECT_TRUE(eventObj.HasLabel("region"));
-        EXPECT_TRUE(eventObj.HasLabel("account_type"));
-        EXPECT_TRUE(eventObj.HasLabel("operator"));
-        EXPECT_TRUE(eventObj.HasLabel("account_detail_type"));
-        EXPECT_TRUE(eventObj.HasLabel("event_payload"));
-
-        EXPECT_EQ(eventObj["common_schema"].String(), "entos/common/v1");
-        EXPECT_EQ(eventObj["env"].String(), "prod");
-        EXPECT_EQ(eventObj["product_name"].String(), "entos");
-        EXPECT_EQ(eventObj["product_version"].String(), "L2Test_EntertainmentOSVersion");
-        EXPECT_EQ(eventObj["event_schema"].String(), "entos/L2TestEvent/1");
-        EXPECT_EQ(eventObj["event_name"].String(), "L2TestEvent");
-        EXPECT_EQ(eventObj["event_source"].String(), "L2Test");
-        EXPECT_EQ(eventObj["event_source_version"].String(), "1.0.0");
-        EXPECT_EQ(eventObj["logger_name"].String(), "Analytics");
-        EXPECT_EQ(eventObj["partner_id"].String(), "rdkglobal");
-        EXPECT_EQ(eventObj["device_model"].String(), "RDK");
-        EXPECT_EQ(eventObj["device_type"].String(), "STB");
-        //EXPECT_EQ(eventObj["device_timezone"].Number(), -14400000);
-        EXPECT_EQ(eventObj["device_os_name"].String(), "rdk");
-        EXPECT_EQ(eventObj["device_os_version"].String(), "L2Test_STB");
-        EXPECT_EQ(eventObj["platform"].String(), "L2Test_Proposition");
-        EXPECT_EQ(eventObj["device_manufacturer"].String(), "L2Test_Manufacturer");
-        EXPECT_EQ(eventObj["proposition"].String(), "L2Test_Proposition");
-        EXPECT_EQ(eventObj["retailer"].String(), "L2Test_Retailer");
-        EXPECT_EQ(eventObj["jv_agent"].String(), "L2Test_JVAgent");
-        EXPECT_EQ(eventObj["coam"].Boolean(), true);
-        EXPECT_EQ(eventObj["device_serial_number"].String(), "L2Test_SerialNumber");
-        EXPECT_EQ(eventObj["device_mac_address"].String(), "01:02:03:04:05:06");
-        EXPECT_EQ(eventObj["country"].String(), "USA");
-        EXPECT_EQ(eventObj["region"].String(), "US-USA");
-        EXPECT_EQ(eventObj["account_type"].String(), "L2Test_AccountType");
-        EXPECT_EQ(eventObj["operator"].String(), "L2Test_Operator");
-        EXPECT_EQ(eventObj["account_detail_type"].String(), "L2Test_DetailType");
-
-        JsonObject eventPayloadObj = eventObj["event_payload"].Object();
-        EXPECT_TRUE(eventPayloadObj.HasLabel("data"));
-        EXPECT_EQ(eventPayloadObj["data"].String(), "random data");
-    }
-}
-
-TEST_F(AnalyticsTest, OnServer400Error)
-{
-    // Set TimeZone to FINAL what allows event to be decorated and sent to Sift server
-    JsonObject paramsJson;
-    JsonObject resultJson;
-    paramsJson["timeZone"] = "America/New_York";
-    paramsJson["accuracy"] = "FINAL";
-    uint32_t status = InvokeServiceMethod("org.rdk.System", "setTimeZoneDST", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson.Clear();
-    paramsJson["eventName"] = "L2TestEvent";
-    paramsJson["eventVersion"] = "1";
-    paramsJson["eventSource"] = "L2Test";
-    paramsJson["eventSourceVersion"] = "1.0.0";
-    JsonObject eventPayload;
-    eventPayload["data"] = "random data";
-    paramsJson["eventPayload"] = eventPayload;
-
-    SiftServerMock siftServer;
-    EXPECT_TRUE(siftServer.Start());
-
-    status = InvokeServiceMethod("org.rdk.Analytics", "sendEvent", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    string eventMsg = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC, "400 Error");
-    EXPECT_NE(eventMsg, "");
-
-    // On Err 400 events should be deleted
-    eventMsg = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC);
-    EXPECT_EQ(eventMsg, "");
-}
-
-TEST_F(AnalyticsTest, OnServer500Error)
-{
-    // Set TimeZone to FINAL what allows event to be decorated and sent to Sift server
-    JsonObject paramsJson;
-    JsonObject resultJson;
-    paramsJson["timeZone"] = "America/New_York";
-    paramsJson["accuracy"] = "FINAL";
-    uint32_t status = InvokeServiceMethod("org.rdk.System", "setTimeZoneDST", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson.Clear();
-    paramsJson["eventName"] = "L2TestEvent";
-    paramsJson["eventVersion"] = "1";
-    paramsJson["eventSource"] = "L2Test";
-    paramsJson["eventSourceVersion"] = "1.0.0";
-    JsonObject eventPayload;
-    eventPayload["data"] = "random data";
-    paramsJson["eventPayload"] = eventPayload;
-
-    SiftServerMock siftServer;
-    EXPECT_TRUE(siftServer.Start());
-
-    status = InvokeServiceMethod("org.rdk.Analytics", "sendEvent", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    string eventMsg = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC, "500 Error");
-    EXPECT_NE(eventMsg, "");
-
-    // On Err 500 events should be resent
-    string eventMsgRep = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC);
-    EXPECT_EQ(eventMsgRep, eventMsg);
-}
-
-TEST_F(AnalyticsTest, OnPersistentStoreValChange)
-{
-    // Set TimeZone to FINAL what allows event to be decorated and sent to Sift server
-    JsonObject paramsJson;
-    JsonObject resultJson;
-
-    paramsJson["timeZone"] = "America/New_York";
-    paramsJson["accuracy"] = "FINAL";
-    uint32_t status = InvokeServiceMethod("org.rdk.System", "setTimeZoneDST", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    // Wait so the initial Persistent Store val are red
-    sleep(5);
-
-    paramsJson.Clear();
-
-    // update PersistentStore values
-    paramsJson["namespace"] = "Analytics";
-    paramsJson["key"] = "deviceType";
-    paramsJson["value"] = "STB2";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "modelNumber";
-    paramsJson["value"] = "L2Test_STB2";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "manufacturer";
-    paramsJson["value"] = "L2Test_Manufacturer2";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "serialNumber";
-    paramsJson["value"] = "L2Test_SerialNumber2";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "entertainmentOSVersion";
-    paramsJson["value"] = "L2Test_EntertainmentOSVersion2";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "deviceAppName";
-    paramsJson["value"] = "L2Test_AppName2";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "deviceAppVersion";
-    paramsJson["value"] = "L2Test_AppVersion2";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson.Clear();
-    paramsJson["namespace"] = "accountProfile";
-    paramsJson["key"] = "proposition";
-    paramsJson["value"] = "L2Test_Proposition2";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "retailer";
-    paramsJson["value"] = "L2Test_Retailer2";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "jvagent";
-    paramsJson["value"] = "L2Test_JVAgent2";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "coam";
-    paramsJson["value"] = "false";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "accountType";
-    paramsJson["value"] = "L2Test_AccountType2";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "operator";
-    paramsJson["value"] = "L2Test_Operator2";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson["key"] = "detailType";
-    paramsJson["value"] = "L2Test_DetailType2";
-    status = InvokeServiceMethod("org.rdk.PersistentStore", "setValue", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    paramsJson.Clear();
-    paramsJson["eventName"] = "L2TestEvent";
-    paramsJson["eventVersion"] = "1";
-    paramsJson["eventSource"] = "L2Test";
-    paramsJson["eventSourceVersion"] = "1.0.0";
-    JsonObject eventPayload;
-    eventPayload["data"] = "random data";
-    paramsJson["eventPayload"] = eventPayload;
-
-    SiftServerMock siftServer;
-    EXPECT_TRUE(siftServer.Start());
-
-    status = InvokeServiceMethod("org.rdk.Analytics", "sendEvent", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    string eventMsg = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC);
-    EXPECT_NE(eventMsg, "");
-
-    // Check if the event message contains the expected fields
-    JsonArray eventArray;
-    eventArray.FromString(eventMsg);
-    EXPECT_EQ(eventArray.Length(), 1);
-    JsonObject eventObj = eventArray[0].Object();
-
-    EXPECT_TRUE(eventObj.HasLabel("common_schema"));
-    EXPECT_TRUE(eventObj.HasLabel("env"));
-    EXPECT_TRUE(eventObj.HasLabel("product_name"));
-    EXPECT_TRUE(eventObj.HasLabel("product_version"));
-    EXPECT_TRUE(eventObj.HasLabel("event_schema"));
-    EXPECT_TRUE(eventObj.HasLabel("event_name"));
-    EXPECT_TRUE(eventObj.HasLabel("timestamp"));
-    EXPECT_TRUE(eventObj.HasLabel("event_id"));
-    EXPECT_TRUE(eventObj.HasLabel("event_source"));
-    EXPECT_TRUE(eventObj.HasLabel("event_source_version"));
-    EXPECT_TRUE(eventObj.HasLabel("logger_name"));
-    EXPECT_TRUE(eventObj.HasLabel("logger_version"));
-    EXPECT_TRUE(eventObj.HasLabel("partner_id"));
-    EXPECT_TRUE(eventObj.HasLabel("device_model"));
-    EXPECT_TRUE(eventObj.HasLabel("device_type"));
-    EXPECT_TRUE(eventObj.HasLabel("device_timezone"));
-    EXPECT_TRUE(eventObj.HasLabel("device_os_name"));
-    EXPECT_TRUE(eventObj.HasLabel("device_os_version"));
-    EXPECT_TRUE(eventObj.HasLabel("platform"));
-    EXPECT_TRUE(eventObj.HasLabel("device_manufacturer"));
-    EXPECT_TRUE(eventObj.HasLabel("authenticated"));
-    EXPECT_TRUE(eventObj.HasLabel("session_id"));
-    EXPECT_TRUE(eventObj.HasLabel("proposition"));
-    EXPECT_TRUE(eventObj.HasLabel("retailer"));
-    EXPECT_TRUE(eventObj.HasLabel("jv_agent"));
-    EXPECT_TRUE(eventObj.HasLabel("coam"));
-    EXPECT_TRUE(eventObj.HasLabel("device_serial_number"));
-    EXPECT_TRUE(eventObj.HasLabel("device_mac_address"));
-    EXPECT_TRUE(eventObj.HasLabel("country"));
-    EXPECT_TRUE(eventObj.HasLabel("region"));
-    EXPECT_TRUE(eventObj.HasLabel("account_type"));
-    EXPECT_TRUE(eventObj.HasLabel("operator"));
-    EXPECT_TRUE(eventObj.HasLabel("account_detail_type"));
-    EXPECT_TRUE(eventObj.HasLabel("event_payload"));
-
-    EXPECT_EQ(eventObj["common_schema"].String(), "entos/common/v1");
-    EXPECT_EQ(eventObj["env"].String(), "prod");
-    EXPECT_EQ(eventObj["product_name"].String(), "entos");
-    EXPECT_EQ(eventObj["product_version"].String(), "L2Test_EntertainmentOSVersion2");
-    EXPECT_EQ(eventObj["event_schema"].String(), "entos/L2TestEvent/1");
-    EXPECT_EQ(eventObj["event_name"].String(), "L2TestEvent");
-    EXPECT_EQ(eventObj["event_source"].String(), "L2Test");
-    EXPECT_EQ(eventObj["event_source_version"].String(), "1.0.0");
-    EXPECT_EQ(eventObj["logger_name"].String(), "Analytics");
-    EXPECT_EQ(eventObj["partner_id"].String(), "rdkglobal");
-    EXPECT_EQ(eventObj["device_model"].String(), "RDK");
-    EXPECT_EQ(eventObj["device_type"].String(), "STB2");
-    //EXPECT_EQ(eventObj["device_timezone"].Number(), -14400000);
-    EXPECT_EQ(eventObj["device_os_name"].String(), "rdk");
-    EXPECT_EQ(eventObj["device_os_version"].String(), "L2Test_STB2");
-    EXPECT_EQ(eventObj["platform"].String(), "L2Test_Proposition2");
-    EXPECT_EQ(eventObj["device_manufacturer"].String(), "L2Test_Manufacturer2");
-    EXPECT_EQ(eventObj["proposition"].String(), "L2Test_Proposition2");
-    EXPECT_EQ(eventObj["retailer"].String(), "L2Test_Retailer2");
-    EXPECT_EQ(eventObj["jv_agent"].String(), "L2Test_JVAgent2");
-    EXPECT_EQ(eventObj["coam"].Boolean(), false);
-    EXPECT_EQ(eventObj["device_serial_number"].String(), "L2Test_SerialNumber2");
-    EXPECT_EQ(eventObj["device_mac_address"].String(), "01:02:03:04:05:06");
-    EXPECT_EQ(eventObj["country"].String(), "USA");
-    EXPECT_EQ(eventObj["region"].String(), "US-USA");
-    EXPECT_EQ(eventObj["account_type"].String(), "L2Test_AccountType2");
-    EXPECT_EQ(eventObj["operator"].String(), "L2Test_Operator2");
-    EXPECT_EQ(eventObj["account_detail_type"].String(), "L2Test_DetailType2");
-
-    JsonObject eventPayloadObj = eventObj["event_payload"].Object();
-    EXPECT_TRUE(eventPayloadObj.HasLabel("data"));
-    EXPECT_EQ(eventPayloadObj["data"].String(), "random data");
-}
-
 
 TEST_F(AnalyticsTest, EventsMapping)
 {
@@ -1046,26 +346,25 @@ TEST_F(AnalyticsTest, EventsMapping)
     status = InvokeServiceMethod("org.rdk.Analytics", "sendEvent", paramsJson, resultJson);
     EXPECT_EQ(status, Core::ERROR_NONE);
 
-    // Set TimeZone to FINAL what allows event to be decorated and sent to Sift server
+    ServerMock server;
+    EXPECT_TRUE(server.Start());
+
+    // Set TimeZone to FINAL what allows event to be decorated and sent to server
     paramsJson.Clear();
     paramsJson["timeZone"] = "America/New_York";
     paramsJson["accuracy"] = "FINAL";
     status = InvokeServiceMethod("org.rdk.System", "setTimeZoneDST", paramsJson, resultJson);
     EXPECT_EQ(status, Core::ERROR_NONE);
 
-
-    SiftServerMock siftServer;
-    EXPECT_TRUE(siftServer.Start());
-
-    string eventsMsg = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC);
+    string eventsMsg = server.AwaitData(SERVER_TIMEOUT_SEC);
 
     // Check if the event message contains the expected fields
     JsonArray eventArray;
     eventArray.FromString(eventsMsg);
-    int retry = 3;
+    int retry = 5;
     while (eventArray.Length() < 4 && retry-- > 0) {
         // If not all events are received, wait for the rest
-        string eventsMsg2 = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC);
+        string eventsMsg2 = server.AwaitData(SERVER_TIMEOUT_SEC);
         JsonArray eventArray2;
         eventArray2.FromString(eventsMsg2);
         for (int i = 0; i < eventArray2.Length(); ++i) {
@@ -1076,71 +375,19 @@ TEST_F(AnalyticsTest, EventsMapping)
 
     if (eventArray.Length() == 4) {
         JsonObject eventObj = eventArray[0].Object();
-        EXPECT_TRUE(eventObj.HasLabel("event_name"));
-        EXPECT_EQ(eventObj["event_name"].String(), "L2TestEventMappedExact");
+        EXPECT_TRUE(eventObj.HasLabel("eventName"));
+        EXPECT_EQ(eventObj["eventName"].String(), "L2TestEventMappedExact");
 
         eventObj = eventArray[1].Object();
-        EXPECT_TRUE(eventObj.HasLabel("event_name"));
-        EXPECT_EQ(eventObj["event_name"].String(), "L2TestEventMappedGeneric");
+        EXPECT_TRUE(eventObj.HasLabel("eventName"));
+        EXPECT_EQ(eventObj["eventName"].String(), "L2TestEventMappedGeneric");
 
         eventObj = eventArray[2].Object();
-        EXPECT_TRUE(eventObj.HasLabel("event_name"));
-        EXPECT_EQ(eventObj["event_name"].String(), "L2TestEventMappedGenericVersion");
+        EXPECT_TRUE(eventObj.HasLabel("eventName"));
+        EXPECT_EQ(eventObj["eventName"].String(), "L2TestEventMappedGenericVersion");
 
         eventObj = eventArray[3].Object();
-        EXPECT_TRUE(eventObj.HasLabel("event_name"));
-        EXPECT_EQ(eventObj["event_name"].String(), "L2TestEventMappedGenericSourceVersion");
-    }
-
-}
-
-TEST_F(AnalyticsTest, TimezoneChanged)
-{
-    JsonObject paramsJson;
-    JsonObject resultJson;
-
-    paramsJson.Clear();
-    paramsJson["timeZone"] = "America/New_York";
-    paramsJson["accuracy"] = "FINAL";
-    uint32_t status = InvokeServiceMethod("org.rdk.System", "setTimeZoneDST", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    sleep(3);
-
-    paramsJson.Clear();
-    paramsJson["timeZone"] = "Australia/Sydney";
-    paramsJson["accuracy"] = "FINAL";
-    status = InvokeServiceMethod("org.rdk.System", "setTimeZoneDST", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    sleep(3);
-
-    paramsJson.Clear();
-    paramsJson["eventName"] = "L2TestEvent";
-    paramsJson["eventVersion"] = "1";
-    paramsJson["eventSource"] = "L2Test";
-    paramsJson["eventSourceVersion"] = "1.0.0";
-    JsonObject eventPayload;
-    eventPayload["data"] = "random data";
-    paramsJson["eventPayload"] = eventPayload;
-
-    status = InvokeServiceMethod("org.rdk.Analytics", "sendEvent", paramsJson, resultJson);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-
-    SiftServerMock siftServer;
-    EXPECT_TRUE(siftServer.Start());
-    
-    string eventsMsg = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC);
-    EXPECT_NE(eventsMsg, "");
-
-    // Check if the event message contains the expected fields
-    JsonArray eventArray;
-    eventArray.FromString(eventsMsg);
-    EXPECT_EQ(eventArray.Length(), 1);
-
-    if (eventArray.Length() == 1) {
-        JsonObject eventObj = eventArray[0].Object();
-        EXPECT_TRUE(eventObj.HasLabel("device_timezone"));
-        EXPECT_GT(eventObj["device_timezone"].Number(), 0);
+        EXPECT_TRUE(eventObj.HasLabel("eventName"));
+        EXPECT_EQ(eventObj["eventName"].String(), "L2TestEventMappedGenericSourceVersion");
     }
 }

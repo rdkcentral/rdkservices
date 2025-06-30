@@ -17,13 +17,15 @@
  * limitations under the License.
  */
 #pragma once
-
-#include <map>
 #include <string>
-#include "../../Module.h"
-#include "../SystemTime/SystemTime.h"
+#include <list>
+#include <plugins/IShell.h>
 
-// Interface for Analytics Backedn
+#include "ISystemTime.h"
+#include "ILocalStore.h"
+
+
+// Interface for Analytics Backends
 namespace WPEFramework {
 namespace Plugin {
 
@@ -38,24 +40,16 @@ namespace Plugin {
             std::string eventSourceVersion;
             std::list<std::string> cetList;
             uint64_t epochTimestamp;
+            std::string appId;
             std::string eventPayload;
         };
 
-        const static std::string SIFT;
+        virtual const std::string& Name() const = 0;
 
-        virtual uint32_t Configure(PluginHost::IShell* shell, SystemTimePtr sysTime) = 0;
+        virtual uint32_t Configure(PluginHost::IShell* shell, ISystemTimePtr sysTime, ILocalStorePtr store) = 0;
         virtual uint32_t SendEvent(const Event& event) = 0;
     };
 
-    typedef std::shared_ptr<IAnalyticsBackend> IAnalyticsBackendPtr;
-
-    typedef std::map<std::string, IAnalyticsBackendPtr> IAnalyticsBackends;
-
-    struct IAnalyticsBackendAdministrator {
-        static IAnalyticsBackends Create();
-
-        virtual ~IAnalyticsBackendAdministrator() = default;
-    };
-
+    using IAnalyticsBackendPtr = std::shared_ptr<IAnalyticsBackend>;
 }
 }
