@@ -16,26 +16,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "AnalyticsBackend.h"
+#pragma once
 
-#ifdef ANALYTICS_SIFT_BACKEND
-#include "SiftBackend.h"
-#endif
+#include <map>
+#include <string>
+#include "../../Module.h"
+#include "IAnalyticsBackend.h"
+#include "UtilsLibraryLoader.h"
 
+// Interface for Analytics Backends
 namespace WPEFramework {
 namespace Plugin {
 
-const std::string IAnalyticsBackend::SIFT = "Sift";
+    class AnalyticsBackendLoader
+    {
+    public:
+        AnalyticsBackendLoader() = default;
+        ~AnalyticsBackendLoader() = default;
 
-IAnalyticsBackends IAnalyticsBackendAdministrator::Create()
-{
-    IAnalyticsBackends backendInstances = {
-#ifdef ANALYTICS_SIFT_BACKEND
-    {IAnalyticsBackend::SIFT, std::make_shared<SiftBackend>()},
-#endif
+        uint32_t Load(std::string path);
+        IAnalyticsBackendPtr GetBackend() const
+        {
+            return mAnalyticsBackend;
+        }
+    private:
+            Utils::LibraryLoader mLibrariesLoader;
+            IAnalyticsBackendPtr mAnalyticsBackend;
     };
-    return (backendInstances);
-}
 
 }
 }
