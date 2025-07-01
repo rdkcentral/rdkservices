@@ -16,6 +16,14 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [2.0.6] - 2025-06-30
+### Fixed
+- Account the case when ASSERT is no-op
+
+## [2.0.5] - 2025-06-30
+### Fixed
+- Create or use backup on start
+
 ## [2.0.4] - 2025-04-28
 ### Fixed
 - Handle file system corruption issue
