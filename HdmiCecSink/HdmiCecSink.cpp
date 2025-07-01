@@ -1226,7 +1226,7 @@ namespace WPEFramework
 		    }
 		    LOGINFO("AudioStatus received from the Audio Device. Updating the AudioStatus info! m_isAudioStatusInfoUpdated :%d, m_audioStatusRequestedCount :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusRequestedCount,m_audioStatusReceived,m_audioStatusTimerStarted);
 	    }
-	    if(m_audioStatusRequested && (m_audioStatusRequestedCount > 0)
+	    if(m_audioStatusRequestedCount > 0)
 		    m_audioStatusRequestedCount--;
 	    LOGINFO("Command: ReportAudioStatus  %s audio Mute status %d  means %s  and current Volume level is %d \n",GetOpName(msg.opCode()),msg.status.getAudioMuteStatus(),msg.status.toString().c_str(),msg.status.getAudioVolume());
             params["muteStatus"]  = msg.status.getAudioMuteStatus();
