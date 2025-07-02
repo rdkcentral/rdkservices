@@ -374,6 +374,7 @@ class AVOutputTV : public AVOutputBase {
 		uint32_t generateStorageIdentifier(std::string &key, std::string forParam,paramIndex_t info);
 		uint32_t generateStorageIdentifierCMS(std::string &key, std::string forParam, paramIndex_t info);
 		uint32_t generateStorageIdentifierWB(std::string &key, std::string forParam, paramIndex_t info);
+		uint32_t generateStorageIdentifierWBV2(std::string &key, std::string forParam, paramIndex_t info);
 		uint32_t generateStorageIdentifierDirty(std::string &key, std::string forParam,uint32_t contentFormat, int pqmode);
 
 		std::string getErrorString (tvError_t eReturn);
@@ -473,7 +474,19 @@ class AVOutputTV : public AVOutputBase {
 			int *max_offset, tvWBColor_t **color,
 			tvWBControl_t **control, size_t* num_color,
 			size_t* num_control, tvContextCaps_t ** context_caps);
-#define HAL_NOT_READY 0
+		tvError_t Get2PointWBCaps(
+			int* min_gain,
+			int* min_offset,
+			int* max_gain,
+			int* max_offset,
+			tvColorTemp_t** colorTemperature,
+			tvWBColor_t** color,
+			tvWBControl_t** control,
+			size_t* num_colorTemperature,
+			size_t* num_color,
+			size_t* num_control,
+			tvContextCaps_t** context_caps);
+#define HAL_NOT_READY 1
 #if HAL_NOT_READY
 #define CAPABLITY_FILE_NAMEV2    "/opt/panel/pq_capabilities.json"
 		tvError_t GetBacklightCaps(int *max_backlight, tvContextCaps_t **context_caps);
@@ -492,7 +505,8 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t GetAISuperResolutionCaps(int* maxAISuperResolution, tvContextCaps_t** context_caps);
 		tvError_t GetMEMCCaps(int* maxMEMC, tvContextCaps_t** context_caps);
 #else
-#define CAPABLITY_FILE_NAMEV2    "/etc/pq_capabilities.json"
+#define CAPABLITY_FILE_NAMEV2    "/opt/panel/pq_capabilities.json"
+//#define CAPABLITY_FILE_NAMEV2    "/etc/pq_capabilities.json"
 #endif
 		uint32_t getPQCapabilityWithContext(
 			const std::function<tvError_t(tvContextCaps_t**, int*)>& getCapsFunc,
@@ -560,6 +574,10 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t updateAVoutputTVParamToHALV2(std::string forParam, paramIndex_t indexInfo, int value, bool setNotDelete);
 		bool resetPictureModeV2(const JsonObject& parameters);
 		int syncAvoutputTVPQModeParamsToHALV2(std::string pqmode, std::string source, std::string format);
+		bool checkCMSColorAndComponentCapability(const std::vector<std::string>& capList, const std::vector<std::string>& inputList);
+		std::string getCMSNameFromEnum(tvDataComponentColor_t colorEnum);
+        void syncCMSParamsV2();
+	    void syncWBParamsV2();
 
 	public:
 		int m_currentHdmiInResoluton;
@@ -665,13 +683,44 @@ class AVOutputTV : public AVOutputBase {
 		tvContextCaps_t* m_DVCalibrationCaps = nullptr;
 		tvError_t m_DVCalibrationStatus = tvERROR_NONE;
 
+		int m_maxCmsHue = 0;
+		int m_maxCmsSaturation = 0;
+		int m_maxCmsLuma = 0;
+		size_t m_numColor = 0;
+		size_t m_numComponent = 0;
+		tvDataComponentColor_t* m_cmsColorArr;
+		tvComponentType_t* m_cmsComponentArr;
+		std::vector<std::string> m_cmsColorList;
+		std::vector<std::string> m_cmsComponentList;
+		std::unordered_map<std::string, int> m_cmsIndexMap;
+		tvContextCaps_t* m_cmsCaps = nullptr;
+		tvError_t m_cmsStatus = tvERROR_NONE;
+
+		int m_minWBOffset = 0;
+		int m_maxWBOffset = 0;
+		int m_minWBGain = 0;
+		int m_maxWBGain = 0;
+		tvColorTemp_t*      m_wbColorTempArr = nullptr;
+		tvWBColor_t*        m_wbColorArr = nullptr;
+		tvWBControl_t*      m_wbControlArr = nullptr;
+		size_t m_numWBColorTemp = 0;
+		size_t m_numWBColor     = 0;
+		size_t m_numWBControl   = 0;
+		std::vector<std::string> m_wbColorList;
+		std::vector<std::string> m_wbControlList;
+		std::vector<std::string> m_wbColorTempList;
+		tvContextCaps_t* m_wbContextCaps = nullptr;
+		tvError_t m_wbStatus = tvERROR_NONE;
+		void populateWBStringListsFromCaps();
+
+		bool setCMSParam(const JsonObject& parameters);
+
 		std::string convertPictureIndexToStringV2(int pqmode);
 		std::string convertVideoFormatToStringV2(int format);
 		std::string convertSourceIndexToStringV2(int source);
 
 		uint32_t generateStorageIdentifierV2(std::string &key, std::string forParam, paramIndex_t info);
 		void generateStorageIdentifierCMSV2(std::string &key, std::string forParam, paramIndex_t info);
-		void generateStorageIdentifierWBV2(std::string &key, std::string forParam, paramIndex_t info);
 		
 		AVOutputTV();
 		~AVOutputTV();

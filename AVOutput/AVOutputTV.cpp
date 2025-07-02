@@ -611,6 +611,89 @@ namespace Plugin {
             return false;
         }
     }
+    bool AVOutputTV::setCMSParam(const JsonObject& parameters)
+    {
+        LOGINFO("Entry: setCMSParam");
+
+        std::string colorStr = parameters.HasLabel("color") ? parameters["color"].String() : "";
+        std::string componentStr = parameters.HasLabel("component") ? parameters["component"].String() : "";
+        std::string levelStr = parameters.HasLabel("level") ? parameters["level"].String() : "";
+
+        if (colorStr.empty() || componentStr.empty() || levelStr.empty()) {
+            LOGERR("Missing color/component/level");
+            return false;
+        }
+
+        int level = 0;
+        try {
+            level = std::stoi(levelStr);
+        } catch (...) {
+            LOGERR("Invalid level value: %s", levelStr.c_str());
+            return false;
+        }
+
+        int maxCap = 0;
+        if (componentStr == "Hue")
+            maxCap = m_maxCmsHue;
+        else if (componentStr == "Saturation")
+            maxCap = m_maxCmsSaturation;
+        else if (componentStr == "Luma")
+            maxCap = m_maxCmsLuma;
+        else {
+            LOGERR("Invalid component: %s", componentStr.c_str());
+            return false;
+        }
+
+        if (level < 0 || level > maxCap) {
+            LOGERR("Level out of range: %d (0-%d)", level, maxCap);
+            return false;
+        }
+
+        tvDataComponentColor_t colorEnum;
+        if (getCMSColorEnumFromString(colorStr, colorEnum) != 0) {
+            LOGERR("Invalid color: %s", colorStr.c_str());
+            return false;
+        }
+
+
+        if( isSetRequiredForParam(parameters, "CMS") ) {
+            LOGINFO("Proceed with SetCMSState \n");
+            tvError_t ret = SetCMSState(true);
+            if(ret != tvERROR_NONE) {
+                LOGWARN("CMS enable failed\n");
+                return false;
+            }
+            if (componentStr == "Hue")
+                ret = SetCurrentComponentHue(colorEnum, level);
+            else if (componentStr == "Saturation")
+                ret = SetCurrentComponentSaturation(colorEnum, level);
+            else if (componentStr == "Luma")
+                ret = SetCurrentComponentLuma(colorEnum, level);
+
+            if (ret != tvERROR_NONE) {
+                LOGERR("HAL set failed for %s", componentStr.c_str());
+                return false;
+            }
+        }
+
+        try {
+            int retVal = updateAVoutputTVParamV2("set", "CMS", parameters, PQ_PARAM_CMS, level);
+            if (retVal < 0) {
+                LOGERR("setCMSParam: Failed to save CMS param, return code: %d", retVal);
+                return false;
+            }
+        } catch (const std::exception& e) {
+            LOGERR("Exception in updateAVoutputTVParamV2: %s", e.what());
+            return false;
+        } catch (...) {
+            LOGERR("Unknown exception in updateAVoutputTVParamV2");
+            return false;
+        }
+
+        LOGINFO("Exit: setCMSParam success");
+        return true;
+    }
+
 
     bool AVOutputTV::setEnumPQParam(const JsonObject& parameters,
         const std::string& inputKey,
@@ -686,12 +769,13 @@ namespace Plugin {
         if (isSetRequiredForParam(parameters, paramName)) {
             LOGINFO("Proceed with set%s\n", paramName.c_str());
             ret = halSetter(paramValue);
+	        LOGINFO("halsetter ret %d \n", ret);
             if (ret != tvERROR_NONE){
                 LOGERR("Failed to set %s\n", paramName.c_str());
                 return false;
             }
         }
-
+	    LOGINFO("Calling updateAVOutputTVParamV2 \n");
         int retval = updateAVoutputTVParamV2("set", paramName, parameters, pqType, paramValue);
         if (retval != 0) {
         LOGERR("Failed to Save %s to ssm_data. retval: %d\n", paramName.c_str(), retval);
@@ -3774,8 +3858,8 @@ namespace Plugin {
     uint32_t AVOutputTV::getSupportedDolbyVisionModes(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-        tvDolbyMode_t dvModes[tvMode_Max];
-        tvDolbyMode_t *dvModesPtr[tvMode_Max]={0};
+        tvDolbyMode_t dvModes[tvMode_Max] = { tvDolbyMode_Invalid };
+        tvDolbyMode_t *dvModesPtr[tvMode_Max] = { 0 };
         unsigned short totalAvailable = 0;
         for (int i = 0; i < tvMode_Max; i++)
         {
@@ -4925,239 +5009,318 @@ namespace Plugin {
     uint32_t AVOutputTV::getCMS(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
+        if(m_cmsStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            paramIndex_t indexInfo;
+            int level = 0;
+            tvPQParameterIndex_t tvPQEnum;
 
-        capDetails_t inputInfo;
-        paramIndex_t indexInfo;
-        int level = 0;
-        tvPQParameterIndex_t tvPQEnum;
+            inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
+            inputInfo.component = parameters.HasLabel("component") ? parameters["component"].String() : "";
 
-        inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
-	    inputInfo.component = parameters.HasLabel("component") ? parameters["component"].String() : "";
-        
-        if( inputInfo.color.empty() || inputInfo.component.empty() ) {
-	        LOGERR("%s : Color/Component param not found!!!\n",__FUNCTION__);
-            returnResponse(false);
+            if( inputInfo.color.empty() || inputInfo.component.empty() ) {
+                LOGERR("%s : Color/Component param not found!!!\n",__FUNCTION__);
+                returnResponse(false);
+            }
+
+            if (isPlatformSupport("CMS") != 0) {
+                returnResponse(false);
+            }
+
+
+            if (parsingGetInputArgument(parameters, "CMS", inputInfo) != 0) {
+                LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if (getParamIndex("CMS",inputInfo,indexInfo) == -1) {
+                LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if ( convertCMSParamToPQEnum(inputInfo.component,inputInfo.color,tvPQEnum) != 0 ) {
+                LOGINFO("%s: Component/Color Param Not Found \n",__FUNCTION__);
+                returnResponse(false);
+            }
+
+            int err = getLocalparam("CMS",indexInfo,level,tvPQEnum);
+            if( err == 0 ) {
+                response["level"] = level;
+                LOGINFO("Exit : params Value: %d \n", level);
+                returnResponse(true);
+            }
+            else {
+                returnResponse(false);
+            }
         }
+        else
+        {
+            // Extract color and component from input parameters
+            std::string color = parameters.HasLabel("color") ? parameters["color"].String() : "";
+            std::string component = parameters.HasLabel("component") ? parameters["component"].String() : "";
 
-        if (isPlatformSupport("CMS") != 0) {
-            returnResponse(false);
-        }
+            if (color.empty() || component.empty()) {
+                LOGERR("%s: Missing color/component parameter", __FUNCTION__);
+                returnResponse(false);
+            }
 
+            tvPQParameterIndex_t pqEnum;
+            if (convertCMSParamToPQEnum(component, color, pqEnum) != 0) {
+                LOGERR("%s: Invalid color/component combination", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingGetInputArgument(parameters, "CMS", inputInfo) != 0) {
-            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
-            returnResponse(false);
-        }
+            // Get valid context from parameters using your existing context helper
+            tvConfigContext_t validContext = getValidContextFromGetParameters(parameters, "CMS");
 
-        if (getParamIndex("CMS",inputInfo,indexInfo) == -1) {
-            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if ((validContext.videoSrcType == VIDEO_SOURCE_ALL &&
+                validContext.videoFormatType == VIDEO_FORMAT_NONE &&
+                validContext.pq_mode == PQ_MODE_INVALID))
+            {
+                LOGERR("No valid context found for CMS get");
+                returnResponse(false);
+            }
 
-        if ( convertCMSParamToPQEnum(inputInfo.component,inputInfo.color,tvPQEnum) != 0 ) {
-            LOGINFO("%s: Component/Color Param Not Found \n",__FUNCTION__);
-            returnResponse(false);
-        }
+            // Prepare paramIndex from context
+            paramIndex_t indexInfo = {
+                .sourceIndex = static_cast<uint8_t>(validContext.videoSrcType),
+                .pqmodeIndex = static_cast<uint8_t>(validContext.pq_mode),
+                .formatIndex = static_cast<uint8_t>(validContext.videoFormatType)
+            };
 
-        int err = getLocalparam("CMS",indexInfo,level,tvPQEnum);
-        if( err == 0 ) {
-            response["level"] = level;
-            LOGINFO("Exit : params Value: %d \n", level);
-            returnResponse(true);
-        }
-        else {
-            returnResponse(false);
+            int level = 0;
+            int err = getLocalparam("CMS", indexInfo, level, pqEnum);
+            if (err == 0) {
+                response["level"] = level;
+                LOGINFO("Exit: getCMS success, value: %d", level);
+                returnResponse(true);
+            } else {
+                LOGERR("Failed to get CMS param from local storage");
+                returnResponse(false);
+            }
         }
     }
 
     uint32_t AVOutputTV::setCMS(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
+        if(m_cmsStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            int level = 0,retVal = 0;
+            tvPQParameterIndex_t tvPQEnum;
+            tvDataComponentColor_t colorEnum=tvDataColor_NONE;
+            std::string color,component;
+            tvError_t ret = tvERROR_NONE;
+            std::string value;
 
-        capDetails_t inputInfo;
-        int level = 0,retVal = 0;
-        tvPQParameterIndex_t tvPQEnum;
-        tvDataComponentColor_t colorEnum=tvDataColor_NONE;
-        std::string color,component;
-        tvError_t ret = tvERROR_NONE;
-        std::string value;
+            inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
+            inputInfo.component = parameters.HasLabel("component") ? parameters["component"].String() : "";
+            if( inputInfo.color.empty() || inputInfo.component.empty() ) {
+                LOGERR("%s : Color/Component param not found!!!\n",__FUNCTION__);
+                returnResponse(false);
+            }
 
-        inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
-	    inputInfo.component = parameters.HasLabel("component") ? parameters["component"].String() : "";
+            if (isPlatformSupport("CMS") != 0) {
+                returnResponse(false);
+            }
 
-        if( inputInfo.color.empty() || inputInfo.component.empty() ) {
-            LOGERR("%s : Color/Component param not found!!!\n",__FUNCTION__);
-            returnResponse(false);
-        }
+            value = parameters.HasLabel("level") ? parameters["level"].String() : "";
+            returnIfParamNotFound(parameters,"level");
+            level = std::stoi(value);
 
-        if (isPlatformSupport("CMS") != 0) {
-            returnResponse(false);
-        }
+            if (validateCMSParameter(inputInfo.component,level) != 0) {
+                LOGERR("%s: CMS Failed in range validation", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        value = parameters.HasLabel("level") ? parameters["level"].String() : "";
-        returnIfParamNotFound(parameters,"level");
-        level = std::stoi(value);
+            if (parsingSetInputArgument(parameters,"CMS",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (validateCMSParameter(inputInfo.component,level) != 0) {
-            LOGERR("%s: CMS Failed in range validation", __FUNCTION__);
-            returnResponse(false);
-        }
+            if( !isCapablityCheckPassed( "CMS",inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for CMS\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingSetInputArgument(parameters,"CMS",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if ( convertCMSParamToPQEnum(inputInfo.component,inputInfo.color,tvPQEnum) != 0 ) {
+                LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str());
+                returnResponse(false);
+            }
 
-        if( !isCapablityCheckPassed( "CMS",inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for CMS\n", __FUNCTION__);
-            returnResponse(false);
-        }
+            retVal = getCMSColorEnumFromString(inputInfo.color,colorEnum);
+            if( retVal == -1) {
+                LOGERR("%s: Invalid Color : %s\n",__FUNCTION__,inputInfo.color.c_str());
+                returnResponse(false);
+            }
 
-        if ( convertCMSParamToPQEnum(inputInfo.component,inputInfo.color,tvPQEnum) != 0 ) {
-            LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str());
-            returnResponse(false);
-        }    
+            if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+                LOGINFO("Proceed with %s\n",__FUNCTION__);
+                tvError_t ret = SetCMSState(true);
+                if(ret != tvERROR_NONE) {
+                    LOGWARN("CMS enable failed\n");
+                    returnResponse(false);
+                }
 
-        retVal = getCMSColorEnumFromString(inputInfo.color,colorEnum);
-        if( retVal == -1) {
-            LOGERR("%s: Invalid Color : %s\n",__FUNCTION__,inputInfo.color.c_str());
-            returnResponse(false);
-        }
+                if(inputInfo.component.compare("Saturation") == 0)
+                    ret = SetCurrentComponentSaturation(colorEnum, level);
+                else if(inputInfo.component.compare("Hue") == 0 )
+                    ret = SetCurrentComponentHue(colorEnum,level);
+                else if( inputInfo.component.compare("Luma") == 0 )
+                    ret = SetCurrentComponentLuma(colorEnum,level);
+            }
 
-        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
-            LOGINFO("Proceed with %s\n",__FUNCTION__);
-            tvError_t ret = SetCMSState(true);
             if(ret != tvERROR_NONE) {
-                LOGWARN("CMS enable failed\n");
+                LOGERR("Failed to set CMS\n");
                 returnResponse(false);
             }
-            
-            if(inputInfo.component.compare("Saturation") == 0)
-                ret = SetCurrentComponentSaturation(colorEnum, level);
-            else if(inputInfo.component.compare("Hue") == 0 )
-                ret = SetCurrentComponentHue(colorEnum,level);
-            else if( inputInfo.component.compare("Luma") == 0 )
-                ret = SetCurrentComponentLuma(colorEnum,level);
-        
-        }      
+            else  {
+                std::string cmsParam;
+                cmsParam = inputInfo.color+"."+inputInfo.component;
 
-        if(ret != tvERROR_NONE) {
-            LOGERR("Failed to set CMS\n");
-            returnResponse(false);
+                retVal= updateAVoutputTVParam("set","CMS",inputInfo,tvPQEnum,level);
+                if(retVal != 0 ) {
+                    LOGERR("%s : Failed to Save CMS %s/%s(%s) to ssm_data\n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str(),cmsParam.c_str());
+                    returnResponse(false);
+                }
+                LOGINFO("Exit : setCMS %s/%s successful to value: %d\n", inputInfo.component.c_str(),inputInfo.color.c_str(),level);
+                returnResponse(true);
+            }
         }
-        else  {
-            std::string cmsParam;                   
-            cmsParam = inputInfo.color+"."+inputInfo.component;
-            
-            retVal= updateAVoutputTVParam("set","CMS",inputInfo,tvPQEnum,level);
-            if(retVal != 0 ) {
-                LOGERR("%s : Failed to Save CMS %s/%s(%s) to ssm_data\n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str(),cmsParam.c_str());
+        else
+        {
+            bool status = setCMSParam(parameters);
+            if (status) {
+                LOGINFO("setCMS success");
+                returnResponse(true);
+            } else {
+                LOGERR("setCMS failed");
                 returnResponse(false);
             }
-            LOGINFO("Exit : setCMS %s/%s successful to value: %d\n", inputInfo.component.c_str(),inputInfo.color.c_str(),level);
-            returnResponse(true);
         }
     }
 
     uint32_t AVOutputTV::resetCMS(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
+        if(m_cmsStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            int retVal = 0;
+            std::string color,component;
+            tvError_t ret = tvERROR_NONE;
+            JsonArray sourceArray;
+            JsonArray pqmodeArray;
+            JsonArray formatArray;
+            JsonArray colorArray;
+            JsonArray componentArray;
 
-        capDetails_t inputInfo;
-        int retVal = 0;
-        std::string color,component;
-        tvError_t ret = tvERROR_NONE;
-        JsonArray sourceArray;
-        JsonArray pqmodeArray;
-        JsonArray formatArray;
-        JsonArray colorArray;
-        JsonArray componentArray;
-
-        if (isPlatformSupport("CMS") != 0) {
-            returnResponse(false);
-        }
-
-        pqmodeArray = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].Array() : JsonArray();
-        for (int i = 0; i < pqmodeArray.Length(); ++i) {
-            inputInfo.pqmode += pqmodeArray[i].String();
-            if (i != (pqmodeArray.Length() - 1) ) {
-                inputInfo.pqmode += ",";
-            }
-        }
-
-        sourceArray = parameters.HasLabel("videoSource") ? parameters["videoSource"].Array() : JsonArray();
-        for (int i = 0; i < sourceArray.Length(); ++i) {
-            inputInfo.source += sourceArray[i].String();
-            if (i != (sourceArray.Length() - 1) ) {
-                inputInfo.source += ",";
-	        }
-        }
-
-        formatArray = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].Array() : JsonArray();
-        for (int i = 0; i < formatArray.Length(); ++i) {
-            inputInfo.format += formatArray[i].String();
-            if (i != (formatArray.Length() - 1) ) {
-                inputInfo.format += ",";
-            }
-        }
-        colorArray = parameters.HasLabel("color") ? parameters["color"].Array() : JsonArray();
-        for (int i = 0; i < colorArray.Length(); ++i) {
-            inputInfo.color += colorArray[i].String();
-            if (i != (colorArray.Length() - 1) ) {
-                inputInfo.color += ",";
-            }
-        }
-        componentArray = parameters.HasLabel("component") ? parameters["component"].Array() : JsonArray();
-        for (int i = 0; i < componentArray.Length(); ++i) {
-            inputInfo.component += componentArray[i].String();
-            if (i != (componentArray.Length() - 1) ) {
-                inputInfo.component += ",";
-            }
-        }
-        if (inputInfo.source.empty()) {
-            inputInfo.source = "Global";
-	    }
-        if (inputInfo.pqmode.empty()) {
-            inputInfo.pqmode = "Global";
-	    }
-        if (inputInfo.format.empty()) {
-            inputInfo.format = "Global";
-	    }
-        if (inputInfo.color.empty()) {
-            inputInfo.color = "Global";
-	    }
-        if (inputInfo.component.empty()) {
-            inputInfo.component = "Global";
-	    }
-
-        if (convertToValidInputParameter("CMS", inputInfo) != 0) {
-            LOGERR("%s: Failed to convert the input paramters. \n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if( !isCapablityCheckPassed( "CMS" , inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for CMS\n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
-            LOGINFO("Proceed with %s\n",__FUNCTION__);
-            tvError_t ret = SetCMSState(false);
-            if(ret != tvERROR_NONE) {
-                LOGWARN("CMS disable failed\n");
+            if (isPlatformSupport("CMS") != 0) {
                 returnResponse(false);
-            } 
-        }      
+            }
 
-        if(ret != tvERROR_NONE) {
-            LOGERR("%s : Failed to setCMSState\n",__FUNCTION__);
-            returnResponse(false);
+            pqmodeArray = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].Array() : JsonArray();
+            for (int i = 0; i < pqmodeArray.Length(); ++i) {
+                inputInfo.pqmode += pqmodeArray[i].String();
+                if (i != (pqmodeArray.Length() - 1) ) {
+                    inputInfo.pqmode += ",";
+                }
+            }
+
+            sourceArray = parameters.HasLabel("videoSource") ? parameters["videoSource"].Array() : JsonArray();
+            for (int i = 0; i < sourceArray.Length(); ++i) {
+                inputInfo.source += sourceArray[i].String();
+                if (i != (sourceArray.Length() - 1) ) {
+                    inputInfo.source += ",";
+                }
+            }
+
+            formatArray = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].Array() : JsonArray();
+            for (int i = 0; i < formatArray.Length(); ++i) {
+                inputInfo.format += formatArray[i].String();
+                if (i != (formatArray.Length() - 1) ) {
+                    inputInfo.format += ",";
+                }
+            }
+            colorArray = parameters.HasLabel("color") ? parameters["color"].Array() : JsonArray();
+            for (int i = 0; i < colorArray.Length(); ++i) {
+                inputInfo.color += colorArray[i].String();
+                if (i != (colorArray.Length() - 1) ) {
+                    inputInfo.color += ",";
+                }
+            }
+            componentArray = parameters.HasLabel("component") ? parameters["component"].Array() : JsonArray();
+            for (int i = 0; i < componentArray.Length(); ++i) {
+                inputInfo.component += componentArray[i].String();
+                if (i != (componentArray.Length() - 1) ) {
+                    inputInfo.component += ",";
+                }
+            }
+            if (inputInfo.source.empty()) {
+                inputInfo.source = "Global";
+            }
+            if (inputInfo.pqmode.empty()) {
+                inputInfo.pqmode = "Global";
+            }
+            if (inputInfo.format.empty()) {
+                inputInfo.format = "Global";
+            }
+            if (inputInfo.color.empty()) {
+                inputInfo.color = "Global";
+            }
+            if (inputInfo.component.empty()) {
+                inputInfo.component = "Global";
+            }
+
+            if (convertToValidInputParameter("CMS", inputInfo) != 0) {
+                LOGERR("%s: Failed to convert the input paramters. \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( !isCapablityCheckPassed( "CMS" , inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for CMS\n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+                LOGINFO("Proceed with %s\n",__FUNCTION__);
+                tvError_t ret = SetCMSState(false);
+                if(ret != tvERROR_NONE) {
+                    LOGWARN("CMS disable failed\n");
+                    returnResponse(false);
+                }
+            }
+
+            if(ret != tvERROR_NONE) {
+                LOGERR("%s : Failed to setCMSState\n",__FUNCTION__);
+                returnResponse(false);
+            }
+            else  {
+                int cms = 0;
+                retVal= updateAVoutputTVParam("reset","CMS",inputInfo,PQ_PARAM_CMS_SATURATION_RED,cms);
+                if(retVal != 0 ) {
+                    LOGERR("%s : Failed to Save CMS %s/%s to ssm_data\n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str() );
+                    returnResponse(false);
+                }
+                returnResponse(true);
+            }
         }
-        else  {
+        else
+        {
+            if (isSetRequiredForParam(parameters, "CMS")) {
+                LOGINFO("Proceed with SetCMSState \n");
+                tvError_t ret = SetCMSState(false);
+                if(ret != tvERROR_NONE) {
+                    LOGWARN("CMS disable failed\n");
+                    returnResponse(false);
+                }
+            }
             int cms = 0;
-            retVal= updateAVoutputTVParam("reset","CMS",inputInfo,PQ_PARAM_CMS_SATURATION_RED,cms);
+            int retVal= updateAVoutputTVParamV2("reset","CMS",parameters,PQ_PARAM_CMS,cms);
             if(retVal != 0 ) {
-                LOGERR("%s : Failed to Save CMS %s/%s to ssm_data\n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str() );
+                LOGERR("%s : Failed to Save CMS to ssm_data\n",__FUNCTION__);
                 returnResponse(false);
             }
             returnResponse(true);
@@ -5493,184 +5656,349 @@ namespace Plugin {
     uint32_t AVOutputTV::get2PointWB(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
+        if(m_wbStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            paramIndex_t indexInfo;
+            int level = 0;
+            tvPQParameterIndex_t tvPQEnum;
 
-        capDetails_t inputInfo;
-        paramIndex_t indexInfo;
-        int level = 0;
-        tvPQParameterIndex_t tvPQEnum;
+            inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
+            inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
 
-        inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
-        inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
+            if( inputInfo.color.empty() || inputInfo.control.empty() ) {
+                LOGERR("%s : Color/Control param not found!!!\n",__FUNCTION__);
+                returnResponse(false);
+            }
 
-        if( inputInfo.color.empty() || inputInfo.control.empty() ) {
-            LOGERR("%s : Color/Control param not found!!!\n",__FUNCTION__);
-            returnResponse(false);
+            if (isPlatformSupport("WhiteBalance") != 0) {
+                returnResponse(false);
+            }
+
+            if (parsingGetInputArgument(parameters, "WhiteBalance", inputInfo) != 0) {
+                LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if (getParamIndex("WhiteBalance", inputInfo,indexInfo) == -1) {
+                LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if ( convertWBParamToPQEnum(inputInfo.control,inputInfo.color,tvPQEnum) != 0 ) {
+                LOGINFO("%s: Control/Color Param Not Found \n",__FUNCTION__);
+                returnResponse(false);
+            }
+
+            int err = getLocalparam("WhiteBalance",indexInfo,level, tvPQEnum);
+            if( err == 0 ) {
+                response["level"] = level;
+                LOGINFO("Exit : params Value: %d \n", level);
+                returnResponse(true);
+            }
+            else {
+                returnResponse(false);
+            }
         }
+        else
+        {
+            std::string color = parameters.HasLabel("color") ? parameters["color"].String() : "";
+            std::string control = parameters.HasLabel("control") ? parameters["control"].String() : "";
+            std::string colorTemp = parameters.HasLabel("colorTemperature") ? parameters["colorTemperature"].String() : "";
 
-        if (isPlatformSupport("WhiteBalance") != 0) {
-            returnResponse(false);
-        }
+            if (color.empty() || control.empty() || colorTemp.empty()) {
+                LOGERR("%s : 'color', 'control' or 'colorTemperature' param missing\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingGetInputArgument(parameters, "WhiteBalance", inputInfo) != 0) {
-            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
-            returnResponse(false);
-        }
+            // Get valid context based on pictureMode/videoSource/videoFormat parameters
+            tvConfigContext_t validContext = getValidContextFromGetParameters(parameters, "WhiteBalance");
+            if (validContext.videoSrcType == VIDEO_SOURCE_ALL &&
+                validContext.videoFormatType == VIDEO_FORMAT_NONE &&
+                validContext.pq_mode == PQ_MODE_INVALID) {
+                LOGERR("%s : No valid context resolved\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (getParamIndex("WhiteBalance", inputInfo,indexInfo) == -1) {
-            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
-            returnResponse(false);
-        }
+            // Initialize param index with context info
+            paramIndex_t indexInfo {
+                .sourceIndex = static_cast<uint8_t>(validContext.videoSrcType),
+                .pqmodeIndex = static_cast<uint8_t>(validContext.pq_mode),
+                .formatIndex = static_cast<uint8_t>(validContext.videoFormatType),
+                .colorIndex = 0,
+                .componentIndex = 0,
+                .colorTempIndex = 0,
+                .controlIndex = 0
+            };
 
-        if ( convertWBParamToPQEnum(inputInfo.control,inputInfo.color,tvPQEnum) != 0 ) {
-            LOGINFO("%s: Control/Color Param Not Found \n",__FUNCTION__);
-            returnResponse(false);
-        }
+            // Map colorTemperature to enum
+            tvColorTemp_t colorTempEnum;
+            if (getColorTempEnumFromString(colorTemp, colorTempEnum) != 0) {
+                LOGERR("%s : Invalid colorTemperature value: %s\n", __FUNCTION__, colorTemp.c_str());
+                returnResponse(false);
+            }
+            indexInfo.colorTempIndex = static_cast<uint8_t>(colorTempEnum);
 
-        int err = getLocalparam("WhiteBalance",indexInfo,level, tvPQEnum);
-        if( err == 0 ) {
+            // Map color string to tvWBColor_t
+            tvWBColor_t colorEnum;
+            if (getWBColorEnumFromString(color, colorEnum) != 0) {
+                LOGERR("%s : Invalid color value: %s\n", __FUNCTION__, color.c_str());
+                returnResponse(false);
+            }
+            indexInfo.colorIndex = static_cast<uint8_t>(colorEnum);
+
+            // Map control string to tvWBControl_t
+            tvWBControl_t controlEnum;
+            if (getWBControlEnumFromString(control, controlEnum) != 0) {
+                LOGERR("%s : Invalid control value: %s\n", __FUNCTION__, control.c_str());
+                returnResponse(false);
+            }
+            indexInfo.controlIndex = static_cast<uint8_t>(controlEnum);
+
+            // Resolve PQ enum for WhiteBalance param
+            tvPQParameterIndex_t tvPQEnum;
+            if (convertWBParamToPQEnum(control, color, tvPQEnum) != 0) {
+                LOGERR("%s : Invalid color/control combination: %s/%s\n", __FUNCTION__, control.c_str(), color.c_str());
+                returnResponse(false);
+            }
+
+            // Fetch current level from localparam
+            int level = 0;
+            if (getLocalparam("WhiteBalance", indexInfo, level, tvPQEnum) != 0) {
+                LOGERR("%s : Failed to read localparam for WhiteBalance %s/%s\n", __FUNCTION__, control.c_str(), color.c_str());
+                returnResponse(false);
+            }
+
             response["level"] = level;
-            LOGINFO("Exit : params Value: %d \n", level);
+            LOGINFO("Exit: WhiteBalance %s/%s/%s level = %d\n", control.c_str(), color.c_str(), colorTemp.c_str(), level);
             returnResponse(true);
-        }
-        else {
-            returnResponse(false);
         }
     }
 
     uint32_t AVOutputTV::set2PointWB(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
+        if(m_wbStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            int level = 0;
+            tvPQParameterIndex_t tvPQEnum;
+            int retVal = 0;
+            std::string color,control,value;
+            tvError_t ret = tvERROR_NONE;
 
-        capDetails_t inputInfo;
-        int level = 0;
-        tvPQParameterIndex_t tvPQEnum;
-        int retVal = 0;
-        std::string color,control,value;
-        tvError_t ret = tvERROR_NONE;
+            inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
+            inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
 
-        inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
-        inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
-
-        if (isPlatformSupport("WhiteBalance") != 0) {
-            returnResponse(false);
-        }
-
-        if( inputInfo.color.empty() || inputInfo.control.empty()  ) {
-            LOGERR("%s : Color/Control param not found!!!\n",__FUNCTION__);
-            returnResponse(false);
-        }
-
-        value = parameters.HasLabel("level") ? parameters["level"].String() : "";
-        returnIfParamNotFound(parameters,"level");
-        level = std::stoi(value);
-
-        if (validateWBParameter("WhiteBalance",inputInfo.control,level) != 0) {
-            LOGERR("%s: CMS Failed in range validation", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if (parsingSetInputArgument(parameters,"WhiteBalance",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if( !isCapablityCheckPassed( "WhiteBalance",inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for WhiteBalance\n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        if ( convertWBParamToPQEnum(inputInfo.control,inputInfo.color,tvPQEnum) != 0 ) {
-            LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str());
-            returnResponse(false);
-        }    
-
-        if( (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format))) {
-            LOGINFO("Proceed with %s\n",__FUNCTION__);
-
-            tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
-            tvError_t ret = GetCurrentVideoSource(&currentSource);
-
-            if(ret != tvERROR_NONE) {
-                LOGWARN("%s: GetCurrentVideoSource( ) Failed \n",__FUNCTION__);
-                return -1;
-            }
-    
-            tvWBColor_t colorLevel;
-            if ( getWBColorEnumFromString(inputInfo.color,colorLevel ) == -1 ) {
-                LOGERR("%s : GetColorEnumFromString Failed!!! ",__FUNCTION__);
-                return -1;
-            }
-	
-            tvWBControl_t controlLevel;
-            if ( getWBControlEnumFromString(inputInfo.control,controlLevel ) == -1 ) {
-                LOGERR("%s : GetComponentEnumFromString Failed!!! ",__FUNCTION__);
-                return -1;
-            }
-             
-            ret = SetCustom2PointWhiteBalance(colorLevel,controlLevel,level);
-        }       
-
-        if(ret != tvERROR_NONE) {
-            LOGERR("%s: Failed to set WhiteBalance\n",__FUNCTION__);
-            returnResponse(false);
-        }
-        else  {
-            retVal= updateAVoutputTVParam("set","WhiteBalance",inputInfo,tvPQEnum,level);
-            if(retVal != 0 ) {
-                LOGERR("%s : Failed to Save WB %s/%s : %d to ssm_data\n",__FUNCTION__,inputInfo.control.c_str(),inputInfo.color.c_str(),level);
+            if (isPlatformSupport("WhiteBalance") != 0) {
                 returnResponse(false);
             }
-            LOGINFO("Exit : set2PointWB %s/%s successful to value: %d\n", inputInfo.control.c_str(),inputInfo.color.c_str(),level);
+
+            if( inputInfo.color.empty() || inputInfo.control.empty()  ) {
+                LOGERR("%s : Color/Control param not found!!!\n",__FUNCTION__);
+                returnResponse(false);
+            }
+
+            value = parameters.HasLabel("level") ? parameters["level"].String() : "";
+            returnIfParamNotFound(parameters,"level");
+            level = std::stoi(value);
+
+            if (validateWBParameter("WhiteBalance",inputInfo.control,level) != 0) {
+                LOGERR("%s: CMS Failed in range validation", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if (parsingSetInputArgument(parameters,"WhiteBalance",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if( !isCapablityCheckPassed( "WhiteBalance",inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for WhiteBalance\n", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            if ( convertWBParamToPQEnum(inputInfo.control,inputInfo.color,tvPQEnum) != 0 ) {
+                LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str());
+                returnResponse(false);
+            }
+
+            if( (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format))) {
+                LOGINFO("Proceed with %s\n",__FUNCTION__);
+
+                tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
+                tvError_t ret = GetCurrentVideoSource(&currentSource);
+
+                if(ret != tvERROR_NONE) {
+                    LOGWARN("%s: GetCurrentVideoSource( ) Failed \n",__FUNCTION__);
+                    return -1;
+                }
+
+                tvWBColor_t colorLevel;
+                if ( getWBColorEnumFromString(inputInfo.color,colorLevel ) == -1 ) {
+                    LOGERR("%s : GetColorEnumFromString Failed!!! ",__FUNCTION__);
+                    return -1;
+                }
+
+                tvWBControl_t controlLevel;
+                if ( getWBControlEnumFromString(inputInfo.control,controlLevel ) == -1 ) {
+                    LOGERR("%s : GetComponentEnumFromString Failed!!! ",__FUNCTION__);
+                    return -1;
+                }
+
+                ret = SetCustom2PointWhiteBalance(colorLevel,controlLevel,level);
+            }
+
+            if(ret != tvERROR_NONE) {
+                LOGERR("%s: Failed to set WhiteBalance\n",__FUNCTION__);
+                returnResponse(false);
+            }
+            else  {
+                retVal= updateAVoutputTVParam("set","WhiteBalance",inputInfo,tvPQEnum,level);
+                if(retVal != 0 ) {
+                    LOGERR("%s : Failed to Save WB %s/%s : %d to ssm_data\n",__FUNCTION__,inputInfo.control.c_str(),inputInfo.color.c_str(),level);
+                    returnResponse(false);
+                }
+                LOGINFO("Exit : set2PointWB %s/%s successful to value: %d\n", inputInfo.control.c_str(),inputInfo.color.c_str(),level);
+                returnResponse(true);
+            }
+        }
+        else
+        {
+            // Extract params
+            std::string colorTempStr = parameters.HasLabel("colorTemperature") ? parameters["colorTemperature"].String() : "";
+            std::string colorStr   = parameters.HasLabel("color")            ? parameters["color"].String()            : "";
+            std::string controlStr = parameters.HasLabel("control")          ? parameters["control"].String()          : "";
+            std::string levelStr   = parameters.HasLabel("level")            ? parameters["level"].String()            : "";
+
+            if (colorStr.empty() || controlStr.empty() || levelStr.empty() || colorTempStr.empty()) {
+                LOGERR("%s: Missing one of required params: color/control/level/colorTemperature", __FUNCTION__);
+                returnResponse(false);
+            }
+
+            int level = std::stoi(levelStr);
+
+            // Validate based on Gain or Offset ranges
+            int minVal = 0, maxVal = 0;
+            if (controlStr == "Gain") {
+                minVal = m_minWBGain;
+                maxVal = m_maxWBGain;
+            } else if (controlStr == "Offset") {
+                minVal = m_minWBOffset;
+                maxVal = m_maxWBOffset;
+            } else {
+                LOGERR("%s: Unknown control type: %s", __FUNCTION__, controlStr.c_str());
+                returnResponse(false);
+            }
+
+            if (level < minVal || level > maxVal) {
+                LOGERR("%s: Level %d out of range for control %s (%d - %d)", __FUNCTION__, level, controlStr.c_str(), minVal, maxVal);
+                returnResponse(false);
+            }
+
+            // Get enums
+            tvWBColor_t color;
+            if (getWBColorEnumFromString(colorStr, color) == -1) {
+                LOGERR("%s: Invalid color string: %s", __FUNCTION__, colorStr.c_str());
+                returnResponse(false);
+            }
+
+            tvWBControl_t control;
+            if (getWBControlEnumFromString(controlStr, control) == -1) {
+                LOGERR("%s: Invalid control string: %s", __FUNCTION__, controlStr.c_str());
+                returnResponse(false);
+            }
+
+            tvColorTemp_t colorTemp;
+            if (getColorTempEnumFromString(colorTempStr, colorTemp) != 0) {
+                LOGERR("%s: Invalid color temperature string: %s", __FUNCTION__, colorTempStr.c_str());
+                returnResponse(false);
+            }
+
+            // Perform HAL call only if required
+            if (isSetRequiredForParam(parameters, "WhiteBalance")) {
+                LOGINFO("Calling HAL Set2PointWB(%d, %d, %d, %d)", colorTemp, color, control, level);
+#if 0
+                tvError_t halStatus = Set2PointWB(colorTemp, color, control, level);
+                if (halStatus != tvERROR_NONE) {
+                    LOGERR("%s: HAL Set2PointWB failed", __FUNCTION__);
+                    returnResponse(false);
+                }
+#endif
+            }
+
+            int persistStatus = updateAVoutputTVParamV2("set", "WhiteBalance", parameters, PQ_PARAM_WB_GAIN_RED, level);
+            if (persistStatus != 0) {
+                LOGERR("%s: Persistence failed for %s/%s", __FUNCTION__, controlStr.c_str(), colorStr.c_str());
+                returnResponse(false);
+            }
+
+            LOGINFO("Exit: set2PointWB %s/%s/%s = %d", colorStr.c_str(), controlStr.c_str(), colorTempStr.c_str(), level);
             returnResponse(true);
         }
+
     }
 
     uint32_t AVOutputTV::reset2PointWB(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
+        if(m_wbStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            tvPQParameterIndex_t tvPQEnum;
+            int retVal = 0;
+            int level = 0;
+            std::string color,control;
+            inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
+            inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
 
-        capDetails_t inputInfo;
-        tvPQParameterIndex_t tvPQEnum;
-        int retVal = 0;
-        int level = 0;
-        std::string color,control;
-        inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
-        inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
+            if (isPlatformSupport("WhiteBalance") != 0) {
+                returnResponse(false);
+            }
 
-        if (isPlatformSupport("WhiteBalance") != 0) {
-            returnResponse(false);
-        }
+            if (parsingSetInputArgument(parameters,"WhiteBalance",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if (parsingSetInputArgument(parameters,"WhiteBalance",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if( !isCapablityCheckPassed( "WhiteBalance",inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for WhiteBalance\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if( !isCapablityCheckPassed( "WhiteBalance",inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for WhiteBalance\n", __FUNCTION__);
-            returnResponse(false);
-        }
+            for( int colorIndex= tvWB_COLOR_RED; colorIndex < tvWB_COLOR_MAX; colorIndex++)  {
+                for(int controlIndex = tvWB_CONTROL_GAIN;controlIndex < tvWB_CONTROL_MAX;controlIndex++) {
+                    inputInfo.control = getWBControlStringFromEnum((tvWBControl_t)controlIndex);
+                    inputInfo.color   = getWBColorStringFromEnum((tvWBColor_t)colorIndex);
+                    if ( convertWBParamToPQEnum(inputInfo.control,inputInfo.color,tvPQEnum) != 0 ) {
+                        LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.control.c_str(),inputInfo.color.c_str());
+                        returnResponse(false);
+                    }
 
-        for( int colorIndex= tvWB_COLOR_RED; colorIndex < tvWB_COLOR_MAX; colorIndex++)  {
-            for(int controlIndex = tvWB_CONTROL_GAIN;controlIndex < tvWB_CONTROL_MAX;controlIndex++) {
-                inputInfo.control = getWBControlStringFromEnum((tvWBControl_t)controlIndex);
-                inputInfo.color   = getWBColorStringFromEnum((tvWBColor_t)colorIndex);
-                if ( convertWBParamToPQEnum(inputInfo.control,inputInfo.color,tvPQEnum) != 0 ) {
-                    LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.control.c_str(),inputInfo.color.c_str());
-                    returnResponse(false);
-                }    
+                    retVal |= updateAVoutputTVParam("reset","WhiteBalance",inputInfo,tvPQEnum,level);
+                }
+            }
 
-                retVal |= updateAVoutputTVParam("reset","WhiteBalance",inputInfo,tvPQEnum,level);
+            if( retVal != 0 ) {
+                LOGWARN("Failed to reset WhiteBalance\n");
+                returnResponse(false);
+            }
+            else {
+                LOGINFO("Exit : reset2PointWB successful \n");
+                returnResponse(true);
             }
         }
-
-        if( retVal != 0 ) {
-            LOGWARN("Failed to reset WhiteBalance\n");
-            returnResponse(false);
-        }
-        else {        
-            LOGINFO("Exit : reset2PointWB successful \n");
-            returnResponse(true);
+        else
+        {
+            int persistStatus = updateAVoutputTVParamV2("reset", "WhiteBalance", parameters, PQ_PARAM_WB_GAIN_RED, 0);
+            if (persistStatus != 0) {
+                LOGERR("Failed to reset WhiteBalance\n");
+                returnResponse(false);
+            }
+            else {
+                LOGINFO("Exit : reset2PointWB successful \n");
+                returnResponse(true);
+            }
         }
     }
 
@@ -5679,23 +6007,25 @@ namespace Plugin {
         LOGINFO("Entry: get2PointWBCapsV2");
 
         int min_gain = 0, min_offset = 0, max_gain = 0, max_offset = 0;
+        tvColorTemp_t* colorTempArray = nullptr;
         tvWBColor_t* colorArray = nullptr;
         tvWBControl_t* controlArray = nullptr;
-        size_t num_color = 0, num_control = 0;
+        size_t num_colorTemp = 0, num_color = 0, num_control = 0;
         tvContextCaps_t* context_caps = nullptr;
 
-        tvError_t ret = GetCustom2PointWhiteBalanceCaps(&min_gain, &min_offset, &max_gain, &max_offset,
-                                                        &colorArray, &controlArray,
-                                                        &num_color, &num_control, &context_caps);
+        tvError_t ret = Get2PointWBCaps(&min_gain, &min_offset, &max_gain, &max_offset,
+                                        &colorTempArray, &colorArray, &controlArray,
+                                        &num_colorTemp, &num_color, &num_control,
+                                        &context_caps);
 
         if (ret != tvERROR_NONE) {
-            LOGERR("GetCustom2PointWhiteBalanceCaps failed with error: %d", ret);
+            LOGERR("Get2PointWBCaps failed with error: %d", ret);
             returnResponse(false);
         }
 
         response["platformSupport"] = true;
 
-        // Range Info
+        // Range fields
         JsonObject rangeGain, rangeOffset;
         rangeGain["from"] = min_gain;
         rangeGain["to"] = max_gain;
@@ -5705,25 +6035,37 @@ namespace Plugin {
         response["rangeGain"] = rangeGain;
         response["rangeOffset"] = rangeOffset;
 
-        // Control Info
+        // Control array
         JsonArray controlJson;
         for (size_t i = 0; i < num_control; ++i) {
             controlJson.Add(getWBControlStringFromEnum(controlArray[i]));
         }
         response["control"] = controlJson;
 
-        // Color Info
+        // Color array
         JsonArray colorJson;
         for (size_t i = 0; i < num_color; ++i) {
             colorJson.Add(getWBColorStringFromEnum(colorArray[i]));
         }
         response["color"] = colorJson;
+
+        // ColorTemperature array
+        JsonArray colorTempJson;
+        for (size_t i = 0; i < num_colorTemp; ++i) {
+            std::string tempStr;
+            getColorTempStringFromEnum(static_cast<int>(colorTempArray[i]), tempStr);
+            colorTempJson.Add(tempStr);
+        }
+        response["colorTemperature"] = colorTempJson;
         response["context"] = parseContextCaps(context_caps);
 
-#if HAL_NOT_READY
+        // Optional cleanup if HAL allocates dynamically
+    #if HAL_NOT_READY
+        delete[] colorTempArray;
         delete[] colorArray;
         delete[] controlArray;
-#endif
+        delete[] context_caps;
+    #endif
 
         LOGINFO("Exit: get2PointWBCapsV2");
         returnResponse(true);
