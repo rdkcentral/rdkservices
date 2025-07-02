@@ -294,6 +294,45 @@ namespace Plugin {
             = Exchange::IContentProtection::INotification::Status::State;
 
     private:
+        enum { NoSuchSession = 21009 };
+        enum { WatermarkRenderFailed = 20001 };
+
+        static Core::OptionalType<uint32_t> SecManagerStatus(
+            uint16_t classification, uint16_t reason)
+        {
+            Core::OptionalType<uint32_t> result;
+            // https://github.com/comcast-contentsecurity/spec
+            static std::map<std::tuple<uint16_t, uint16_t>, uint32_t> map{
+                { { 100, 3 }, 21003 },
+                { { 100, 4 }, 21004 },
+                { { 100, 5 }, 21005 },
+                { { 100, 6 }, 21006 },
+                { { 100, 7 }, 21007 },
+                { { 100, 8 }, 21008 },
+                { { 100, 9 }, NoSuchSession },
+                { { 100, 12 }, 21012 },
+                { { 100, 14 }, 21014 },
+                { { 100, 15 }, 21015 },
+                { { 200, 1 }, 22001 },
+                { { 200, 3 }, 22003 },
+                { { 200, 4 }, 22004 },
+                { { 200, 8 }, 22008 },
+                { { 200, 11 }, 22011 },
+                { { 200, 12 }, 22012 },
+                { { 200, 13 }, 22013 },
+                { { 200, 16 }, 22016 },
+                { { 300, 1 }, 23001 },
+                { { 300, 3 }, 23003 },
+                { { 300, 12 }, 23012 }
+            };
+            auto it = map.find(std::make_tuple(classification, reason));
+            if (it != map.end()) {
+                result = it->second;
+            }
+            return result;
+        }
+
+    private:
         class Implementation : public Exchange::IContentProtection {
         public:
             Implementation(const Implementation&) = delete;
@@ -348,10 +387,8 @@ namespace Plugin {
                 override
             {
                 uint32_t result;
-                Core::JSON::String jsonString;
-                jsonString.FromString(initData);
                 JsonObject out;
-                out.FromString(jsonString);
+                out.FromString(initData);
                 out["clientId"] = clientId;
                 out["keySystem"] = Core::JSON::EnumType<KeySystem>(keySystem)
                                        .Data();
@@ -361,12 +398,16 @@ namespace Plugin {
                     OpenSessionTimeout, _T("openPlaybackSession"), out, in);
                 if (result == Core::ERROR_NONE) {
                     if (!in["success"].Boolean()) {
-                        result = Core::ERROR_GENERAL;
+                        auto context = in["secManagerResultContext"].Object();
+                        auto status = SecManagerStatus(
+                            context["class"].Number(),
+                            context["reason"].Number());
+                        result = status.IsSet()
+                            ? status.Value()
+                            : Core::ERROR_GENERAL;
                     } else {
                         sessionId = in["sessionId"].Number();
-                        string inStr;
-                        in.ToString(inStr);
-                        response = Core::ToQuotedString('\"', inStr);
+                        in.ToString(response);
 
                         _parent._sessionStorage.Set(sessionId,
                             { clientId, appId, keySystem });
@@ -380,7 +421,7 @@ namespace Plugin {
             {
                 auto session = _parent._sessionStorage.Get(sessionId);
                 if (!session.IsSet()) {
-                    return Core::ERROR_ILLEGAL_STATE; // No such session
+                    return NoSuchSession;
                 }
 
                 uint32_t result;
@@ -406,14 +447,12 @@ namespace Plugin {
             {
                 auto session = _parent._sessionStorage.Get(sessionId);
                 if (!session.IsSet()) {
-                    return Core::ERROR_ILLEGAL_STATE; // No such session
+                    return NoSuchSession;
                 }
 
                 uint32_t result;
-                Core::JSON::String jsonString;
-                jsonString.FromString(initData);
                 JsonObject out;
-                out.FromString(jsonString);
+                out.FromString(initData);
                 out["clientId"] = session.Value().ClientId;
                 out["sessionId"] = sessionId;
                 out["keySystem"] = Core::JSON::EnumType<KeySystem>(
@@ -426,11 +465,15 @@ namespace Plugin {
                     OpenSessionTimeout, _T("updatePlaybackSession"), out, in);
                 if (result == Core::ERROR_NONE) {
                     if (!in["success"].Boolean()) {
-                        result = Core::ERROR_GENERAL;
+                        auto context = in["secManagerResultContext"].Object();
+                        auto status = SecManagerStatus(
+                            context["class"].Number(),
+                            context["reason"].Number());
+                        result = status.IsSet()
+                            ? status.Value()
+                            : Core::ERROR_GENERAL;
                     } else {
-                        string inStr;
-                        in.ToString(inStr);
-                        response = Core::ToQuotedString('\"', inStr);
+                        in.ToString(response);
                     }
                 }
                 return result;
@@ -441,7 +484,7 @@ namespace Plugin {
             {
                 auto session = _parent._sessionStorage.Get(sessionId);
                 if (!session.IsSet()) {
-                    return Core::ERROR_ILLEGAL_STATE; // No such session
+                    return NoSuchSession;
                 }
 
                 uint32_t result;
@@ -453,7 +496,13 @@ namespace Plugin {
                     ClosePlaybackSessionParams, JsonObject>(
                     Timeout, _T("closePlaybackSession"), out, in);
                 if ((result == Core::ERROR_NONE) && !in["success"].Boolean()) {
-                    result = Core::ERROR_GENERAL;
+                    auto context = in["secManagerResultContext"].Object();
+                    auto status = SecManagerStatus(
+                        context["class"].Number(),
+                        context["reason"].Number());
+                    result = status.IsSet()
+                        ? status.Value()
+                        : Core::ERROR_GENERAL;
                 }
                 return result;
             }
@@ -742,7 +791,7 @@ namespace Plugin {
                                WatermarkStatusChanged(
                                    watermark.Value().SessionId,
                                    session.Value().AppId,
-                                   { State::FAILED, 20001 });
+                                   { State::FAILED, WatermarkRenderFailed });
                            }
                        })
                 == Core::ERROR_NONE);
