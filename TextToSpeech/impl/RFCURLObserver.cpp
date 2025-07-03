@@ -27,9 +27,10 @@ RFCURLObserver* RFCURLObserver::getInstance() {
 }
 
 
-void RFCURLObserver::triggerRFC(TTSConfiguration *config)
+void RFCURLObserver::triggerRFC(TTSConfiguration *config,std::string token)
 {
    m_defaultConfig = config;
+   m_token = token;
    fetchURLFromConfig();
    std::thread notificationThread(&RFCURLObserver::registerNotification, this);
    notificationThread.detach(); // Detach the thread to run independently
@@ -49,65 +50,9 @@ void RFCURLObserver::fetchURLFromConfig() {
     }
 }
 
-string RFCURLObserver::getSecurityToken() {
-    std::string token = "token=";
-    int tokenLength = 0;
-    unsigned char buffer[MAX_SECURITY_TOKEN_SIZE] = {0};
-    static std::string endpoint;
-
-    if(endpoint.empty()) {
-        Core::SystemInfo::GetEnvironment(_T("THUNDER_ACCESS"), endpoint);
-        TTSLOG_INFO("Thunder RPC Endpoint read from env - %s", endpoint.c_str());
-    }
-
-    if(endpoint.empty()) {
-        Core::File file("/etc/WPEFramework/config.json");
-        if(file.Open(true)) {
-            JsonObject config;
-            if(config.IElement::FromFile(file)) {
-                Core::JSON::String port = config.Get("port");
-                Core::JSON::String binding = config.Get("binding");
-                if(!binding.Value().empty() && !port.Value().empty())
-                    endpoint = binding.Value() + ":" + port.Value();
-            }
-            file.Close();
-        }
-        if(endpoint.empty()) 
-            endpoint = _T("127.0.0.1:9998");
-            
-        TTSLOG_INFO("Thunder RPC Endpoint read from config file - %s", endpoint.c_str());
-        Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), endpoint);        
-    }
-
-    string payload = "http://localhost";
-    if(payload.empty()) {
-        tokenLength = GetSecurityToken(sizeof(buffer), buffer);
-    } else {
-        int buffLength = std::min(sizeof(buffer), payload.length());
-        ::memcpy(buffer, payload.c_str(), buffLength);
-        tokenLength = GetToken(sizeof(buffer), buffLength, buffer);
-    }
-
-    if(tokenLength > 0) {
-        token.append((char*)buffer);
-    } else {
-        token.clear();
-    }
-
-    TTSLOG_INFO("Thunder token - %s", token.empty() ? "" : token.c_str());
-    return token;
-}
-
-
 void RFCURLObserver::registerNotification() {
     if (m_systemService == nullptr && !m_eventRegistered) {
-        std::string token = getSecurityToken();
-        if(token.empty()) {
-            m_systemService = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(SYSTEMSERVICE_CALLSIGN_VER),"");
-        } else {        
-            m_systemService = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(SYSTEMSERVICE_CALLSIGN_VER),"", false, token);
-        }
-
+        m_systemService = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(SYSTEMSERVICE_CALLSIGN_VER),"", false, m_token);
         while (!m_eventRegistered) {		
             if (m_systemService->Subscribe<JsonObject>(3000, "onDeviceMgtUpdateReceived",
                 &RFCURLObserver::onDeviceMgtUpdateReceivedHandler, this) == Core::ERROR_NONE) {

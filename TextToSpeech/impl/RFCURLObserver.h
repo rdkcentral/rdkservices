@@ -8,7 +8,7 @@ namespace TTS {
 class RFCURLObserver {
 public:
     static RFCURLObserver* getInstance();
-    void triggerRFC(TTSConfiguration*);
+    void triggerRFC(TTSConfiguration*,std::string);
     ~RFCURLObserver();
 
 private:
@@ -18,12 +18,12 @@ private:
 
     void fetchURLFromConfig();
     void registerNotification();
-    string getSecurityToken();
 	
     void onDeviceMgtUpdateReceivedHandler(const JsonObject& parameters);
 
     WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* m_systemService{nullptr};
     bool m_eventRegistered {false};
+    std::string m_token;
     TTSConfiguration *m_defaultConfig;
 };
 
