@@ -373,7 +373,11 @@ namespace Plugin {
         registerMethod("getAutoBacklightModeCapsV2", &AVOutputTV::getAutoBacklightModeCapsV2, this);
         registerMethod("getCMSCapsV2", &AVOutputTV::getCMSCapsV2, this);
         registerMethod("get2PointWBCapsV2", &AVOutputTV::get2PointWBCapsV2, this);
+
         registerMethod("getSDRGammaCaps", &AVOutputTV::getSDRGammaCaps, this);
+        registerMethod("getSDRGamma", &AVOutputTV::getSDRGamma, this);
+        registerMethod("setSDRGamma", &AVOutputTV::setSDRGamma, this);
+        registerMethod("resetSDRGamma", &AVOutputTV::resetSDRGamma, this);
 
         registerMethod("getPrecisionDetailCaps", &AVOutputTV::getPrecisionDetailCaps, this);
         registerMethod("getPrecisionDetail", &AVOutputTV::getPrecisionDetail, this);
@@ -1080,6 +1084,31 @@ namespace Plugin {
         {tvColorTemp_BOOST_USER,        "BoostUserDefined"},
         {tvColorTemp_BOOST_SUPERCOLD,   "BoostSupercold"}
     };
+
+    // Forward lookup: string → enum
+    const std::unordered_map<std::string, int> sdrGammaMap = {
+        {"1.8",      tvSdrGamma_1_8},
+        {"1.9",      tvSdrGamma_1_9},
+        {"2.0",      tvSdrGamma_2_0},
+        {"2.1",      tvSdrGamma_2_1},
+        {"2.2",      tvSdrGamma_2_2},
+        {"2.3",      tvSdrGamma_2_3},
+        {"2.4",      tvSdrGamma_2_4},
+        {"BT.1886",  tvSdrGamma_BT_1886}
+    };
+
+    // Reverse lookup: enum → string
+    const std::unordered_map<int, std::string> sdrGammaReverseMap = {
+        {tvSdrGamma_1_8,        "1.8"},
+        {tvSdrGamma_1_9,        "1.9"},
+        {tvSdrGamma_2_0,        "2.0"},
+        {tvSdrGamma_2_1,        "2.1"},
+        {tvSdrGamma_2_2,        "2.2"},
+        {tvSdrGamma_2_3,        "2.3"},
+        {tvSdrGamma_2_4,        "2.4"},
+        {tvSdrGamma_BT_1886,    "BT.1886"}
+    };
+
 
     uint32_t AVOutputTV::getColorTemperatureCapsV2(const JsonObject& parameters, JsonObject& response) {
         tvColorTemp_t* color_temp = nullptr;
@@ -3388,7 +3417,6 @@ namespace Plugin {
             } else {
                 returnResponse(false);
             }
-
         }
     }
 
@@ -3853,6 +3881,57 @@ namespace Plugin {
             LOGINFO("Exit\n");
             returnResponse(true);
         }
+    }
+
+    uint32_t AVOutputTV::getSDRGamma(const JsonObject& parameters, JsonObject& response)
+    {
+        std::string outMode;
+
+        // Make a copy of parameters and inject videoFormat = "SDR"
+        JsonObject updatedParams;
+        JsonObject::Iterator it = parameters.Variants();
+        while (it.Next()) {
+            updatedParams[it.Label()] = it.Current();
+        }
+        updatedParams["videoFormat"] = "SDR";
+
+        if (getEnumPQParamString(updatedParams, "SDRGamma",
+                PQ_PARAM_SDR_GAMMA, sdrGammaReverseMap, outMode)) {
+            response["SDRGamma"] = outMode;
+            returnResponse(true);
+        } else {
+            LOGERR("Failed to retrieve SDRGamma value");
+            returnResponse(false);
+        }
+    }
+
+    uint32_t AVOutputTV::setSDRGamma(const JsonObject& parameters, JsonObject& response)
+    {
+        if (m_sdrGammaModeStatus != tvERROR_NONE) {
+            LOGERR("SDRGamma not supported");
+            returnResponse(false);
+        }
+        return setContextPQParam(
+            parameters, response,
+            "sdrGamma", "SDRGamma",
+            tvSdrGamma_MAX,
+            PQ_PARAM_SDR_GAMMA,
+            [](tvVideoSrcType_t src, tvPQModeIndex_t mode, tvVideoFormatType_t /*fmt*/, int val) {
+                return SetSdrGamma(src, mode, static_cast<tvSdrGamma_t>(val));
+            }
+        );
+    }
+    uint32_t AVOutputTV::resetSDRGamma(const JsonObject& parameters, JsonObject& response)
+    {
+        bool success = resetPQParamToDefault(
+            parameters,
+            "SDRGamma",
+            PQ_PARAM_SDR_GAMMA,
+            [](tvVideoSrcType_t src, tvPQModeIndex_t mode, tvVideoFormatType_t /*fmt*/, int val) {
+                return SetSdrGamma(src, mode, static_cast<tvSdrGamma_t>(val));
+            }
+        );
+        returnResponse(success);
     }
 
     uint32_t AVOutputTV::getSupportedDolbyVisionModes(const JsonObject& parameters, JsonObject& response)

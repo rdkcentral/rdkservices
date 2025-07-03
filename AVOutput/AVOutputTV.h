@@ -211,6 +211,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getMPEGNoiseReduction)
 		DECLARE_JSON_RPC_METHOD(getDigitalNoiseReduction)
 		DECLARE_JSON_RPC_METHOD(getMEMC)
+		DECLARE_JSON_RPC_METHOD(getSDRGamma)
 
 
 
@@ -284,6 +285,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(setMPEGNoiseReduction)
 		DECLARE_JSON_RPC_METHOD(setDigitalNoiseReduction)
 		DECLARE_JSON_RPC_METHOD(setMEMC)
+		DECLARE_JSON_RPC_METHOD(setSDRGamma)
 
 		/*Reset API's*/
 		DECLARE_JSON_RPC_METHOD(resetBacklight)
@@ -308,7 +310,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(resetMPEGNoiseReduction)
 		DECLARE_JSON_RPC_METHOD(resetDigitalNoiseReduction)
 		DECLARE_JSON_RPC_METHOD(resetMEMC)
-
+		DECLARE_JSON_RPC_METHOD(resetSDRGamma)
 
 
     private:
@@ -521,6 +523,18 @@ class AVOutputTV : public AVOutputBase {
 		JsonArray getJsonArrayIfArray(const JsonObject& obj, const std::string& key);
 			int updateAVoutputTVParamV2(std::string action, std::string tr181ParamName,
 			const JsonObject& parameters, tvPQParameterIndex_t pqParamIndex, int level);
+		template <typename T>
+		bool contains(const std::vector<T>& vec, const T& value) {
+			return std::find(vec.begin(), vec.end(), value) != vec.end();
+		}
+		std::vector<std::string> getParamList(const JsonObject& parameters, const std::string& key, 
+			const std::vector<std::string>& fallbackList);
+		bool isValueInRange(const std::string& control, int value) const;
+		int handleCMSParamUpdate(const std::string& action, const JsonObject& parameters,
+								const std::vector<tvConfigContext_t>& validContexts, int& level);
+
+		int handleWBParamUpdate(const std::string& action, const JsonObject& parameters,
+                        const std::vector<tvConfigContext_t>& validContexts, int& level);
 		std::vector<tvConfigContext_t> getValidContextsFromParameters(const JsonObject& parameters,const std::string& tr181ParamName );
 		typedef tvError_t (*tvSetFunction)(int);
 		bool resetPQParamToDefault(const JsonObject& parameters,
@@ -574,7 +588,6 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t updateAVoutputTVParamToHALV2(std::string forParam, paramIndex_t indexInfo, int value, bool setNotDelete);
 		bool resetPictureModeV2(const JsonObject& parameters);
 		int syncAvoutputTVPQModeParamsToHALV2(std::string pqmode, std::string source, std::string format);
-		bool checkCMSColorAndComponentCapability(const std::vector<std::string>& capList, const std::vector<std::string>& inputList);
 		std::string getCMSNameFromEnum(tvDataComponentColor_t colorEnum);
         void syncCMSParamsV2();
 	    void syncWBParamsV2();
@@ -669,6 +682,7 @@ class AVOutputTV : public AVOutputBase {
 		size_t m_numsdrGammaModes = 0;
 		tvContextCaps_t* m_sdrGammaModeCaps = nullptr;
 		tvError_t m_sdrGammaModeStatus = tvERROR_NONE;
+		void getSdrGammaStringFromEnum(tvSdrGamma_t value, std::string& str);
 
 		int m_numHalMatrixPoints = 0;
 		int m_rgbMin = 0;

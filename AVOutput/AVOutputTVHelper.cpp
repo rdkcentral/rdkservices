@@ -973,7 +973,8 @@ namespace Plugin {
                 {"ColorTemp", [this](int v, std::string& s) { getColorTempStringFromEnum(v, s); }},
                 {"DimmingMode", [this](int v, std::string& s) { getDimmingModeStringFromEnum(v, s); }},
                 {"AspectRatio", [this](int v, std::string& s) { getDisplayModeStringFromEnum(v, s); }},
-                {"BacklightMode", [this](int v, std::string& s) { getBacklightModeStringFromEnum(v, s); }}
+                {"BacklightMode", [this](int v, std::string& s) { getBacklightModeStringFromEnum(v, s); }},
+                {"SDRGamma", [this](int v, std::string& s) { getSdrGammaStringFromEnum(static_cast<tvSdrGamma_t>(v), s); }}
             };
 
             // If there's a custom string conversion for this parameter, apply it
@@ -1470,6 +1471,11 @@ namespace Plugin {
             updateAVoutputTVParamV2("sync", "MEMC", paramJson, PQ_PARAM_MEMC, level);
         }
 
+        m_sdrGammaModeStatus = GetSdrGammaCaps(&m_sdrGammaModes, &m_numsdrGammaModes, &m_sdrGammaModeCaps);
+        if (m_sdrGammaModeStatus == tvERROR_NONE) {
+            updateAVoutputTVParamV2("sync", "SDRGamma", paramJson, PQ_PARAM_SDR_GAMMA, level);
+        }
+
         m_cmsStatus = GetCMSCaps(&m_maxCmsHue, &m_maxCmsSaturation, &m_maxCmsLuma,
                                 &m_cmsColorArr, &m_cmsComponentArr,
                                 &m_numColor, &m_numComponent, &m_cmsCaps);
@@ -1927,6 +1933,33 @@ namespace Plugin {
                }
                return 0;
            }
+           else if (forParam.compare("SDRGamma") == 0) {
+                if (strncmp(param.value, "1.8", strlen(param.value)) == 0) {
+                    value = tvSdrGamma_1_8;
+                }
+                else if (strncmp(param.value, "1.9", strlen(param.value)) == 0) {
+                    value = tvSdrGamma_1_9;
+                }
+                else if (strncmp(param.value, "2.0", strlen(param.value)) == 0) {
+                    value = tvSdrGamma_2_0;
+                }
+                else if (strncmp(param.value, "2.1", strlen(param.value)) == 0) {
+                    value = tvSdrGamma_2_1;
+                }
+                else if (strncmp(param.value, "2.2", strlen(param.value)) == 0) {
+                    value = tvSdrGamma_2_2;
+                }
+                else if (strncmp(param.value, "2.3", strlen(param.value)) == 0) {
+                    value = tvSdrGamma_2_3;
+                }
+                else if (strncmp(param.value, "2.4", strlen(param.value)) == 0) {
+                    value = tvSdrGamma_2_4;
+                }
+                else if (strncmp(param.value, "BT.1886", strlen(param.value)) == 0) {
+                    value = tvSdrGamma_BT_1886;
+                }
+                return 0;
+            }
            else {
                value=std::stoi(param.value);
                return 0;  
@@ -1954,7 +1987,6 @@ namespace Plugin {
             return 0;
         }
     }
-
     tvDataComponentColor_t AVOutputTV::getComponentColorEnum(std::string colorName)
     {
         tvDataComponentColor_t CompColorEnum = tvDataColor_MAX;
@@ -2090,6 +2122,42 @@ namespace Plugin {
                 break;
             default:
                 toStore = "Unknown";
+                break;
+        }
+    }
+
+    void AVOutputTV::getSdrGammaStringFromEnum(tvSdrGamma_t value, std::string& str)
+    {
+        switch (value)
+        {
+            case tvSdrGamma_1_8:
+                str = "1.8";
+                break;
+            case tvSdrGamma_1_9:
+                str = "1.9";
+                break;
+            case tvSdrGamma_2_0:
+                str = "2.0";
+                break;
+            case tvSdrGamma_2_1:
+                str = "2.1";
+                break;
+            case tvSdrGamma_2_2:
+                str = "2.2";
+                break;
+            case tvSdrGamma_2_3:
+                str = "2.3";
+                break;
+            case tvSdrGamma_2_4:
+                str = "2.4";
+                break;
+            case tvSdrGamma_BT_1886:
+                str = "BT.1886";
+                break;
+            case tvSdrGamma_INVALID:
+            default:
+                str = "Unknown";
+                LOGERR("Invalid or unsupported SDR Gamma enum: %d", value);
                 break;
         }
     }
@@ -3045,6 +3113,7 @@ namespace Plugin {
         else if (paramName == "BacklightMode") caps = m_backlightModeCaps;
         else if (paramName == "CMS") caps = m_cmsCaps;
         else if (paramName == "WhiteBalance") caps = m_wbContextCaps;
+        else if (paramName == "SDRGamma") caps = m_sdrGammaModeCaps;
         else {
             LOGERR("Unknown ParamName: %s", paramName.c_str());
             return nullptr;
@@ -3273,6 +3342,180 @@ namespace Plugin {
 
         return validContexts;
     }
+    std::vector<std::string> AVOutputTV::getParamList(const JsonObject& parameters, const std::string& key, const std::vector<std::string>& fallbackList) {
+        std::vector<std::string> values;
+
+        if (parameters.HasLabel(key.c_str())) {
+            auto arr = getJsonArrayIfArray(parameters, key.c_str());
+            for (size_t i = 0; i < arr.Length(); ++i) {
+                values.emplace_back(arr[i].String());
+            }
+        }
+
+        if (values.empty() || (values.size() == 1 && values[0] == "Global")) {
+            return fallbackList;
+        }
+
+        return values;
+    }
+    bool AVOutputTV::isValueInRange(const std::string& control, int value) const {
+        if (control == "Gain")
+            return value >= m_minWBGain && value <= m_maxWBGain;
+        else if (control == "Offset")
+            return value >= m_minWBOffset && value <= m_maxWBOffset;
+        return true; // default to true for other controls
+    }
+
+    int AVOutputTV::handleCMSParamUpdate(const std::string& action, const JsonObject& parameters,
+                                        const std::vector<tvConfigContext_t>& validContexts, int& level)
+    {
+        bool isSet = (action == "set");
+        bool isReset = (action == "reset");
+        bool isSync = (action == "sync");
+        int ret = 0;
+
+        JsonArray colorArray = getJsonArrayIfArray(parameters, "color");
+        JsonArray componentArray = getJsonArrayIfArray(parameters, "component");
+
+        std::vector<std::string> colors, components;
+        for (size_t i = 0; i < colorArray.Length(); ++i) colors.emplace_back(colorArray[i].String());
+        for (size_t i = 0; i < componentArray.Length(); ++i) components.emplace_back(componentArray[i].String());
+
+        if (colors.empty()) colors.push_back("Global");
+        if (components.empty()) components.push_back("Global");
+
+        if (colors.size() == 1 && colors[0] == "Global") colors = m_cmsColorList;
+        if (components.size() == 1 && components[0] == "Global") components = m_cmsComponentList;
+
+        for (const auto& ctx : validContexts) {
+            for (const auto& colorStr : colors) {
+                for (const auto& componentStr : components) {
+                    tvPQParameterIndex_t pqIndex;
+                    if (convertCMSParamToPQEnum(componentStr, colorStr, pqIndex) != 0) {
+                        LOGERR("%s: convertCMSParamToPQEnum failed", __FUNCTION__);
+                        ret |= 1;
+                        continue;
+                    }
+
+                    tvDataComponentColor_t colorEnum;
+                    if (getCMSColorEnumFromString(colorStr, colorEnum) == -1) {
+                        LOGERR("Invalid CMS color: %s", colorStr.c_str());
+                        ret |= 2;
+                        continue;
+                    }
+
+                    tvComponentType_t componentEnum;
+                    if (getCMSComponentEnumFromString(componentStr, componentEnum) == -1) {
+                        LOGERR("Invalid CMS component: %s", componentStr.c_str());
+                        ret |= 4;
+                        continue;
+                    }
+
+                    if (!contains(m_cmsColorList, colorStr) || !contains(m_cmsComponentList, componentStr)) {
+                        LOGERR("Unsupported CMS color/component: %s / %s", colorStr.c_str(), componentStr.c_str());
+                        ret |= 8;
+                        continue;
+                    }
+
+                    paramIndex_t paramIndex {
+                        static_cast<uint8_t>(ctx.videoSrcType),
+                        static_cast<uint8_t>(ctx.pq_mode),
+                        static_cast<uint8_t>(ctx.videoFormatType),
+                        static_cast<uint8_t>(componentEnum),
+                        static_cast<uint8_t>(colorEnum),
+                        0, 0
+                    };
+
+                    int value = 0;
+                    if (isReset) {
+                        ret |= updateAVoutputTVParamToHALV2("CMS", paramIndex, 0, false);
+                        level = 0;
+                    }
+
+                    if (isSync || isReset) {
+                        if (getLocalparam("CMS", paramIndex, value, pqIndex, isSync) == 0)
+                            level = value;
+                        else
+                            continue;
+                    }
+
+                    ret |= SaveCMS(static_cast<tvVideoSrcType_t>(paramIndex.sourceIndex),
+                                paramIndex.pqmodeIndex,
+                                static_cast<tvVideoFormatType_t>(paramIndex.formatIndex),
+                                componentEnum, colorEnum, level);
+
+                    if (isSet)
+                        ret |= updateAVoutputTVParamToHALV2("CMS", paramIndex, level, true);
+                }
+            }
+        }
+
+        return ret;
+    }
+
+    int AVOutputTV::handleWBParamUpdate(const std::string& action, const JsonObject& parameters,
+                                    const std::vector<tvConfigContext_t>& validContexts, int& level)
+    {
+        bool isSet = (action == "set");
+        bool isReset = (action == "reset");
+        bool isSync = (action == "sync");
+        int ret = 0;
+
+        auto colorTemps = getParamList(parameters, "colorTemperature", m_wbColorTempList);
+        auto controls   = getParamList(parameters, "control", m_wbControlList);
+        auto colors     = getParamList(parameters, "color", m_wbColorList);
+
+        for (const auto& ctx : validContexts) {
+            for (const auto& colorTempStr : colorTemps) {
+                tvColorTemp_t colorTemp;
+                if (getColorTempEnumFromString(colorTempStr, colorTemp) != 0) continue;
+
+                for (const auto& controlStr : controls) {
+                    tvWBControl_t control;
+                    if (getWBControlEnumFromString(controlStr, control) != 0) continue;
+
+                    for (const auto& colorStr : colors) {
+                        tvWBColor_t color;
+                        if (getWBColorEnumFromString(colorStr, color) != 0) continue;
+
+                        paramIndex_t paramIndex {
+                            static_cast<uint8_t>(ctx.videoSrcType),
+                            static_cast<uint8_t>(ctx.pq_mode),
+                            static_cast<uint8_t>(ctx.videoFormatType),
+                            static_cast<uint8_t>(color),
+                            0,
+                            static_cast<uint8_t>(colorTemp),
+                            static_cast<uint8_t>(control)
+                        };
+
+                        int value = 0;
+                        if (isReset) {
+                            value = 0;
+                            ret |= updateAVoutputTVParamToHALV2("WhiteBalance", paramIndex, value, false);
+                        }
+
+                        tvPQParameterIndex_t dummy = PQ_PARAM_WB_GAIN_RED;
+                        if (isSync || isReset) {
+                            if (getLocalparam("WhiteBalance", paramIndex, value, dummy, isSync) != 0)
+                                continue;
+                        }
+
+                        if (!isValueInRange(controlStr, value)) continue;
+
+                        ret |= Save2PointWB(static_cast<tvVideoSrcType_t>(paramIndex.sourceIndex),
+                                            paramIndex.pqmodeIndex,
+                                            static_cast<tvVideoFormatType_t>(paramIndex.formatIndex),
+                                            colorTemp, color, control, value);
+
+                        if (isSet)
+                            ret |= updateAVoutputTVParamToHALV2("WhiteBalance", paramIndex, value, true);
+                    }
+                }
+            }
+        }
+
+        return ret;
+    }
 
     int AVOutputTV::updateAVoutputTVParamV2(std::string action, std::string tr181ParamName,
         const JsonObject& parameters,
@@ -3305,196 +3548,15 @@ namespace Plugin {
             return (int)tvERROR_GENERAL;
         }
         if (tr181ParamName == "CMS") {
-            JsonArray colorArray = getJsonArrayIfArray(parameters, "color");
-            JsonArray componentArray = getJsonArrayIfArray(parameters, "component");
-
-            std::vector<std::string> colors, components;
-
-            for (size_t i = 0; i < colorArray.Length(); ++i)
-                colors.emplace_back(colorArray[i].String());
-
-            for (size_t i = 0; i < componentArray.Length(); ++i)
-                components.emplace_back(componentArray[i].String());
-
-            if (colors.empty()) colors.push_back("Global");
-            if (components.empty()) components.push_back("Global");
-
-            if (colors.size() == 1 && colors[0] == "Global")
-                colors = m_cmsColorList;
-
-            if (components.size() == 1 && components[0] == "Global")
-                components = m_cmsComponentList;
-
-            for (const auto& ctx : validContexts) {
-                for (const auto& colorStr : colors) {
-                    for (const auto& componentStr : components) {
-#if DEBUG
-                        LOGINFO("%s: Processing Color: %s, Component: %s", __FUNCTION__, colorStr.c_str(), componentStr.c_str());
-#endif
-                        tvPQParameterIndex_t pqIndex;
-                        if (convertCMSParamToPQEnum(componentStr, colorStr, pqIndex) != 0) {
-                            LOGERR("%s: convertCMSParamToPQEnum failed for color: %s, component: %s",
-                                __FUNCTION__, colorStr.c_str(), componentStr.c_str());
-                            ret |= 1;
-                            continue;
-                        }
-                        tvDataComponentColor_t colorValue = tvDataColor_NONE;
-                        if ( getCMSColorEnumFromString(colorStr, colorValue ) == -1 ) {
-                            LOGERR("%s : getCMSColorEnumFromString failed for color: %s", __FUNCTION__, colorStr.c_str());
-                            ret |= 2;
-                            continue;
-                        }
-                        tvComponentType_t componentValue;
-                        if ( getCMSComponentEnumFromString(componentStr, componentValue ) == -1 ) {
-                            LOGERR("%s : getCMSComponentEnumFromString failed for component: %s", __FUNCTION__, componentStr.c_str());
-                            ret |= 4;
-                            continue;
-                        }
-                        if (std::find(m_cmsColorList.begin(), m_cmsColorList.end(), colorStr) == m_cmsColorList.end()) {
-                            LOGERR("%s: Color '%s' is not supported as per capabilities", __FUNCTION__, colorStr.c_str());
-                            ret |= 8;
-                            continue;
-                        }
-                        if (std::find(m_cmsComponentList.begin(), m_cmsComponentList.end(), componentStr) == m_cmsComponentList.end()) {
-                            LOGERR("%s: Component '%s' is not supported as per capabilities", __FUNCTION__, componentStr.c_str());
-                            ret |= 16;
-                            continue;
-                        }
-                        paramIndex_t paramIndex;
-                        paramIndex.sourceIndex = static_cast<uint8_t>(ctx.videoSrcType);
-                        paramIndex.pqmodeIndex = static_cast<uint8_t>(ctx.pq_mode);
-                        paramIndex.formatIndex = static_cast<uint8_t>(ctx.videoFormatType);
-                        paramIndex.componentIndex = static_cast<uint8_t>(componentValue);
-                        paramIndex.colorIndex = static_cast<uint8_t>(colorValue);
-                        paramIndex.colorTempIndex = 0;
-                        paramIndex.controlIndex = 0;
-
-                        int value = 0;
-                        if (isReset) {
-                            ret |= updateAVoutputTVParamToHALV2(tr181ParamName, paramIndex, 0, false);
-                            level = 0;
-                        }
-
-                        if (isSync || isReset) {
-                            if (getLocalparam(tr181ParamName, paramIndex, value, pqIndex, isSync) == 0) {
-                                level = value;
-                            } else {
-                                LOGWARN("%s: Skipping sync for color: %s, component: %s",
-                                        __FUNCTION__, colorStr.c_str(), componentStr.c_str());
-                                continue;
-                            }
-                        }
-                        ret |= SaveCMS(static_cast<tvVideoSrcType_t>(paramIndex.sourceIndex),
-                                    paramIndex.pqmodeIndex,
-                                    static_cast<tvVideoFormatType_t>(paramIndex.formatIndex),
-                                    static_cast<tvComponentType_t>(paramIndex.componentIndex),
-                                    static_cast<tvDataComponentColor_t>(paramIndex.colorIndex),
-                                    level);
-
-                        if (isSet) {
-                            ret |= updateAVoutputTVParamToHALV2(tr181ParamName, paramIndex, level, true);
-                        }
-                    }
-                }
-            }
-            LOGINFO("Exit: %s, Return Value: %d", __FUNCTION__, ret);
+            int ret = handleCMSParamUpdate(action, parameters, validContexts, level);
+            LOGINFO("Exit: %s CMS handling done, ret=%d", __FUNCTION__, ret);
             return (ret < 0) ? -1 : 0;
         }
         else if (tr181ParamName == "WhiteBalance") {
-            JsonArray colorTempArray = getJsonArrayIfArray(parameters, "colorTemperature");
-            JsonArray controlArray = getJsonArrayIfArray(parameters, "control");
-            JsonArray colorArray = getJsonArrayIfArray(parameters, "color");
-
-            std::vector<std::string> colors, controls, colorTemps;
-
-            for (size_t i = 0; i < colorArray.Length(); ++i)
-                colors.emplace_back(colorArray[i].String());
-            for (size_t i = 0; i < controlArray.Length(); ++i)
-                controls.emplace_back(controlArray[i].String());
-            for (size_t i = 0; i < colorTempArray.Length(); ++i)
-                colorTemps.emplace_back(colorTempArray[i].String());
-
-            if (colors.empty()) colors.push_back("Global");
-            if (controls.empty()) controls.push_back("Global");
-            if (colorTemps.empty()) colorTemps.push_back("Global");
-
-            if (colors.size() == 1 && colors[0] == "Global") colors = m_wbColorList;
-            if (controls.size() == 1 && controls[0] == "Global") controls = m_wbControlList;
-            if (colorTemps.size() == 1 && colorTemps[0] == "Global") colorTemps = m_wbColorTempList;
-
-            for (const auto& ctx : validContexts) {
-                for (const auto& colorTempStr : colorTemps) {
-                    tvColorTemp_t colorTemp;
-                    if (getColorTempEnumFromString(colorTempStr, colorTemp) != 0) {
-                        LOGERR("%s: Invalid colorTemp %s", __FUNCTION__, colorTempStr.c_str());
-                        continue;
-                    }
-
-                    for (const auto& controlStr : controls) {
-                        tvWBControl_t control;
-                        if (getWBControlEnumFromString(controlStr, control) != 0) {
-                            LOGERR("%s: Invalid control %s", __FUNCTION__, controlStr.c_str());
-                            continue;
-                        }
-
-                        for (const auto& colorStr : colors) {
-                            tvWBColor_t color;
-                            if (getWBColorEnumFromString(colorStr, color) != 0) {
-                                LOGERR("%s: Invalid color %s", __FUNCTION__, colorStr.c_str());
-                                continue;
-                            }
-                            paramIndex_t paramIndex {
-                                .sourceIndex     = static_cast<uint8_t>(ctx.videoSrcType),
-                                .pqmodeIndex     = static_cast<uint8_t>(ctx.pq_mode),
-                                .formatIndex     = static_cast<uint8_t>(ctx.videoFormatType),
-                                .colorIndex      = static_cast<uint8_t>(color),
-                                .componentIndex  = 0,
-                                .colorTempIndex  = static_cast<uint8_t>(colorTemp),
-                                .controlIndex    = static_cast<uint8_t>(control)
-                            };
-
-                            int value = 0;
-
-                            if (isReset) {
-                                value = 0;
-                                ret |= updateAVoutputTVParamToHALV2(tr181ParamName, paramIndex, value, false);
-                            }
-                            tvPQParameterIndex_t dummyPQIndex = PQ_PARAM_WB_GAIN_RED;
-                            if (isSync || isReset) {
-                                if (getLocalparam(tr181ParamName, paramIndex, value, dummyPQIndex, isSync) != 0) {
-                                    LOGWARN("%s: Skipping sync for %s/%s", __FUNCTION__, controlStr.c_str(), colorStr.c_str());
-                                    continue;
-                                }
-                            }
-
-                            // Validate value range
-                            if (controlStr == "Gain" && (value < m_minWBGain || value > m_maxWBGain)) {
-                                LOGWARN("%s: Gain value %d out of range for %s/%s", __FUNCTION__, value, colorStr.c_str(), controlStr.c_str());
-                                continue;
-                            }
-                            if (controlStr == "Offset" && (value < m_minWBOffset || value > m_maxWBOffset)) {
-                                LOGWARN("%s: Offset value %d out of range for %s/%s", __FUNCTION__, value, colorStr.c_str(), controlStr.c_str());
-                                continue;
-                            }
-
-                            // Save and apply
-                            ret |= Save2PointWB(static_cast<tvVideoSrcType_t>(paramIndex.sourceIndex),
-                                                paramIndex.pqmodeIndex,
-                                                static_cast<tvVideoFormatType_t>(paramIndex.formatIndex),
-                                                colorTemp, color, control, value);
-
-                            if (isSet) {
-                                ret |= updateAVoutputTVParamToHALV2(tr181ParamName, paramIndex, value, true);
-                            }
-                        }
-                    }
-                }
-            }
-
+            int ret = handleWBParamUpdate(action, parameters, validContexts, level);
             LOGINFO("Exit: %s WhiteBalance handling done, ret=%d", __FUNCTION__, ret);
             return (ret < 0) ? -1 : 0;
         }
-
         for (const auto& ctx : validContexts)
         {
             paramIndex_t paramIndex {
@@ -3623,6 +3685,14 @@ namespace Plugin {
                                 (tvPQModeIndex_t)paramIndex.pqmodeIndex,
                                 (tvVideoFormatType_t)paramIndex.formatIndex,
                                 level);
+            #endif
+                    break;
+                case PQ_PARAM_SDR_GAMMA:
+            #if HAL_NOT_READY
+            #else
+                    ret |= SetSdrGamma((tvVideoSrcType_t)paramIndex.sourceIndex,
+                                (tvPQModeIndex_t)paramIndex.pqmodeIndex,
+                                static_cast<tvSdrGamma_t>(level));
             #endif
                     break;
             #if HAL_NOT_READY
