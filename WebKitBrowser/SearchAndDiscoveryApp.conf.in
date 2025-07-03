@@ -39,7 +39,8 @@ configuration.add("localstoragesize", "@PLUGIN_SEARCH_AND_DISCOVERY_APP_LOCALSTO
 configuration.add("cookiestorage", "@PLUGIN_SEARCH_AND_DISCOVERY_APP_COOKIESTORAGE@")
 configuration.add("indexeddbenabled", "@PLUGIN_SEARCH_AND_DISCOVERY_APP_INDEXEDDB_ENABLE@")
 configuration.add("indexeddbpath", "@PLUGIN_SEARCH_AND_DISCOVERY_APP_INDEXEDDB_PATH@")
-configuration.add("indexeddbsize", "@PLUGIN_SEARCH_AND_DISCOVERY_APP_INDEXEDDB_SIZE@")
+configuration.add("originstorageratio", "@PLUGIN_SEARCH_AND_DISCOVERY_APP_ORIGIN_STORAGE_RATIO@")
+configuration.add("totalstorageratio", "@PLUGIN_SEARCH_AND_DISCOVERY_APP_TOTAL_STORAGE_RATIO@")
 
 if "@PLUGIN_WEBKITBROWSER_CLIENT_CERT@" != "" and "@PLUGIN_WEBKITBROWSER_CLIENT_CERT_KEY@" != "":
     configuration.add("clientcert", "@PLUGIN_WEBKITBROWSER_CLIENT_CERT@")
