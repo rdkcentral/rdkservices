@@ -203,8 +203,11 @@ namespace WPEFramework {
 
             if ((parameters.HasLabel("appids")) && (false == mDisableReserveTTS))
             {
-                std::string apps = parameters["appids"].String();
-                std::cout<<"appids : "<< apps << std::endl;
+                std::vector<std::string> apps;
+                for (const auto& item : parameters["appIds"].Array()) {
+                     apps.push_back(item.String());
+                }				
+                for (const auto& s : apps) std::cout << s << " "; std::cout << std::endl;				
 
                 status = reserveTTSResourceForApps(apps);
             }
