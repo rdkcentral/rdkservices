@@ -3539,7 +3539,9 @@ namespace WPEFramework
 
                     keyInfo = _instance->m_SendKeyQueue.front();
                     _instance->m_SendKeyQueue.pop();
-
+		    
+		if((keyInfo.logicalAddr != 0x5) || ((keyInfo.logicalAddr == 0x5) && (hdmiCecAudioDeviceConnected == true)))
+		{
 		    if(keyInfo.UserControl == "sendUserControlPressed" )
 		    {
 			    LOGINFO("sendUserControlPressed : logical addr:0x%x keyCode: 0x%x  queue size :%zu \n",keyInfo.logicalAddr,keyInfo.keyCode,_instance->m_SendKeyQueue.size());
@@ -3582,7 +3584,8 @@ namespace WPEFramework
 						_instance->sendGiveAudioStatusMsg();
 					}
 				}
-			}
+		        }
+		    }
 		}
 
             }//while(!_instance->m_sendKeyEventThreadExit)
