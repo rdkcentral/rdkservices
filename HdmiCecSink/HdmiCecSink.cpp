@@ -3540,7 +3540,7 @@ namespace WPEFramework
                     keyInfo = _instance->m_SendKeyQueue.front();
                     _instance->m_SendKeyQueue.pop();
 		    
-		if((keyInfo.logicalAddr != 0x5) || ((keyInfo.logicalAddr == 0x5) && (hdmiCecAudioDeviceConnected == true)))
+		if((keyInfo.logicalAddr != 0x5) || ((keyInfo.logicalAddr == 0x5) && (_instance->hdmiCecAudioDeviceConnected == true)))
 		{
 		    if(keyInfo.UserControl == "sendUserControlPressed" )
 		    {
