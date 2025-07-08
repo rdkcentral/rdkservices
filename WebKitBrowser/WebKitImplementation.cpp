@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <utility>
+#include <set>
 #include <tuple>
 #include <unistd.h>
 #include <sys/syscall.h>
@@ -45,6 +46,20 @@
 #endif
 
 #define HAS_MEMORY_PRESSURE_SETTINGS_API WEBKIT_CHECK_VERSION(2, 38, 0)
+#define HAS_SCREEN_HDR_API 1 // WEBKIT_CHECK_VERSION(2, 46, 0)
+#if HAS_SCREEN_HDR_API
+#include <interfaces/IDisplayInfo.h>
+typedef enum {
+    WEBKIT_SCREEN_DYNAMIC_RANGE_MODE_NONE = 0,
+    WEBKIT_SCREEN_DYNAMIC_RANGE_MODE_SDR,
+    WEBKIT_SCREEN_DYNAMIC_RANGE_MODE_HLG,
+    WEBKIT_SCREEN_DYNAMIC_RANGE_MODE_HDR10,
+    WEBKIT_SCREEN_DYNAMIC_RANGE_MODE_HDR10PLUS,
+    WEBKIT_SCREEN_DYNAMIC_RANGE_MODE_DOLBY_VISION,
+} WebKitScreenDynamicRangeMode;
+
+void webkit_settings_set_hdr_types(WebKitSettings*, GList*) {}
+#endif
 
 #ifdef ENABLE_TESTING
 #include <testrunner.h>
@@ -78,7 +93,8 @@ namespace Plugin {
                                  #if defined(ENABLE_CLOUD_COOKIE_JAR)
                                  public Exchange::IBrowserCookieJar,
                                  #endif
-                                 public PluginHost::IStateControl {
+                                 public PluginHost::IStateControl,
+                                 public Exchange::IConnectionProperties::INotification {
     public:
         class BundleConfig : public Core::JSON::Container {
         private:
@@ -648,6 +664,10 @@ namespace Plugin {
             if (Wait(Core::Thread::STOPPED | Core::Thread::BLOCKED, 6000) == false) {
                 TRACE(Trace::Information, (_T("Bailed out before the end of the WPE main app was reached. %d"), 6000));
             }
+
+#if HAS_SCREEN_HDR_API
+            UnsubscribeHDRCapabilities();
+#endif
 
             implementation = nullptr;
         }
@@ -1877,6 +1897,10 @@ namespace Plugin {
                 Core::SystemInfo::SetEnvironment(environmentVariable.Name.Value(), environmentVariable.Value.Value());
             }
 
+#if HAS_SCREEN_HDR_API
+            SubscribeHDRCapabilities();
+#endif
+
             // Oke, so we are good to go.. Release....
             Core::Thread::Run();
 
@@ -1927,6 +1951,7 @@ namespace Plugin {
             _config.Bundle.Config(key,value);
             return (value);
         }
+
         BEGIN_INTERFACE_MAP(WebKitImplementation)
         INTERFACE_ENTRY(Exchange::IWebBrowser)
         INTERFACE_ENTRY(Exchange::IBrowser)
@@ -1936,6 +1961,7 @@ namespace Plugin {
         INTERFACE_ENTRY (Exchange::IBrowserCookieJar)
 #endif
         INTERFACE_ENTRY(PluginHost::IStateControl)
+        INTERFACE_ENTRY(Exchange::IConnectionProperties::INotification)
         END_INTERFACE_MAP
 
     private:
@@ -2490,6 +2516,11 @@ namespace Plugin {
             // webaudio support
             webkit_settings_set_enable_webaudio(preferences, _config.WebAudioEnabled.Value());
 
+#if HAS_SCREEN_HDR_API
+            webkit_settings_set_enable_media_capabilities(preferences, TRUE);
+            RefreshHDRSupportSettings(preferences);
+#endif
+
             // Allow mixed content.
             bool enableWebSecurity = _config.Secure.Value();
 #if WEBKIT_CHECK_VERSION(2, 38, 0)
@@ -2655,6 +2686,163 @@ namespace Plugin {
             }
         }
 
+#if HAS_SCREEN_HDR_API
+        WPEFramework::PluginHost::IPlugin* QueryDisplayInfoPlugin()
+        {
+            if (_displayInfoPlugin) {
+                return _displayInfoPlugin;
+            }
+            if (!_service) {
+                return nullptr;
+            }
+            _displayInfoPlugin = _service->QueryInterfaceByCallsign<WPEFramework::PluginHost::IPlugin>(_T("DisplayInfo"));
+            return _displayInfoPlugin;
+        }
+
+        bool SubscribeHDRCapabilities()
+        {
+            auto* displayInfoPlugin = QueryDisplayInfoPlugin();
+            if (!displayInfoPlugin || _displayConnectionProps) {
+                return false;
+            }
+            _displayConnectionProps = displayInfoPlugin->QueryInterface<Exchange::IConnectionProperties>();
+            if (!_displayConnectionProps) {
+                return false;
+            }
+            _displayConnectionProps->Register(this);
+            return true;
+        }
+
+        void UnsubscribeHDRCapabilities()
+        {
+            if (_displayConnectionProps) {
+                _displayConnectionProps->Unregister(this);
+                _displayConnectionProps->Release();
+                _displayConnectionProps = nullptr;
+            }
+
+            if (_displayInfoPlugin) {
+                _displayInfoPlugin->Release();
+                _displayInfoPlugin = nullptr;
+            }
+        }
+
+        void RefreshHDRSupportSettings(WebKitSettings* settings)
+        {
+            auto displayInfoPlugin = QueryDisplayInfoPlugin();
+            if (!displayInfoPlugin) {
+                return;
+            }
+            Exchange::IHDRProperties* hdrPropIface = displayInfoPlugin->QueryInterface<Exchange::IHDRProperties>();
+            if (!hdrPropIface) {
+                return;
+            }
+            Exchange::IHDRProperties::IHDRIterator* iter = nullptr;
+            hdrPropIface->STBCapabilities(iter);
+            if (!iter) {
+                hdrPropIface->Release();
+                return;
+            }
+
+            std::vector<Exchange::IHDRProperties::HDRType> stbCaps;
+            Exchange::IHDRProperties::HDRType value;
+            while (iter->Next(value)) {
+                stbCaps.push_back(value);
+            }
+            iter->Release();
+
+            hdrPropIface->TVCapabilities(iter);
+            if (!iter) {
+                hdrPropIface->Release();
+                return;
+            }
+
+            std::set<Exchange::IHDRProperties::HDRType> commonCaps;
+            while (iter->Next(value)) {
+                if (std::find(stbCaps.begin(), stbCaps.end(), value) != stbCaps.end()) {
+                    commonCaps.insert(value);
+                }
+            }
+            iter->Release();
+            hdrPropIface->Release();
+
+            if (commonCaps == _recentHDRCapabilities) {
+                // No change in HDR capabilities, nothing to do
+                return;
+            }
+
+            _recentHDRCapabilities = commonCaps;
+            static auto convertToWebKitCaps = [](const Exchange::IHDRProperties::HDRType& hdrType) -> WebKitScreenDynamicRangeMode {
+                switch (hdrType) {
+                    case Exchange::IHDRProperties::HDRType::HDR_OFF:
+                        return WEBKIT_SCREEN_DYNAMIC_RANGE_MODE_SDR;
+                    case Exchange::IHDRProperties::HDRType::HDR_10:
+                        return WEBKIT_SCREEN_DYNAMIC_RANGE_MODE_HDR10;
+                    case Exchange::IHDRProperties::HDRType::HDR_10PLUS:
+                        return WEBKIT_SCREEN_DYNAMIC_RANGE_MODE_HDR10PLUS;
+                    case Exchange::IHDRProperties::HDRType::HDR_HLG:
+                        return WEBKIT_SCREEN_DYNAMIC_RANGE_MODE_HLG;
+                    case Exchange::IHDRProperties::HDRType::HDR_DOLBYVISION:
+                        return WEBKIT_SCREEN_DYNAMIC_RANGE_MODE_DOLBY_VISION;
+                    // case Exchange::IHDRProperties::HDRType::HDR_TECHNICOLOR:
+                    //     ;
+                    default:
+                        return WEBKIT_SCREEN_DYNAMIC_RANGE_MODE_NONE;
+                }
+            };
+
+            GList* hdrTypesList = nullptr;
+            bool hdrEnabled = false;
+            for (const auto& hdrType : commonCaps) {
+                WebKitScreenDynamicRangeMode webkitHdrType = convertToWebKitCaps(hdrType);
+                if (hdrType > Exchange::IHDRProperties::HDRType::HDR_OFF) {
+                    hdrEnabled = true;
+                }
+                if (webkitHdrType != WEBKIT_SCREEN_DYNAMIC_RANGE_MODE_NONE) {
+                    hdrTypesList = g_list_append(hdrTypesList, GINT_TO_POINTER(webkitHdrType));
+                }
+            }
+            if (webkit_settings_get_screen_supports_hdr(settings) != hdrEnabled) {
+                webkit_settings_set_screen_supports_hdr(settings, hdrEnabled);
+            }
+            webkit_settings_set_hdr_types(settings, hdrTypesList);
+            g_list_free(hdrTypesList);
+        }
+
+        // Exchange::IConnectionProperties::INotification implementation
+        // This method is called on the main thread of the plugin
+        // when the display connection properties are updated.
+        void Updated(const Source event) override
+        {
+            _adminLock.Lock();
+            if (_hdrRefreshPending) {
+                // There is already a pending HDR capabilities refresh on webkit main thread
+                // No need to schedule another one
+                _adminLock.Unlock();
+                return;
+            }
+            _hdrRefreshPending = true;
+            _adminLock.Unlock();
+
+            g_main_context_invoke(
+                _context,
+                [](gpointer user_data) -> gboolean {
+                    WebKitImplementation* browser = static_cast<WebKitImplementation*>(user_data);
+
+                    browser->_adminLock.Lock();
+                    browser->_hdrRefreshPending = false;
+                    browser->_adminLock.Unlock();
+
+                    WebKitSettings* settings = webkit_web_view_get_settings(browser->_view);
+                    browser->RefreshHDRSupportSettings(settings);
+                    browser->_adminLock.Lock();
+                    browser->_adminLock.Unlock();
+                    return G_SOURCE_REMOVE;
+                },
+                this);
+        }
+#endif // HAS_SCREEN_HDR_API
+
         void CheckWebProcess()
         {
             if ( _webProcessCheckInProgress )
@@ -2790,6 +2978,12 @@ namespace Plugin {
         uint32_t _unresponsiveReplyNum;
         unsigned _frameCount;
         gint64 _lastDumpTime;
+#if HAS_SCREEN_HDR_API
+        PluginHost::IPlugin* _displayInfoPlugin;
+        Exchange::IConnectionProperties* _displayConnectionProps;
+        std::set<Exchange::IHDRProperties::HDRType> _recentHDRCapabilities;
+        bool _hdrRefreshPending;
+#endif // HAS_SCREEN_HDR_API
     };
 
     SERVICE_REGISTRATION(WebKitImplementation, 1, 0);
