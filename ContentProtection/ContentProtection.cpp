@@ -19,8 +19,8 @@
 
 #include "ContentProtection.h"
 
-#define API_VERSION_NUMBER_MAJOR 2
-#define API_VERSION_NUMBER_MINOR 1
+#define API_VERSION_NUMBER_MAJOR 3
+#define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
 
 namespace WPEFramework {
