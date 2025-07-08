@@ -66,6 +66,7 @@ namespace WPEFramework {
 
             Register("getApiVersionNumber",    &RemoteControl::getApiVersionNumber,   this);
             Register("startPairing",           &RemoteControl::startPairing,          this);
+            Register("stopPairing",            &RemoteControl::stopPairing,           this);
             Register("getNetStatus",           &RemoteControl::getNetStatus,          this);
             Register("getIRDBManufacturers",   &RemoteControl::getIRDBManufacturers,  this);
             Register("getIRDBModels",          &RemoteControl::getIRDBModels,         this);
@@ -171,9 +172,6 @@ namespace WPEFramework {
 
             switch(eventId) {
                 case CTRLM_RCU_IARM_EVENT_RCU_STATUS:
-                case CTRLM_RCU_IARM_EVENT_VALIDATION_BEGIN:
-                case CTRLM_RCU_IARM_EVENT_VALIDATION_KEY_PRESS:
-                case CTRLM_RCU_IARM_EVENT_VALIDATION_END:
                 case CTRLM_RCU_IARM_EVENT_CONFIGURATION_COMPLETE:
                 case CTRLM_RCU_IARM_EVENT_RF4CE_PAIRING_WINDOW_TIMEOUT:
                     LOGWARN("Got CTRLM_RCU_IARM_EVENT event.");
@@ -182,6 +180,10 @@ namespace WPEFramework {
                 case CTRLM_RCU_IARM_EVENT_FIRMWARE_UPDATE_PROGRESS:
                     LOGWARN("Got CTRLM_RCU_IARM_FIRMWARE_EVENT event.");
                     onFirmwareUpdateProgress(eventData);
+                    break;
+                case CTRLM_RCU_IARM_EVENT_VALIDATION_STATUS:
+                    LOGWARN("Got CTRLM_RCU_IARM_VALIDATION_STATUS event.");
+                    onValidation(eventData);
                     break;
                 default:
                     LOGERR("ERROR - unexpected ctrlm event: eventId: %d, data: %p, size: %d.",
@@ -242,6 +244,54 @@ namespace WPEFramework {
                 LOGINFO("START PAIRING call SUCCESS!");
             else
                 LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_START_PAIRING returned FAILURE!");
+
+            returnResponse(bSuccess);
+        }
+
+        uint32_t RemoteControl::stopPairing(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            ctrlm_main_iarm_call_json_t *call = NULL;
+            IARM_Result_t                res;
+            string                       jsonParams;
+            bool                         bSuccess = false;
+            size_t                       totalsize = 0;
+
+            parameters.ToString(jsonParams);
+            totalsize = sizeof(ctrlm_main_iarm_call_json_t) + jsonParams.size() + 1;
+            call      = (ctrlm_main_iarm_call_json_t*)calloc(1, totalsize);
+
+            if (call == NULL)
+            {
+                LOGERR("ERROR - Cannot allocate IARM structure - size: %u.", (unsigned)totalsize);
+                bSuccess = false;
+                returnResponse(bSuccess);
+            }
+
+            call->api_revision = CTRLM_MAIN_IARM_BUS_API_REVISION;
+            size_t len = jsonParams.copy(call->payload, jsonParams.size());
+            call->payload[len] = '\0';
+
+            res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_STOP_PAIRING, (void *)call, totalsize);
+            if (res != IARM_RESULT_SUCCESS)
+            {
+                LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_STOP_PAIRING Bus Call FAILED, res: %d.", (int)res);
+                bSuccess = false;
+                free(call);
+                returnResponse(bSuccess);
+            }
+
+            JsonObject result;
+            result.FromString(call->result);
+            bSuccess = result["success"].Boolean();
+            response = result;
+            free(call);
+
+            if (bSuccess)
+                LOGINFO("STOP PAIRING call SUCCESS!");
+            else
+                LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_STOP_PAIRING returned FAILURE!");
 
             returnResponse(bSuccess);
         }
@@ -1025,7 +1075,7 @@ namespace WPEFramework {
         }
         //End methods
 
-        //Begin ble events
+        //Begin events
         void RemoteControl::onStatus(ctrlm_main_iarm_event_json_t* eventData)
         {
             JsonObject params;
@@ -1043,7 +1093,16 @@ namespace WPEFramework {
 
             sendNotify("onFirmwareUpdateProgress", params);
         }
-        //End ble events
+        
+        void RemoteControl::onValidation(ctrlm_main_iarm_event_json_t* eventData)
+        {
+            JsonObject params;
+
+            params.FromString(eventData->payload);
+
+            sendNotify("onValidation", params);
+        }
+        //End events
 
         //Begin local private utility methods
         void RemoteControl::setApiVersionNumber(unsigned int apiVersionNumber)
