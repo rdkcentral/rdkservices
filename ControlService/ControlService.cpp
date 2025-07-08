@@ -27,15 +27,6 @@
 #include "comcastIrKeyCodes.h"
 
 // Local types and definitions
-// Pairing validation status
-typedef enum
-{
-    VALIDATION_SUCCESS      = 0,
-    VALIDATION_TIMEOUT      = 1,
-    VALIDATION_FAILURE      = 2,
-    VALIDATION_ABORT        = 3,
-    VALIDATION_WRONG_CODE   = 4
-} eValidationStatusType;
 
 // Find My Remote event types
 typedef enum
@@ -142,9 +133,6 @@ namespace WPEFramework {
                 // Register for ControlMgr ghost code events
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_KEY_GHOST, controlEventHandler) );
                 // Register for ControlMgr pairing-related events
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_BEGIN, controlEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_KEY_PRESS, controlEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_END, controlEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_CONFIGURATION_COMPLETE, controlEventHandler) );
                 // Register for ControlMgr API 6 event additions (battery and reboot)
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_BATTERY_MILESTONE, controlEventHandler) );
@@ -168,9 +156,6 @@ namespace WPEFramework {
                 // Remove handler for ControlMgr ghost code events
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_KEY_GHOST, controlEventHandler) );
                 // Remove handlers for ControlMgr pairing-related events
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_BEGIN, controlEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_KEY_PRESS, controlEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_END, controlEventHandler) );
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_CONFIGURATION_COMPLETE, controlEventHandler) );
                 // Remove handlers for ControlMgr API 6 event additions (battery and reboot)
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_BATTERY_MILESTONE, controlEventHandler) );
@@ -211,10 +196,7 @@ namespace WPEFramework {
                 {
                     ctrlmHandler(owner, eventId, data, len);
                 }
-                else if ((eventId == CTRLM_RCU_IARM_EVENT_VALIDATION_BEGIN) ||
-                         (eventId == CTRLM_RCU_IARM_EVENT_VALIDATION_KEY_PRESS) ||
-                         (eventId == CTRLM_RCU_IARM_EVENT_VALIDATION_END) ||
-                         (eventId == CTRLM_RCU_IARM_EVENT_CONFIGURATION_COMPLETE))
+                else if (eventId == CTRLM_RCU_IARM_EVENT_CONFIGURATION_COMPLETE)
                 {
                     pairingHandler(owner, eventId, data, len);
                 }
@@ -518,178 +500,7 @@ namespace WPEFramework {
 
         void ControlService::pairingHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-            if (eventId == CTRLM_RCU_IARM_EVENT_VALIDATION_BEGIN)
-            {
-                LOGINFO("Got a controlMgr VALIDATION_BEGIN event!");
-                if (data != NULL)
-                {
-                    ctrlm_rcu_iarm_event_validation_begin_t *valBegin = (ctrlm_rcu_iarm_event_validation_begin_t*)data;
-                    if (valBegin->api_revision == CTRLM_RCU_IARM_BUS_API_REVISION)
-                    {
-                        LOGINFO("VALIDATION_BEGIN - network_id: %d, network_type: %d, controller_id: %d, controller_type: %s, binding_type: %d, validation_type: %d.\n",
-                                valBegin->network_id, valBegin->network_type, valBegin->controller_id, valBegin->controller_type,
-                                valBegin->binding_type, valBegin->validation_type);
-                        LOGINFO("VALIDATION_BEGIN - validation_keys as an int array: 0x%02x, 0x%02x, 0x%02x.\n",
-                                valBegin->validation_keys[0], valBegin->validation_keys[1], valBegin->validation_keys[2]);
-
-                        if (valBegin->binding_type == CTRLM_RCU_BINDING_TYPE_INTERACTIVE)
-                        {
-                            // 3-digit manual pairing begins
-                            m_enteredValDigits.clear();
-                            m_goldenValDigits.digit1 = numericCtrlm2Int(valBegin->validation_keys[0]);
-                            m_goldenValDigits.digit2 = numericCtrlm2Int(valBegin->validation_keys[1]);
-                            m_goldenValDigits.digit3 = numericCtrlm2Int(valBegin->validation_keys[2]);
-
-                            LOGINFO("VALIDATION_BEGIN manual 3-digit pairing - code: %d,%d,%d.",
-                                    m_goldenValDigits.digit1, m_goldenValDigits.digit2, m_goldenValDigits.digit3);
-
-                            onXRPairingStart((int)(valBegin->controller_id), valBegin->controller_type, (int)(valBegin->binding_type), m_goldenValDigits);
-                        }
-                        else
-                        {
-                            // We don't know what to do with a validation begin if it isn't 3-digit manual pairing!
-                            LOGWARN("VALIDATION_BEGIN without BINDING_TYPE_INTERACTIVE - no XRE event sent!!");
-                        }
-                    }
-                    else
-                    {
-                        LOGERR("Wrong VALIDATION_BEGIN ctrlm API revision - expected %d, event is %d!!",
-                               CTRLM_RCU_IARM_BUS_API_REVISION, valBegin->api_revision);
-                    }
-                }
-                else
-                {
-                    LOGERR("VALIDATION_BEGIN data is NULL!");
-                }
-            }
-            else if (eventId == CTRLM_RCU_IARM_EVENT_VALIDATION_KEY_PRESS)
-            {
-                LOGINFO("Got a controlMgr VALIDATION_KEY_PRESS event!");
-                if (data != NULL)
-                {
-                    ctrlm_rcu_iarm_event_key_press_t *valKey = (ctrlm_rcu_iarm_event_key_press_t*)data;
-                    bool bIsDigitCorrect = false;
-                    if (valKey->api_revision == CTRLM_RCU_IARM_BUS_API_REVISION)
-                    {
-                        LOGINFO("VALIDATION_KEY_PRESS - network_id: %d, network_type: %d, controller_id: %d, controller_type: %s, "
-                                "binding_type: %d, key_status: %d, key_code: 0x%02X.\n",
-                                valKey->network_id, valKey->network_type, valKey->controller_id, valKey->controller_type,
-                                valKey->binding_type, valKey->key_status, valKey->key_code);
-
-                        if (valKey->key_status == CTRLM_KEY_STATUS_DOWN)
-                        {
-                            // Build what was entered for codes as they arrive
-                            int digit = numericCtrlm2Int(valKey->key_code);
-                            LOGINFO("VALIDATION_KEY_PRESS - entered number %d.", digit);
-                            if (m_enteredValDigits.size() == 0)
-                            {
-                                m_enteredValDigits.digit1 = digit;
-                                // Test for the correct 1st digit
-                                if (m_goldenValDigits.digit1 == m_enteredValDigits.digit1)
-                                {
-                                    bIsDigitCorrect = true;
-                                }
-                            }
-                            else if (m_enteredValDigits.size() == 1)
-                            {
-                                m_enteredValDigits.digit2 = digit;
-                                // Test for the correct 2nd digit
-                                if (m_goldenValDigits.digit2 == m_enteredValDigits.digit2)
-                                {
-                                    bIsDigitCorrect = true;
-                                }
-                            }
-                            else if (m_enteredValDigits.size() == 2)
-                            {
-                                m_enteredValDigits.digit3 = digit;
-                                // Test for the correct 3rd digit
-                                if (m_goldenValDigits.digit3 == m_enteredValDigits.digit3)
-                                {
-                                    bIsDigitCorrect = true;
-                                }
-                            }
-
-                            // If we got an incorrect digit...
-                            if (!bIsDigitCorrect)
-                            {
-                                LOGINFO("Sending onXRValidationComplete event from VALIDATION_KEY_PRESS - wrong digit entered!");
-                                m_enteredValDigits.clear();
-
-                                // Send the Validation Complete (with a WRONG_CODE error) from here, because controlMgr won't send VALIDATION_END in this case
-                                onXRValidationComplete((int)(valKey->controller_id), valKey->controller_type,
-                                                       (int)(valKey->binding_type), (int)VALIDATION_WRONG_CODE);
-                            }
-                            else if (m_enteredValDigits.size() <= 3)
-                            {
-                                LOGINFO("Sending normal onXRValidationUpdate event from VALIDATION_KEY_PRESS");
-                                // Send normal 3-digit update event
-                                onXRValidationUpdate((int)(valKey->controller_id), valKey->controller_type, (int)(valKey->binding_type), m_enteredValDigits);
-                            }
-                            else
-                            {
-                                LOGERR("Keypress ERROR: More than 3 validation keypresses arrived!!");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        LOGERR("Wrong VALIDATION_KEY_PRESS ctrlm API revision - expected %d, event is %d!!",
-                               CTRLM_RCU_IARM_BUS_API_REVISION, valKey->api_revision);
-                    }
-                }
-                else
-                {
-                    LOGERR("VALIDATION_KEY_PRESS data is NULL!");
-                }
-            }
-            else if (eventId == CTRLM_RCU_IARM_EVENT_VALIDATION_END)
-            {
-                LOGINFO("Got a controlMgr VALIDATION_END event!");
-                if (data != NULL)
-                {
-                    ctrlm_rcu_iarm_event_validation_end_t *valEnd = (ctrlm_rcu_iarm_event_validation_end_t*)data;
-                    if (valEnd->api_revision == CTRLM_RCU_IARM_BUS_API_REVISION)
-                    {
-                        int validationStatus = 0;
-                        LOGINFO("VALIDATION_END - network_id: %d, network_type: %d, controller_id: %d, controller_type: %s, "
-                                "binding_type: %d, validation_type: %d, result: %d.\n",
-                                valEnd->network_id, valEnd->network_type, valEnd->controller_id, valEnd->controller_type,
-                                valEnd->binding_type, valEnd->validation_type, valEnd->result);
-
-                        m_enteredValDigits.clear();
-
-                        // Re-map the controlMgr validation end result to our XRE validationStatus
-                        switch (valEnd->result) {
-                            case CTRLM_RCU_VALIDATION_RESULT_SUCCESS:           validationStatus = VALIDATION_SUCCESS;      break;
-                            case CTRLM_RCU_VALIDATION_RESULT_PENDING:           validationStatus = VALIDATION_FAILURE;      break;
-                            case CTRLM_RCU_VALIDATION_RESULT_TIMEOUT:           validationStatus = VALIDATION_TIMEOUT;      break;
-                            case CTRLM_RCU_VALIDATION_RESULT_COLLISION:         validationStatus = VALIDATION_FAILURE;      break;
-                            case CTRLM_RCU_VALIDATION_RESULT_FAILURE:           validationStatus = VALIDATION_FAILURE;      break;
-                            case CTRLM_RCU_VALIDATION_RESULT_ABORT:             validationStatus = VALIDATION_ABORT;        break;
-                            case CTRLM_RCU_VALIDATION_RESULT_FULL_ABORT:        validationStatus = VALIDATION_ABORT;        break;
-                            case CTRLM_RCU_VALIDATION_RESULT_FAILED:            validationStatus = VALIDATION_WRONG_CODE;   break;
-                            case CTRLM_RCU_VALIDATION_RESULT_BIND_TABLE_FULL:   validationStatus = VALIDATION_FAILURE;      break;
-                            case CTRLM_RCU_VALIDATION_RESULT_IN_PROGRESS:       validationStatus = VALIDATION_FAILURE;      break;
-                            case CTRLM_RCU_VALIDATION_RESULT_CTRLM_RESTART:     validationStatus = VALIDATION_FAILURE;      break;
-                            default:                                            validationStatus = VALIDATION_FAILURE;      break;
-                        }
-
-                        // Send the ValidationComplete XRE event
-                        onXRValidationComplete((int)(valEnd->controller_id), valEnd->controller_type,
-                                               (int)(valEnd->binding_type), validationStatus);
-                    }
-                    else
-                    {
-                        LOGERR("Wrong VALIDATION_END ctrlm API revision - expected %d, event is %d!!",
-                               CTRLM_RCU_IARM_BUS_API_REVISION, valEnd->api_revision);
-                    }
-                }
-                else
-                {
-                    LOGERR("VALIDATION_END data is NULL!");
-                }
-            }
-            else if (eventId == CTRLM_RCU_IARM_EVENT_CONFIGURATION_COMPLETE)
+            if (eventId == CTRLM_RCU_IARM_EVENT_CONFIGURATION_COMPLETE)
             {
                 LOGINFO("Got a controlMgr CONFIGURATION_COMPLETE event!");
                 if (data != NULL)
