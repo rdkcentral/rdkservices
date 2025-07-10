@@ -48,6 +48,11 @@
             "type": "integer",
             "example": 35000
         },
+        "appId":{
+            "summary": "Durable App ID string",
+            "type": "string",
+            "example": "app-id-app1"
+        },
         "eventPayload":{
             "summary": "Custom payload of the event in JSON format. User defined colection of objects and keys. May be an empty object",
             "type": "object",
@@ -86,6 +91,9 @@
                     },
                     "uptimeTimestamp":{
                         "$ref": "#/definitions/uptimeTimestamp"
+                    },
+                    "appId":{
+                        "$ref": "#/definitions/appId"
                     },
                     "eventPayload":{
                         "$ref": "#/definitions/eventPayload"
