@@ -2189,6 +2189,7 @@ namespace Plugin {
                 supportedDimmingModeArray.Add(info.rangeVector[index]);
             }
 
+	    response["platformSupport"] = true;
             response["options"]=supportedDimmingModeArray;
 
             if (((info.pqmodeVector.front()).compare("none") != 0)) {
