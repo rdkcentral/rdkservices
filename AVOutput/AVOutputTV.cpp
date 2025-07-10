@@ -2219,6 +2219,7 @@ namespace Plugin {
         LOGINFO("Entry\n");
         tvDolbyMode_t dvModes[tvMode_Max] = { tvDolbyMode_Invalid };
         tvDolbyMode_t *dvModesPtr[tvMode_Max] = { 0 };
+
         unsigned short totalAvailable = 0;
         for (int i = 0; i < tvMode_Max; i++)
         {
