@@ -77,13 +77,13 @@ namespace WPEFramework
             return mIsSystemTimeAvailable;
         }
 
-        SystemTime::TimeZoneAccuracy SystemTime::GetTimeZoneOffset(int32_t &offsetSec)
+        ISystemTime::TimeZoneAccuracy SystemTime::GetTimeZoneOffset(int32_t &offsetSec)
         {
             std::lock_guard<std::mutex> guard(mLock);
 
             if (mIsSystemTimeAvailable)
             {
-                std::pair<SystemTime::TimeZoneAccuracy, int32_t> tzParsed = ParseTimeZone();
+                std::pair<ISystemTime::TimeZoneAccuracy, int32_t> tzParsed = ParseTimeZone();
                 offsetSec = tzParsed.second;
                 return tzParsed.first;
             }
@@ -228,15 +228,15 @@ namespace WPEFramework
             }
         }
 
-        std::pair<SystemTime::TimeZoneAccuracy, int32_t> SystemTime::ParseTimeZone()
+        std::pair<ISystemTime::TimeZoneAccuracy, int32_t> SystemTime::ParseTimeZone()
         {
-            std::pair<SystemTime::TimeZoneAccuracy, int32_t> result = {ACC_UNDEFINED, 0};
+            std::pair<ISystemTime::TimeZoneAccuracy, int32_t> result = {ACC_UNDEFINED, 0};
             if (mTimeZone.empty())
             {
                 return result;
             }
 
-            static const std::map<std::string, SystemTime::TimeZoneAccuracy> accuracyMap = {
+            static const std::map<std::string, ISystemTime::TimeZoneAccuracy> accuracyMap = {
                 {"INITIAL", INITIAL},
                 {"INTERIM", INTERIM},
                 {"FINAL", FINAL}};
