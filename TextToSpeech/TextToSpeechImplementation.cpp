@@ -29,6 +29,7 @@
 #define TTS_MINOR_VERSION 0
 
 #define GET_STR(map, key, def) ((map.HasLabel(key) && !map[key].String().empty() && map[key].String() != "null") ? map[key].String() : def)
+#define SERVER_DETAILS "127.0.0.1:9998"
 
 #undef returnResponse
 #define returnResponse(success) \
@@ -78,8 +79,32 @@ namespace Plugin {
         JsonObject config;
         config.FromString(service->ConfigLine());
 
+        std::string token;
+        auto security = service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
+        if (nullptr != security)
+        {
+            std::string payload = "http://localhost";
+            if (security->CreateToken(static_cast<uint16_t>(payload.length()),
+                                        reinterpret_cast<const uint8_t *>(payload.c_str()),
+                                        token) == Core::ERROR_NONE)
+            {
+                TTSLOG_INFO("got security token - %s", token.empty() ? "" : token.c_str());
+            }
+            else
+            {
+                TTSLOG_INFO("Failed to get security token");
+            }
+            security->Release();
+        }
+        else
+        {
+            TTSLOG_INFO("No security agent\n");
+        }
+        std::string query = "token=" + token;
+        Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
+
         TTS::TTSConfiguration *ttsConfig = _ttsManager->configuration();
-        TTS::RFCURLObserver::getInstance()->triggerRFC(ttsConfig);
+        TTS::RFCURLObserver::getInstance()->triggerRFC(ttsConfig, query);
         ttsConfig->setEndPoint(GET_STR(config, "endpoint", ""));
         ttsConfig->setSecureEndPoint(GET_STR(config, "secureendpoint", ""));
         ttsConfig->setLocalEndPoint(GET_STR(config, "localendpoint", ""));
