@@ -61,7 +61,7 @@ namespace Plugin {
                 token);
             if (ret != Core::ERROR_NONE) {
                 SYSLOG(Logging::Startup,
-                    (_T("Couldn't create token: %" PRIu32), ret));
+                    (_T("Couldn't create token: %d"), ret));
             }
             security->Release();
         }
