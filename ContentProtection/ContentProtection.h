@@ -587,7 +587,8 @@ namespace Plugin {
                                    != Core::ERROR_NONE)
                                || !in["success"].Boolean()) {
                                TRACE(Trace::Error,
-                                   (_T("create %d failed"), params.GraphicId));
+                                   (_T("create %" PRIu32 " failed"),
+                                       params.GraphicId.Value()));
                            }
                        })
                 == Core::ERROR_NONE);
@@ -603,7 +604,8 @@ namespace Plugin {
                                    != Core::ERROR_NONE)
                                || !in["success"].Boolean()) {
                                TRACE(Trace::Error,
-                                   (_T("delete %d failed"), params.GraphicId));
+                                   (_T("delete %" PRIu32 " failed"),
+                                       params.GraphicId.Value()));
                            }
                        })
                 == Core::ERROR_NONE);
@@ -651,7 +653,8 @@ namespace Plugin {
                                params.GraphicId);
                            if (!palette.IsSet()) {
                                TRACE(Trace::Error,
-                                   (_T("no palette %d"), params.GraphicId));
+                                   (_T("no palette %" PRIu32),
+                                       params.GraphicId.Value()));
                            } else {
                                PaletteWatermarkParams out;
                                out.Id = params.GraphicId;
@@ -669,8 +672,8 @@ namespace Plugin {
                                        != Core::ERROR_NONE)
                                    || !in["success"].Boolean()) {
                                    TRACE(Trace::Error,
-                                       (_T("modify %d failed"),
-                                           params.GraphicId));
+                                       (_T("modify %" PRIu32 " failed"),
+                                           params.GraphicId.Value()));
                                }
                            }
                        })
@@ -690,9 +693,9 @@ namespace Plugin {
                                                     .Get(params.Id);
                                if (watermark.IsSet()) {
                                    TRACE(Trace::Error,
-                                       (_T("%s %d failed"),
+                                       (_T("%s %" PRIu32 " failed"),
                                            params.Type.Value().c_str(),
-                                           params.Id));
+                                           params.Id.Value()));
                                }
                            } else if (params.Type == "create") {
                                auto watermark = _watermarkStorage
@@ -712,8 +715,8 @@ namespace Plugin {
                                            != Core::ERROR_NONE)
                                        || !in["success"].Boolean()) {
                                        TRACE(Trace::Error,
-                                           (_T("update %d failed"),
-                                               params.Id));
+                                           (_T("update %" PRIu32 " failed"),
+                                               params.Id.Value()));
                                    }
                                }
                            } else if (params.Type == "update") {
@@ -734,7 +737,8 @@ namespace Plugin {
                                            != Core::ERROR_NONE)
                                        || !in.ImageWidth || !in.ImageHeight) {
                                        TRACE(Trace::Error,
-                                           (_T("get %d failed"), params.Id));
+                                           (_T("get %" PRIu32 " failed"),
+                                               params.Id.Value()));
                                    } else {
                                        _palettedImageDataStorage.Set(
                                            params.Id,
@@ -769,8 +773,8 @@ namespace Plugin {
                                                != Core::ERROR_NONE)
                                            || !in2["success"].Boolean()) {
                                            TRACE(Trace::Error,
-                                               (_T("load %d failed"),
-                                                   params.Id));
+                                               (_T("load %" PRIu32 " failed"),
+                                                   params.Id.Value()));
                                        }
                                    }
                                }
