@@ -157,6 +157,37 @@
                 ]
             }
         },
+        "validationStatus": {
+            "summary": "The validation status of the manual pairing request.",
+            "type": "string",
+            "enum": [
+                "SUCCESS",
+                "PENDING",
+                "TIMEOUT",
+                "COLLISION",
+                "FAILURE",
+                "ABORT",
+                "FULL_ABORT",
+                "FAILED",
+                "BIND_TABLE_FULL",
+                "IN_PROGRESS",
+                "CTRLM_RESTART"
+            ],
+            "example": "SUCCESS"
+        },
+        "validationCode": {
+            "summary": "The pairing code for manual pairing which consists of 3 key codes (KEY_*).",
+            "type": "array",
+            "items": {
+                "type":"integer",
+                "example": "[2, 3, 4] -> [KEY_1, KEY_2, KEY_3]"
+            }
+        },
+        "validationKey": {
+            "summary": "A single key code (KEY_*) that is used to validate against the manual pair code in manual pairing mode.",
+            "type": "integer",
+            "example": "2 -> KEY_1"
+        },
         "avDevType": {
             "summary": "Whether the device is a video (TV) or audio (AVR, amplifier, or soundbar) device",
             "type": "string",
@@ -330,10 +361,47 @@
                     },
                     "macAddressList": {
                         "$ref": "#/definitions/macAddressList"
+                    },
+                    "screenBindEnable": {
+                        "summary": "Whether to enable screen bind mode. If this parameter is not present, the default value is `true`.",
+                        "type": "boolean",
+                        "default": true,
+                        "example": true
+                    },
+                    "scanEnable": {
+                        "summary": "Whether to enable scanning for remotes. If this parameter is not present, the default value is `true`.",
+                        "type": "boolean",
+                        "default": true,
+                        "example": true
                     }
                 },
                 "required": [
                     "netType"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }, 
+        "stopPairing": {
+            "summary": "Cancels pairing a remote with the STB on the specified network.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "screenBindDisable": {
+                        "summary": "Whether to disable screen bind mode. If this parameter is not present, the default value is `true`.",
+                        "type": "boolean",
+                        "default": true,
+                        "example": true
+                    },
+                    "scanDisable": {
+                        "summary": "Whether to disable scanning for remotes. If this parameter is not present, the default value is `true`.",
+                        "type": "boolean",
+                        "default": true,
+                        "example": true
+                    }
+                },
+                "required": [
                 ]
             },
             "result": {
@@ -960,6 +1028,27 @@
                     "status"
                 ]
             }
+        },
+        "onValidation": {
+            "summary": "Generated for manual pairing validation.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "$ref": "#/definitions/validationStatus"
+                    },
+                    "code": {
+                        "$ref": "#/definitions/validationCode"
+                    },
+                    "key": {
+                        "$ref": "#/definitions/validationKey"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+
         }
     }
 }
