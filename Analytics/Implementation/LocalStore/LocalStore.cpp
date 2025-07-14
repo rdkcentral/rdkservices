@@ -19,6 +19,7 @@
 
 #include "LocalStore.h"
 #include "UtilsLogging.h"
+#include "UtilsTelemetry.h"
 #include "DatabaseConnection.h"
 
 #include <unistd.h>
@@ -64,6 +65,7 @@ namespace WPEFramework
             else
             {
                 LOGERR("AddDatabase failed to create a new database %s ", dbPath.c_str());
+                Utils::Telemetry::sendError("LocalStore::Open - Failed to create a new database %s", dbPath.c_str());
             }
 
             return status;
@@ -84,11 +86,13 @@ namespace WPEFramework
                 else
                 {
                     LOGERR("Failed to create table %s", table.c_str());
+                    Utils::Telemetry::sendError("LocalStore::CreateTable - Failed to create table %s", table.c_str());
                 }
             }
             else
             {
                 LOGERR("Failed to create table %s, no connection", table.c_str());
+                Utils::Telemetry::sendError("LocalStore::CreateTable - Failed to create table %s, no connection", table.c_str());
             }
 
             return status;
@@ -108,11 +112,13 @@ namespace WPEFramework
                 else
                 {
                     LOGERR("Failed to set limit %u", limit);
+                    Utils::Telemetry::sendError("LocalStore::SetLimit - Failed to set limit %u", limit);
                 }
             }
             else
             {
                 LOGERR("Failed to set limit %u, no connection", limit);
+                Utils::Telemetry::sendError("LocalStore::SetLimit - Failed to set limit %u, no connection", limit);
             }
 
             return status;
@@ -140,11 +146,13 @@ namespace WPEFramework
                 else
                 {
                     LOGERR("Failed to build query with {%u, %u}", start, maxCount);
+                    Utils::Telemetry::sendError("LocalStore::GetEntriesCount - Failed to build query with {%u, %u}", start, maxCount);
                 }
             }
             else
             {
                 LOGERR("Failed to get entries count, no connection");
+                Utils::Telemetry::sendError("LocalStore::GetEntriesCount - Failed to get entries count, no connection");
             }
 
             return count;
@@ -167,6 +175,7 @@ namespace WPEFramework
                             if (table[rowIdx].NumCols() < 2)
                             {
                                 LOGERR("Failed to get entries, invalid row");
+                                Utils::Telemetry::sendError("LocalStore::GetEntries - Failed to get entries, invalid row");
                                 continue;
                             }
 
@@ -177,16 +186,19 @@ namespace WPEFramework
                     else
                     {
                         LOGERR("Failed to get entries, query %s", query.c_str());
+                        Utils::Telemetry::sendError("LocalStore::GetEntries - Failed to get entries, query %s", query.c_str());
                     }
                 }
                 else
                 {
                     LOGERR("Failed to build query with {%u, %u}", start, count);
+                    Utils::Telemetry::sendError("LocalStore::GetEntries - Failed to build query with {%u, %u}", start, count);
                 }
             }
             else
             {
                 LOGERR("Failed to get entries, no connection");
+                Utils::Telemetry::sendError("LocalStore::GetEntries - Failed to get entries, no connection");
             }
 
             return entries;
@@ -207,11 +219,13 @@ namespace WPEFramework
                 else
                 {
                     LOGERR("Failed to remove entries, query %s", query.c_str());
+                    Utils::Telemetry::sendError("LocalStore::RemoveEntries - Failed to remove entries, query %s", query.c_str());
                 }
             }
             else
             {
                 LOGERR("Failed to remove entries, no connection");
+                Utils::Telemetry::sendError("LocalStore::RemoveEntries - Failed to remove entries, no connection");
             }
 
             return status;
@@ -231,11 +245,13 @@ namespace WPEFramework
                 else
                 {
                     LOGERR("Failed to add entry, query %s", query.c_str());
+                    Utils::Telemetry::sendError("LocalStore::AddEntry - Failed to add entry, query %s", query.c_str());
                 }
             }
             else
             {
                 LOGERR("Failed to add entry, no connection");
+                Utils::Telemetry::sendError("LocalStore::AddEntry - Failed to add entry, no connection");
             }
 
             return status;
@@ -262,6 +278,7 @@ namespace WPEFramework
             else
             {
                 LOGERR("Failed to build query with {%u, %u}", start, count);
+                Utils::Telemetry::sendError("LocalStore::buildGetEventsQuery - Failed to build query with {%u, %u}", start, count);
             }
 
             return query;
