@@ -298,6 +298,8 @@ namespace Plugin {
     private:
         using JSONRPCLink = WPEFramework::JSONRPC::SmartLinkType<
             Core::JSON::IElement>;
+        using JSONRPCLinkNotSmart = WPEFramework::JSONRPC::LinkType<
+            Core::JSON::IElement>;
         using State
             = Exchange::IContentProtection::INotification::Status::State;
 
@@ -573,6 +575,10 @@ namespace Plugin {
         string Information() const override;
 
     private:
+        typedef std::function<void(const JsonObject&)> Callback1;
+        typedef std::function<void(const PaletteWatermarkParams&)> Callback2;
+
+    private:
         void Subscribe()
         {
             ASSERT(_secManager->Subscribe<OnAddWatermarkParams>(
@@ -593,15 +599,22 @@ namespace Plugin {
                            CreateWatermarkParams out;
                            out.Id = params.GraphicId;
                            out.Zorder = params.ZIndex;
-                           JsonObject in;
-                           auto result = _watermark->Invoke<
-                               CreateWatermarkParams, JsonObject>(
-                               Timeout, _T("createWatermark"), out, in);
-                           if ((result != Core::ERROR_NONE)
-                               || !in["success"].Boolean()) {
+                           auto id = params.GraphicId.Value();
+                           Callback1 callback =
+                               [&, id](const JsonObject& in) {
+                                   if (!in["success"].Boolean()) {
+                                       TRACE(Trace::Error,
+                                           (_T("create %" PRIu32 " failed"),
+                                               id));
+                                   }
+                               };
+                           auto result = _watermark2->Dispatch<
+                               CreateWatermarkParams>(
+                               Timeout, _T("createWatermark"), out, callback);
+                           if (result != Core::ERROR_NONE) {
                                TRACE(Trace::Error,
                                    (_T("create %" PRIu32 " failed %" PRIu32),
-                                       params.GraphicId.Value(), result));
+                                       id, result));
                            }
                        })
                 == Core::ERROR_NONE);
@@ -623,15 +636,22 @@ namespace Plugin {
                            }
                            DeleteWatermarkParams out;
                            out.Id = params.GraphicId;
-                           JsonObject in;
-                           auto result = _watermark->Invoke<
-                               DeleteWatermarkParams, JsonObject>(
-                               Timeout, _T("deleteWatermark"), out, in);
-                           if ((result != Core::ERROR_NONE)
-                               || !in["success"].Boolean()) {
+                           auto id = params.GraphicId.Value();
+                           Callback1 callback =
+                               [&, id](const JsonObject& in) {
+                                   if (!in["success"].Boolean()) {
+                                       TRACE(Trace::Error,
+                                           (_T("delete %" PRIu32 " failed"),
+                                               id));
+                                   }
+                               };
+                           auto result = _watermark2->Dispatch<
+                               DeleteWatermarkParams>(
+                               Timeout, _T("deleteWatermark"), out, callback);
+                           if (result != Core::ERROR_NONE) {
                                TRACE(Trace::Error,
                                    (_T("delete %" PRIu32 " failed %" PRIu32),
-                                       params.GraphicId.Value(), result));
+                                       id, result));
                            }
                        })
                 == Core::ERROR_NONE);
@@ -653,12 +673,17 @@ namespace Plugin {
                            }
                            ShowWatermarkParams out;
                            out.Show = !params.HideWatermark;
-                           JsonObject in;
-                           auto result = _watermark->Invoke<
-                               ShowWatermarkParams, JsonObject>(
-                               Timeout, _T("showWatermark"), out, in);
-                           if ((result != Core::ERROR_NONE)
-                               || !in["success"].Boolean()) {
+                           Callback1 callback =
+                               [&](const JsonObject& in) {
+                                   if (!in["success"].Boolean()) {
+                                       TRACE(Trace::Error,
+                                           (_T("show failed")));
+                                   }
+                               };
+                           auto result = _watermark2->Dispatch<
+                               ShowWatermarkParams>(
+                               Timeout, _T("showWatermark"), out, callback);
+                           if (result != Core::ERROR_NONE) {
                                TRACE(Trace::Error,
                                    (_T("show failed %" PRIu32), result));
                            }
@@ -693,12 +718,11 @@ namespace Plugin {
                            if (!session.IsSet()) {
                                return; // No such session
                            }
-                           auto palette = _palettedImageDataStorage.Get(
-                               params.GraphicId);
+                           auto id = params.GraphicId.Value();
+                           auto palette = _palettedImageDataStorage.Get(id);
                            if (!palette.IsSet()) {
                                TRACE(Trace::Error,
-                                   (_T("no palette %" PRIu32),
-                                       params.GraphicId.Value()));
+                                   (_T("no palette %" PRIu32), id));
                            } else {
                                PaletteWatermarkParams out;
                                out.Id = params.GraphicId;
@@ -708,17 +732,24 @@ namespace Plugin {
                                out.ClutKey = params.WatermarkClutBufferKey;
                                out.ClutSize = palette.Value().clutSize;
                                out.ClutType = palette.Value().clutType;
-                               JsonObject in;
-                               auto result = _watermark->Invoke<
-                                   PaletteWatermarkParams, JsonObject>(
+                               Callback1 callback =
+                                   [&, id](const JsonObject& in) {
+                                       if (!in["success"].Boolean()) {
+                                           TRACE(Trace::Error,
+                                               (_T("modify %" PRIu32
+                                                   " failed"),
+                                                   id));
+                                       }
+                                   };
+                               auto result = _watermark2->Dispatch<
+                                   PaletteWatermarkParams>(
                                    Timeout, _T("modifyPalettedWatermark"),
-                                   out, in);
-                               if ((result != Core::ERROR_NONE)
-                                   || !in["success"].Boolean()) {
+                                   out, callback);
+                               if (result != Core::ERROR_NONE) {
                                    TRACE(Trace::Error,
                                        (_T("modify %" PRIu32
                                            " failed %" PRIu32),
-                                           params.GraphicId.Value(), result));
+                                           id, result));
                                }
                            }
                        })
@@ -743,8 +774,8 @@ namespace Plugin {
                                            params.Id.Value()));
                                }
                            } else if (params.Type == "create") {
-                               auto watermark = _watermarkStorage
-                                                    .Get(params.Id);
+                               auto id = params.Id.Value();
+                               auto watermark = _watermarkStorage.Get(id);
                                if (watermark.IsSet()) {
                                    UpdateWatermarkParams out;
                                    out.Id = params.Id;
@@ -752,78 +783,105 @@ namespace Plugin {
                                                  .GraphicImageBufferKey;
                                    out.Size = watermark.Value()
                                                   .GraphicImageSize;
-                                   JsonObject in;
-                                   auto result = _watermark->Invoke<
-                                       UpdateWatermarkParams, JsonObject>(
+                                   Callback1 callback =
+                                       [&, id](const JsonObject& in) {
+                                           if (!in["success"].Boolean()) {
+                                               TRACE(Trace::Error,
+                                                   (_T("update %" PRIu32
+                                                       " failed"),
+                                                       id));
+                                           }
+                                       };
+                                   auto result = _watermark2->Dispatch<
+                                       UpdateWatermarkParams>(
                                        Timeout, _T("updateWatermark"),
-                                       out, in);
-                                   if ((result != Core::ERROR_NONE)
-                                       || !in["success"].Boolean()) {
+                                       out, callback);
+                                   if (result != Core::ERROR_NONE) {
                                        TRACE(Trace::Error,
                                            (_T("update %" PRIu32
                                                " failed %" PRIu32),
-                                               params.Id.Value(), result));
+                                               id, result));
                                    }
                                }
                            } else if (params.Type == "update") {
-                               auto watermark = _watermarkStorage
-                                                    .Get(params.Id);
+                               auto id = params.Id.Value();
+                               auto watermark = _watermarkStorage.Get(id);
                                if (watermark.IsSet()
                                    && watermark.Value()
                                        .AdjustVisibilityRequired) {
                                    DeleteWatermarkParams out;
                                    out.Id = params.Id;
-                                   PaletteWatermarkParams in;
-                                   auto result = _watermark->Invoke<
-                                       DeleteWatermarkParams,
-                                       PaletteWatermarkParams>(
+                                   auto sessionId = watermark.Value()
+                                                        .SessionId;
+                                   Callback2 callback =
+                                       [&, id, sessionId](
+                                           const PaletteWatermarkParams& in) {
+                                           if (!in.ImageWidth
+                                               || !in.ImageHeight) {
+                                               TRACE(Trace::Error,
+                                                   (_T("get %" PRIu32
+                                                       " failed"),
+                                                       id));
+                                           } else {
+                                               _palettedImageDataStorage.Set(
+                                                   id,
+                                                   { in.ImageKey,
+                                                       in.ImageWidth,
+                                                       in.ImageHeight,
+                                                       in.ClutKey,
+                                                       in.ClutSize,
+                                                       in.ClutType });
+
+                                               LoadClutWatermarkParams out;
+                                               out.SessionId = sessionId;
+                                               out.GraphicId = id;
+                                               out.WatermarkClutBufferKey
+                                                   = in.ClutKey;
+                                               out.WatermarkImageBufferKey
+                                                   = in.ImageKey;
+                                               out.ClutPaletteSize
+                                                   = in.ClutSize;
+                                               out.ClutPaletteFormat
+                                                   = in.ClutType;
+                                               out.WatermarkWidth
+                                                   = in.ImageWidth;
+                                               out.WatermarkHeight
+                                                   = in.ImageHeight;
+                                               out.AspectRatio
+                                                   = ((float)in.ImageWidth
+                                                       / (float)in.ImageHeight);
+                                               Callback1 callback =
+                                                   [&, id](const JsonObject& in) {
+                                                       if (!in["success"].Boolean()) {
+                                                           TRACE(Trace::Error,
+                                                               (_T("load %" PRIu32
+                                                                   " failed"),
+                                                                   id));
+                                                       }
+                                                   };
+                                               auto result = _secManager2->Dispatch<
+                                                   LoadClutWatermarkParams>(
+                                                   Timeout,
+                                                   _T("loadClutWatermark"),
+                                                   out, callback);
+                                               if (result != Core::ERROR_NONE) {
+                                                   TRACE(Trace::Error,
+                                                       (_T("load %" PRIu32
+                                                           " failed %" PRIu32),
+                                                           id, result));
+                                               }
+                                           }
+                                       };
+                                   auto result = _watermark2->Dispatch<
+                                       DeleteWatermarkParams>(
                                        Timeout,
                                        _T("getPalettedWatermark"),
-                                       out, in);
-                                   if ((result != Core::ERROR_NONE)
-                                       || !in.ImageWidth || !in.ImageHeight) {
+                                       out, callback);
+                                   if (result != Core::ERROR_NONE) {
                                        TRACE(Trace::Error,
                                            (_T("get %" PRIu32
                                                " failed %" PRIu32),
-                                               params.Id.Value(), result));
-                                   } else {
-                                       _palettedImageDataStorage.Set(
-                                           params.Id,
-                                           { in.ImageKey,
-                                               in.ImageWidth,
-                                               in.ImageHeight,
-                                               in.ClutKey,
-                                               in.ClutSize,
-                                               in.ClutType });
-
-                                       LoadClutWatermarkParams out;
-                                       out.SessionId = watermark.Value()
-                                                           .SessionId;
-                                       out.GraphicId = params.Id;
-                                       out.WatermarkClutBufferKey = in.ClutKey;
-                                       out.WatermarkImageBufferKey
-                                           = in.ImageKey;
-                                       out.ClutPaletteSize = in.ClutSize;
-                                       out.ClutPaletteFormat = in.ClutType;
-                                       out.WatermarkWidth = in.ImageWidth;
-                                       out.WatermarkHeight = in.ImageHeight;
-                                       out.AspectRatio
-                                           = ((float)in.ImageWidth
-                                               / (float)in.ImageHeight);
-                                       JsonObject in2;
-                                       result = _secManager->Invoke<
-                                           LoadClutWatermarkParams,
-                                           JsonObject>(
-                                           Timeout,
-                                           _T("loadClutWatermark"),
-                                           out, in2);
-                                       if ((result != Core::ERROR_NONE)
-                                           || !in2["success"].Boolean()) {
-                                           TRACE(Trace::Error,
-                                               (_T("load %" PRIu32
-                                                   " failed %" PRIu32),
-                                                   params.Id.Value(), result));
-                                       }
+                                               id, result));
                                    }
                                }
                            }
@@ -878,6 +936,8 @@ namespace Plugin {
         Exchange::IContentProtection* _implementation;
         Core::ProxyType<JSONRPCLink> _secManager;
         Core::ProxyType<JSONRPCLink> _watermark;
+        Core::ProxyType<JSONRPCLinkNotSmart> _secManager2;
+        Core::ProxyType<JSONRPCLinkNotSmart> _watermark2;
         Storage<Session> _sessionStorage;
         Storage<Watermark> _watermarkStorage;
         Storage<Exchange::PalettedImageData> _palettedImageDataStorage;
