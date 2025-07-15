@@ -72,6 +72,10 @@ namespace Plugin {
             _T("org.rdk.SecManager"), _T(""), "token=" + token);
         _watermark = Core::ProxyType<JSONRPCLink>::Create(
             _T("org.rdk.Watermark"), _T(""), "token=" + token);
+        _secManager2 = Core::ProxyType<JSONRPCLinkNotSmart>::Create(
+            _T("org.rdk.SecManager"), _T(""), "token=" + token);
+        _watermark2 = Core::ProxyType<JSONRPCLinkNotSmart>::Create(
+            _T("org.rdk.Watermark"), _T(""), "token=" + token);
         Subscribe();
 
         return result;
