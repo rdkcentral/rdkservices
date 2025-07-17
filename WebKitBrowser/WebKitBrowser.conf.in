@@ -15,12 +15,7 @@ configuration = JSON()
 
 configuration.add("url", "@PLUGIN_WEBKITBROWSER_STARTURL@")
 configuration.add("useragent", "@PLUGIN_WEBKITBROWSER_USERAGENT@")
-
-if not boolean("@WEBKIT_GLIB_API@"):
-    configuration.add("injectedbundle", "libWPEInjectedBundle@CMAKE_SHARED_LIBRARY_SUFFIX@")
-else:
-    configuration.add("extensiondir", "@PLUGIN_WEBKITBROWSER_EXTENSION_DIRECTORY@")
-
+configuration.add("extensiondir", "@PLUGIN_WEBKITBROWSER_EXTENSION_DIRECTORY@")
 configuration.add("transparent", "@PLUGIN_WEBKITBROWSER_TRANSPARENT@")
 configuration.add("compositor", "noaa")
 configuration.add("inspector", "@PLUGIN_WEBKITBROWSER_WEBINSPECTOR_ADDRESS@")
@@ -46,7 +41,8 @@ configuration.add("localstorage", "@PLUGIN_WEBKITBROWSER_LOCALSTORAGE@")
 configuration.add("cookiestorage", "@PLUGIN_WEBKITBROWSER_COOKIESTORAGE@")
 configuration.add("indexeddbenabled", "@PLUGIN_WEBKITBROWSER_INDEXEDDB_ENABLE@")
 configuration.add("indexeddbpath", "@PLUGIN_WEBKITBROWSER_INDEXEDDB_PATH@")
-configuration.add("indexeddbsize", "@PLUGIN_WEBKITBROWSER_INDEXEDDB_SIZE@")
+configuration.add("originstorageratio", "@PLUGIN_WEBKITBROWSER_ORIGIN_STORAGE_RATIO@")
+configuration.add("totalstorageratio", "@PLUGIN_WEBKITBROWSER_TOTAL_STORAGE_RATIO@")
 
 if boolean("@PLUGIN_WEBKITBROWSER_WINDOWCLOSE@"):
     configuration.add("windowclose", "@PLUGIN_WEBKITBROWSER_WINDOWCLOSE@")
@@ -108,3 +104,6 @@ if ("@PLUGIN_WEBKITBROWSER_MEMORYPRESSURE_SERVICEWORKERPROCESS_SETTINGS_LIMIT@ A
 memory.add("serviceworkerprocesssettings", serviceworkerprocesssettings)
 
 configuration.add("memory", memory)
+
+configuration.add("gstquirks", "@PLUGIN_WEBKITBROWSER_GST_QUIRKS@")
+configuration.add("gstholepunchquirk", "@PLUGIN_WEBKITBROWSER_GST_HOLE_PUNCH_QUIRK@")
