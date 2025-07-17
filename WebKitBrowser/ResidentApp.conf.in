@@ -8,12 +8,7 @@ configuration = JSON()
 
 configuration.add("url", "@PLUGIN_RESIDENT_APP_STARTURL@")
 configuration.add("useragent", "@PLUGIN_RESIDENT_APP_USERAGENT@")
-
-if not boolean("@WEBKIT_GLIB_API@"):
-    configuration.add("injectedbundle", "libWPEInjectedBundle@CMAKE_SHARED_LIBRARY_SUFFIX@")
-else:
-    configuration.add("extensiondir", "@PLUGIN_WEBKITBROWSER_EXTENSION_DIRECTORY@")
-
+configuration.add("extensiondir", "@PLUGIN_WEBKITBROWSER_EXTENSION_DIRECTORY@")
 configuration.add("transparent", "@PLUGIN_WEBKITBROWSER_TRANSPARENT@")
 configuration.add("compositor", "@PLUGIN_RESIDENT_APP_COMPOSITOR@")
 configuration.add("inspector", "@PLUGIN_RESIDENT_APP_WEBINSPECTOR_ADDRESS@")
@@ -38,7 +33,8 @@ configuration.add("localstoragesize", "@PLUGIN_RESIDENT_APP_LOCALSTORAGESIZE@")
 configuration.add("cookiestorage", "@PLUGIN_RESIDENT_APP_COOKIESTORAGE@")
 configuration.add("indexeddbenabled", "@PLUGIN_RESIDENT_APP_INDEXEDDB_ENABLE@")
 configuration.add("indexeddbpath", "@PLUGIN_RESIDENT_APP_INDEXEDDB_PATH@")
-configuration.add("indexeddbsize", "@PLUGIN_RESIDENT_APP_INDEXEDDB_SIZE@")
+configuration.add("originstorageratio", "@PLUGIN_RESIDENT_APP_ORIGIN_STORAGE_RATIO@")
+configuration.add("totalstorageratio", "@PLUGIN_RESIDENT_APP_TOTAL_STORAGE_RATIO@")
 
 if "@PLUGIN_WEBKITBROWSER_CLIENT_CERT@" != "" and "@PLUGIN_WEBKITBROWSER_CLIENT_CERT_KEY@" != "":
     configuration.add("clientcert", "@PLUGIN_WEBKITBROWSER_CLIENT_CERT@")
@@ -93,3 +89,6 @@ if ("@PLUGIN_RESIDENT_APP_MEMORYPRESSURE_SERVICEWORKERPROCESS_SETTINGS_LIMIT@ AN
 memory.add("serviceworkerprocesssettings", serviceworkerprocesssettings)
 
 configuration.add("memory", memory)
+
+configuration.add("gstquirks", "@PLUGIN_WEBKITBROWSER_GST_QUIRKS@")
+configuration.add("gstholepunchquirk", "@PLUGIN_WEBKITBROWSER_GST_HOLE_PUNCH_QUIRK@")

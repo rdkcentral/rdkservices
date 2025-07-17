@@ -69,6 +69,7 @@ using namespace std;
 
 #define PROC_DIR "/proc"
 #define RDK_PATH "/lib/rdk/"
+#define BIN_PATH "/usr/bin/"
 
 #define MAINTENANCE_MANAGER_RFC_CALLER_ID "MaintenanceManager"
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
@@ -81,7 +82,7 @@ using namespace std;
 #define TR181_XCONFURL "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl"
 #endif
 
-#define RFC_TASK RDK_PATH "Start_RFC.sh"
+#define RFC_TASK BIN_PATH "rfcMgr"
 #define SWUPDATE_TASK RDK_PATH "swupdate_utility.sh"
 #define LOGUPLOAD_TASK RDK_PATH "Start_uploadSTBLogs.sh"
 
@@ -272,7 +273,7 @@ namespace WPEFramework
         bool MaintenanceManager::g_task_timerCreated = false;
 
         string task_names_foreground[] = {
-            "/lib/rdk/Start_RFC.sh",
+            "/usr/bin/rfcMgr >> /opt/logs/rfcscript.log",
             "/lib/rdk/swupdate_utility.sh",
             "/lib/rdk/Start_uploadSTBLogs.sh"
         };
@@ -292,7 +293,7 @@ namespace WPEFramework
         };
 
         string task_names[]={
-            "RFCbase.sh",
+            "rfcMgr",
             "swupdate_utility.sh",
             "uploadSTBLogs.sh"
         };
@@ -1049,14 +1050,14 @@ namespace WPEFramework
              MM_LOGINFO("Starting Critical Tasks...");
              int rfc_task_status = -1;
              int xconf_imagecheck_status = -1;
- 
-             MM_LOGINFO("Starting /lib/rdk/Start_RFC.sh");
-             rfc_task_status = system("/lib/rdk/Start_RFC.sh &");
+
+             MM_LOGINFO("Starting /usr/bin/rfcMgr");
+	     rfc_task_status = system("/usr/bin/rfcMgr >> /opt/logs/rfcscript.log &");
              if (rfc_task_status != 0)
              {
-                 MM_LOGINFO("Failed to run Start_RFC.sh with %d", WEXITSTATUS(rfc_task_status));
-             }
- 
+                 MM_LOGINFO("Failed to run rfcMgr with %d", WEXITSTATUS(rfc_task_status));
+             }		 
+
              MM_LOGINFO("Starting /lib/rdk/xconfImageCheck.sh");
              xconf_imagecheck_status = system("/lib/rdk/xconfImageCheck.sh &");
              if (xconf_imagecheck_status != 0)
