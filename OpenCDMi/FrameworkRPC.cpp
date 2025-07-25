@@ -254,6 +254,48 @@ namespace Plugin {
                 uint16_t _occupation;
             };
 
+            // Purpose of ContextImplementation is initialization and de-initialization of the DRM system.
+            // Also in case of client crash proper de-initialization is performed.
+            class ContextImplementation: public Exchange::IOCDMContext {
+            private:
+                ContextImplementation() = delete;
+                ContextImplementation(const ContextImplementation&) = delete;
+                ContextImplementation& operator=(const ContextImplementation&) = delete;
+            public:
+                ContextImplementation(AccessorOCDM* parent, const std::string& keySystem, bool cleanOnDestroy)
+                    : _parent(*parent)
+                    , _keySystem(keySystem)
+                    , _cleanOnDestroy(cleanOnDestroy)
+                {
+                    ASSERT(parent != nullptr);
+
+                    TRACE_L1("Constructed ContextImplementation for keySystem %s", _keySystem.c_str());
+                }
+                virtual ~ContextImplementation()
+                {
+                    TRACE_L1("Destructing ContextImplementation %p for keySystem %s", this, _keySystem.c_str());
+                    _parent.Remove(this, _keySystem, _cleanOnDestroy);
+                    TRACE_L1("Destructed ContextImplementation for keySystem %s ", _keySystem.c_str());
+                }
+                void dummy() override
+                {
+                    //intentionally left empty
+                }
+                const std::string& GetKeySystem()
+                {
+                    return _keySystem;
+                }
+
+                BEGIN_INTERFACE_MAP(ContextImplementation)
+                INTERFACE_ENTRY(Core::IUnknown)
+                END_INTERFACE_MAP
+
+            private:
+                AccessorOCDM& _parent;
+                std::string _keySystem;
+                bool _cleanOnDestroy;
+            };
+
             // IMediaKeys defines the MediaKeys interface.
             class SessionImplementation : public Exchange::ISession, public Exchange::ISessionExt {
             private:
@@ -874,6 +916,80 @@ namespace Plugin {
                 return _defaultSize;
             }
 
+            Exchange::OCDM_RESULT CreateContext(const string& keySystem, bool cleanOnDestroy, Exchange::IOCDMContext*& context) override
+            {
+                Exchange::OCDM_RESULT result = Exchange::OCDM_RESULT::OCDM_S_FALSE;
+                CDMi::IMediaKeys *system = _parent.KeySystem(keySystem);
+                context = nullptr;
+                TRACE_L1("creating context for: %s", keySystem.c_str());
+
+                if(_parent.widevineAwaitingConfig) {
+                    LockGuard lock(_parent.widevineInitMutex);
+                    if (_parent.widevineDesignators.count(keySystem) != 0) {
+                        SYSLOG(Logging::Startup, (_T("WideVine initialization: apply the config")));
+                        auto factory = _parent._systemToFactory.find(keySystem);
+                        _parent.widevineInitialConfig = Lgi::updateWidevineConfig(_parent.widevineInitialConfig, _parent._asConfig);
+                        factory->second.Factory->Initialize(_parent._shell, _parent.widevineInitialConfig);
+                        _parent.widevineAwaitingConfig = false;
+                    }
+                }
+
+                bool hadInitializationError = false;
+                if (system != nullptr) {
+                    result = Exchange::OCDM_RESULT::OCDM_SUCCESS;
+                    CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
+                    if (systemExt != nullptr) {
+
+                        for (int i = 0; i < INITIALIZATION_MAX_RETRY_COUNTER; i++) {
+
+                            result = static_cast<Exchange::OCDM_RESULT>(systemExt->InitializeCtx(keySystem));
+
+                            if (result == Exchange::OCDM_RESULT::OCDM_SUCCESS) {
+                                if (hadInitializationError) {
+                                    TRACE(Trace::Warning, (_T("DRM initialization: success after re-trying, send SUCCESS notification")));
+                                    _parent.initializationStatusNotify(keySystem, Exchange::IContentDecryption::Status::SUCCESS);
+                                    ODH_ERROR_REPORT_CTX_ERROR(0, "DRM initialization: success after retrying", i);
+                                }
+
+                                ContextImplementation *ctxImplementation = Core::Service<ContextImplementation>::Create<ContextImplementation>(this, keySystem, cleanOnDestroy);
+                                context = ctxImplementation;
+
+                                _adminLock.Lock();
+                                _contextList.push_front(ctxImplementation);
+                                TRACE_L1("context created: %p, number of context instances %d", ctxImplementation, _contextList.size());
+                                _adminLock.Unlock();
+                                break;
+                            } else {
+                                TRACE(Trace::Error, (_T("DRM initialization: failed, result=%08x counter=%d"), result, i));
+                                if (result == Exchange::OCDM_RESULT::OCDM_BUSY_CANNOT_INITIALIZE) {
+                                    if (!hadInitializationError) {
+                                        hadInitializationError = true;
+                                        TRACE(Trace::Error, (_T("DRM initialization: failed, send BUSY notification")));
+                                        _parent.initializationStatusNotify(keySystem, Exchange::IContentDecryption::Status::BUSY);
+                                    }
+                                    usleep(INITIALIZATION_RETRY_SLEEP_MS * 1000);
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (context == nullptr) {
+                            TRACE(Trace::Error, (_T("Could not create DRM context! [%d]"), __LINE__));
+                            if (hadInitializationError) {
+                                TRACE(Trace::Error, (_T("DRM initialization: failed, send FAILED notification")));
+                                _parent.initializationStatusNotify(keySystem, Exchange::IContentDecryption::Status::FAILED);
+                                ODH_ERROR_REPORT_CTX_ERROR(0, "DRM initialization: failed after retrying", INITIALIZATION_MAX_RETRY_COUNTER);
+                            }
+                        }
+                    }
+                } else {
+                    TRACE(Trace::Error, (_T("System is null")));
+                }
+
+                return result;
+            }
+
             // Create a MediaKeySession using the supplied init data and CDM data.
             Exchange::OCDM_RESULT CreateSession(
                 const std::string& keySystem,
@@ -889,19 +1005,7 @@ namespace Plugin {
             {
                  CDMi::IMediaKeys *system = _parent.KeySystem(keySystem);
 
-                 if(_parent.widevineAwaitingConfig) {
-                     LockGuard lock(_parent.widevineInitMutex);
-                     if (_parent.widevineDesignators.count(keySystem) != 0) {
-                        SYSLOG(Logging::Startup, (_T("WideVine initialization: apply the config")));
-                        auto factory = _parent._systemToFactory.find(keySystem);
-                        _parent.widevineInitialConfig = Lgi::updateWidevineConfig(_parent.widevineInitialConfig, _parent._asConfig);
-                        factory->second.Factory->Initialize(_parent._shell, _parent.widevineInitialConfig);
-                        _parent.widevineAwaitingConfig = false;
-                     }
-                 }
-
                  session = nullptr;
-                 bool hadInitializationError = false;
                  if (system != nullptr)
                  {
                      CDMi::IMediaKeySession *sessionInterface = nullptr;
@@ -909,74 +1013,40 @@ namespace Plugin {
 
                      // OKe we got a buffer machanism to transfer the raw data, now create
                      // the session.
-                     for (int i = 0; i < INITIALIZATION_MAX_RETRY_COUNTER; i++)
+                     if (system->CreateMediaKeySession(keySystem, licenseType,
+                                        initDataType.c_str(), initData, initDataLength,
+                                        CDMData, CDMDataLength, &sessionInterface) == 0)
                      {
-                        CDMi::CDMi_RESULT result =  system->CreateMediaKeySession(keySystem, licenseType, 
-                                                    initDataType.c_str(), initData, initDataLength, 
-                                                    CDMData, CDMDataLength, &sessionInterface);
-                        if (result == 0)
-                        {
-                            if (hadInitializationError)
-                            {
-                                TRACE(Trace::Warning, (_T("DRM initialization: success after re-trying, send SUCCESS notification")));
-                                _parent.initializationStatusNotify(keySystem, Exchange::IContentDecryption::Status::SUCCESS);
-                                ODH_ERROR_REPORT_CTX_ERROR(0, "DRM initialization: success after retrying", i);
-                            }
-                            if (sessionInterface != nullptr)
-                            {
-                                SessionImplementation *newEntry = 
-                                   Core::Service<SessionImplementation>::Create<SessionImplementation>(this,
-                                                 keySystem, sessionInterface,
-                                                callback, &keyIds);
+                         if (sessionInterface != nullptr)
+                         {
+                             SessionImplementation *newEntry =
+                                 Core::Service<SessionImplementation>::Create<SessionImplementation>(this,
+                                               keySystem, sessionInterface,
+                                              callback, &keyIds);
 
-                                session = newEntry;
-                                sessionId = newEntry->SessionId();
+                              session = newEntry;
+                              sessionId = newEntry->SessionId();
 
-                                _adminLock.Lock();
+                              _adminLock.Lock();
 
-                                _sessionList.push_front(newEntry);
-                                
-                                if(false == keyIds.IsEmpty())
-                                {
-                                    CommonEncryptionData::Iterator index(keyIds.Keys());
-                                    while (index.Next() == true) {
-                                        const CommonEncryptionData::KeyId& entry(index.Current());
-                                        callback->OnKeyStatusUpdate( entry.Id(), entry.Length(), Exchange::ISession::StatusPending);
-                                    }
-                                }
-                                _adminLock.Unlock();
-                            }
-                            break;
-                        }
-                        else
-                        {
-                            TRACE(Trace::Error, (_T("DRM initialization: failed, result=%08x counter=%d"), result, i));
-                            if (result == CDMi::CDMi_RESULT::CDMi_BUSY_CANNOT_INITIALIZE)
-                            {
-                                if (!hadInitializationError)
-                                {
-                                    hadInitializationError = true;
-                                    TRACE(Trace::Error, (_T("DRM initialization: failed, send BUSY notification")));
-                                    _parent.initializationStatusNotify(keySystem, Exchange::IContentDecryption::Status::BUSY);
-                                }
-                                usleep(INITIALIZATION_RETRY_SLEEP_MS * 1000);
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-                    }
+                              _sessionList.push_front(newEntry);
+
+                              if(false == keyIds.IsEmpty())
+                              {
+                                  CommonEncryptionData::Iterator index(keyIds.Keys());
+                                  while (index.Next() == true) {
+                                      const CommonEncryptionData::KeyId& entry(index.Current());
+                                      callback->OnKeyStatusUpdate( entry.Id(), entry.Length(), Exchange::ISession::StatusPending);
+                                  }
+                              }
+                              RefContext(keySystem);
+                              _adminLock.Unlock();
+                         }
+                     }
                  }
 
                  if (session == nullptr) {
                      TRACE(Trace::Error, (_T("Could not create a DRM session! [%d]"), __LINE__));
-                     if (hadInitializationError)
-                     {
-                        TRACE(Trace::Error, (_T("DRM initialization: failed, send FAILED notification")));
-                        _parent.initializationStatusNotify(keySystem, Exchange::IContentDecryption::Status::FAILED);
-                        ODH_ERROR_REPORT_CTX_ERROR(0, "DRM initialization: failed after retrying", INITIALIZATION_MAX_RETRY_COUNTER);
-                     }
                  }
 
                  return (session != nullptr ? Exchange::OCDM_RESULT::OCDM_SUCCESS : Exchange::OCDM_RESULT::OCDM_S_FALSE);
@@ -1144,24 +1214,6 @@ namespace Plugin {
                 return Exchange::OCDM_RESULT::OCDM_S_FALSE;
             }
 
-            Exchange::OCDM_RESULT InitializeCtx(const std::string& keySystem) override
-            {
-                CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
-                if (systemExt) {
-                    return (Exchange::OCDM_RESULT)systemExt->InitializeCtx(keySystem);
-                }
-                return Exchange::OCDM_RESULT::OCDM_S_FALSE;
-            }
-
-            Exchange::OCDM_RESULT DeinitializeCtx(const std::string& keySystem, bool cleanOnDestroy) override
-            {
-                CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
-                if (systemExt) {
-                    return (Exchange::OCDM_RESULT)systemExt->DeinitializeCtx(keySystem, cleanOnDestroy);
-                }
-                return Exchange::OCDM_RESULT::OCDM_S_FALSE;
-            }
-
             Exchange::OCDM_RESULT CleanSecureStore(const std::string& keySystem) override
             {
                 Exchange::OCDM_RESULT result = Exchange::OCDM_RESULT::OCDM_S_FALSE;
@@ -1205,6 +1257,68 @@ namespace Plugin {
                 }
                 return (result);
             }
+
+            void Remove(ContextImplementation* context, const string& keySystem, bool cleanOnDestroy)
+            {
+                _adminLock.Lock();
+                ASSERT(context != nullptr);
+
+                if (context != nullptr) {
+                    std::list<ContextImplementation*>::iterator index(_contextList.begin());
+
+                    while ((index != _contextList.end()) && (context != (*index))) {
+                        index++;
+                    }
+
+                    if (index != _contextList.end()) {
+                        CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
+
+                        if (systemExt != nullptr) {
+                            Exchange::OCDM_RESULT result = (Exchange::OCDM_RESULT)systemExt->DeinitializeCtx(keySystem, cleanOnDestroy);
+                            if (result != Exchange::OCDM_RESULT::OCDM_SUCCESS) {
+                                TRACE(Trace::Error, (_T("Context deinitialization failure")));
+                            }
+                        }
+                        _contextList.erase(index);
+                    } else {
+                        TRACE(Trace::Error, (_T("Context not found %p"), context));
+                    }
+                }
+                _adminLock.Unlock();
+            }
+
+            void RefContext(const string& keySystem)
+            {
+                std::list<ContextImplementation*>::iterator index(_contextList.begin());
+
+                while ((index != _contextList.end()) && ((*index)->GetKeySystem() != keySystem)) {
+                    index++;
+                }
+
+                if (index != _contextList.end()) {
+                    (*index)->AddRef();
+                    TRACE(Trace::Information, (_T("Context found for: %s - adding ref"), keySystem.c_str()));
+                } else {
+                    TRACE(Trace::Warning, (_T("Context not found for: %s"), keySystem.c_str()));
+                }
+            }
+
+            void ReleaseContext(const string& keySystem)
+            {
+                std::list<ContextImplementation*>::iterator index(_contextList.begin());
+
+                while ((index != _contextList.end()) && ((*index)->GetKeySystem() != keySystem)) {
+                    index++;
+                }
+
+                if (index != _contextList.end()) {
+                    (*index)->Release();
+                    TRACE(Trace::Information, (_T("Context found for: %s - releasing"), keySystem.c_str()));
+                } else {
+                    TRACE(Trace::Warning, (_T("Context not found for: %s"), keySystem.c_str()));
+                }
+            }
+
             void Remove(SessionImplementation* session, const string& keySystem, CDMi::IMediaKeySession* mediaKeySession)
             {
 
@@ -1247,6 +1361,8 @@ namespace Plugin {
                     }
                 }
 
+                //This is to make sure that ContextImplementation is released after session is destroyed
+                ReleaseContext(keySystem);
                 _adminLock.Unlock();
             }
 
@@ -1256,6 +1372,7 @@ namespace Plugin {
             BufferAdministrator _administrator;
             uint32_t _defaultSize;
             std::list<SessionImplementation*> _sessionList;
+            std::list<ContextImplementation*> _contextList;
         };
 
         class Config : public Core::JSON::Container {
