@@ -2252,6 +2252,7 @@ namespace Plugin {
         paramIndex_t indexInfo;
         int dolbyMode = 0;
         int err = 0;
+        tvVideoFormatType_t video_type = VIDEO_FORMAT_NONE;
 
         if (parsingGetInputArgument(parameters, "DolbyVisionMode",inputInfo) != 0) {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
@@ -2262,6 +2263,12 @@ namespace Plugin {
 	    returnResponse(false);
 	}
 
+        GetCurrentVideoFormat(&video_type);
+        if(video_type != VIDEO_FORMAT_DV)
+        {
+            LOGERR("%s: Invalid video format: %d \n", __FUNCTION__,video_type);
+            returnResponse(false);
+        }
 
         if (getParamIndex("DolbyVisionMode",inputInfo,indexInfo) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
