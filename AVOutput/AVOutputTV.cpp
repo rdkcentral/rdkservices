@@ -2016,6 +2016,10 @@ namespace Plugin {
             returnResponse(false);
         }
 
+	if (isPlatformSupport("DimmingMode") != 0) {
+	    returnResponse(false);
+	}
+
         if (getParamIndex("DimmingMode",inputInfo,indexInfo) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
             returnResponse(false);
@@ -2072,6 +2076,10 @@ namespace Plugin {
             returnResponse(false);
         }
 
+	if (isPlatformSupport("DimmingMode") != 0) {
+	    returnResponse(false);
+	}
+
         if( !isCapablityCheckPassed( "DimmingMode" , inputInfo )) {
             LOGERR("%s: CapablityCheck failed for DimmingMode\n", __FUNCTION__);
             returnResponse(false);
@@ -2117,6 +2125,10 @@ namespace Plugin {
             LOGERR("%s: CapablityCheck failed for DimmingMode\n", __FUNCTION__);
             returnResponse(false);
         }
+
+	if (isPlatformSupport("DimmingMode") != 0) {
+	    returnResponse(false);
+	}
 
         int retval= updateAVoutputTVParam("reset","DimmingMode", inputInfo,PQ_PARAM_DIMMINGMODE,dMode);
 
@@ -2171,6 +2183,8 @@ namespace Plugin {
             returnResponse(false);
         }
         else {
+            response["platformSupport"] = (info.isPlatformSupportVector[0].compare("true") == 0)  ? true : false;
+
             for (index = 0; index < info.rangeVector.size(); index++) {
                 supportedDimmingModeArray.Add(info.rangeVector[index]);
             }
