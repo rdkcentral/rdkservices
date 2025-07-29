@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.45] - 2025-07-29
+### Fixed
+- Replace RFCScript.sh with rfcMgr for the Maintenance manager task
+ 
 ## [1.0.44] - 2025-06-19
 ### Fixed
 - Fixed coverity reported issues
