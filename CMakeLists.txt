@@ -148,6 +148,10 @@ if(PLUGIN_STORAGE_MANAGER)
     add_subdirectory(StorageManager)
 endif()
 
+if(PLUGIN_NATIVEJS)
+        add_subdirectory(NativeJS)
+endif()
+
 if(PLUGIN_DEVICE_PROVISIONING)
     add_subdirectory(DeviceProvisioning)
 endif()
