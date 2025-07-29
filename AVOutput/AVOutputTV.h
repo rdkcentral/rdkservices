@@ -2,7 +2,7 @@
 * If not stated otherwise in this file or this component's LICENSE file the
 * following copyright and licenses apply:
 *
-* Copyright 2024 Sky UK
+* Copyright 2024 RDK Management
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@
 
 #include "tvTypes.h"
 #include "tvSettings.h"
-#include "tvSettingsExtODM.h"
 #include <pthread.h>
 #include "Module.h"
 #include "tvError.h"
@@ -212,8 +211,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getDigitalNoiseReduction)
 		DECLARE_JSON_RPC_METHOD(getMEMC)
 		DECLARE_JSON_RPC_METHOD(getSDRGamma)
-
-
+		DECLARE_JSON_RPC_METHOD(getDolbyVisionCalibration)
 
 		/*Get Capability API's*/
 		DECLARE_JSON_RPC_METHOD(getBacklightCaps)
@@ -286,7 +284,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(setDigitalNoiseReduction)
 		DECLARE_JSON_RPC_METHOD(setMEMC)
 		DECLARE_JSON_RPC_METHOD(setSDRGamma)
-
+		DECLARE_JSON_RPC_METHOD(setDolbyVisionCalibration)
 		/*Reset API's*/
 		DECLARE_JSON_RPC_METHOD(resetBacklight)
 		DECLARE_JSON_RPC_METHOD(resetBrightness )
@@ -311,12 +309,12 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(resetDigitalNoiseReduction)
 		DECLARE_JSON_RPC_METHOD(resetMEMC)
 		DECLARE_JSON_RPC_METHOD(resetSDRGamma)
+		DECLARE_JSON_RPC_METHOD(resetDolbyVisionCalibration)
 
 
     private:
 
 		
-		tvContentFormatType_t getContentFormatIndex(tvVideoHDRFormat_t formatToConvert);
 		int getPictureModeIndex(std::string pqmode);
 		int getSourceIndex(std::string source);
 		int getFormatIndex(std::string format);		
@@ -386,10 +384,8 @@ class AVOutputTV : public AVOutputBase {
 		int getLocalparam( std::string forParam,paramIndex_t indexInfo,int & value,tvPQParameterIndex_t pqParamIndex,bool sync=false);
 		
 		tvDataComponentColor_t getComponentColorEnum(std::string colorName);
-		int getDolbyParams(tvContentFormatType_t format, std::string &s, std::string source = "");
 		tvError_t getParamsCaps(std::string param, capVectors_t &vecInfo);
 		int GetPanelID(char *panelid);
-		int ConvertHDRFormatToContentFormat(tvhdr_type_t hdrFormat);
 		int ReadCapablitiesFromConf(std::string param, capDetails_t& info);
 
 		void getDimmingModeStringFromEnum(int value, std::string &toStore);
@@ -452,7 +448,9 @@ class AVOutputTV : public AVOutputBase {
 		tvContextCaps_t* AllocateContextCaps(const std::vector<tvConfigContext_t>& contexts);
 		tvError_t GetCaps(const std::string& key, int* max_value, tvContextCaps_t** context_caps);
 
-		tvError_t GetDVCalibrationCaps(tvDVCalibrationSettings_t **min_values, tvDVCalibrationSettings_t **max_values, tvContextCaps_t **context_caps);
+		tvError_t GetDVCalibrationCaps(tvDVCalibrationSettings_t **min_values, tvDVCalibrationSettings_t **max_values,
+                               tvDVCalibrationComponent_t **component, size_t* num_component,
+                               tvContextCaps_t **context_caps);
 		tvError_t GetBacklightModeCaps(tvBacklightMode_t** backlight_mode, size_t* num_backlight_mode, tvContextCaps_t** context_caps);
 		tvError_t GetLocalContrastEnhancementCaps(int* maxLocalContrastEnhancement, tvContextCaps_t** context_caps);
 		tvError_t GetMPEGNoiseReductionCaps(int* maxMPEGNoiseReduction, tvContextCaps_t** context_caps);
@@ -527,7 +525,7 @@ class AVOutputTV : public AVOutputBase {
 		bool contains(const std::vector<T>& vec, const T& value) {
 			return std::find(vec.begin(), vec.end(), value) != vec.end();
 		}
-		std::vector<std::string> getParamList(const JsonObject& parameters, const std::string& key, 
+		std::vector<std::string> getParamList(const JsonObject& parameters, const std::string& key,
 			const std::vector<std::string>& fallbackList);
 		bool isValueInRange(const std::string& control, int value) const;
 		int handleCMSParamUpdate(const std::string& action, const JsonObject& parameters,
@@ -692,10 +690,29 @@ class AVOutputTV : public AVOutputBase {
 		tvContextCaps_t* m_multiPointWBCaps = nullptr;
 		tvError_t m_multiPointWBStatus = tvERROR_NONE;
 
-		tvDVCalibrationSettings_t* m_minValues;
-		tvDVCalibrationSettings_t* m_maxValues;
-		tvContextCaps_t* m_DVCalibrationCaps = nullptr;
-		tvError_t m_DVCalibrationStatus = tvERROR_NONE;
+
+		tvError_t m_dvCalibrationStatus = tvERROR_GENERAL;
+		tvDVCalibrationSettings_t* m_minDVCalibrationSettings = nullptr;
+		tvDVCalibrationSettings_t* m_maxDVCalibrationSettings = nullptr;
+		tvDVCalibrationComponent_t* m_dvCalibrationComponentArr = nullptr;
+		size_t m_numDVCalibrationComponent = 0;
+		tvContextCaps_t* m_dvCalibrationCaps = nullptr;
+		std::vector<std::string> m_dvCalibrationComponentList;
+		bool m_isDVCalibrationPlatformSupported = false;
+		std::string dvComponentToString(tvDVCalibrationComponent_t comp);
+		tvDVCalibrationComponent_t getDVComponentEnumFromString(const std::string& str);
+		bool isDVCalibrationComponentValueInRange(tvDVCalibrationComponent_t comp, double val);
+		tvError_t setDVCalibrationParam(const std::string& forParam, const paramIndex_t& indexInfo, double value, const std::string& component);
+		tvError_t setDVCalibrationTimestamp(const paramIndex_t& indexInfo, uint64_t timestamp);
+		tvError_t getDVCalibrationParam(const std::string& forParam, const paramIndex_t& indexInfo, double& outValue, const std::string& component);
+		uint64_t getLastDVCalibrationSetTimestamp(const std::string& pqMode, const std::string& source, const std::string& format);
+		tvError_t updateDVCalibration(const std::vector<tvConfigContext_t>& contexts,
+                              const std::vector<std::string>& components,
+                              const std::map<std::string, double>& overrideValues,
+                              const std::string& action);
+		void syncDVCalibrationParams();
+		uint32_t generateStorageIdentifierDV(std::string &key, const std::string &forParam, const paramIndex_t &info);
+
 
 		int m_maxCmsHue = 0;
 		int m_maxCmsSaturation = 0;
@@ -732,6 +749,10 @@ class AVOutputTV : public AVOutputBase {
 		std::string convertPictureIndexToStringV2(int pqmode);
 		std::string convertVideoFormatToStringV2(int format);
 		std::string convertSourceIndexToStringV2(int source);
+		static tvPQModeIndex_t convertPictureStringToIndexV2(const std::string& modeStr);
+		static tvVideoSrcType_t convertSourceStringToIndexV2(const std::string& srcStr);
+		static tvVideoFormatType_t convertVideoFormatStringToIndexV2(const std::string& fmtStr);
+
 
 		uint32_t generateStorageIdentifierV2(std::string &key, std::string forParam, paramIndex_t info);
 		void generateStorageIdentifierCMSV2(std::string &key, std::string forParam, paramIndex_t info);
