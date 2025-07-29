@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 #include "AnalyticsBackendLoader.h"
+#include "UtilsTelemetry.h"
 #include "UtilsLogging.h"
 
 namespace WPEFramework {
@@ -26,6 +27,7 @@ uint32_t AnalyticsBackendLoader::Load(std::string path)
 {
     if (path.empty()) {
         LOGERR("Analytics backend path is empty");
+        Utils::Telemetry::sendError("AnalyticsBackendLoader::Load - Analytics backend path is empty");
         return Core::ERROR_GENERAL;
     }
 
@@ -34,6 +36,7 @@ uint32_t AnalyticsBackendLoader::Load(std::string path)
     if (ret != Utils::LibraryLoader::ErrorCode::NO_ERROR)
     {
         LOGERR("Failed to load analytics backend library (%s): %s", path.c_str(), error.c_str());
+        Utils::Telemetry::sendError("AnalyticsBackendLoader::Load - Failed to load analytics backend library (%s): %s", path.c_str(), error.c_str());
         return Core::ERROR_GENERAL;
     }
 
@@ -41,6 +44,7 @@ uint32_t AnalyticsBackendLoader::Load(std::string path)
     if (mAnalyticsBackend == nullptr)
     {
         LOGERR("Failed to create analytics backend object for library (%s): %s", path.c_str(), error.c_str());
+        Utils::Telemetry::sendError("AnalyticsBackendLoader::Load - Failed to create analytics backend object for library (%s): %s", path.c_str(), error.c_str());
         return Core::ERROR_GENERAL;
     }
     return Core::ERROR_NONE;

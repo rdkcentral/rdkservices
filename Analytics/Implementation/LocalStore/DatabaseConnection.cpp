@@ -18,6 +18,7 @@
  */
 #include "DatabaseConnection.h"
 #include "UtilsLogging.h"
+#include "UtilsTelemetry.h"
 
 namespace WPEFramework {
     namespace Plugin {
@@ -38,6 +39,8 @@ namespace WPEFramework {
                     LOGERR("Database %s open failed: could not close existing "
                         "connection",
                         databaseName.c_str());
+                    Utils::Telemetry::sendError("DatabaseConnection::Connect - Database %s open failed: could not close existing connection",
+                                                databaseName.c_str());
                 } else {
                     // Assign database name
                     mDatabaseName = databaseName;
@@ -54,10 +57,15 @@ namespace WPEFramework {
                             databaseName.c_str(),
                             DB_ERRMSG(mDataBaseHandle),
                             queryRet);
+                        Utils::Telemetry::sendError("DatabaseConnection::Connect - Database %s open failed: %s db err code %d",
+                                                    databaseName.c_str(),
+                                                    DB_ERRMSG(mDataBaseHandle),
+                                                    queryRet);
                     }
                 }
             } else {
                 LOGERR("Database open failed: invalid db name %s", databaseName.c_str());
+                Utils::Telemetry::sendError("DatabaseConnection::Connect - Database open failed: invalid db name %s", databaseName.c_str());
             }
 
             return ret;
@@ -82,6 +90,10 @@ namespace WPEFramework {
                         mDatabaseName.c_str(),
                         DB_ERRMSG(mDataBaseHandle),
                         queryRet);
+                    Utils::Telemetry::sendError("DatabaseConnection::DisConnect - Database %s close failed: %s db err code %d",
+                                                mDatabaseName.c_str(),
+                                                DB_ERRMSG(mDataBaseHandle),
+                                                queryRet);
                 }
             }
 
@@ -114,6 +126,10 @@ namespace WPEFramework {
                         mDatabaseName.c_str(),
                         errmsg,
                         queryRet);
+                    Utils::Telemetry::sendError("DatabaseConnection::Exec - Database %s query failed errmsg: %s db err code %d",
+                                                mDatabaseName.c_str(),
+                                                errmsg,
+                                                queryRet);
 
                     // If error, database malloc's the message so it needs to be free'd
                     DB_FREE(errmsg);
@@ -122,6 +138,8 @@ namespace WPEFramework {
                 LOGERR("Database connection not established for %s. "
                     "Query failed.",
                     mDatabaseName.c_str());
+                Utils::Telemetry::sendError("DatabaseConnection::Exec - Database connection not established for %s. Query failed.",
+                                            mDatabaseName.c_str());
             }
 
             return ret;
@@ -156,6 +174,10 @@ namespace WPEFramework {
                         mDatabaseName.c_str(),
                         errmsg,
                         queryRet);
+                    Utils::Telemetry::sendError("DatabaseConnection::ExecAndGetModified - Database %s query failed errmsg: %s db err code %d",
+                                                mDatabaseName.c_str(),
+                                                errmsg,
+                                                queryRet);
 
                     // If error, database malloc's the message so it needs to be free'd
                     DB_FREE(errmsg);
@@ -164,6 +186,8 @@ namespace WPEFramework {
                 LOGERR("Database connection not established for %s. "
                     "Query failed.",
                     mDatabaseName.c_str());
+                Utils::Telemetry::sendError("DatabaseConnection::ExecAndGetModified - Database connection not established for %s. Query failed.",
+                                            mDatabaseName.c_str());
             }
 
             return ret;
@@ -196,11 +220,17 @@ namespace WPEFramework {
                         mDatabaseName.c_str(),
                         errmsg,
                         queryRet);
+                    Utils::Telemetry::sendError("DatabaseConnection::ExecAndGetResults - Database %s query failed with error: %s db err code %d",
+                                                mDatabaseName.c_str(),
+                                                errmsg,
+                                                queryRet);
                     DB_FREE(errmsg);
                 }
             } else {
                 LOGERR("Database connection not established for %s. Query failed.",
                     mDatabaseName.c_str());
+                Utils::Telemetry::sendError("DatabaseConnection::ExecAndGetResults - Database connection not established for %s. Query failed.",
+                                            mDatabaseName.c_str());
             }
 
             return ret;
@@ -217,6 +247,7 @@ namespace WPEFramework {
                 ret = DB_OK;
             } else {
                 LOGERR("Database query executed with no data");
+                Utils::Telemetry::sendError("DatabaseConnection::DbCallbackOnly - Database query executed with no data");
             }
 
             return ret;
@@ -249,6 +280,7 @@ namespace WPEFramework {
 
             } else {
                 LOGERR("Database invalid query, cannot get results");
+                Utils::Telemetry::sendError("DatabaseConnection::DbCallbackGetResults - Database invalid query, cannot get results");
             }
 
             return ret;

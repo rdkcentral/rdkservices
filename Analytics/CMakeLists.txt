@@ -20,7 +20,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 4)
+set(VERSION_PATCH 5)
 
 add_compile_definitions(ANALYTICS_MAJOR_VERSION=${VERSION_MAJOR})
 add_compile_definitions(ANALYTICS_MINOR_VERSION=${VERSION_MINOR})
@@ -81,6 +81,11 @@ target_link_libraries(${MODULE_NAME}
         ${MODULE_NAME}Backends
         ${MODULE_NAME}SystemTime
         ${MODULE_NAME}LocalStore)
+
+if(BUILD_ENABLE_TELEMETRY_LOGGING)
+    add_definitions(-DENABLE_TELEMETRY_LOGGING)
+    target_link_libraries(${MODULE_NAME} PRIVATE -ltelemetry_msgsender)
+endif (BUILD_ENABLE_TELEMETRY_LOGGING)
 
 if (RDK_SERVICE_L2_TEST)
     target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})

@@ -14,6 +14,9 @@ All notable changes to this RDK Service will be documented in this file.
 
     For more details, refer to versioning section under Main README.
 
+## [1.0.5] - 2025-07-14
+- Support T2 events logging
+
 ## [1.0.4] - 2025-06-12
 - Backend as an external dynamic library
 
