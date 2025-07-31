@@ -59,7 +59,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 13
+#define API_VERSION_NUMBER_PATCH 14
 
 enum {
 	HDMICEC_EVENT_DEVICE_ADDED=0,
@@ -87,7 +87,6 @@ static bool isDeviceActiveSource = false;
 
 #define CEC_SETTING_ENABLED "cecEnabled"
 
-static const timespec hundred_ms {.tv_sec = 0, .tv_nsec = int(1e8) };
 
 namespace WPEFramework
 {
@@ -1088,7 +1087,7 @@ namespace WPEFramework
 				pthread_cond_signal(&(_instance->m_condSigUpdate));
 			}
 			//Wait for mutex signal here to continue the worker thread again.
-			while (!_instance->m_pollThreadExit && ETIMEDOUT == pthread_cond_timedwait(&(_instance->m_condSig), &(_instance->m_lock), &hundred_ms));
+			while (!_instance->m_pollThreadExit && ETIMEDOUT == pthread_cond_wait(&(_instance->m_condSig), &(_instance->m_lock)));
 
 		}
 		pthread_mutex_unlock(&(_instance->m_lock));
@@ -1106,7 +1105,7 @@ namespace WPEFramework
 		pthread_mutex_lock(&(_instance->m_lockUpdate));//pthread_cond_wait should be mutex protected. //pthread_cond_wait will unlock the mutex and perfoms wait for the condition.
 		while (!_instance->m_updateThreadExit) {
 			//Wait for mutex signal here to continue the worker thread again.
-			while (!_instance->m_updateThreadExit && ETIMEDOUT == pthread_cond_timedwait(&(_instance->m_condSigUpdate), &(_instance->m_lockUpdate), &hundred_ms));
+			while (!_instance->m_updateThreadExit && ETIMEDOUT == pthread_cond_wait(&(_instance->m_condSigUpdate), &(_instance->m_lockUpdate)));
 			if (_instance->m_updateThreadExit) break;
 			LOGINFO("Starting cec device update check");
 			for(i=0; ((i< LogicalAddress::UNREGISTERED)&&(!_instance->m_updateThreadExit)); i++ ) {
