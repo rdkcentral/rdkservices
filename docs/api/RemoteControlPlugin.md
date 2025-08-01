@@ -237,7 +237,6 @@ Initiates pairing a remote with the STB on the specified network.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.netType | integer | The type of network |
 | params?.timeout | integer | <sup>*(optional)*</sup> The amount of time, in seconds, to attempt pairing before timing out. If this parameter is not present, an STB-defined default is used for the specified network. A value of `0` indicates no timeout |
 | params?.macAddressList | array | <sup>*(optional)*</sup> A list of MAC addresses |
 | params?.macAddressList[#] | string | <sup>*(optional)*</sup> The MAC address of the remote in hex-colon format |
@@ -261,7 +260,6 @@ Initiates pairing a remote with the STB on the specified network.
     "id": 42,
     "method": "org.rdk.RemoteControl.startPairing",
     "params": {
-        "netType": 21,
         "timeout": 30,
         "macAddressList": [
             "E8:1C:FD:9A:07:1E"

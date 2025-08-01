@@ -350,9 +350,6 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "netType": {
-                        "$ref": "#/definitions/netType"
-                    },
                     "timeout": {
                         "summary": "The amount of time, in seconds, to attempt pairing before timing out. If this parameter is not present, an STB-defined default is used for the specified network. A value of `0` indicates no timeout.",
                         "type": "integer",
@@ -375,9 +372,7 @@
                         "example": true
                     }
                 },
-                "required": [
-                    "netType"
-                ]
+                "required": []
             },
             "result": {
                 "$ref": "#/definitions/result"
@@ -401,8 +396,7 @@
                         "example": true
                     }
                 },
-                "required": [
-                ]
+                "required": []
             },
             "result": {
                 "$ref": "#/definitions/result"
