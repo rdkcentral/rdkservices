@@ -62,6 +62,7 @@ namespace WPEFramework {
             //Begin methods
             uint32_t getApiVersionNumber(const JsonObject& parameters, JsonObject& response);
             uint32_t startPairing(const JsonObject& parameters, JsonObject& response);
+            uint32_t stopPairing(const JsonObject& parameters, JsonObject& response);
             uint32_t getNetStatus(const JsonObject& parameters, JsonObject& response);
             uint32_t getIRDBManufacturers(const JsonObject& parameters, JsonObject& response);
             uint32_t getIRDBModels(const JsonObject& parameters, JsonObject& response);
@@ -83,6 +84,7 @@ namespace WPEFramework {
             //Begin events
             void onStatus(ctrlm_main_iarm_event_json_t* eventData);
             void onFirmwareUpdateProgress(ctrlm_main_iarm_event_json_t* eventData);
+            void onValidation(ctrlm_main_iarm_event_json_t* eventData);
             //End events
 
         public:
