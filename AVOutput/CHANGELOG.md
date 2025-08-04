@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.3] - 2025-08-04
+### Fixed
+- platformSupport is not present in getDimmingModeCaps API
+
 ## [1.1.2] - 2025-05-14
 ### Fixed
 - Set backlight dimming mode failure
