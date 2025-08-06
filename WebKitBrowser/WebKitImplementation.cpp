@@ -30,16 +30,6 @@
 
 #include "odhlog.h"
 
-#include "host.hpp"
-#include "videoDevice.hpp"
-#include "manager.hpp"
-#include "dsUtl.h"
-#include "dsError.h"
-#include "list.hpp"
-#include "libIBus.h"
-#include "videoOutputPort.hpp"
-#include "videoOutputPortType.hpp"
-#include "videoOutputPortConfig.hpp"
 #include <curl/urlapi.h>
 
 #ifdef WEBKIT_GLIB_API
@@ -3011,58 +3001,6 @@ static GSourceFuncs _handlerIntervention =
             }
         }
 
-        bool GetHDRCapabilities()
-        {
-            int stbCaps = 0;
-            int tvCaps = 0;
-            IARM_Result_t err = IARM_RESULT_SUCCESS;
-            bool retValue = false;
-
-            err = IARM_Bus_Init("wayland-egl-WPEWebProcess");
-            if(IARM_RESULT_SUCCESS != err)
-            {
-                TRACE_L1("Error initializing IARM.. error code : %d\n",err);
-                return retValue;
-            }
-
-            err = IARM_Bus_Connect();
-            if(IARM_RESULT_SUCCESS != err)
-            {
-                TRACE_L1("Error connecting to IARM.. error code : %d\n",err);
-                IARM_Bus_Term();
-                return retValue;
-            }
-
-            device::Manager::Initialize();
-
-            // Get STB HDR capabilities
-            device::VideoDevice decoder = device::Host::getInstance().getVideoDevices().at(0);
-            decoder.getHDRCapabilities(&stbCaps);
-            TRACE_L1("STB HDRCapabilities - [%d]\r\n", stbCaps);
-
-            // Get TV HDR capabilities
-            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
-            device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort(strVideoPort.c_str());
-
-            if(vPort.isDisplayConnected())
-            {
-                vPort.getTVHDRCapabilities(&tvCaps);
-            }
-
-            TRACE_L1("TV HDRCapabilities - [%d]\r\n", tvCaps);
-
-            if(stbCaps != 0 && tvCaps != 0)
-            {
-                retValue = true;
-            }
-
-            device::Manager::DeInitialize();
-            IARM_Bus_Disconnect();
-            IARM_Bus_Term();
-            TRACE_L1("GetHDRCapabilities : returning %s\r\n", retValue ? "true" : "false");
-            return retValue;
-        }
-
         uint32_t Configure(PluginHost::IShell* service) override
         {
             #ifndef WEBKIT_GLIB_API
@@ -3114,12 +3052,6 @@ static GSourceFuncs _handlerIntervention =
 
             // Setup client certificates
             SetupClientCertificates();
-
-            // Get HDR capabilities
-            if(GetHDRCapabilities())
-            {
-               Core::SystemInfo::SetEnvironment(_T("WPE_HDR_CAPABILITIES"), _T("true"), !environmentOverride);
-            }
 
             // WEBKIT_DEBUG
             if (_config.WebkitDebug.Value().empty() == false)
