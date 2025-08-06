@@ -50,6 +50,7 @@ RemoteControl interface methods:
 | [getApiVersionNumber](#getApiVersionNumber) | Gets the current API version number |
 | [getNetStatus](#getNetStatus) | Returns the status information provided by the last `onStatus` event for the specified network |
 | [startPairing](#startPairing) | Initiates pairing a remote with the STB on the specified network |
+| [stopPairing](#stopPairing) | Cancels pairing a remote with the STB on the specified network |
 | [initializeIRDB](#initializeIRDB) | Initializes the IR database |
 | [clearIRCodes](#clearIRCodes) | Clears the IR codes from the specified remote |
 | [setIRCode](#setIRCode) | Programs an IR code into the specified remote control |
@@ -236,10 +237,11 @@ Initiates pairing a remote with the STB on the specified network.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.netType | integer | The type of network |
 | params?.timeout | integer | <sup>*(optional)*</sup> The amount of time, in seconds, to attempt pairing before timing out. If this parameter is not present, an STB-defined default is used for the specified network. A value of `0` indicates no timeout |
 | params?.macAddressList | array | <sup>*(optional)*</sup> A list of MAC addresses |
 | params?.macAddressList[#] | string | <sup>*(optional)*</sup> The MAC address of the remote in hex-colon format |
+| params?.screenBindEnable | boolean | <sup>*(optional)*</sup> Whether to enable screen bind mode. If this parameter is not present, the default value is `true` |
+| params?.scanEnable | boolean | <sup>*(optional)*</sup> Whether to enable scanning for remotes. If this parameter is not present, the default value is `true` |
 
 ### Result
 
@@ -258,11 +260,64 @@ Initiates pairing a remote with the STB on the specified network.
     "id": 42,
     "method": "org.rdk.RemoteControl.startPairing",
     "params": {
-        "netType": 21,
         "timeout": 30,
         "macAddressList": [
             "E8:1C:FD:9A:07:1E"
-        ]
+        ],
+        "screenBindEnable": true,
+        "scanEnable": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="stopPairing"></a>
+## *stopPairing*
+
+Cancels pairing a remote with the STB on the specified network.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.screenBindDisable | boolean | <sup>*(optional)*</sup> Whether to disable screen bind mode. If this parameter is not present, the default value is `true` |
+| params?.scanDisable | boolean | <sup>*(optional)*</sup> Whether to disable scanning for remotes. If this parameter is not present, the default value is `true` |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RemoteControl.stopPairing",
+    "params": {
+        "screenBindDisable": true,
+        "scanDisable": true
     }
 }
 ```
@@ -1159,6 +1214,7 @@ RemoteControl interface events:
 | :-------- | :-------- |
 | [onStatus](#onStatus) | Triggered at any time when the status of any one of the supported STB remote networks changes |
 | [onFirmwareUpdateProgress](#onFirmwareUpdateProgress) | Generated at 0 and 100 percent and each time a download percent increment is reached |
+| [onValidation](#onValidation) | Generated for manual pairing validation |
 
 
 <a name="onStatus"></a>
@@ -1275,4 +1331,21 @@ Generated at 0 and 100 percent and each time a download percent increment is rea
     }
 }
 ```
+
+<a name="onValidation"></a>
+## *onValidation*
+
+Generated for manual pairing validation.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.status | string | The validation status of the manual pairing request. (must be one of the following: *SUCCESS*, *PENDING*, *TIMEOUT*, *COLLISION*, *FAILURE*, *ABORT*, *FULL_ABORT*, *FAILED*, *BIND_TABLE_FULL*, *IN_PROGRESS*, *CTRLM_RESTART*) |
+| params?.code | array | <sup>*(optional)*</sup> The pairing code for manual pairing which consists of 3 key codes (KEY_*) |
+| params?.code[#] | integer | <sup>*(optional)*</sup>  |
+| params?.key | integer | <sup>*(optional)*</sup> A single key code (KEY_*) that is used to validate against the manual pair code in manual pairing mode |
+
+### Example
 
