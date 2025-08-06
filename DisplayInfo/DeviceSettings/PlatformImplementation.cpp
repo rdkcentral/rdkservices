@@ -677,6 +677,7 @@ public:
         }
         if(!capabilities) hdrCapabilities.push_back(HDR_OFF);
         if(capabilities & dsHDRSTANDARD_HDR10) hdrCapabilities.push_back(HDR_10);
+        if(capabilities & dsHDRSTANDARD_HDR10PLUS) hdrCapabilities.push_back(HDR_10PLUS);
         if(capabilities & dsHDRSTANDARD_HLG) hdrCapabilities.push_back(HDR_HLG);
         if(capabilities & dsHDRSTANDARD_DolbyVision) hdrCapabilities.push_back(HDR_DOLBYVISION);
         if(capabilities & dsHDRSTANDARD_TechnicolorPrime) hdrCapabilities.push_back(HDR_TECHNICOLOR);
@@ -705,6 +706,7 @@ public:
         }
         if(!capabilities) hdrCapabilities.push_back(HDR_OFF);
         if(capabilities & dsHDRSTANDARD_HDR10) hdrCapabilities.push_back(HDR_10);
+        if(capabilities & dsHDRSTANDARD_HDR10PLUS) hdrCapabilities.push_back(HDR_10PLUS);
         if(capabilities & dsHDRSTANDARD_HLG) hdrCapabilities.push_back(HDR_HLG);
         if(capabilities & dsHDRSTANDARD_DolbyVision) hdrCapabilities.push_back(HDR_DOLBYVISION);
         if(capabilities & dsHDRSTANDARD_TechnicolorPrime) hdrCapabilities.push_back(HDR_TECHNICOLOR);
