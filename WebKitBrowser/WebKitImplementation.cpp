@@ -35,14 +35,11 @@
 #include "manager.hpp"
 #include "dsUtl.h"
 #include "dsError.h"
-#include "dsMgr.h"
-#include "dsTypes.h"
 #include "list.hpp"
+#include "libIBus.h"
 #include "videoOutputPort.hpp"
 #include "videoOutputPortType.hpp"
 #include "videoOutputPortConfig.hpp"
-#include "UtilsJsonRpc.h"
-#include "UtilsIarm.h"
 #include <curl/urlapi.h>
 
 #ifdef WEBKIT_GLIB_API
@@ -563,9 +560,6 @@ static GSourceFuncs _handlerIntervention =
                                  public PluginHost::IStateControl,
                                  public Exchange::IBrowserResources {
     public:
-        static WebKitImplementation* _instance;
-        static WebKitImplementation *getInstance() {return _instance;}
-
         class BundleConfig : public Core::JSON::Container {
         private:
             using BundleConfigMap = std::map<string, Core::JSON::String>;
@@ -1151,7 +1145,6 @@ static GSourceFuncs _handlerIntervention =
 
             // The WebKitBrowser (WPE) can only be instantiated once (it is a process wide singleton !!!!)
             ASSERT(implementation == nullptr);
-            WebKitImplementation::_instance = this;
 
 #ifdef USE_ODH_TELEMETRY
             // Initialize ODH reporting for WebKitBrowser
@@ -1199,7 +1192,6 @@ static GSourceFuncs _handlerIntervention =
             }
 
             implementation = nullptr;
-            WebKitImplementation::_instance = nullptr;
         }
 
     public:
@@ -2465,28 +2457,6 @@ static GSourceFuncs _handlerIntervention =
             return static_cast<uint32_t>(fps);
         }
 
-        void UnregisterIARMEvents()
-        {
-            constexpr const char* waylandWPEWebProcessName = "wayland-egl-WPEWebProcess";
-            int isRegistered = 0;
-            IARM_Result_t res = IARM_Bus_IsConnected(waylandWPEWebProcessName, &isRegistered);
-            if (res == IARM_RESULT_SUCCESS && isRegistered)
-            {
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, EventHandler) );
-                /*
-                 * When WPEProcess terminates by exit() function call (i.e. when WPEWebProcess crash is detected),
-                 * device::Manager' static objects are freed before calling ~WebKitImplementation() destructor.
-                 * In such case below deinit function tries to free objects which are already freed and core dump is triggered.
-                 * device::Manager's static objects are freed either by exit() call or during graceful quit so there's no need
-                 * to explicitly call below deinit.
-                 */
-                //device::Manager::DeInitialize();
-                IARM_Bus_Disconnect();
-                IARM_Bus_Term();
-                LOGINFO("Removed IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG & uninitialized DS Mgr");
-            }
-        }
-
         void Register(Exchange::IWebBrowser::INotification* sink) override
         {
             _adminLock.Lock();
@@ -3041,65 +3011,34 @@ static GSourceFuncs _handlerIntervention =
             }
         }
 
-	void IARMEventHandler()
-	{
-#ifdef WEBKIT_GLIB_API
-            bool hdrCaps = GetHDRCapabilities();
-            TRACE_L1("Setting HDR caps in IARM Event Handler: %d", hdrCaps);
-            webkit_settings_set_platform_hdr_capabilities(webkit_web_view_get_settings(_view), hdrCaps);
-            TRACE_L1("Getting HDR caps: %d", webkit_settings_get_platform_hdr_capabilities(webkit_web_view_get_settings(_view)));
-#endif
-	}
-
-        static void EventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
-        {
-            if(eventId == IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG)
-            {
-                TRACE_L1("IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG received");
-                WebKitImplementation::getInstance()->IARMEventHandler();
-            }
-        }
-
         bool GetHDRCapabilities()
         {
-            int stbCaps = -1;
-            int tvCaps = -1;
+            int stbCaps = 0;
+            int tvCaps = 0;
             IARM_Result_t err = IARM_RESULT_SUCCESS;
             bool retValue = false;
-            constexpr const char* waylandWPEWebProcessName = "wayland-egl-WPEWebProcess";
 
-            IARM_Result_t res;
-            int isRegistered = 0;
-            res = IARM_Bus_IsConnected(waylandWPEWebProcessName, &isRegistered);
-            if (res != IARM_RESULT_SUCCESS && !isRegistered)
+            err = IARM_Bus_Init("wayland-egl-WPEWebProcess");
+            if(IARM_RESULT_SUCCESS != err)
             {
-                TRACE_L1("Initializing IARM Bus");
-                err = IARM_Bus_Init(waylandWPEWebProcessName);
-                if(IARM_RESULT_SUCCESS != err)
-                {
-                    TRACE_L1("Error initializing IARM.. error code : %d\n",err);
-                    return retValue;
-                }
+                TRACE_L1("Error initializing IARM.. error code : %d\n",err);
+                return retValue;
+            }
 
-                TRACE_L1("Connecting to IARM Bus");
-                err = IARM_Bus_Connect();
-                if(IARM_RESULT_SUCCESS != err)
-                {
-                    TRACE_L1("Error connecting to IARM.. error code : %d\n",err);
-                    IARM_Bus_Term();
-                    return retValue;
-                }
+            err = IARM_Bus_Connect();
+            if(IARM_RESULT_SUCCESS != err)
+            {
+                TRACE_L1("Error connecting to IARM.. error code : %d\n",err);
+                IARM_Bus_Term();
+                return retValue;
+            }
 
-                device::Manager::Initialize();
-                IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, EventHandler) );
-                TRACE_L1("Registered IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG received & initialized DS Mgr");
-	    }
+            device::Manager::Initialize();
 
             // Get STB HDR capabilities
             device::VideoDevice decoder = device::Host::getInstance().getVideoDevices().at(0);
             decoder.getHDRCapabilities(&stbCaps);
-            TRACE_L1("STB HDRCapabilities - [%d]", stbCaps);
+            TRACE_L1("STB HDRCapabilities - [%d]\r\n", stbCaps);
 
             // Get TV HDR capabilities
             std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
@@ -3110,14 +3049,17 @@ static GSourceFuncs _handlerIntervention =
                 vPort.getTVHDRCapabilities(&tvCaps);
             }
 
-            TRACE_L1("TV HDRCapabilities - [%d]", tvCaps);
+            TRACE_L1("TV HDRCapabilities - [%d]\r\n", tvCaps);
 
-            if(stbCaps > 0 && tvCaps > 0)
+            if(stbCaps != 0 && tvCaps != 0)
             {
                 retValue = true;
             }
 
-            TRACE_L1("GetHDRCapabilities : returning %s", retValue ? "true" : "false");
+            device::Manager::DeInitialize();
+            IARM_Bus_Disconnect();
+            IARM_Bus_Term();
+            TRACE_L1("GetHDRCapabilities : returning %s\r\n", retValue ? "true" : "false");
             return retValue;
         }
 
@@ -3172,6 +3114,12 @@ static GSourceFuncs _handlerIntervention =
 
             // Setup client certificates
             SetupClientCertificates();
+
+            // Get HDR capabilities
+            if(GetHDRCapabilities())
+            {
+               Core::SystemInfo::SetEnvironment(_T("WPE_HDR_CAPABILITIES"), _T("true"), !environmentOverride);
+            }
 
             // WEBKIT_DEBUG
             if (_config.WebkitDebug.Value().empty() == false)
@@ -3994,10 +3942,6 @@ static GSourceFuncs _handlerIntervention =
                 }, this, nullptr);
             }
 
-#ifdef WEBKIT_GLIB_API
-            webkit_settings_set_platform_hdr_capabilities(webkit_web_view_get_settings(_view), GetHDRCapabilities());
-#endif
-
             auto* userContentManager = webkit_web_view_get_user_content_manager(_view);
             // webkit_user_content_manager_register_script_message_handler_in_world(userContentManager, "wpeNotifyWPEFramework", std::to_string(_guid).c_str());
             g_signal_connect(userContentManager, "script-message-received::wpeNotifyWPEFramework",
@@ -4047,7 +3991,6 @@ static GSourceFuncs _handlerIntervention =
 
             g_main_loop_run(_loop);
 
-            UnregisterIARMEvents();
             gcCleaner.reset(nullptr);
 
             if (frameDisplayedCallbackID)
@@ -4607,7 +4550,6 @@ static GSourceFuncs _handlerIntervention =
     };
 
     SERVICE_REGISTRATION(WebKitImplementation, 1, 0);
-    WebKitImplementation* WebKitImplementation::_instance = nullptr;
 
 #ifndef WEBKIT_GLIB_API
     // Handles synchronous messages from injected bundle.
