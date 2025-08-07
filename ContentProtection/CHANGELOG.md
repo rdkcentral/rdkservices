@@ -16,6 +16,18 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [3.0.1] - 2025-07-28
+### Fixed
+- Format fix for parameters openSessionResponse, updateSessionResponse
+
+## [3.0.0] - 2025-07-08
+### Changed
+- Map SecManager errors to the CPS plug-in error codes
+
+## [2.1.0] - 2025-06-25
+### Changed
+- Support for returning video platform data in closeDrmSession result
+
 ## [2.0.0] - 2025-06-12
 ### Changed
 - Parameters initData, openSessionResponse, updateSessionResponse to be stringified json instead of json

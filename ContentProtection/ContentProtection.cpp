@@ -19,9 +19,9 @@
 
 #include "ContentProtection.h"
 
-#define API_VERSION_NUMBER_MAJOR 2
+#define API_VERSION_NUMBER_MAJOR 3
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 namespace WPEFramework {
 namespace Plugin {
@@ -61,7 +61,7 @@ namespace Plugin {
                 token);
             if (ret != Core::ERROR_NONE) {
                 SYSLOG(Logging::Startup,
-                    (_T("Couldn't create token: %d"), ret));
+                    (_T("Couldn't create token: %" PRIu32), ret));
             }
             security->Release();
         }
@@ -71,6 +71,10 @@ namespace Plugin {
         _secManager = Core::ProxyType<JSONRPCLink>::Create(
             _T("org.rdk.SecManager"), _T(""), "token=" + token);
         _watermark = Core::ProxyType<JSONRPCLink>::Create(
+            _T("org.rdk.Watermark"), _T(""), "token=" + token);
+        _secManager2 = Core::ProxyType<JSONRPCLinkNotSmart>::Create(
+            _T("org.rdk.SecManager"), _T(""), "token=" + token);
+        _watermark2 = Core::ProxyType<JSONRPCLinkNotSmart>::Create(
             _T("org.rdk.Watermark"), _T(""), "token=" + token);
         Subscribe();
 
