@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [3.0.2] - 2025-08-08
+### Fixed
+- JSON-RPC calls changed from sync to a-sync
+
 ## [3.0.1] - 2025-07-28
 ### Fixed
 - Format fix for parameters openSessionResponse, updateSessionResponse
