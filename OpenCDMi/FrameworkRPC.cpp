@@ -99,16 +99,6 @@ namespace Plugin {
         }
     }
 
-    static void ReportSecureStoreHash(const char* reportMsg, const std::string& keySystem, const uint8_t* storeHash, uint16_t storeHashLength) {
-        std::stringstream hash;
-        hash << std::uppercase << std::hex;
-        for (unsigned int i = 0; i < storeHashLength; i++)
-        {
-            hash << static_cast<int>(storeHash[i]);
-        }
-        ODH_ERROR_REPORT_CTX_ERROR(0, reportMsg, keySystem, hash.str());
-    }
-
     static const TCHAR BufferFileName[] = _T("ocdmbuffer.");
 
     class OCDMImplementation : public Exchange::IContentDecryption {
@@ -803,22 +793,7 @@ namespace Plugin {
 
                 Exchange::OCDM_RESULT StoreLicenseData(const uint8_t licenseData[], uint16_t licenseDataSize, unsigned char* secureStopId) override
                 {
-                    Exchange::OCDM_RESULT result = (Exchange::OCDM_RESULT)_mediaKeySessionExt->StoreLicenseData(licenseData, licenseDataSize, secureStopId);
-                    if (result == Exchange::OCDM_SUCCESS)
-                    {
-                        // Report hash of the store after license was stored
-                        CDMi::IMediaKeysExt *systemExt = dynamic_cast<CDMi::IMediaKeysExt *>(_parent._parent.KeySystem(_keySystem));
-                        if (systemExt)
-                        {
-                            std::vector<uint8_t> drmStoreHash(32);
-                            Exchange::OCDM_RESULT hashResult = (Exchange::OCDM_RESULT) systemExt->GetSecureStoreHash(_keySystem, &drmStoreHash[0], drmStoreHash.size());
-                            if (hashResult == Exchange::OCDM_SUCCESS)
-                            {
-                                ReportSecureStoreHash("StoreLicenseData", _keySystem, &drmStoreHash[0], drmStoreHash.size());
-                            }
-                        }
-                    }
-                    return result;
+                    return (Exchange::OCDM_RESULT)_mediaKeySessionExt->StoreLicenseData(licenseData, licenseDataSize, secureStopId);
                 }
 
                 Exchange::OCDM_RESULT SelectKeyId(const uint8_t keyLength, const uint8_t keyId[]) override
@@ -1179,7 +1154,6 @@ namespace Plugin {
             {
                 CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
                 if (systemExt) {
-                    ODH_ERROR_REPORT_CTX_ERROR(0, "DeleteSecureStore", keySystem);
                     return (Exchange::OCDM_RESULT)systemExt->DeleteSecureStore(keySystem);
                 }
                 return Exchange::OCDM_RESULT::OCDM_S_FALSE;
@@ -1204,12 +1178,7 @@ namespace Plugin {
             {
                 CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
                 if (systemExt) {
-                    Exchange::OCDM_RESULT result = (Exchange::OCDM_RESULT)systemExt->GetSecureStoreHash(keySystem, secureStoreHash, secureStoreHashLength);
-                    if (result == Exchange::OCDM_SUCCESS)
-                    {
-                        ReportSecureStoreHash("GetSecureStoreHash", keySystem, secureStoreHash, secureStoreHashLength);
-                    }
-                    return result;
+                    return (Exchange::OCDM_RESULT)systemExt->GetSecureStoreHash(keySystem, secureStoreHash, secureStoreHashLength);
                 }
                 return Exchange::OCDM_RESULT::OCDM_S_FALSE;
             }
