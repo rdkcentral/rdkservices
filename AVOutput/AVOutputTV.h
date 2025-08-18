@@ -25,6 +25,14 @@
 #include <boost/filesystem.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
+#include <queue>
+#include <mutex>
+#include <condition_variable>
+#include <thread>
+#include <functional>
+#include <vector>
+#include <atomic>
+
 #include "tvTypes.h"
 #include "tvSettings.h"
 #include <pthread.h>
@@ -73,7 +81,6 @@
 #define STRING_COLORTEMPERATURE   "ColorTemperature."
 #define CREATE_DIRTY(__X__) (__X__+=STRING_DIRTY)
 #define CAPABLITY_FILE_NAME    "pq_capabilities.ini"
-
 
 class CIniFile
 {
@@ -204,6 +211,13 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getHDRMode)
 		DECLARE_JSON_RPC_METHOD(get2PointWB)
 		DECLARE_JSON_RPC_METHOD(getAutoBacklightMode)
+		DECLARE_JSON_RPC_METHOD(getAISuperResolution)
+		DECLARE_JSON_RPC_METHOD(getPrecisionDetail)
+		DECLARE_JSON_RPC_METHOD(getLocalContrastEnhancement)
+		DECLARE_JSON_RPC_METHOD(getMPEGNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(getDigitalNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(getMEMC)
+		DECLARE_JSON_RPC_METHOD(getSDRGamma)
 
 
 		/*Get Capability API's*/
@@ -227,6 +241,29 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(get2PointWBCaps)
 		DECLARE_JSON_RPC_METHOD(getHDRModeCaps)
 		DECLARE_JSON_RPC_METHOD(getAutoBacklightModeCaps)
+		DECLARE_JSON_RPC_METHOD(getBacklightCapsV2)
+		DECLARE_JSON_RPC_METHOD(getBrightnessCapsV2)
+		DECLARE_JSON_RPC_METHOD(getContrastCapsV2)
+		DECLARE_JSON_RPC_METHOD(getSharpnessCapsV2)
+		DECLARE_JSON_RPC_METHOD(getSaturationCapsV2)
+		DECLARE_JSON_RPC_METHOD(getHueCapsV2)
+		DECLARE_JSON_RPC_METHOD(getPrecisionDetailCaps)
+		DECLARE_JSON_RPC_METHOD(getLowLatencyStateCapsV2)
+		DECLARE_JSON_RPC_METHOD(getColorTemperatureCapsV2)
+		DECLARE_JSON_RPC_METHOD(getSDRGammaCaps)
+		DECLARE_JSON_RPC_METHOD(getBacklightDimmingModeCapsV2)
+		DECLARE_JSON_RPC_METHOD(getZoomModeCapsV2)
+		DECLARE_JSON_RPC_METHOD(getCMSCapsV2)
+		DECLARE_JSON_RPC_METHOD(get2PointWBCapsV2)
+		DECLARE_JSON_RPC_METHOD(getDolbyVisionCalibrationCaps)
+		DECLARE_JSON_RPC_METHOD(getPictureModeCapsV2)
+		DECLARE_JSON_RPC_METHOD(getAutoBacklightModeCapsV2)
+		DECLARE_JSON_RPC_METHOD(getLocalContrastEnhancementCaps)
+		DECLARE_JSON_RPC_METHOD(getMPEGNoiseReductionCaps)
+		DECLARE_JSON_RPC_METHOD(getDigitalNoiseReductionCaps)
+		DECLARE_JSON_RPC_METHOD(getAISuperResolutionCaps)
+		DECLARE_JSON_RPC_METHOD(getMEMCCaps)
+		DECLARE_JSON_RPC_METHOD(getMultiPointWBCaps)
 
 		/*Set API's*/
 		DECLARE_JSON_RPC_METHOD(setBacklight)
@@ -247,7 +284,13 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(set2PointWB )
  		DECLARE_JSON_RPC_METHOD(signalFilmMakerMode)
 		DECLARE_JSON_RPC_METHOD(setAutoBacklightMode)
-
+		DECLARE_JSON_RPC_METHOD(setAISuperResolution)
+		DECLARE_JSON_RPC_METHOD(setPrecisionDetail)
+		DECLARE_JSON_RPC_METHOD(setLocalContrastEnhancement)
+		DECLARE_JSON_RPC_METHOD(setMPEGNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(setDigitalNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(setMEMC)
+		DECLARE_JSON_RPC_METHOD(setSDRGamma)
 		/*Reset API's*/
 		DECLARE_JSON_RPC_METHOD(resetBacklight)
 		DECLARE_JSON_RPC_METHOD(resetBrightness )
@@ -265,6 +308,14 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(resetCMS)
 		DECLARE_JSON_RPC_METHOD(reset2PointWB)
 		DECLARE_JSON_RPC_METHOD(resetAutoBacklightMode)
+		DECLARE_JSON_RPC_METHOD(resetAISuperResolution)
+		DECLARE_JSON_RPC_METHOD(resetPrecisionDetail)
+		DECLARE_JSON_RPC_METHOD(resetLocalContrastEnhancement)
+		DECLARE_JSON_RPC_METHOD(resetMPEGNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(resetDigitalNoiseReduction)
+		DECLARE_JSON_RPC_METHOD(resetMEMC)
+		DECLARE_JSON_RPC_METHOD(resetSDRGamma)
+
 
     private:
 
@@ -340,8 +391,12 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t getParamsCaps(std::string param, capVectors_t &vecInfo);
 		int GetPanelID(char *panelid);
 		int ReadCapablitiesFromConf(std::string param, capDetails_t& info);
+
 		void getDimmingModeStringFromEnum(int value, std::string &toStore);
 		void getColorTempStringFromEnum(int value, std::string &toStore);
+		void getDisplayModeStringFromEnum(int value, std::string &toStore);
+		void getBacklightModeStringFromEnum(int value, std::string &toStore);
+
 		int getCurrentPictureMode(char *picMode);
 		int getDolbyParamToSync(int sourceIndex, int formatIndex, int& value);
 		tvDolbyMode_t GetDolbyVisionEnumFromModeString(const char* modeString);
@@ -372,6 +427,107 @@ class AVOutputTV : public AVOutputBase {
 		void broadcastLowLatencyModeChangeEvent(bool lowLatencyMode);
 		tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
 		tvError_t setDefaultAspectRatio(std::string pqmode="none",std::string format="none",std::string source="none");
+		template <typename T>
+		static int getEnumFromString(const std::map<std::string, int>& reverseMap, const std::string& key, T defaultVal) {
+			auto it = reverseMap.find(key);
+			return (it != reverseMap.end()) ? it->second : defaultVal;
+		}
+
+		static const std::map<int, std::string> pqModeMap;
+		static const std::map<int, std::string> videoFormatMap;
+		static const std::map<int, std::string> videoSrcMap;
+		static const std::unordered_map<int, std::string> backlightModeMap;
+
+		static std::unordered_map<std::string, tvPQModeIndex_t> pqModeReverseMap;
+		static std::unordered_map<std::string, tvVideoFormatType_t> videoFormatReverseMap;
+		static std::unordered_map<std::string, tvVideoSrcType_t> videoSrcReverseMap;
+		static bool reverseMapsInitialized;
+		static void initializeReverseMaps();
+		static const std::unordered_map<std::string, int> backlightModeReverseMap;
+
+		uint32_t getPQCapabilityWithContext(
+			const std::function<tvError_t(tvContextCaps_t**, int*)>& getCapsFunc,
+			const JsonObject& parameters,
+			JsonObject& response);
+		JsonObject parseContextCaps(tvContextCaps_t* context_caps);
+		// Helper functions to extract modes/sources/formats from parameters
+		std::vector<tvPQModeIndex_t> extractPQModes(const JsonObject& parameters);
+		std::vector<tvVideoSrcType_t> extractVideoSources(const JsonObject& parameters);
+		std::vector<tvVideoFormatType_t> extractVideoFormats(const JsonObject& parameters);
+		static bool isGlobalParam(const JsonArray& arr);
+		JsonArray getJsonArrayIfArray(const JsonObject& obj, const std::string& key);
+		std::vector<tvConfigContext_t> getValidContextsFromParameters(const JsonObject& parameters,const std::string& tr181ParamName );
+		typedef tvError_t (*tvSetFunction)(int);
+		bool resetPQParamToDefault(const JsonObject& parameters,
+			const std::string& paramName,
+			tvPQParameterIndex_t pqIndex,
+			tvSetFunction halSetter);
+		typedef tvError_t (*tvSetFunctionV2)(tvVideoSrcType_t, tvPQModeIndex_t,tvVideoFormatType_t,int);
+		bool resetPQParamToDefault(const JsonObject& parameters,
+			const std::string& paramName,
+			tvPQParameterIndex_t pqIndex,
+			tvSetFunctionV2 halSetter);
+		bool resetEnumPQParamToDefault(const JsonObject& parameters,
+			const std::string& paramName,
+			tvPQParameterIndex_t pqIndex,
+			const std::unordered_map<int, std::string>& valueMap,
+			std::function<tvError_t(int, const std::unordered_map<int, std::string>&)> halSetter);
+		tvConfigContext_t getValidContextFromGetParameters(const JsonObject& parameters, const std::string& paramName);
+		bool getPQParamFromContext(const JsonObject& parameters,
+			const std::string& paramName,
+			tvPQParameterIndex_t paramType,
+			int& outValue);
+		bool getEnumPQParamString(
+			const JsonObject& parameters,
+			const std::string& paramName,
+			tvPQParameterIndex_t pqType,
+			const std::unordered_map<int, std::string>& enumToStrMap,
+			std::string& outStr);
+		bool setIntPQParam(const JsonObject& parameters, const std::string& paramName,
+					tvPQParameterIndex_t pqType, tvSetFunction halSetter, int maxCap);
+		bool setEnumPQParam(const JsonObject& parameters,
+			const std::string& inputKey,
+			const std::string& paramName,
+			const std::unordered_map<std::string, int>& valueMap,
+			tvPQParameterIndex_t paramType,
+			std::function<tvError_t(int)> halSetter);
+		uint32_t setContextPQParam(const JsonObject& parameters, JsonObject& response,
+					const std::string& inputParamName,
+					const std::string& tr181ParamName,
+					int maxAllowedValue,
+					tvPQParameterIndex_t pqParamType,
+					std::function<tvError_t(tvVideoSrcType_t, tvPQModeIndex_t, tvVideoFormatType_t, int)> halSetter);
+		bool setPictureModeV2(const JsonObject& parameters);
+		bool getPictureModeV2(const JsonObject& parameters, std::string& outMode);
+		std::string getCurrentPictureModeAsString();
+		std::string getCurrentVideoFormatAsString();
+		std::string getCurrentVideoSourceAsString();
+		bool isSetRequiredForParam(const JsonObject& parameters, const std::string& paramName);
+		tvContextCaps_t* getCapsForParam(const std::string& paramName);
+		bool isValidSource(const std::vector<std::string>& sourceArray, tvVideoSrcType_t sourceIndex);
+		bool isValidFormat(const std::vector<std::string>& formatArray, tvVideoFormatType_t formatIndex);
+		tvError_t updateAVoutputTVParamToHALV2(std::string forParam, paramIndex_t indexInfo, int value, bool setNotDelete);
+		bool resetPictureModeV2(const JsonObject& parameters);
+		int syncAvoutputTVPQModeParamsToHALV2(std::string pqmode, std::string source, std::string format);
+		std::string getCMSNameFromEnum(tvDataComponentColor_t colorEnum);
+        void syncCMSParamsV2();
+
+		// Thread pool for non-blocking parameter updates
+		std::queue<std::function<void()>> paramUpdateQueue;
+		std::mutex queueMutex;
+		std::condition_variable queueCondition;
+		std::thread workerThread;
+		std::atomic<bool> shouldStopWorker{false};
+		// Worker thread function
+		void paramUpdateWorker();
+		//dispatcher
+		int updateAVoutputTVParamV2(std::string action, std::string tr181ParamName,
+			const JsonObject& parameters, tvPQParameterIndex_t pqParamIndex, int level);
+		// Implementation function that does the actual work
+		int updateAVoutputTVParamV2Implementation(std::string action, std::string tr181ParamName,
+			const JsonObject& parameters,
+			tvPQParameterIndex_t pqParamIndex, int level);
+
 
 	public:
 		int m_currentHdmiInResoluton;
@@ -380,6 +536,128 @@ class AVOutputTV : public AVOutputBase {
 		char rfc_caller_id[RFC_BUFF_MAX];
 		bool appUsesGlobalBackLightFactor;
 		int pic_mode_index[PIC_MODES_SUPPORTED_MAX];
+
+
+		int m_maxBacklight = 0;
+		tvContextCaps_t* m_backlightCaps = nullptr;
+		tvError_t m_backlightStatus = tvERROR_NONE;
+
+		int m_maxBrightness = 0;
+		tvContextCaps_t* m_brightnessCaps = nullptr;
+		tvError_t m_brightnessStatus = tvERROR_NONE;
+
+		int m_maxContrast = 0;
+		tvContextCaps_t* m_contrastCaps = nullptr;
+		tvError_t m_contrastStatus = tvERROR_NONE;
+
+		int m_maxSharpness = 0;
+		tvContextCaps_t* m_sharpnessCaps = nullptr;
+		tvError_t m_sharpnessStatus = tvERROR_NONE;
+
+		int m_maxSaturation = 0;
+		tvContextCaps_t* m_saturationCaps = nullptr;
+		tvError_t m_saturationStatus = tvERROR_NONE;
+
+		int m_maxHue = 0;
+		tvContextCaps_t* m_hueCaps = nullptr;
+		tvError_t m_hueStatus = tvERROR_NONE;
+
+		int m_maxlowLatencyState = 0;
+		tvContextCaps_t* m_lowLatencyStateCaps = nullptr;
+		tvError_t m_lowLatencyStateStatus = tvERROR_NONE;
+
+		int m_maxPrecisionDetail = 0;
+		tvContextCaps_t* m_precisionDetailCaps = nullptr;
+		tvError_t m_precisionDetailStatus = tvERROR_NONE;
+
+		int m_maxLocalContrastEnhancement = 0;
+		tvContextCaps_t* m_localContrastEnhancementCaps = nullptr;
+		tvError_t m_localContrastEnhancementStatus = tvERROR_NONE;
+
+		int m_maxMPEGNoiseReduction = 0;
+		tvContextCaps_t* m_MPEGNoiseReductionCaps = nullptr;
+		tvError_t m_MPEGNoiseReductionStatus = tvERROR_NONE;
+
+		int m_maxDigitalNoiseReduction = 0;
+		tvContextCaps_t* m_digitalNoiseReductionCaps = nullptr;
+		tvError_t m_digitalNoiseReductionStatus = tvERROR_NONE;
+
+		int m_maxAISuperResolution = 0;
+		tvContextCaps_t* m_AISuperResolutionCaps = nullptr;
+		tvError_t m_AISuperResolutionStatus = tvERROR_NONE;
+
+		int m_maxMEMC = 0;
+		tvContextCaps_t* m_MEMCCaps = nullptr;
+		tvError_t m_MEMCStatus = tvERROR_NONE;
+
+		tvColorTemp_t* m_colortemp = nullptr;
+        size_t m_numColortemp = 0;
+        tvContextCaps_t* m_colortempCaps = nullptr;
+		tvError_t m_colorTempStatus = tvERROR_NONE;
+
+		tvDisplayMode_t* m_aspectRatio = nullptr;
+		size_t m_numAspectRatio = 0;
+		tvContextCaps_t* m_aspectRatioCaps = nullptr;
+		tvError_t m_aspectRatioStatus = tvERROR_NONE;
+
+		tvDimmingMode_t* m_dimmingModes = nullptr;
+        size_t m_numdimmingModes = 0;
+        tvContextCaps_t* m_dimmingModeCaps = nullptr;
+		tvError_t m_dimmingModeStatus = tvERROR_NONE;
+
+        tvPQModeIndex_t* m_pictureModes = nullptr;
+        size_t m_numPictureModes = 0;
+        tvContextCaps_t* m_pictureModeCaps = nullptr;
+		tvError_t m_pictureModeStatus = tvERROR_NONE;
+
+        tvBacklightMode_t* m_backlightModes = nullptr;
+        size_t m_numBacklightModes = 0;
+        tvContextCaps_t* m_backlightModeCaps = nullptr;
+		tvError_t m_backlightModeStatus = tvERROR_NONE;
+
+		tvSdrGamma_t* m_sdrGammaModes = nullptr;
+		size_t m_numsdrGammaModes = 0;
+		tvContextCaps_t* m_sdrGammaModeCaps = nullptr;
+		tvError_t m_sdrGammaModeStatus = tvERROR_NONE;
+		void getSdrGammaStringFromEnum(tvSdrGamma_t value, std::string& str);
+
+		int m_numHalMatrixPoints = 0;
+		int m_rgbMin = 0;
+		int m_rgbMax = 0;
+		int m_numUiMatrixPoints = 0;
+		double* m_uiMatrixPositions = nullptr;
+		tvContextCaps_t* m_multiPointWBCaps = nullptr;
+		tvError_t m_multiPointWBStatus = tvERROR_NONE;
+
+		tvDVCalibrationSettings_t* m_minValues;
+		tvDVCalibrationSettings_t* m_maxValues;
+		tvContextCaps_t* m_DVCalibrationCaps = nullptr;
+		tvError_t m_DVCalibrationStatus = tvERROR_NONE;
+
+		int m_maxCmsHue = 0;
+		int m_maxCmsSaturation = 0;
+		int m_maxCmsLuma = 0;
+		size_t m_numColor = 0;
+		size_t m_numComponent = 0;
+		tvDataComponentColor_t* m_cmsColorArr;
+		tvComponentType_t* m_cmsComponentArr;
+		std::vector<std::string> m_cmsColorList;
+		std::vector<std::string> m_cmsComponentList;
+		std::unordered_map<std::string, int> m_cmsIndexMap;
+		tvContextCaps_t* m_cmsCaps = nullptr;
+		tvError_t m_cmsStatus = tvERROR_NONE;
+
+		bool setCMSParam(const JsonObject& parameters);
+
+		std::string convertPictureIndexToStringV2(int pqmode);
+		std::string convertVideoFormatToStringV2(int format);
+		std::string convertSourceIndexToStringV2(int source);
+		static tvPQModeIndex_t convertPictureStringToIndexV2(const std::string& modeStr);
+		static tvVideoSrcType_t convertSourceStringToIndexV2(const std::string& srcStr);
+		static tvVideoFormatType_t convertVideoFormatStringToIndexV2(const std::string& fmtStr);
+
+		uint32_t generateStorageIdentifierV2(std::string &key, std::string forParam, paramIndex_t info);
+		void generateStorageIdentifierCMSV2(std::string &key, std::string forParam, paramIndex_t info);
 		
 		AVOutputTV();
 		~AVOutputTV();
@@ -391,7 +669,6 @@ class AVOutputTV : public AVOutputBase {
 		void NotifyFilmMakerModeChange(tvContentType_t mode);
 		void NotifyVideoResolutionChange(tvResolutionParam_t resolution);
 		void NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate);
-		
 		//override API
 		static void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 		static void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
