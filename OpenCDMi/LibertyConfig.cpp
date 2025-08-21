@@ -30,6 +30,7 @@ WidevineConfig::WidevineConfig()
     , Device()
     , BuildInfo()
     , CertScope()
+    , StorageLocation()
 {
     Add(_T("certificate"), &Certificate);
     Add(_T("product"), &Product);
@@ -38,6 +39,7 @@ WidevineConfig::WidevineConfig()
     Add(_T("device"), &Device);
     Add(_T("buildinfo"), &BuildInfo);
     Add(_T("certscope"), &CertScope);
+    Add(_T("storagelocation"), &StorageLocation);
 }
 
 ASConfig::ASConfig() {

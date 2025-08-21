@@ -46,6 +46,7 @@ public:
     JSONString Device;
     JSONString BuildInfo;
     JSONString CertScope;
+    JSONString StorageLocation;
 };
 
 class ASConfig: public ASConnector::events {
