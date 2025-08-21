@@ -60,14 +60,9 @@
             "example":"E8:FB:E9:0C:XX:80"
         },
         "rawDeviceType": {
-            "summary": "Bluetooth device class",
+            "summary": "Bluetooth device class as hex code",
             "type": "string",
-            "example": "2360344"
-        },
-        "rawBleDeviceType": {
-            "summary": "Bluetooth device appearance",
-            "type": "string",
-            "example": "180"
+            "example": "0x060104"
         },
         "lastConnectedState": {
             "summary": "Whether the device was last to connect. Only the last connected device has a value of `true`.",
@@ -154,21 +149,6 @@
             "summary":"Bluetooth signal strength",
             "type":"string",
             "example":"0"
-        },
-        "batteryLevel": {
-            "summary":"Battery level of the connected bluetooth device, 0 if no battery level found",
-            "type":"string",
-            "example": "53"
-        },
-        "modalias": {
-            "summary":"The modalias for the device - if no modalias is present it will be an empty string",
-            "type":"string",
-            "example": "v:0B13p:045Ed:0517"
-        },
-        "firmwareRevision": {
-            "summary":"The firmware revision for a particular device creaded from the modalias - if no modalias is present it will be an empty string",
-            "type":"string",
-            "example": "5.1.7"
         },
         "eventType":{
             "summary": "Name of a request-time event (for example, `onPairingRequest`, `onConnectionRequest`, `onPlaybackRequest`)",
@@ -458,15 +438,6 @@
                             },
                             "signalStrength": {
                                 "$ref": "#/definitions/signalStrength"
-                            },
-                            "batteryLevel": {
-                                "$ref": "#/definitions/batteryLevel"
-                            },
-                            "modalias": {
-                                "$ref": "#/definitions/modalias"
-                            },
-                            "firmwareRevision": {
-                                "$ref": "#/definitions/firmwareRevision"
                             }
                         },
                         "required": [
@@ -972,9 +943,6 @@
                     "rawDeviceType": {
                         "$ref": "#/definitions/rawDeviceType"
                     },
-                    "rawBleDeviceType": {
-                        "$ref": "#/definitions/rawBleDeviceType"
-                    },
                     "lastConnectedState": {
                         "$ref": "#/definitions/lastConnectedState"
                     },
@@ -990,7 +958,6 @@
                     "name",
                     "deviceType",
                     "rawDeviceType",
-                    "rawBleDeviceType",
                     "lastConnectedState",
                     "paired"
                 ]
@@ -1182,9 +1149,6 @@
                     "rawDeviceType": {
                         "$ref": "#/definitions/rawDeviceType"
                     },
-                    "rawBleDeviceType": {
-                        "$ref": "#/definitions/rawBleDeviceType"
-                    },
                     "lastConnectedState": {
                         "$ref": "#/definitions/lastConnectedState"
                     },
@@ -1203,7 +1167,6 @@
                     "name",
                     "deviceType",
                     "rawDeviceType",
-                    "rawBleDeviceType",
                     "lastConnectedState",
                     "paired",
                     "connected"
@@ -1230,9 +1193,6 @@
                     "rawDeviceType": {
                         "$ref": "#/definitions/rawDeviceType"
                     },
-                    "rawBleDeviceType": {
-                        "$ref": "#/definitions/rawBleDeviceType"
-                    },
                     "lastConnectedState": {
                         "$ref": "#/definitions/lastConnectedState"
                     },
@@ -1251,7 +1211,6 @@
                     "name",
                     "deviceType",
                     "rawDeviceType",
-                    "rawBleDeviceType",
                     "lastConnectedState",
                     "paired",
                     "connected"
@@ -1275,9 +1234,6 @@
                     "rawDeviceType": {
                         "$ref": "#/definitions/rawDeviceType"
                     },
-                    "rawBleDeviceType": {
-                        "$ref": "#/definitions/rawBleDeviceType"
-                    },
                     "lastConnectedState": {
                         "$ref": "#/definitions/lastConnectedState"
                     }
@@ -1287,7 +1243,6 @@
                     "name",
                     "deviceType",
                     "rawDeviceType",
-                    "rawBleDeviceType",
                     "lastConnectedState"
                 ]
             }
@@ -1309,9 +1264,6 @@
                     "rawDeviceType": {
                         "$ref": "#/definitions/rawDeviceType"
                     },
-                    "rawBleDeviceType": {
-                        "$ref": "#/definitions/rawBleDeviceType"
-                    },
                     "lastConnectedState": {
                         "$ref": "#/definitions/lastConnectedState"
                     }
@@ -1321,7 +1273,6 @@
                     "name",
                     "deviceType",
                     "rawDeviceType",
-                    "rawBleDeviceType",
                     "lastConnectedState"
                 ]
             }
