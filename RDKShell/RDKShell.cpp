@@ -227,7 +227,7 @@ std::mutex gLaunchedToSuspendedMutex;
 #define RDKSHELL_POWER_TIME_WAIT 2.5
 #define THUNDER_ACCESS_DEFAULT_VALUE "127.0.0.1:9998"
 #define RDKSHELL_WILLDESTROY_EVENT_WAITTIME 1
-#define RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS 250
+#define RDKSHELL_TRY_LOCK_WAIT_TIME_IN_MS 300
 
 static std::string gThunderAccessValue = THUNDER_ACCESS_DEFAULT_VALUE;
 static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
@@ -7716,12 +7716,12 @@ namespace WPEFramework {
                 }
                 if (!lockAcquired)
                 {
-                    std::cout << "unable to get lock for visibility, defaulting to normal lock\n";
+                    std::cout << std::this_thread::get_id() << "unable to get lock for visibility, defaulting to normal lock\n";
                     gRdkShellMutex.lock();
                 }
                 else
                 {
-                    std::cout << "lock was acquired via try for visibility\n";
+                    std::cout << std::this_thread::get_id() << "lock was acquired via try for visibility\n";
                 }
             }
             ret = CompositorController::setVisibility(client, visible);
