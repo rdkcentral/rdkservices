@@ -1,0 +1,237 @@
+{
+    "$schema": "interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+      "title": "MigrationPreparer API",
+      "class": "MigrationPreparer",
+      "description": "MigrationPreparer Store JSON-RPC interface"
+    },
+    "common": {
+      "$ref": "common.json"
+    },
+    "definitions": {
+        "name": {
+            "summary": "key",
+            "type": "string",
+            "example": "name1"
+        },
+        "value": {
+            "summary": "value",
+            "type": "string",
+            "example": "value1"
+        },
+        "success": {
+            "summary": "Legacy parameter (always true)",
+            "type": "boolean",
+            "default": true,
+            "example": true
+        },
+        "componentName": {
+            "summary": "Name of the component that is ready for migration",
+            "type": "string",
+            "example": "RA01"
+        },
+        "componentList": {
+            "summary": "Name of the component that is ready for migration",
+            "type": "string",
+            "example": "RA02"
+        },
+        "resetType": {
+            "summary": "Type indicates whether it should delete all entries in the datastore or componentList for migration or both",
+            "type": "string",
+            "example": "RESET_ALL"
+        }
+    },
+    "methods": {
+        "write": {
+            "summary": "Write key-value to the dataStore",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "$ref": "#/definitions/name"
+                    },
+                    "value": {
+                        "$ref": "#/definitions/value"
+                    }
+                },
+                "required": [
+                    "name",
+                    "value"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            },
+            "errors": [
+                {
+                    "description": "Unknown error",
+                    "$ref": "#/common/errors/general"
+                }
+            ]
+        },
+        "Delete": {
+            "summary": "Delete key-value from the dataStore",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "$ref": "#/definitions/name"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            },
+            "errors": [
+                {
+                    "description": "Unknown error",
+                    "$ref": "#/common/errors/general"
+                }
+            ]
+        },
+        "read": {
+            "summary": "Read value from the dataStore",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "$ref": "#/definitions/name"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "$ref": "#/definitions/value"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "value",
+                    "success"
+                ]
+            },
+            "errors": [
+                {
+                    "description": "Unknown error",
+                    "$ref": "#/common/errors/general"
+                }
+            ]
+        },
+        "getcomponentreadiness": {
+            "summary": "Returns the list of components that are ready for migration",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "componentList": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/componentList"                       
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "componentList",
+                    "sucecss"
+                ]
+            },
+            "errors": [
+                {
+                    "description": "Unknown error",
+                    "$ref": "#/common/errors/general"
+                }
+            ]
+        },
+        "setcomponentreadiness": {
+            "summary": "Set the component that is ready for migration",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "componentName": {
+                        "$ref": "#/definitions/componentName"
+                    }
+                },
+                "required": [
+                    "componentName"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            },
+            "errors": [
+                {
+                    "description": "Unknown error",
+                    "$ref": "#/common/errors/general"
+                }
+            ]
+        },
+        "reset": {
+            "summary": "Reset based on resettype, should delete all entries in the datastore or componentList for migration or both",
+            "params": {
+                "type": "object",
+                "properties":{
+                    "resetType": {
+                        "$ref": "#/definitions/resetType"
+                    }
+                },
+                "required": [
+                    "resetType"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            },
+            "errors": [
+                {
+                    "description": "Unknown error",
+                    "$ref": "#/common/errors/general"
+                }
+            ]
+        }
+    }
+}
