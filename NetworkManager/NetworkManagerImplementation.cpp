@@ -551,6 +551,10 @@ namespace WPEFramework
         void NetworkManagerImplementation::ReportWiFiStateChangedEvent(const INetworkManager::WiFiState state)
         {
             LOG_ENTRY_FUNCTION();
+            /* start signal strength monitor when wifi connected */
+            if(INetworkManager::WiFiState::WIFI_STATE_CONNECTED == state)
+                m_wifiSignalMonitor.startWiFiSignalStrengthMonitor(DEFAULT_WIFI_SIGNAL_TEST_INTERVAL_SEC);
+
             _notificationLock.Lock();
             for (const auto callback : _notificationCallbacks) {
                 callback->onWiFiStateChange(state);

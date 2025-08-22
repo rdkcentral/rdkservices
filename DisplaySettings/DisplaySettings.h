@@ -28,6 +28,10 @@
 #include "irMgr.h"
 #include "pwrMgr.h"
 #include "rfcapi.h"
+#include <interfaces/ISystemMode.h>
+#include <interfaces/IDeviceOptimizeStateActivator.h>
+#include <iostream>
+#include <fstream>
 
 namespace WPEFramework {
 
@@ -45,7 +49,7 @@ namespace WPEFramework {
 		// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
 		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
 		// will receive a JSONRPC message as a notification, in case this method is called.
-        class DisplaySettings : public PluginHost::IPlugin, public PluginHost::JSONRPC {
+        class DisplaySettings : public PluginHost::IPlugin, public PluginHost::JSONRPC ,Exchange::IDeviceOptimizeStateActivator {
         private:
             typedef Core::JSON::String JString;
             typedef Core::JSON::ArrayType<JString> JStringArray;
@@ -96,8 +100,6 @@ namespace WPEFramework {
 	    uint32_t getSupportedMS12AudioProfiles(const JsonObject& parameters, JsonObject& response);
             uint32_t getAudioDelay(const JsonObject& parameters, JsonObject& response);
             uint32_t setAudioDelay(const JsonObject& parameters, JsonObject& response);
-            uint32_t getAudioDelayOffset(const JsonObject& parameters, JsonObject& response);
-            uint32_t setAudioDelayOffset(const JsonObject& parameters, JsonObject& response);
             uint32_t getSinkAtmosCapability(const JsonObject& parameters, JsonObject& response);
             uint32_t setAudioAtmosOutputMode(const JsonObject& parameters, JsonObject& response);
             uint32_t getTVHDRCapabilities(const JsonObject& parameters, JsonObject& response);
@@ -192,7 +194,10 @@ namespace WPEFramework {
             BEGIN_INTERFACE_MAP(DisplaySettings)
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
+            INTERFACE_ENTRY(Exchange::IDeviceOptimizeStateActivator)
             END_INTERFACE_MAP
+
+	    void Request(const string& newState);
 
         private:
             void InitializeIARM();
@@ -315,6 +320,13 @@ namespace WPEFramework {
 
         public:
             static DisplaySettings* _instance;
+
+	private: 
+	    mutable Core::CriticalSection _adminLock;
+	    Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> _engine;
+	    Core::ProxyType<RPC::CommunicatorClient> _communicatorClient;
+	    PluginHost::IShell *_controller;
+	    Exchange::ISystemMode* _remotStoreObject;
 
         };
 	} // namespace Plugin

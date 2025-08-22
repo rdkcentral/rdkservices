@@ -60,6 +60,11 @@ jobs:
             ninja -C build
             sudo ninja -C build install
 
+      - name: Checkout rdkservices
+        uses: actions/checkout@v3
+        with:
+          path: rdkservices
+
       - name: Checkout Thunder
         uses: actions/checkout@v3
         with:
@@ -67,13 +72,19 @@ jobs:
           path: Thunder
           ref: ${{env.THUNDER_REF}}
 
+      - name: Apply patches Thunder
+        run: |
+          cd ${{github.workspace}}/Thunder
+          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/Use_Legact_Alt_Based_On_ThunderTools_R4.4.3.patch
+          cd -
+
       - name: Checkout ThunderTools
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
           repository: rdkcentral/ThunderTools
           path: ThunderTools
-          ref: ${{env.THUNDER_REF}}
+          ref: R4.4.3
 
       - name: Build ThunderTools
         if: steps.cache.outputs.cache-hit != 'true'
@@ -89,11 +100,6 @@ jobs:
           cmake --build build/ThunderTools -j8
           &&
           cmake --install build/ThunderTools
-
-      - name: Checkout rdkservices
-        uses: actions/checkout@v3
-        with:
-          path: rdkservices
 
       - name: Checkout rdkservices
         run: |
@@ -138,6 +144,8 @@ jobs:
               patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0007-RDK-IDeviceInfo-Changes.patch
               patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-RDK-45037-Secure-Storage-Thunder-Plugin.patch
               patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/RDKV-48604-User-Settings-Thunder-Plugin.patch
+              patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/Use_Legact_Alt_In_ThunderInterfaces_Based_On_ThunderTools_R4.4.3.patch
+              patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/RDK-51362-System-Mode-Thunder-Plugin.patch
               cd ..
 
       - name: Build ThunderInterfaces
@@ -247,6 +255,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/pkg.h
           -Werror -Wall -Wunused-variable -Wno-deprecated-declarations -Wno-error=format=
           -DUSE_IARMBUS
+          -DDISABLE_SECURITY_TOKEN
           -DENABLE_THERMAL_PROTECTION"
           -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/secure/persistent/rdkservicestore"
           -DPLUGIN_PERSISTENTSTORE_LEGACYPATH="/tmp/persistent/rdkservicestore"

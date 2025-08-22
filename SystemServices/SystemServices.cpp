@@ -98,6 +98,8 @@ using namespace std;
 #define LOG_UPLOAD_STATUS_FAILURE "UPLOAD_FAILURE"
 #define LOG_UPLOAD_STATUS_ABORTED "UPLOAD_ABORTED"
 
+#define PRIVACY_MODE_FILE "/opt/secure/persistent/System/privacymode.txt"
+
 /**
  * @struct firmwareUpdate
  * @brief This structure contains information of firmware update.
@@ -334,6 +336,8 @@ namespace WPEFramework {
         static IARM_Result_t _SysModeChange(void *arg);
         static void _systemStateChanged(const char *owner,
                 IARM_EventId_t eventId, void *data, size_t len);
+        static void _deviceMgtUpdateReceived(const char *owner,
+                IARM_EventId_t eventId, void *data, size_t len);
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
         SERVICE_REGISTRATION(SystemServices, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
@@ -488,6 +492,11 @@ namespace WPEFramework {
 	    registerMethod("getFriendlyName", &SystemServices::getFriendlyName, this);
             registerMethod("setFriendlyName", &SystemServices::setFriendlyName, this);
             registerMethod("getThunderStartReason", &SystemServices::getThunderStartReason, this);
+            registerMethod("setFSRFlag", &SystemServices::setFSRFlag, this);
+            registerMethod("getFSRFlag", &SystemServices::getFSRFlag, this);
+
+            registerMethod("setPrivacyMode", &SystemServices::setPrivacyMode, this);
+            registerMethod("getPrivacyMode", &SystemServices::getPrivacyMode, this);
 
         }
 
@@ -571,6 +580,7 @@ namespace WPEFramework {
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_COMMON_API_SysModeChange, _SysModeChange));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _systemStateChanged));
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED, _deviceMgtUpdateReceived));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_REBOOTING, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_NETWORK_STANDBYMODECHANGED, _powerEventHandler));
@@ -595,6 +605,7 @@ namespace WPEFramework {
             {
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _systemStateChanged));
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED, _deviceMgtUpdateReceived));
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_REBOOTING, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_NETWORK_STANDBYMODECHANGED,_powerEventHandler ));
@@ -1381,20 +1392,31 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool changeMode  = true;
+            bool isTimerContext = false;
             JsonObject param;
             std::string oldMode = m_currentMode;
             bool result = true;
-
+	    getBoolParameter("timercontext", isTimerContext);
+	    if((!isTimerContext) && isTimerActive())
+            {
+		int actualDurationLeft = m_remainingDuration ? m_remainingDuration : 1;
+                populateResponseWithError(SysSrv_ModeChangeInProgress, response);
+		LOGERR("Mode change is already in progress.current mode is %s and it will be in progress for next %d seconds. Please try again later.\n",m_currentMode.c_str(),actualDurationLeft);
+                returnResponse(false);
+            }
             if (parameters.HasLabel("modeInfo")) {
                 param.FromString(parameters["modeInfo"].String());
                 if (param.HasLabel("duration") && param.HasLabel("mode")) {
                     int duration = param["duration"].Number();
                     std::string newMode = param["mode"].String();
-
+             	    if(duration>86400)
+                    {
+                        LOGWARN("Duration is more than 24 hours. Setting duration to 24 hours,which is maximum allowed duration to set\n");
+                        duration = 86400;
+                    }
                     LOGWARN("request to switch to mode '%s' from mode '%s' \
                             with duration %d\n", newMode.c_str(),
                             oldMode.c_str(), duration);
-
                     if (MODE_NORMAL != newMode && MODE_WAREHOUSE != newMode &&
                             MODE_EAS != newMode) {
                         LOGERR("value of new mode is incorrect, therefore \
@@ -1411,16 +1433,13 @@ namespace WPEFramework {
                         m_currentMode = MODE_NORMAL;
                         stopModeTimer();
                     }
-
                     if (changeMode) {
                         IARM_Bus_CommonAPI_SysModeChange_Param_t modeParam;
                         stringToIarmMode(oldMode, modeParam.oldMode);
                         stringToIarmMode(m_currentMode, modeParam.newMode);
-
                         if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_DAEMON_NAME,
                                     "DaemonSysModeChange", &modeParam, sizeof(modeParam))) {
                             LOGWARN("switched to mode '%s'\n", m_currentMode.c_str());
-
                             if (MODE_NORMAL != m_currentMode && duration < 0) {
                                 LOGWARN("duration is negative, therefore \
                                         mode timer stopped and Receiver will keep \
@@ -1442,6 +1461,7 @@ namespace WPEFramework {
                             command = "rm -f ";
                         }
                         command += WAREHOUSE_MODE_FILE;
+
                         /* TODO: replace with system alternate. */
                         int sysStat = system(command.c_str());
                         LOGINFO("system returned %d\n", sysStat);
@@ -1459,7 +1479,6 @@ namespace WPEFramework {
                 populateResponseWithError(SysSrv_MissingKeyValues, response);
                 result = false;
             }
-
             returnResponse(result);
         }
 
@@ -1471,14 +1490,21 @@ namespace WPEFramework {
             m_temp_settings.setValue("mode_duration", m_remainingDuration);
         }
 
-        void SystemServices::stopModeTimer()
+        void SystemServices::stopModeTimer(bool isDetachRequired)
         {
             m_remainingDuration = 0;
             m_operatingModeTimer.stop();
-
+            if(isDetachRequired)
+            {
+                m_operatingModeTimer.detach();
+            }
             //set values in temp file so they can be restored in receiver restarts / crashes
             // TODO: query & confirm time duration range.
             m_temp_settings.setValue("mode_duration", m_remainingDuration);
+        }
+        bool SystemServices::isTimerActive()
+        {
+            return m_operatingModeTimer.isActive();
         }
 
         /**
@@ -1488,12 +1514,13 @@ namespace WPEFramework {
         {
             if (m_remainingDuration > 0) {
                 m_remainingDuration--;
+                m_temp_settings.setValue("mode_duration", m_remainingDuration);
             } else {
-                m_operatingModeTimer.stop();
-               m_operatingModeTimer.detach();
+                stopModeTimer(true);
                 JsonObject parameters, param, response;
                 param["mode"] = "NORMAL";
                 param["duration"] = 0;
+                parameters["timercontext"] = true;
                 parameters["modeInfo"] = param;
                 if (_instance) {
                     _instance->setMode(parameters,response);
@@ -1501,9 +1528,6 @@ namespace WPEFramework {
                     LOGERR("_instance is NULL.\n");
                 }
             }
-
-            //set values in temp file so they can be restored in receiver restarts / crashes
-            m_temp_settings.setValue("mode_duration", m_remainingDuration);
         }
 
         /***
@@ -2445,6 +2469,7 @@ namespace WPEFramework {
 		if (parameters.HasLabel("timeZone")) {
 			std::string dir = dirnameOf(TZ_FILE);
 			std::string timeZone = "";
+			std::string command = "";
 			try {
 				timeZone = parameters["timeZone"].String();
 				size_t pos = timeZone.find("/");
@@ -2473,10 +2498,12 @@ namespace WPEFramework {
 					if( dirExists(path+country)  && Utils::fileExists(city.c_str()) ) 
 					{
 						if (!dirExists(dir)) {
-							std::string command = "mkdir -p " + dir + " \0";
+							command = "mkdir -p " + dir + " \0";
 							Utils::cRunScript(command.c_str());
 						} else {
 							//Do nothing//
+							command = "ln -sf /usr/share/zoneinfo/" +timeZone +"  /etc/localtime" +" \0";
+							Utils::cRunScript(command.c_str());
 						}
 						std::string oldTimeZoneDST = getTimeZoneDSTHelper();
 						
@@ -2596,11 +2623,7 @@ namespace WPEFramework {
 	{
 		bool resp = false;
 		if(parameters.HasLabel("territory")){
-			struct stat st = {0};
-			if (stat("/opt/secure/persistent/System", &st) == -1) {
-				int ret = mkdir("/opt/secure/persistent/System", 0700);
-				LOGWARN(" --- SubDirectories created from mkdir %d ", ret);
-			}
+			makePersistentDir();
 			string regionStr = "";
 			readTerritoryFromFile();//Read existing territory and Region from file
 			string territoryStr = parameters["territory"].String();
@@ -3603,8 +3626,10 @@ namespace WPEFramework {
                 if (res == IARM_RESULT_SUCCESS) {
                     if (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON)
                         currentState = "ON";
-                    else if ((param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY) || (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) || (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP))
+                    else if ((param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY) || (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) )
                         currentState = "STANDBY";
+                    else if ( param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP)
+                        currentState = "DEEP_SLEEP";
                 }
                 
                 powerState = currentState;
@@ -3896,6 +3921,18 @@ namespace WPEFramework {
 			return "unknown";
 		}
 	}
+
+        bool SystemServices::makePersistentDir()
+        {
+            struct stat st = {0};
+            int ret = 0;
+            if (stat("/opt/secure/persistent/System", &st) == -1) {
+                ret = mkdir("/opt/secure/persistent/System", 0700);
+                LOGWARN(" --- SubDirectories created from mkdir %d ", ret);
+            }
+            return 0 == ret;
+        }
+
         /***
          * TODO: Stub implementation; Decide whether needed or not since setProperty
          * and getProperty functionalities are XRE/RTRemote dependent.
@@ -4231,6 +4268,28 @@ namespace WPEFramework {
         }
 
         /***
+       * @brief : To receive device updates event from IARM.
+       * @param1[in]  : owner of the event
+       * @param2[in]  : eventID of the event
+       * @param3[in]  : data passed from the IARMBUS event
+       * @param4[in]  : len
+       */
+       void _deviceMgtUpdateReceived(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+       {
+           if (!strcmp(IARM_BUS_SYSMGR_NAME, owner)) {
+               if (IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED  == eventId) {
+                   LOGWARN("%s:%d IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED event received\n",__FUNCTION__, __LINE__);
+                   if (SystemServices::_instance) {
+                       LOGWARN("%s:%d Invoke onDeviceMgtUpdateReceived to notify\n", __FUNCTION__, __LINE__);
+                       SystemServices::_instance->onDeviceMgtUpdateReceived((IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t *)data);
+                   } else {
+                       LOGERR("%s:%d SystemServices::_instance is NULL.\n", __FUNCTION__, __LINE__);
+                   }
+               }
+           }
+       }
+
+        /***
          * @brief : To receive Firmware Update State Change events from IARM.
          * @param1[in]  : owner of the event
          * @param2[in]  : eventID of the event
@@ -4329,7 +4388,6 @@ namespace WPEFramework {
                 }
             }
         }
-
         /***
          * @brief : To validate the parameters in event data send from the IARMBUS, so as
          *		   to initiate  onTemperatureThresholdChanged event.
@@ -4424,6 +4482,21 @@ namespace WPEFramework {
             LOGINFO("Notifying onRebootRequest\n");
             sendNotify(EVT_ONREBOOTREQUEST, params);
         }
+
+       /***
+       * @brief : called when Device Mgt settings update is received
+       * @param1[in]  : data passed from the IARMBUS event
+       * @param2[out] : {param:{"source":<string>, "type":<string>, "success":<bool>}}
+       */
+       void SystemServices::onDeviceMgtUpdateReceived(IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t *config)
+       {
+               JsonObject params;
+               params["source"] = std::string(config->source);
+               params["type"] = std::string(config->type);
+               params["success"] = config->status;
+               LOGWARN("onDeviceMgtUpdateReceived: source = %s type = %s success = %d\n", config->source, config->type, config->status);
+               sendNotify(EVT_ONDEVICEMGTUPDATERECEIVED, params);
+       }
 
         uint32_t SystemServices::getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response)
         {
@@ -4666,6 +4739,117 @@ namespace WPEFramework {
             response["startReason"] = (Utils::fileExists(SYSTEM_SERVICE_THUNDER_RESTARTED_FILE))?"RESTART":"NORMAL";
             returnResponse(true);
         }
+
+        uint32_t SystemServices::setPrivacyMode(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            string privacyMode = parameters["privacyMode"].String();
+
+            if (privacyMode != "SHARE" && privacyMode != "DO_NOT_SHARE")
+            {
+                LOGERR("Wrong privacyMode value: '%s'", privacyMode.c_str());
+                returnResponse(false);
+            }
+            
+            makePersistentDir();
+
+            ofstream optfile;
+    		
+            optfile.open(PRIVACY_MODE_FILE, ios::out);
+            if (optfile)
+            {
+                optfile << privacyMode;
+                optfile.close();
+            }
+
+            JsonObject params;
+            params["privacyMode"] = privacyMode;
+            sendNotify(EVT_ONPRIVACYMODECHANGED, params);
+
+            returnResponse(true);
+        }
+
+        uint32_t SystemServices::getPrivacyMode(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            string privacyMode = "";
+
+            string optOutStatus;
+
+            getFileContent(PRIVACY_MODE_FILE, privacyMode);
+            if (privacyMode != "SHARE" && privacyMode != "DO_NOT_SHARE")
+            {
+                LOGWARN("Wrong privacyMode value: '%s', returning default", privacyMode.c_str());
+                privacyMode = "SHARE";
+            }
+
+            response["privacyMode"] = privacyMode;
+
+            returnResponse(true);
+        }
+
+        /***
+         * @brief : To set the fsr flag into the emmc raw area.
+         * @param1[in] : {"params":{"fsrFlag":<bool>}
+         * @param2[out] : {"result":{"success":<bool>}}
+         * @return     : Core::<StatusCode>
+         */
+        uint32_t SystemServices::setFSRFlag(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool fsrFlag = 0;
+            bool status = false;
+            
+            if(parameters.HasLabel("fsrFlag"))
+            {
+                fsrFlag = parameters["fsrFlag"].Boolean();
+                IARM_Bus_MFRLib_FsrFlag_Param_t param;
+                param = fsrFlag;
+
+                LOGINFO("Param %d \n", param);
+                IARM_Result_t res = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
+                                       IARM_BUS_MFRLIB_API_SetFsrFlag, (void *)&param,
+                                       sizeof(param));
+                if (IARM_RESULT_SUCCESS == res) {
+                    status = true;
+                } else {
+                    status = false;
+                }
+            }
+
+            returnResponse(status);
+        }
+
+        /***
+         * @brief : To get the fsr flag from emmc
+         * @param1[out] : {"params":{"params":{"fsrFlag":<bool>}
+         * @param2[out] : {"result":{"success":<bool>}}
+         * @return     : Core::<StatusCode>
+         */
+        uint32_t SystemServices::getFSRFlag(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool fsrFlag = 0;
+            bool status = false;
+            IARM_Bus_MFRLib_FsrFlag_Param_t param;
+
+            IARM_Result_t res = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
+                                  IARM_BUS_MFRLIB_API_GetFsrFlag, (void *)&param,
+                                  sizeof(param));
+            if (IARM_RESULT_SUCCESS == res) {
+                fsrFlag = param;
+                status = true;
+            } else {
+                status = false;
+            }
+            response["fsrFlag"] = fsrFlag;
+            returnResponse(status);
+        }
+
     } /* namespace Plugin */
 } /* namespace WPEFramework */
 

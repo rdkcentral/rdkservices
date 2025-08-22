@@ -212,6 +212,9 @@ typedef struct _DeepSleepMgr_WakeupKeyCode_Param_t {
 #define IARM_BUS_MFRLIB_API_SetBootLoaderPattern "mfrSetBootloaderPattern"
 #define IARM_BUS_MFRLIB_API_SetBlSplashScreen       "mfrSetBlSplashScreen"
 #define IARM_BUS_MFRLIB_API_GetSerializedData "mfrGetManufacturerData"
+#define IARM_BUS_MFRLIB_API_SetFsrFlag "mfrSetFSRflag"
+#define IARM_BUS_MFRLIB_API_GetFsrFlag "mfrGetFSRflag"
+#define IARM_BUS_DSMGR_API_dsSetAllmEnabled "dsSetAllmEnabled"
 
 typedef enum _mfrSerializedType_t {
     mfrSERIALIZED_TYPE_MANUFACTURER = 0,
@@ -479,6 +482,16 @@ typedef struct _IARM_BUS_PWRMgr_WareHouseOpn_EventData_t {
 #define IARM_BUS_SYSMGR_NAME "SYSMgr"
 #define IARM_BUS_SYSMGR_API_GetSystemStates "GetSystemStates"
 
+/**
+ *  @brief Structure which holds RFC device management update information.
+ */
+typedef struct _IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t
+{
+      char source[10];                                    /*!< Device Management Update source. Ex: rfc */
+      char type[10];                                      /*!< Device Management Update type. Ex: initial */
+      bool status;                                        /*!< Device Management Update status. true/false */
+} IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t;
+
 typedef enum _SYSMgr_EventId_t {
     IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE,
     IARM_BUS_SYSMGR_EVENT_XUPNP_DATA_REQUEST, /*!< Xupnp data  request frm Receiver to UPNP*/
@@ -492,6 +505,7 @@ typedef enum _SYSMgr_EventId_t {
     IARM_BUS_SYSMGR_EVENT_KEYCODE_LOGGING_CHANGED, /*!< Key Code logging status update */
     IARM_BUS_SYSMGR_EVENT_USB_MOUNT_CHANGED, /*!< Fires when USB mounts change */
     IARM_BUS_SYSMGR_EVENT_APP_RELEASE_FOCUS, /*!< Application fires event to release focus*/
+    IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED,  /*!< Received Device Management update information */
     IARM_BUS_SYSMGR_EVENT_MAX /*!< Max Event Id */
 } IARM_Bus_SYSMgr_EventId_t;
 
@@ -932,6 +946,8 @@ typedef struct _IARM_Bus_CECMgr_Status_Updated_Param_t
 typedef struct _IARM_Bus_MFRLib_SetBLSplashScreen_Param{
 	char path[255];
 } IARM_Bus_MFRLib_SetBLSplashScreen_Param_t;
+
+typedef bool IARM_Bus_MFRLib_FsrFlag_Param_t; // true or false
 
 #define IARM_BUS_CECMGR_API_isAvailable "isAvailable"
 #define IARM_BUS_DSMGR_API_dsHdmiInGetNumberOfInputs    "dsHdmiInGetNumberOfInputs"

@@ -38,7 +38,6 @@
 using namespace WPEFramework;
 
 using ::testing::NiceMock;
-
 class SystemServicesTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::SystemServices> plugin;
@@ -252,6 +251,8 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
 	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("uploadLogs")));
 	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("uploadLogsAsync")));
 	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("abortLogUpload")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setFSRFlag")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getFSRFlag")));
 }
 
 TEST_F(SystemServicesTest, SystemUptime)
@@ -859,8 +860,11 @@ TEST_F(SystemServicesTest, updateFirmware)
 
 TEST_F(SystemServicesTest, Mode)
 {
+    NiceMock<ServiceMock> service;
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"\",\"duration\":0},\"success\":true}"));
+    EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"NORMAL\",\"duration\":0},\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{}"), response));
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{}}"), response));
@@ -871,13 +875,18 @@ TEST_F(SystemServicesTest, Mode)
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DAEMON_NAME)));
                 EXPECT_EQ(string(methodName), string(_T("DaemonSysModeChange")));
-                return IARM_RESULT_SUCCESS;
+		return IARM_RESULT_SUCCESS;
             });
 
     ON_CALL(*p_wrapsImplMock, system(::testing::_))
         .WillByDefault(::testing::Invoke(
             [&](const char* command) {
-                EXPECT_EQ(string(command), string(_T("rm -f /opt/warehouse_mode_active")));
+                EXPECT_TRUE(
+                    strcmp(command, "touch /opt/warehouse_mode_active") == 0 ||
+                    strcmp(command, "rm -f /opt/warehouse_mode_active") == 0 ||
+                    strcmp(command, "touch /opt/eas_mode_active") == 0 ||
+                    strcmp(command, "rm -f /opt/eas_mode_active") == 0
+                );
                 return 0;
             }));
 
@@ -886,6 +895,25 @@ TEST_F(SystemServicesTest, Mode)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"NORMAL\",\"duration\":0},\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"EAS\",\"duration\":10}}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
+    EXPECT_THAT(response, ::testing::MatchesRegex(_T("\\{"
+                                                 "\"modeInfo\":\\{"
+                                                 "\"mode\":\"EAS\","
+                                                 "\"duration\":(10|[1-9])"
+                                                 "\\},"
+                                                 "\"success\":true"
+                                                 "\\}")));
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
+    sleep(12);
+    
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
 }
 
 TEST_F(SystemServicesTest, setDeepSleepTimer)
@@ -6228,4 +6256,66 @@ TEST_F(SystemServicesEmptyTest, system_service_settings_conf_as_dir)
     plugin = Core::ProxyType<Plugin::SystemServices>::Create();
 
     EXPECT_TRUE(Core::Directory("/opt/system_service_settings.conf").Destroy(true));
+}
+
+TEST_F(SystemServicesTest, setFSRSuccess){
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_SetFsrFlag)));
+                auto param = static_cast<IARM_Bus_MFRLib_FsrFlag_Param_t>(arg);
+                EXPECT_EQ(param, (1));
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFSRFlag"), _T("{\"fsrFlag\":0}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, setFSRFailure){
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_SetFsrFlag)));
+                auto param = static_cast<IARM_Bus_MFRLib_FsrFlag_Param_t>(arg);
+                EXPECT_EQ(param, (1));
+                return IARM_RESULT_INVALID_STATE;
+            });
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setFSRFlag"), _T("{\"fsrFlag\":1}"), response));
+}
+
+TEST_F(SystemServicesTest, getFSRSuccess){
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetFsrFlag)));
+                auto param = static_cast<IARM_Bus_MFRLib_FsrFlag_Param_t>(arg);
+                EXPECT_EQ(param, (1));
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFSRFlag"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"fsrFlag\":true,\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, getFSRFailure){
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetFsrFlag)));
+                auto param = static_cast<IARM_Bus_MFRLib_FsrFlag_Param_t>(arg);
+                EXPECT_EQ(param, (1));
+                return IARM_RESULT_INVALID_STATE;
+            });
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getFSRFlag"), _T("{}"), response));
 }

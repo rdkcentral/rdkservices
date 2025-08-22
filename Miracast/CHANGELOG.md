@@ -13,6 +13,14 @@ All notable changes to this RDK Service will be documented in this file.
     Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development.
 
     For more details, refer to versioning section under Main README.
+## [1.0.10] - 2024-08-27
+### Fixed
+- Increase scan interval to 5 sec and added RFC support.
+
+## [1.0.9] - 2024-07-03
+### Fixed
+- Added the handling to Disable and Enable Miracast discovery later while wakeup from Deepsleep and switching from one ssid to another ssid.
+
 ## [1.0.8] - 2024-05-15
 ### Fixed
 - Added the changes to remove the old ip entry from ARP table

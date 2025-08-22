@@ -3,7 +3,7 @@
     "jsonrpc": "2.0",
     "info": {
         "title": "System API", 
-        "class": "SystemServices",
+        "class": "org.rdk.System",
         "description": "The `System` plugin is used to manage various system-level features such as power settings and firmware updates."
     },
     "common": {
@@ -1944,6 +1944,35 @@
                     "success"
                 ]
             }
+        },
+        "SetPrivacyMode": {
+            "summary": "Setting Privacy Mode.",          
+            "events": {
+                "onPrivacyModeChanged" : "Triggered when the Privacy Mode changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "privacyMode": {
+                        "summary": "New Privacy Mode",
+                        "type": "string",
+                        "example": "DO_NOT_SHARE"
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
+        "getPrivacyMode":{
+            "summary": "Getting Privacy Mode",
+            "result": {
+                "summary": "Current Privacy Mode",
+                "type": "string",
+                "example": "DO_NOT_SHARE"
+            }
         }
     },
     "events": {
@@ -2258,6 +2287,34 @@
                 ]
             }
         },
+                "onDeviceMgtUpdateReceived":{
+            "summary": "Triggered when the device management update completes",
+            "params": {
+                "type" :"object",
+                "properties": {
+                "source": {
+                        "summary": "Source information from where the event on update is posted",
+                        "type": "string",
+                        "example":"rfc"
+                },
+                "type":{
+                    "summary": " Type of Update received currently it will be used as initial",
+                    "type": "string",
+                    "example": "initial"
+                },
+                "success":{
+                    "summary": "Status information of update whether success or failure",
+                    "type":"boolean",
+                    "example": "true"
+                }
+                                },
+                "required":[
+                    "source",
+                    "type",
+                    "success"
+                ]
+            }
+         },
 		"onTimeZoneDSTChanged":{
             "summary": "Triggered when device time zone changed",
             "params": {
@@ -2310,6 +2367,62 @@
                 },
                 "required":[
                     "logUploadStatus"
+                ]
+            }
+        },
+        "onPrivacyModeChanged": {
+            "summary": "Triggered after the Privacy Mode changes (see `SetPrivacyMode`)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "privacyMode":{
+                        "summary": "Receive Privacy Mode changes",
+                        "type": "string",
+                        "example": "DO_NOT_SHARE"
+                    }
+                },
+                "required": [
+                    "privacyMode"
+                ]
+            }
+        },
+        "setFSRFlag":{
+            "summary": "Set the FSR flag into the emmc raw area. This API will fail if you attempt to set the same value.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "fsrFlag": {
+                        "summary": "FSR flag",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "fsrFlag",
+                    "success"
+                ]
+            }
+        },
+        "getFSRFlag":{
+            "summary": "Get the FSR flag from the emmc raw area.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "fsrFlag": {
+                        "summary": "FSR flag.",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "fsrFlag",
+                    "success"
                 ]
             }
         }

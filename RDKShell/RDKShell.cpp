@@ -713,6 +713,11 @@ namespace WPEFramework {
                     }
                 }
             }
+	    // This changes is added for response is getting empty on launching DAC application
+	    if (!FromMessage(response, message, isResponseString))
+	    {
+		return Core::ERROR_GENERAL;
+	    }
 #elif (THUNDER_VERSION == 2)
             auto resp =  dispatcher_->Invoke(sThunderSecurityToken, channelId, *message);
 #else
@@ -942,9 +947,7 @@ namespace WPEFramework {
                 }
 		else if (requestName.compare("susbscribeSystemEvent") == 0)
                 {
-                   gSubscribeMutex.lock();
 		   subscribeForSystemEvent("onSystemPowerStateChanged");
-		   gSubscribeMutex.unlock();
                    std::cout << "subscribed system event " << std::endl;
                    JsonObject joGetParams;
                     JsonObject joGetResult;
@@ -1645,7 +1648,7 @@ namespace WPEFramework {
                 return;
             }
 
-            if (callsign.find("Netflix") != string::npos || callsign.find("Cobalt") != string::npos)
+            if (callsign.find("Netflix") != string::npos || callsign.find("Cobalt") != string::npos || callsign.find("Amazon") != string::npos || callsign.find("YouTube") != string::npos)
             {
                 // Check if native app is suspended
                 bool suspendedOrHibernated = false;
@@ -8159,6 +8162,7 @@ namespace WPEFramework {
 
         int32_t RDKShell::subscribeForSystemEvent(std::string event)
         {
+	    gSubscribeMutex.lock();
             int32_t status = Core::ERROR_GENERAL;
 
             PluginHost::IShell::state state;
@@ -8199,6 +8203,7 @@ namespace WPEFramework {
             else
                 std::cout << "No Connection to SystemServices" << std::endl;
 
+	    gSubscribeMutex.unlock();
             return status;
         }
         

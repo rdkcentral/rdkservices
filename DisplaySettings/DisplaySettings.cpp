@@ -244,12 +244,33 @@ namespace WPEFramework {
 
         DisplaySettings::DisplaySettings()
             : PluginHost::JSONRPC()
+	, _engine(Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create())
+	, _communicatorClient(Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(_engine)))
+	, _controller(nullptr)
+	, _remotStoreObject(nullptr)	
         {
             LOGINFO("ctor");
             DisplaySettings::_instance = this;
             m_client = nullptr;
 
             CreateHandler({ 2 });
+
+	    if (!_communicatorClient.IsValid())
+	    {
+		    LOGWARN("Invalid _communicatorClient \n");
+	    }
+	    else
+	    {
+
+#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
+		    _engine->Announcements(_communicatorClient->Announcement());
+#endif
+
+		    LOGINFO("Connect the COM-RPC socket\n");
+		    _controller = _communicatorClient->Open<PluginHost::IShell>(_T("org.rdk.SystemMode"), ~0, 3000);
+
+
+	    }
 
             registerMethodLockedApi("getConnectedVideoDisplays", &DisplaySettings::getConnectedVideoDisplays, this);
             registerMethodLockedApi("getConnectedAudioPorts", &DisplaySettings::getConnectedAudioPorts, this);
@@ -324,8 +345,6 @@ namespace WPEFramework {
 
             registerMethodLockedApi("getAudioDelay", &DisplaySettings::getAudioDelay, this);
             registerMethodLockedApi("setAudioDelay", &DisplaySettings::setAudioDelay, this);
-            registerMethodLockedApi("getAudioDelayOffset", &DisplaySettings::getAudioDelayOffset, this);
-            registerMethodLockedApi("setAudioDelayOffset", &DisplaySettings::setAudioDelayOffset, this);
             registerMethodLockedApi("getSinkAtmosCapability", &DisplaySettings::getSinkAtmosCapability, this);
             registerMethodLockedApi("setAudioAtmosOutputMode", &DisplaySettings::setAudioAtmosOutputMode, this);
             registerMethodLockedApi("setForceHDRMode", &DisplaySettings::setForceHDRMode, this);
@@ -368,12 +387,36 @@ namespace WPEFramework {
         }
 
         DisplaySettings::~DisplaySettings()
-        {
-            LOGINFO ("dtor");
-	    isResCacheUpdated = false;
-	    isDisplayConnectedCacheUpdated = false;
-            isStbHDRcapabilitiesCache = false;
-        }
+	{
+		if (_controller)
+		{
+			_controller->Release();
+			_controller = nullptr;
+		}
+
+		LOGINFO("Disconnect from the COM-RPC socket\n");
+		// Disconnect from the COM-RPC socket
+		_communicatorClient->Close(RPC::CommunicationTimeOut);
+		if (_communicatorClient.IsValid())
+		{
+			_communicatorClient.Release();
+		}
+
+		if(_engine.IsValid())
+		{
+			_engine.Release();
+		}
+
+		if(_remotStoreObject)
+		{
+			_remotStoreObject->Release();
+		}
+
+		LOGINFO ("dtor");
+		isResCacheUpdated = false;
+		isDisplayConnectedCacheUpdated = false;
+		isStbHDRcapabilitiesCache = false;
+	}
 
         void DisplaySettings::AudioPortsReInitialize()
         {
@@ -557,48 +600,116 @@ namespace WPEFramework {
                 LOGWARN("Current power state %d", m_powerState);
             }
             LOGWARN ("DisplaySettings::Initialize completes line:%d", __LINE__);
+
+	    if (_controller)
+	    {
+		    _remotStoreObject = _controller->QueryInterface<Exchange::ISystemMode>();
+
+		    if(_remotStoreObject)
+		    {
+			    _remotStoreObject->AddRef();
+		    }
+		    else
+		    {
+			    LOGERR("Failed to create SystemMode _controller\n");
+		    }
+	    }
+	    else
+	    {
+		    LOGERR("Failed to create SystemMode Controller\n");
+	    }
+	    ASSERT (nullptr != _remotStoreObject);
+
+
+	    if(_remotStoreObject)
+	    {
+		    const string& callsign = "org.rdk.DisplaySettings";
+		    const string& systemMode = "DEVICE_OPTIMIZE";
+	            _remotStoreObject->ClientActivated(callsign,systemMode);		
+	    }
+            else
+            {
+                    Utils::String::updateSystemModeFile( "DEVICE_OPTIMIZE", "callsign", "org.rdk.DisplaySettings","add") ;
+            }
+
             // On success return empty, to indicate there is no error text.
             return (string());
         }
 
         void DisplaySettings::Deinitialize(PluginHost::IShell* service)
-        {
-	   LOGINFO("Enetering DisplaySettings::Deinitialize");
-	   {
-		std::unique_lock<std::mutex> lock(DisplaySettings::_instance->m_sendMsgMutex);
-		DisplaySettings::_instance->m_sendMsgThreadExit = true;
-                DisplaySettings::_instance->m_sendMsgThreadRun = true;
-                DisplaySettings::_instance->m_sendMsgCV.notify_one();
-	   }
-       int count = 0;
-       while(audioPortInitActive && count < 20){
-            sleep(100);
-            count++;
-        }
-	   try
-	   {
-		if (m_sendMsgThread.joinable())
-			m_sendMsgThread.join();
-	   }
-	   catch(const std::system_error& e)
-           {
-		LOGERR("system_error exception in thread join %s", e.what());
-	   }
-	   catch(const std::exception& e)
-	   {
-		LOGERR("exception in thread join %s", e.what());
-	   }
+	{
+		LOGINFO("Enetering DisplaySettings::Deinitialize");
 
-            stopCecTimeAndUnsubscribeEvent();
+		//During DisplaySettings plugin  activation the SystemMode may not be added .But it will be added /tmp/SystemMode.txt . If after 5 min SystemMode got activated then SystemMode fill the client map from /tmp/SystemMode.txt. In this case if we deactivate DisplaySettings then _remotStoreObject will be null here . So we try to QueryInterface the ISystemMode one more time 
+		if(_remotStoreObject == nullptr)
+		{
+			if (_controller)
+			{
+				_remotStoreObject = _controller->QueryInterface<Exchange::ISystemMode>();
 
-            DeinitializeIARM();
-            DisplaySettings::_instance = nullptr;
+				if(_remotStoreObject)
+				{
+					_remotStoreObject->AddRef();
+				}
+				else
+				{
+					LOGERR("Failed to create SystemMode _controller\n");
+				}
+			}
+			else
+			{
+				LOGERR("Failed to create SystemMode Controller\n");
+			}
+		}
 
-            ASSERT(service == m_service);
+		ASSERT (nullptr != _remotStoreObject);
 
-            m_service->Release();
-            m_service = nullptr;
-        }
+		if(_remotStoreObject)
+		{
+			const string& callsign = "org.rdk.DisplaySettings";
+			const string& systemMode = "DEVICE_OPTIMIZE";
+			_remotStoreObject->ClientDeactivated(callsign,systemMode);		
+		}
+		else
+		{
+			Utils::String::updateSystemModeFile( "DEVICE_OPTIMIZE", "callsign", "org.rdk.DisplaySettings","delete") ;
+		}
+
+		{
+			std::unique_lock<std::mutex> lock(DisplaySettings::_instance->m_sendMsgMutex);
+			DisplaySettings::_instance->m_sendMsgThreadExit = true;
+			DisplaySettings::_instance->m_sendMsgThreadRun = true;
+			DisplaySettings::_instance->m_sendMsgCV.notify_one();
+		}
+		int count = 0;
+		while(audioPortInitActive && count < 20){
+			sleep(100);
+			count++;
+		}
+		try
+		{
+			if (m_sendMsgThread.joinable())
+				m_sendMsgThread.join();
+		}
+		catch(const std::system_error& e)
+		{
+			LOGERR("system_error exception in thread join %s", e.what());
+		}
+		catch(const std::exception& e)
+		{
+			LOGERR("exception in thread join %s", e.what());
+		}
+
+		stopCecTimeAndUnsubscribeEvent();
+
+		DeinitializeIARM();
+		DisplaySettings::_instance = nullptr;
+
+		ASSERT(service == m_service);
+
+		m_service->Release();
+		m_service = nullptr;
+	}
 
         void DisplaySettings::InitializeIARM()
         {
@@ -875,6 +986,14 @@ namespace WPEFramework {
                                    DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
 				   DisplaySettings::_instance->m_requestSadRetrigger = false;
                                 }
+
+				if (DisplaySettings::_instance->m_AudioDeviceSADState != AUDIO_DEVICE_SAD_CLEARED) {
+					DisplaySettings::_instance->m_AudioDeviceSADState = AUDIO_DEVICE_SAD_CLEARED;
+					LOGINFO("%s: Clearing Audio device SAD\n", __FUNCTION__);
+					sad_list.clear();
+				} else {
+				LOGINFO("SAD already cleared\n");
+	    			}
 
                             }// Release Mutex m_AudioDeviceStatesUpdateMutex
 			}
@@ -3815,128 +3934,7 @@ namespace WPEFramework {
             returnResponse(success);
         }
 
-        uint32_t DisplaySettings::getAudioDelayOffset (const JsonObject& parameters, JsonObject& response) 
-        {   //sample servicemanager response:
-            LOGINFOMETHOD();
-
-            bool success = true;
-            string audioPort = parameters["audioPort"].String();//empty value will browse all ports
-
-            if (!checkPortName(audioPort))
-                audioPort = "HDMI0";
-
-            uint32_t audioDelayOffsetMs = 0;
-            try
-            {
-                /* Return the sound mode of the audio ouput connected to the specified audioPort */
-                /* Check if HDMI is connected - Return (default) Stereo Mode if not connected */
-                if (audioPort.empty())
-                {
-                    std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
-                    if (isDisplayConnected(strVideoPort))
-                    {
-                        audioPort = "HDMI0";
-                    }
-                    else
-                    {
-                        /*  * If HDMI is not connected
-                            * Get the SPDIF if it is supported by platform
-                            * If Platform does not have connected ports. Default to HDMI.
-                        */
-                        audioPort = "HDMI0";
-                        device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();
-                        for (size_t i = 0; i < vPorts.size(); i++)
-                        {
-                            device::VideoOutputPort &vPort = vPorts.at(i);
-                            if (isDisplayConnected(vPort.getName()))
-                            {
-                                audioPort = "SPDIF0";
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
-                aPort.getAudioDelayOffset (audioDelayOffsetMs);
-				response["audioDelayOffset"] = std::to_string(audioDelayOffsetMs);
-            }
-            catch (const device::Exception& err)
-            {
-                LOG_DEVICE_EXCEPTION1(audioPort);
-                success = false;
-            }
-
-            returnResponse(success);
-        }
-
-        uint32_t DisplaySettings::setAudioDelayOffset (const JsonObject& parameters, JsonObject& response)
-        {   //sample servicemanager response:
-            LOGINFOMETHOD();
-
-            returnIfParamNotFound(parameters, "audioDelayOffset");
-
-            string sAudioDelayOffsetMs = parameters["audioDelayOffset"].String();
-            int audioDelayOffsetMs = 0;
-            try
-            {
-                audioDelayOffsetMs = stoi(sAudioDelayOffsetMs);
-            }
-            catch (const std::exception &err)
-            {
-                LOGERR("Failed to parse audioDelayOffset '%s'", sAudioDelayOffsetMs.c_str());
-                returnResponse(false);
-            }
-
-            bool success = true;
-            string audioPort = parameters["audioPort"].String();//empty value will browse all ports
-
-            if (!checkPortName(audioPort))
-                audioPort = "HDMI0";
-
-            try
-            {
-                /* Return the sound mode of the audio ouput connected to the specified audioPort */
-                /* Check if HDMI is connected - Return (default) Stereo Mode if not connected */
-                if (audioPort.empty())
-                {
-                    std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
-                    if (isDisplayConnected(strVideoPort))
-                    {
-                        audioPort = "HDMI0";
-                    }
-                    else
-                    {
-                        /*  * If HDMI is not connected
-                            * Get the SPDIF if it is supported by platform
-                            * If Platform does not have connected ports. Default to HDMI.
-                        */
-                        audioPort = "HDMI0";
-                        device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();
-                        for (size_t i = 0; i < vPorts.size(); i++)
-                        {
-                            device::VideoOutputPort &vPort = vPorts.at(i);
-                            if (isDisplayConnected(vPort.getName()))
-                            {
-                                audioPort = "SPDIF0";
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
-                aPort.setAudioDelayOffset (audioDelayOffsetMs);
-            }
-            catch (const device::Exception& err)
-            {
-                LOG_DEVICE_EXCEPTION2(audioPort, sAudioDelayOffsetMs);
-                success = false;
-            }
-            returnResponse(success);
-        }
-
-        uint32_t DisplaySettings::getSinkAtmosCapability (const JsonObject& parameters, JsonObject& response) 
+	uint32_t DisplaySettings::getSinkAtmosCapability (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
             bool success = true;
@@ -5880,6 +5878,14 @@ void DisplaySettings::sendMsgThread()
                 sendNotify("connectedVideoDisplaysUpdated", params);
             }
             previousStatus = hdmiHotPlugEvent;
+
+	    //If HDMI hotplug event occurs, DisplaySettings  re-evaluate whether it should be signalling ALLM output of the HDMI port
+	    std::string currentAllmState = "";
+            Utils::String::getSystemModePropertyValue("DEVICE_OPTIMIZE" ,"currentstate" , currentAllmState);
+            if(currentAllmState == "VIDEO" || currentAllmState == "GAME")
+            {
+                    Request(currentAllmState);
+            }
         }
 
         void DisplaySettings::connectedAudioPortUpdated (int iAudioPortType, bool isPortConnected)
@@ -6164,5 +6170,36 @@ void DisplaySettings::sendMsgThread()
 
 	    return mode;
         }
+
+	void DisplaySettings::Request(const string& newState)
+	{
+		vector<string> connectedDisplays;
+		getConnectedVideoDisplaysHelper(connectedDisplays);
+		for (int i = 0; i < (int)connectedDisplays.size(); i++)
+		{
+			try
+			{
+				std::string strVideoPort = connectedDisplays.at(i);;
+				device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
+				if (isDisplayConnected(strVideoPort))
+				{
+					bool enable = (newState == "GAME") ? true : false;
+					vPort.setAllmEnabled(enable);
+				}
+				else
+				{
+					LOGWARN("failure: %s is not connected!",strVideoPort.c_str());
+				}
+			}
+			catch (const device::Exception& err)
+			{
+				LOG_DEVICE_EXCEPTION0();
+			}
+		}
+		if( 0 == (int)connectedDisplays.size())
+		{
+			LOGWARN("No display connected to device (or)device's powerstate is not ON");
+		}
+	}
     } // namespace Plugin
 } // namespace WPEFramework

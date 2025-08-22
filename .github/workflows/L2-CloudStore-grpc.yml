@@ -1,0 +1,35 @@
+name: L2-CloudStore-grpc
+
+on:
+  push:
+    paths:
+      - CloudStore/**
+      - .github/workflows/*CloudStore*.yml
+  pull_request:
+    paths:
+      - CloudStore/**
+      - .github/workflows/*CloudStore*.yml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ${{github.repository}}
+
+      - name: Install cmake, protoc, grpc_cpp_plugin, grpc
+        run: |
+          sudo apt update
+          sudo apt install -y cmake protobuf-compiler protobuf-compiler-grpc libgrpc++-dev
+
+      - name: Build
+        working-directory: ${{github.workspace}}
+        run: |
+          cmake -S ${GITHUB_REPOSITORY}/CloudStore/grpc/l2test -B build/grpcl2test -DCMAKE_INSTALL_PREFIX="install" -DCMAKE_CXX_FLAGS="-Wall -Werror"
+          cmake --build build/grpcl2test --target install
+
+# Usage:
+# Build with real token (here: "Bearer TOKEN")!!!
+# PATH=${PWD}/install/bin:${PATH} LD_LIBRARY_PATH=${PWD}/install/lib:${LD_LIBRARY_PATH} valgrind --tool=memcheck --log-file=valgrind_log --leak-check=yes --show-reachable=yes --track-fds=yes --fair-sched=try grpcl2test

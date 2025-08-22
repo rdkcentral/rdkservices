@@ -236,6 +236,7 @@ typedef struct _WiFiConnection
     char carootcert[MAX_FILE_PATH_LEN];
     char clientcert[MAX_FILE_PATH_LEN];
     char privatekey[MAX_FILE_PATH_LEN];
+    bool persistSSIDInfo;
 } WiFiConnection;
 
 typedef struct _WiFiConnectedSSIDInfo
@@ -380,7 +381,7 @@ namespace WPEFramework
                 case WIFI_DISABLED:
                     return Exchange::INetworkManager::WIFI_STATE_DISABLED;
             }
-            return Exchange::INetworkManager::WIFI_STATE_CONNECTION_FAILED;
+            return Exchange::INetworkManager::WIFI_STATE_INVALID;
         }
 
         Exchange::INetworkManager::WiFiState errorcode_to_wifi_state(WiFiErrorCode_t code) {
@@ -390,6 +391,8 @@ namespace WPEFramework
                     return Exchange::INetworkManager::WIFI_STATE_SSID_CHANGED;
                 case WIFI_CONNECTION_LOST:
                     return Exchange::INetworkManager::WIFI_STATE_CONNECTION_LOST;
+                case WIFI_CONNECTION_FAILED:
+                    return Exchange::INetworkManager::WIFI_STATE_CONNECTION_FAILED;
                 case WIFI_CONNECTION_INTERRUPTED:
                     return Exchange::INetworkManager::WIFI_STATE_CONNECTION_INTERRUPTED;
                 case WIFI_INVALID_CREDENTIALS:
@@ -401,7 +404,7 @@ namespace WPEFramework
                 case WIFI_UNKNOWN:
                     return Exchange::INetworkManager::WIFI_STATE_ERROR;
             }
-            return Exchange::INetworkManager::WIFI_STATE_CONNECTION_FAILED;
+            return Exchange::INetworkManager::WIFI_STATE_INVALID;
         }
 
         void NetworkManagerInternalEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
@@ -505,10 +508,7 @@ namespace WPEFramework
                         IARM_BUS_WiFiSrvMgr_EventData_t* e = (IARM_BUS_WiFiSrvMgr_EventData_t *) data;
                         Exchange::INetworkManager::WiFiState state = Exchange::INetworkManager::WIFI_STATE_DISCONNECTED;
                         NMLOG_INFO("Event IARM_BUS_WIFI_MGR_EVENT_onWIFIStateChanged received; state=%d", e->data.wifiStateChange.state);
-
                         state = to_wifi_state(e->data.wifiStateChange.state);
-                        if(e->data.wifiStateChange.state == WIFI_CONNECTED)
-                             ::_instance->m_wifiSignalMonitor.startWiFiSignalStrengthMonitor(DEFAULT_WIFI_SIGNAL_TEST_INTERVAL_SEC);
                         ::_instance->ReportWiFiStateChangedEvent(state);
                         break;
                     }
@@ -517,7 +517,7 @@ namespace WPEFramework
                         IARM_BUS_WiFiSrvMgr_EventData_t* e = (IARM_BUS_WiFiSrvMgr_EventData_t *) data;
                         Exchange::INetworkManager::WiFiState state = errorcode_to_wifi_state(e->data.wifiError.code);
                         NMLOG_INFO("Event IARM_BUS_WIFI_MGR_EVENT_onError received; code=%d", e->data.wifiError.code);
-			::_instance->ReportWiFiStateChangedEvent(state);
+                        ::_instance->ReportWiFiStateChangedEvent(state);
                         break;
                     }
                     default:
@@ -1129,6 +1129,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                     ssid.m_clientCert.copy(param.data.connect.clientcert, sizeof(param.data.connect.clientcert) - 1);
                 if(!ssid.m_privateKey.empty())
                     ssid.m_privateKey.copy(param.data.connect.privatekey, sizeof(param.data.connect.privatekey) - 1);
+                param.data.connect.persistSSIDInfo = ssid.m_persistSSIDInfo;
             }
 
             retVal = IARM_Bus_Call( IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_connect, (void *)&param, sizeof(param));
@@ -1186,7 +1187,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 ssidInfo.m_bssid            = string(connectedSsid.bssid);
                 ssidInfo.m_securityMode     = (WIFISecurityMode) connectedSsid.securityMode;
                 ssidInfo.m_signalStrength   = to_string(connectedSsid.signalStrength);
-                ssidInfo.m_frequency        = ((((float)connectedSsid.frequency)/1000) < 3.0) ? WIFI_FREQUENCY_2_4_GHZ : WIFI_FREQUENCY_5_GHZ;
+                ssidInfo.m_frequency        = static_cast<double>(connectedSsid.frequency)/1000.0;
                 ssidInfo.m_rate             = to_string(connectedSsid.rate);
                 ssidInfo.m_noise            = to_string(connectedSsid.noise);
 

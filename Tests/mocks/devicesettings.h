@@ -299,6 +299,13 @@ typedef enum _dsCompositeInPort_t {
     dsCOMPOSITE_IN_PORT_MAX
 } dsCompositeInPort_t;
 
+typedef enum dsHdmiMaxCapabilityVersion{
+    HDMI_COMPATIBILITY_VERSION_14 = 0, /*!< Hdmi Compatibility Version 1.4 */
+    HDMI_COMPATIBILITY_VERSION_20,     /*!< Hdmi Compatibility Version 2.0 */
+    HDMI_COMPATIBILITY_VERSION_21,     /*!< Hdmi Compatibility Version 2.1 */
+    HDMI_COMPATIBILITY_VERSION_MAX     /*!< Out of bounds */
+}dsHdmiMaxCapabilityVersion_t;
+
 /*! DS Manager  Event Data */
 typedef struct _DSMgr_EventData_t {
     union {
@@ -577,6 +584,7 @@ public:
     virtual void getAVLatency(int *audio_output_delay, int *video_latency) const = 0;
     virtual void setEdid2AllmSupport(int iHdmiPort, bool allmsupport) const = 0;
     virtual void getEdid2AllmSupport(int iHdmiPort, bool *allmsupport) const = 0;
+    virtual void getHdmiVersion (int iHdmiPort, dsHdmiMaxCapabilityVersion_t *capversion) const = 0;
 };
 
 class HdmiInput {
@@ -603,6 +611,7 @@ public:
     void getAVLatency(int *audio_output_delay, int *video_latency)const;
     void setEdid2AllmSupport(int iport, bool allmSupport) const;
     void getEdid2AllmSupport(int iport, bool *allmSupport) const;
+    void getHdmiVersion (int iHdmiPort, dsHdmiMaxCapabilityVersion_t *capversion) const;
 };
 
 }

@@ -100,7 +100,6 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rtNotifier.h
 	${BASEDIR}/dsRpc.h
 	${BASEDIR}/websocket/URL.h
-        ${BASEDIR}/rdk/iarmmgrs/irMgr.h
         ${BASEDIR}/rdk/iarmmgrs/comcastIrKeyCodes.h
 	    ${BASEDIR}/rdk_logger_milestone.h
 	    ${BASEDIR}/opkg/opkg.h
@@ -217,3 +216,5 @@ set(PLUGIN_MAINTENANCEMANAGER ON)
 set(PLUGIN_PACKAGER ON)
 set(DS_FOUND ON)
 set(PLUGIN_SYSTEMAUDIOPLAYER ON)
+set(PLUGIN_ANALYTICS ON)
+set(PLUGIN_ANALYTICS_SIFT_BACKEND ON)

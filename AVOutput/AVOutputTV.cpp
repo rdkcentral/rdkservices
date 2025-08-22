@@ -2716,11 +2716,9 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        std::string local = value;
-        transform(local.begin(), local.end(), local.begin(), ::tolower);
         if( isSetRequired("Current",source,format) ) {
             LOGINFO("Proceed with SetTVPictureMode\n");
-            ret = SetTVPictureMode(local.c_str());
+            ret = SetTVPictureMode(value.c_str());
          }
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -2832,13 +2830,9 @@ namespace Plugin {
                             current_format = VIDEO_FORMAT_SDR;
                         }
 
-                        //as hal using lower across converting to lower
-                        std::string setparam = param.value;
-                        transform(setparam.begin(), setparam.end(), setparam.begin(), ::tolower);
-
                         if (current_source == sourceType && current_format == formatType) {
 
-                            tvError_t ret = SetTVPictureMode(setparam.c_str());
+                            tvError_t ret = SetTVPictureMode(param.value);
                             if(ret != tvERROR_NONE) {
                                 LOGWARN("Picture Mode set failed: %s\n",getErrorString(ret).c_str());
                                 returnResponse(false);
@@ -2889,8 +2883,15 @@ namespace Plugin {
         std::string pqmode;
         std::string source;
         std::string format;
-        int lowLatencyIndex = 0;
+        int params[3]={0};
+        int lowLatencyIndex = 0,prevLowLatencyIndex = 0;
         tvError_t ret = tvERROR_NONE;
+
+        ret = GetLowLatencyState(&prevLowLatencyIndex);
+        if(ret != tvERROR_NONE) {
+            LOGERR("Get previous low latency state failed\n");
+            returnResponse(false);
+        }
 
         value = parameters.HasLabel("LowLatencyState") ? parameters["LowLatencyState"].String() : "";
         returnIfParamNotFound(parameters,"LowLatencyState");
@@ -2911,23 +2912,30 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if( isSetRequired(pqmode,source,format) ) {
+        params[0]=lowLatencyIndex;
+        int retval= updateAVoutputTVParam("set","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
+        if(retval != 0 ) {
+            LOGERR("Failed to SaveLowLatency to ssm_data\n");
+            returnResponse(false);
+        } else {
+           
+            if( isSetRequired(pqmode,source,format) ) {
              LOGINFO("Proceed with setLowLatencyState\n");
              ret = SetLowLatencyState( lowLatencyIndex );
-        }
+            }
 
-        if(ret != tvERROR_NONE) {
-            LOGERR("Failed to setLowLatency\n");
-            returnResponse(false);
-        }
-        else {
-            int params[3]={0};
-            params[0]=lowLatencyIndex;
-            int retval= updateAVoutputTVParam("set","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
-            if(retval != 0 ) {
-                LOGERR("Failed to SaveLowLatency to ssm_data\n");
+            if(ret != tvERROR_NONE) {
+                LOGERR("Failed to setLowLatency\n");
+                params[0]=prevLowLatencyIndex;
+                LOGERR("Failed to set low latency. Fallback to previous state %d\n", prevLowLatencyIndex);
+
+                retval=updateAVoutputTVParam("set","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
+                if(retval != 0 ){
+                    LOGERR("Fallback to previous low latency state %d failed.\n", prevLowLatencyIndex);
+                }
                 returnResponse(false);
             }
+
             LOGINFO("Exit : setLowLatency successful to value: %d\n", lowLatencyIndex);
             returnResponse(true);
         }
