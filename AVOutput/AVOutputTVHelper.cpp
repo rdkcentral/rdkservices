@@ -1209,6 +1209,13 @@ namespace Plugin {
             LOGERR("Backlight Sync to cache Failed !!!\n");
         }
 
+        if( !updateAVoutputTVParam("sync","LowLatencyState",info,PQ_PARAM_LOWLATENCY_STATE,level) ) {
+            LOGINFO("LowLatencyState Successfully Synced to Drive Cache\n");
+        }
+        else {
+            LOGERR("LowLatencyState Sync to cache Failed !!!\n");
+        }
+
         syncCMSParams(); //sync CMS 
         
         syncWBParams();
