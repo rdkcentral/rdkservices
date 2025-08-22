@@ -1648,11 +1648,11 @@ namespace Plugin {
     }
 
     uint32_t AVOutputTV::setContextPQParam(const JsonObject& parameters, JsonObject& response,
-                                       const std::string& inputParamName,
-                                       const std::string& tr181ParamName,
-                                       int maxAllowedValue,
-                                       tvPQParameterIndex_t pqParamType,
-                                       std::function<tvError_t(tvVideoSrcType_t, tvPQModeIndex_t, tvVideoFormatType_t, int)> halSetter)
+                                        const std::string& inputParamName,
+                                        const std::string& tr181ParamName,
+                                        int maxAllowedValue,
+                                        tvPQParameterIndex_t pqParamType,
+                                        std::function<tvError_t(tvVideoSrcType_t, tvPQModeIndex_t, tvVideoFormatType_t, int)> halSetter)
     {
         LOGINFO("Entry");
 
@@ -1662,11 +1662,30 @@ namespace Plugin {
         }
 
         std::string valueStr = parameters[inputParamName.c_str()].String();
-        int value = std::stoi(valueStr);
+        int enumValue = -1;
 
-        if (value < 0 || value > maxAllowedValue) {
-            LOGERR("Input value %d is out of range for %s", value, inputParamName.c_str());
-            returnResponse(false);
+        // Handle special map-based params
+        if (pqParamType == PQ_PARAM_SDR_GAMMA) {
+            auto it = sdrGammaMap.find(valueStr);
+            if (it == sdrGammaMap.end()) {
+                LOGERR("Invalid SDRGamma value: %s", valueStr.c_str());
+                returnResponse(false);
+            }
+            enumValue = it->second;
+        }
+        else {
+            // default: numeric parsing
+            try {
+                enumValue = std::stoi(valueStr);
+            } catch (const std::exception& e) {
+                LOGERR("Failed to parse %s as integer: %s", inputParamName.c_str(), e.what());
+                returnResponse(false);
+            }
+
+            if (enumValue < 0 || enumValue > maxAllowedValue) {
+                LOGERR("Input value %d is out of range for %s", enumValue, inputParamName.c_str());
+                returnResponse(false);
+            }
         }
 
         // Get current context
@@ -1680,41 +1699,36 @@ namespace Plugin {
             currentFmt = VIDEO_FORMAT_SDR;
 
         char picMode[PIC_MODE_NAME_MAX] = {0};
-        if (getCurrentPictureMode(picMode))
-        {
+        if (getCurrentPictureMode(picMode)) {
             auto it = pqModeReverseMap.find(picMode);
-            if (it != pqModeReverseMap.end())
-            {
+            if (it != pqModeReverseMap.end()) {
                 currentPQMode = static_cast<tvPQModeIndex_t>(it->second);
-            }
-            else
-            {
+            } else {
                 LOGERR("Unknown picture mode");
             }
-        }
-        else
-        {
+        } else {
             LOGERR("Failed to get current picture mode");
         }
 
         LOGINFO("currentPQMode: %d, currentFmt: %d, currentSrc: %d", currentPQMode, currentFmt, currentSrc);
 
+        // Call HAL if required
         if (isSetRequiredForParam(parameters, tr181ParamName)) {
-            tvError_t ret = halSetter(currentSrc, currentPQMode, currentFmt, value);
+            tvError_t ret = halSetter(currentSrc, currentPQMode, currentFmt, enumValue);
             if (ret != tvERROR_NONE) {
                 LOGERR("HAL setter failed for %s", inputParamName.c_str());
                 returnResponse(false);
             }
         }
 
-        // Persist
-        int retval = updateAVoutputTVParamV2("set", tr181ParamName, parameters, pqParamType, value);
+        // Persist enum/int
+        int retval = updateAVoutputTVParamV2("set", tr181ParamName, parameters, pqParamType, enumValue);
         if (retval != 0) {
-            LOGERR("Failed to save %s to ssm_data", inputParamName.c_str());
+            LOGERR("Failed to save %s to driver", inputParamName.c_str());
             returnResponse(false);
         }
 
-        LOGINFO("Exit: %s set successfully to %d", inputParamName.c_str(), value);
+        LOGINFO("Exit: %s set successfully to %d", inputParamName.c_str(), enumValue);
         returnResponse(true);
     }
 
@@ -3776,7 +3790,7 @@ namespace Plugin {
         return setContextPQParam(
             parameters, response,
             "sdrGamma", "SDRGamma",
-            tvSdrGamma_MAX,
+            tvSdrGamma_MAX-1,
             PQ_PARAM_SDR_GAMMA,
             [](tvVideoSrcType_t src, tvPQModeIndex_t mode, tvVideoFormatType_t /*fmt*/, int val) {
                 return SetSdrGamma(src, mode, static_cast<tvSdrGamma_t>(val));
