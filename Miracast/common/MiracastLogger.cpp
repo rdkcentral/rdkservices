@@ -43,7 +43,7 @@ namespace MIRACAST
         return prettyFunction.substr(begin, end);
     }
 
-    static int gDefaultLogLevel = INFO_LEVEL;
+    static int gDefaultLogLevel = ERROR_LEVEL;
     static FILE *logger_file_ptr = nullptr;
     static std::string service_name = "NOT-DEFINED";
     static sem_t separate_logger_sync;
