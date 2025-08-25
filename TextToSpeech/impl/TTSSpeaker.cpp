@@ -768,7 +768,7 @@ void TTSSpeaker::createPipeline(PipelineType type) {
     // create soc specific elements
 #if defined(PLATFORM_BROADCOM)
     m_source = gst_element_factory_make("souphttpsrc", NULL);
-    m_audioSink = gst_element_factory_make("brcmpcmsink", NULL);
+    m_audioSink = gst_element_factory_make("brcmaudiosink", NULL);
     m_audioVolume = m_audioSink;
 #elif defined(PLATFORM_AMLOGIC)
     GstElement *convert = gst_element_factory_make("audioconvert", NULL);
@@ -863,10 +863,12 @@ void TTSSpeaker::createPipeline(PipelineType type) {
     bool result = TRUE;
 #if defined(PLATFORM_BROADCOM)
     if(!m_pcmAudioEnabled){
-        GstElement *decodebin = gst_element_factory_make("brcmmp3decoder", NULL);
-        gst_bin_add_many(GST_BIN(m_pipeline), m_source, decodebin, m_audioSink, NULL);
-        result &= gst_element_link (m_source, decodebin);
-        result &= gst_element_link (decodebin, m_audioSink);
+        GstElement *parser = gst_element_factory_make("mpegaudioparse", NULL);
+        GstElement *decodebin = gst_element_factory_make("mpg123audiodec", NULL);
+        GstElement *convert = gst_element_factory_make("audioconvert", NULL);
+        GstElement *resample = gst_element_factory_make("audioresample", NULL);
+        gst_bin_add_many(GST_BIN(m_pipeline), m_source, parser, decodebin, convert, resample, m_audioSink, NULL);
+        result = gst_element_link_many (m_source, parser, decodebin, convert, resample, m_audioSink, NULL);
     }
     else {
         TTSLOG_INFO("PCM audio capsfilter added to sink");

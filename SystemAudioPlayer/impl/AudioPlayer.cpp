@@ -263,7 +263,9 @@ void AudioPlayer::createPipeline(bool smartVolumeEnable)
     g_object_set(G_OBJECT(m_audioSink), "media-tunnel",  FALSE, NULL);
     g_object_set(G_OBJECT(m_audioSink), "audio-service",  TRUE, NULL);
 #elif defined(PLATFORM_BROADCOM)
-    m_audioSink = gst_element_factory_make("brcmpcmsink", NULL);
+    GstElement *convert = gst_element_factory_make("audioconvert", NULL);
+    GstElement *resample = gst_element_factory_make("audioresample", NULL);
+    m_audioSink = gst_element_factory_make("brcmaudiosink", NULL);
     m_audioVolume = m_audioSink;
 #else
     m_audioSink = gst_element_factory_make("autoaudiosink", NULL); 
@@ -443,9 +445,9 @@ void AudioPlayer::createPipeline(bool smartVolumeEnable)
         gst_element_link_many (m_source, parser, decodebin, convert, resample, audiofilter, m_audioVolume, m_audioSink, NULL);
         #elif defined(PLATFORM_BROADCOM)
         GstElement *parser = gst_element_factory_make("mpegaudioparse", NULL);
-        GstElement *decodebin = gst_element_factory_make("brcmmp3decoder", NULL);
-        gst_bin_add_many(GST_BIN(m_pipeline), m_source, parser, decodebin, m_audioSink, NULL);
-        gst_element_link_many (m_source, parser, decodebin, m_audioSink, NULL);
+        GstElement *decodebin = gst_element_factory_make("mpg123audiodec", NULL);
+        gst_bin_add_many(GST_BIN(m_pipeline), m_source, parser, decodebin, convert, resample, m_audioSink, NULL);
+        gst_element_link_many (m_source, parser, decodebin, convert, resample, m_audioSink, NULL);
         #endif
     }
 
