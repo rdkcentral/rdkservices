@@ -21,6 +21,7 @@
 #include "AVOutputTV.h"
 #include "UtilsIarm.h"
 #include "rfcapi.h"
+#include <thread>
 
 #define CAPABLITY_FILE_NAME    "pq_capabilities.ini"
 
@@ -944,7 +945,7 @@ namespace Plugin {
         return ret;
     }
 
-    int AVOutputTV::updateAVoutputTVParam( std::string action, std::string tr181ParamName, capDetails_t info, tvPQParameterIndex_t pqParamIndex, int level )
+    int AVOutputTV::updateAVoutputTVParamImplementation( std::string action, std::string tr181ParamName, capDetails_t info, tvPQParameterIndex_t pqParamIndex, int level )
     {
         LOGINFO("Entry : %s\n",__FUNCTION__);
         valueVectors_t values;
@@ -1135,6 +1136,58 @@ namespace Plugin {
 
         }
         return ret;
+    }
+
+    int AVOutputTV::updateAVoutputTVParam( std::string action, std::string tr181ParamName, capDetails_t info, tvPQParameterIndex_t pqParamIndex, int level )
+    {
+        LOGINFO("Entry : %s\n",__FUNCTION__);
+
+        int ret = 0;
+        tvError_t retVal = tvERROR_NONE;
+        std::string currentPicMode;
+        std::string currentSource;
+        std::string currentFormat;
+        tvVideoSrcType_t sourceIndex = VIDEO_SOURCE_IP;
+        char picMode[PIC_MODE_NAME_MAX]={0};
+
+        //GetCurrent pqmode
+        if(!getCurrentPictureMode(picMode)) {
+            LOGERR("Failed to get the current picture mode\n");
+	    }
+
+        currentPicMode = picMode; //Convert to string
+
+        //GetCurrentVideoSource
+        retVal = GetCurrentVideoSource(&sourceIndex);
+        if(retVal != tvERROR_NONE) {
+            LOGERR("%s : GetCurrentVideoSource( ) Failed\n",__FUNCTION__);
+            return false;
+        }
+        currentSource = convertSourceIndexToString(sourceIndex);
+
+        //GetCurrentFormat
+        tvVideoFormatType_t formatIndex = VIDEO_FORMAT_NONE;
+        GetCurrentVideoFormat(&formatIndex);
+        if ( formatIndex  == VIDEO_FORMAT_NONE) {
+	        formatIndex = VIDEO_FORMAT_SDR;
+	    }
+        currentFormat = convertVideoFormatToString(formatIndex);
+
+        LOGINFO("%s: Entry param : %s Action : %s pqmode : %s source :%s format :%s color:%s component:%s control:%s currentPicMode = %s currentSource = %s currentFormat = %s\n",
+                                    __FUNCTION__,tr181ParamName.c_str(),action.c_str(),info.pqmode.c_str(),info.source.c_str(),info.format.c_str(),info.color.c_str(),info.component.c_str(),info.control.c_str(),
+                                    currentPicMode.c_str(), currentSource.c_str(), currentFormat.c_str());
+
+        if(currentPicMode == info.pqmode && currentSource == info.source && currentFormat == info.format)
+        {
+           ret =  updateAVoutputTVParamImplementation( action, tr181ParamName, info, pqParamIndex, level);
+        }
+        else
+        {
+            std::thread updateAVoutputTVParam_thread(&WPEFramework::Plugin::AVOutputTV::updateAVoutputTVParamImplementation, this, action, tr181ParamName, info, pqParamIndex, level);
+            updateAVoutputTVParam_thread.detach();
+
+        }
+    return ret;
     }
 
     tvError_t AVOutputTV::syncAvoutputTVParamsToHAL(std::string pqmode,std::string source,std::string format)
