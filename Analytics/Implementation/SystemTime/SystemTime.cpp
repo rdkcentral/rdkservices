@@ -18,6 +18,7 @@
  **/
 #include "SystemTime.h"
 #include "UtilsLogging.h"
+#include "UtilsTelemetry.h"
 #include "secure_wrapper.h"
 
 #define JSONRPC_THUNDER_TIMEOUT 2000
@@ -162,12 +163,14 @@ namespace WPEFramework
                 if (ret != Core::ERROR_NONE)
                 {
                     LOGERR("Failed to subscribe to onTimeStatusChanged");
+                    Utils::Telemetry::sendError("SystemTime::SubscribeForEvents - Failed to subscribe to onTimeStatusChanged");
                 }
 
                 ret = mSystemLink->Subscribe<JsonObject>(JSONRPC_THUNDER_TIMEOUT, _T("onTimeZoneDSTChanged"), &SystemTime::onTimeZoneDSTChanged, this);
                 if (ret != Core::ERROR_NONE)
                 {
                     LOGERR("Failed to subscribe to onTimeZoneDSTChanged");
+                    Utils::Telemetry::sendError("SystemTime::SubscribeForEvents - Failed to subscribe to onTimeZoneDSTChanged");
                 }
             }
         }
@@ -194,6 +197,7 @@ namespace WPEFramework
             else
             {
                 LOGERR("getTimeStatus not available, assuming time is OK");
+                Utils::Telemetry::sendError("SystemTime::UpdateTimeStatus - getTimeStatus not available, assuming time is OK");
                 std::lock_guard<std::mutex> guard(mLock);
                 mIsSystemTimeAvailable = true;
             }
@@ -279,6 +283,7 @@ namespace WPEFramework
             else
             {
                 LOGERR( "There is no time transition information for this timezone: %s", mTimeZone.c_str());
+                Utils::Telemetry::sendError("SystemTime::ParseTimeZone - There is no time transition information for this timezone: %s", mTimeZone.c_str());
                 result.second = 0;
                 result.first = ACC_UNDEFINED;
             }
@@ -376,6 +381,7 @@ namespace WPEFramework
                 else
                 {
                     LOGERR("popen of zdump -v %s failed", mTimeZone.c_str());
+                    Utils::Telemetry::sendError("SystemTime::PopulateTimeZoneTransitionMap - popen of zdump -v %s failed", mTimeZone.c_str());
                 }
             }
         }
@@ -410,6 +416,7 @@ namespace WPEFramework
                         else
                         {
                             LOGERR("Failed to create JSONRPC link with %s", SYSTEM_CALLSIGN);
+                            Utils::Telemetry::sendError("SystemTime::EventLoop - Failed to create JSONRPC link with %s", SYSTEM_CALLSIGN);
                         }
                     }
                 }
