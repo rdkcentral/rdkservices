@@ -30,7 +30,8 @@ namespace Plugin {
         LOGINFO("Create MigrationPreparerImplementation Instance");
         // Init
         _fileExist = false;
-        WPEFramework::Core::File dataStore(DATASTORE_PATH);
+        WPEFramework::Core::File dataStore;         
+		dataStore = string("/opt/secure/migration/migration_data_store.json");
         if(dataStore.Exists()) {
             _fileExist = true;
             storeKeys();
@@ -119,7 +120,8 @@ namespace Plugin {
 
 
     bool MigrationPreparerImplementation::resetDatastore(void){
-        WPEFramework::Core::File dataStore(DATASTORE_PATH);
+        WPEFramework::Core::File dataStore;
+        dataStore = string("/opt/secure/migration/migration_data_store.json");
         if(!dataStore.Exists()) {
             LOGWARN("DataStore file does not exist");
             return true;
@@ -140,7 +142,8 @@ namespace Plugin {
         return true;
     }
     bool MigrationPreparerImplementation::resetMigrationready(void){
-        WPEFramework::Core::File migrationReady(MIGRATIONREADY_PATH);
+        WPEFramework::Core::File migrationReady;         
+		migrationReady = string("/opt/secure/migration/migrationready.txt");
         if(!migrationReady.Exists()) {
             LOGWARN("MigrationReady file does not exist");
             return true;
@@ -201,7 +204,8 @@ namespace Plugin {
         string entry;
         string key = name;
         string newValue = value;
-        WPEFramework::Core::File dataStore(DATASTORE_PATH);
+         WPEFramework::Core::File dataStore;         
+		dataStore = string("/opt/secure/migration/migration_data_store.json");
         WPEFramework::Core::Directory dataStoreDir(DATASTORE_DIR);
         
         // check if someone deletes the dataStore in the middle of the operation
@@ -359,7 +363,8 @@ namespace Plugin {
             if (result != -1 && WIFEXITED(result)) {
                 // check if last entry is deleted
                 if(_lineNumber[key] == _curLineIndex) {
-                    WPEFramework::Core::File dataStore(DATASTORE_PATH);
+                     WPEFramework::Core::File dataStore;         
+					dataStore = string("/opt/secure/migration/migration_data_store.json");
                     dataStore.Append();
                     // if last entry is deleted remove comma from the previous line
                     dataStore.Position(false, dataStore.Size());
@@ -409,7 +414,8 @@ namespace Plugin {
         string _compName = compName;
         _adminLock.Lock();
         LOGINFO("Component Name: %s", _compName.c_str());
-        WPEFramework::Core::File migrationReady(MIGRATIONREADY_PATH);
+        WPEFramework::Core::File migrationReady;         
+		migrationReady = string("/opt/secure/migration/migrationready.txt");
         WPEFramework::Core::Directory migrationReadyDir(MIGRATIONREADY_DIR);
 
         // check whether file is exist or not, if not create one
@@ -490,7 +496,8 @@ namespace Plugin {
         uint32_t status = Core::ERROR_GENERAL;
         _adminLock.Lock();
         std::list<string> componentlist;      
-        WPEFramework::Core::File migrationReady(MIGRATIONREADY_PATH);
+        WPEFramework::Core::File migrationReady;         
+		migrationReady = string("/opt/secure/migration/migrationready.txt");
         WPEFramework::Core::Directory migrationReadyDir(MIGRATIONREADY_DIR);
 
         // check whether file is exist or not, if not return empty string
