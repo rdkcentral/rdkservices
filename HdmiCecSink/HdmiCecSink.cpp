@@ -3548,6 +3548,10 @@ namespace WPEFramework
 		    else if(keyInfo.UserControl == "sendUserControlReleased")
 		    {
 			    LOGINFO("sendUserControlReleased : logical addr:0x%x  queue size :%zu \n",keyInfo.logicalAddr,_instance->m_SendKeyQueue.size());
+			   if(!_instance->m_isAudioStatusInfoUpdated)
+			   {
+				   _instance->sendGiveAudioStatusMsg();
+			   }
 			    _instance->sendUserControlReleased(keyInfo.logicalAddr);
 		    }
 		    else
