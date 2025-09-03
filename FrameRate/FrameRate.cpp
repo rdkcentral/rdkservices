@@ -233,6 +233,16 @@ namespace WPEFramework
                 LOG_DEVICE_EXCEPTION1(sPortId);
                 success = false;
             }
+            catch(const std::exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(sPortId);
+                success = false;
+            }
+            catch(...)
+            {
+                LOGWARN("Unknown exception occurred");
+                success = false;
+            }
             returnResponse(success);
         }
 
@@ -252,6 +262,16 @@ namespace WPEFramework
             catch(const device::Exception& err)
             {
                 LOG_DEVICE_EXCEPTION0();
+                success = false;
+            }
+            catch(const std::exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+                success = false;
+            }
+            catch(...)
+            {
+                LOGWARN("Unknown exception occurred");
                 success = false;
             }
 
@@ -279,6 +299,16 @@ namespace WPEFramework
                 LOG_DEVICE_EXCEPTION1(sFramerate);
                 success = false;
             }
+            catch(const std::exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(sFramerate);
+                success = false;
+            }
+            catch(...)
+            {
+                LOGWARN("Unknown exception occurred");
+                success = false;
+            }
             returnResponse(success);
         }
 
@@ -297,6 +327,16 @@ namespace WPEFramework
             catch (const device::Exception& err)
             {
                 LOG_DEVICE_EXCEPTION1(std::string(sFramerate));
+                success = false;
+            }
+            catch(const std::exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(std::string(sFramerate));
+                success = false;
+            }
+            catch(...)
+            {
+                LOGWARN("Unknown exception occurred");
                 success = false;
             }
 

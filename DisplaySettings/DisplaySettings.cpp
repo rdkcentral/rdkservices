@@ -1272,6 +1272,14 @@ namespace WPEFramework {
             {
                 LOG_DEVICE_EXCEPTION0();
             }
+            catch(const std::exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+            }
+            catch(...)
+            {
+                LOGWARN("Unknown exception occurred");
+            }
             setResponseArray(response, "supportedSettopResolutions", supportedSettopResolutions);
             returnResponse(true);
         }
@@ -1394,6 +1402,16 @@ namespace WPEFramework {
                 LOG_DEVICE_EXCEPTION0();
                 success = false;
             }
+            catch(const std::exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+                success = false;
+            }
+            catch(...)
+            {
+                LOGWARN("Unknown exception occurred");
+                success = false;
+            }
 #ifdef USE_IARM
             zoomSetting = iarm2svc(zoomSetting);
 #endif
@@ -1427,6 +1445,16 @@ namespace WPEFramework {
             catch(const device::Exception& err)
             {
                 LOG_DEVICE_EXCEPTION1(zoomSetting);
+                success = false;
+            }
+            catch(const std::exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+                success = false;
+            }
+            catch(...)
+            {
+                LOGWARN("Unknown exception occurred");
                 success = false;
             }
             returnResponse(success);
@@ -2043,6 +2071,14 @@ namespace WPEFramework {
                 catch(const device::Exception& err)
                 {
                     LOG_DEVICE_EXCEPTION0();
+                }
+                catch(const std::exception& err)
+                {
+                    LOG_DEVICE_EXCEPTION0();
+                }
+                catch(...)
+                {
+                    LOGWARN("Unknown exception occurred");
                 }
 		stbHDRcapabilitiesCache = capabilities;
 		isStbHDRcapabilitiesCache = true;
@@ -6025,6 +6061,16 @@ void DisplaySettings::sendMsgThread()
             catch(const device::Exception& err)
             {
                 LOG_DEVICE_EXCEPTION0();
+                return videoFormats;
+            }
+            catch(const std::exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+                return videoFormats;
+            }
+            catch(...)
+            {
+                LOGWARN("Unknown exception occurred");
                 return videoFormats;
             }
 
