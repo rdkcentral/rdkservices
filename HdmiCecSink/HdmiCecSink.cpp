@@ -1213,7 +1213,8 @@ namespace WPEFramework
             JsonObject params;
             if(!HdmiCecSink::_instance)
                return;
-	    if (m_audioStatusTimerStarted)
+	    m_audioDeviceNewVolumeLevel = msg.status.getAudioVolume();
+	    if (m_audioStatusTimerStarted && (m_audioDeviceNewVolumeLevel != m_audioDevicePrevVolumeLevel))
 	    {
 		    m_audioStatusReceived = true;
 		    m_isAudioStatusInfoUpdated = true;
@@ -1231,7 +1232,7 @@ namespace WPEFramework
             params["muteStatus"]  = msg.status.getAudioMuteStatus();
             params["volumeLevel"] = msg.status.getAudioVolume();
             sendNotify(eventString[HDMICECSINK_EVENT_REPORT_AUDIO_STATUS], params);
-
+	    m_audioDevicePrevVolumeLevel = m_audioDeviceNewVolumeLevel;
          }
 		 void HdmiCecSink::sendKeyPressEvent(const int logicalAddress, int keyCode)
 		 {
