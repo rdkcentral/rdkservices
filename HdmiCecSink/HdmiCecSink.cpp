@@ -3548,11 +3548,18 @@ namespace WPEFramework
 		    else if(keyInfo.UserControl == "sendUserControlReleased")
 		    {
 			    LOGINFO("sendUserControlReleased : logical addr:0x%x  queue size :%zu \n",keyInfo.logicalAddr,_instance->m_SendKeyQueue.size());
+				if (m_audioStatusDetectionTimer.isActive())
+	    		{
+		    		LOGINFO("Stopping the Audio Status Timer!\n");
+		    		m_audioStatusDetectionTimer.stop();
+		    		m_audioStatusTimerStarted = false;
+		   			LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ",m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
+	    		}
+				_instance->sendUserControlReleased(keyInfo.logicalAddr);
 			   if(!_instance->m_isAudioStatusInfoUpdated)
 			   {
 				   _instance->sendGiveAudioStatusMsg();
 			   }
-			    _instance->sendUserControlReleased(keyInfo.logicalAddr);
 		    }
 		    else
 		    {
