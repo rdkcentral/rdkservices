@@ -609,7 +609,7 @@ namespace Plugin {
                                                id));
                                    }
                                };
-                           auto result = _watermark2->Dispatch<
+                           auto result = _watermark->Dispatch<
                                CreateWatermarkParams>(
                                Timeout, _T("createWatermark"), out, callback);
                            if (result != Core::ERROR_NONE) {
@@ -646,7 +646,7 @@ namespace Plugin {
                                                id));
                                    }
                                };
-                           auto result = _watermark2->Dispatch<
+                           auto result = _watermark->Dispatch<
                                DeleteWatermarkParams>(
                                Timeout, _T("deleteWatermark"), out, callback);
                            if (result != Core::ERROR_NONE) {
@@ -681,7 +681,7 @@ namespace Plugin {
                                            (_T("show failed")));
                                    }
                                };
-                           auto result = _watermark2->Dispatch<
+                           auto result = _watermark->Dispatch<
                                ShowWatermarkParams>(
                                Timeout, _T("showWatermark"), out, callback);
                            if (result != Core::ERROR_NONE) {
@@ -744,7 +744,7 @@ namespace Plugin {
                                                    id));
                                        }
                                    };
-                               auto result = _watermark2->Dispatch<
+                               auto result = _watermark->Dispatch<
                                    PaletteWatermarkParams>(
                                    Timeout, _T("modifyPalettedWatermark"),
                                    out, callback);
@@ -796,7 +796,7 @@ namespace Plugin {
                                                        id));
                                            }
                                        };
-                                   auto result = _watermark2->Dispatch<
+                                   auto result = _watermark->Dispatch<
                                        UpdateWatermarkParams>(
                                        Timeout, _T("updateWatermark"),
                                        out, callback);
@@ -877,7 +877,7 @@ namespace Plugin {
                                                }
                                            }
                                        };
-                                   auto result = _watermark2->Dispatch<
+                                   auto result = _watermark->Dispatch<
                                        DeleteWatermarkParams>(
                                        Timeout,
                                        _T("getPalettedWatermark"),
@@ -943,7 +943,7 @@ namespace Plugin {
         Core::ProxyType<JSONRPCLink> _secManager;
         Core::ProxyType<JSONRPCLink> _watermark;
         Core::ProxyType<JSONRPCLinkNotSmart> _secManager2;
-        Core::ProxyType<JSONRPCLinkNotSmart> _watermark2;
+        //Core::ProxyType<JSONRPCLinkNotSmart> _watermark;
         Storage<Session> _sessionStorage;
         Storage<Watermark> _watermarkStorage;
         Storage<Exchange::PalettedImageData> _palettedImageDataStorage;
