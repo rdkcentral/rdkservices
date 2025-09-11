@@ -25,17 +25,18 @@ namespace Plugin {
     SERVICE_REGISTRATION(MigrationPreparerImplementation, 1, 0);
 
     MigrationPreparerImplementation::MigrationPreparerImplementation()
-    : _adminLock()
+    : _adminLock(),
+     _fileExist(false)
     {
         LOGINFO("Create MigrationPreparerImplementation Instance");
-        // Init
-        _fileExist = false;
-        WPEFramework::Core::File dataStore;         
-		dataStore = string("/opt/secure/migration/migration_data_store.json");
-        if(dataStore.Exists()) {
-            _fileExist = true;
-            storeKeys();
-        }
+        sanityStatus status = doSanityCheck();
+        if(status != PASS) {
+            if(status != FAIL_DIR) {
+                backupDataStore();
+            }
+            LOGWARN("Deleting DataStore and Migrationready files - reason: file corruption");
+            reset("RESET_ALL");
+        } 
     }
 
     MigrationPreparerImplementation::~MigrationPreparerImplementation()
@@ -76,19 +77,83 @@ namespace Plugin {
         return escapedString;
     }
 
-    void MigrationPreparerImplementation::storeKeys(void) {
+     MigrationPreparerImplementation::sanityStatus MigrationPreparerImplementation::doSanityCheck(void){
+        WPEFramework::Core::File dataStore(DATASTORE_PATH);
+        WPEFramework::Core::OptionalType<WPEFramework::Core::JSON::Error> error;
+        JsonObject dataStoreJB;
+        sanityStatus status = sanityStatus::PASS; 
+        string dataStoreSchema;
+
+        if(dataStore.Exists()) {
+            _fileExist = true;
+            if(!dataStore.IsDirectory()) {
+                if(dataStore.Open()){ 
+                    if(dataStoreJB.IElement::FromFile(dataStore, error)) {
+                        dataStore.Close();
+                        dataStoreSchema = dataStoreJB["schemaVersion"].String();
+                        dataStoreJB.Clear();
+                        if(!storeKeys()) { 
+                            status = sanityStatus::FAIL_STORE; 
+                        }  
+                    } else {
+                        status = sanityStatus::FAIL_JSON;
+                        LOGERR("DataStore file json parsing failed: %s", WPEFramework::Core::JSON::ErrorDisplayMessage(error.Value()).c_str());
+                    }
+                } else {
+                    status = sanityStatus::FAIL_OPEN;
+                    LOGERR("DataStore file open failed");
+                }
+            } else {
+                status = sanityStatus::FAIL_DIR;
+                LOGERR("DataStore file became a directory");
+            }
+
+            if(status == sanityStatus::PASS)
+                LOGINFO("DataStore file sanity check - Success, json schema version: %s", dataStoreSchema.c_str());
+            else
+                LOGERR("DataStore file could be corrupted");
+        }
+        return status;
+    }
+
+    void MigrationPreparerImplementation::backupDataStore(void) {
+        // copy dataStore file to /opt/persistent/odm-data/corrupted-migration/
+        WPEFramework::Core::Directory postMortemDir(POSTMORTEM_DIR);
+
+        if(!postMortemDir.Exists()) {
+            postMortemDir.Create();
+        }
+        int result = v_secure_system("/bin/cp %s %s", DATASTORE_PATH, POSTMORTEM_DIR);
+        if (result != -1 && WIFEXITED(result)) {
+            LOGINFO("Copying corrupted datastore file into %s - Success", POSTMORTEM_DIR);
+        }
+        else{
+            LOGERR("Copying corrupted datastore file into %s - Failed", POSTMORTEM_DIR);
+        }
+    }
+    
+    bool MigrationPreparerImplementation::storeKeys(void) {
         _dataStoreMutex.lock();
         std::ifstream inputFile(DATASTORE_PATH);
         string key, line;
         size_t start, end, colPos;
         LINE_NUMBER_TYPE lineIndex = 1;
+        bool status = true;
         while(std::getline(inputFile, line)) {
             // trim white space, new line and comma from the line
             start = line.find_first_not_of(" \n");
             end = line.find_last_not_of(" \n,");
             line =  line.substr(start, end-start+1);
             if(start == string::npos || end == string::npos) {
-                LOGWARN("Invalid line in dataStore file, skipping");
+                LOGERR("DataStore file could be tampered - empty line or key:value pair is missing in line: %lld", lineIndex);
+                status = false;
+                break;
+            }
+
+            line =  line.substr(start, end-start+1);
+
+            // if line is { or } continue
+            if(line == "{" || line == "}"){
                 continue;
             }
             ASSERT(start > end);
@@ -105,6 +170,11 @@ namespace Plugin {
             // <space>"key2":value2    
             // }
             colPos = line.find(":");
+            if(colPos == string::npos) {
+                LOGERR("DataStore file could be corrupted - missing colon in key:value pair in line: %lld", lineIndex);
+                status = false; 
+                break;
+            }
             key = line.substr(1,colPos-2);
             
             //add key to the map
@@ -116,6 +186,7 @@ namespace Plugin {
         // update the last line index
         _curLineIndex = lineIndex;
         _dataStoreMutex.unlock();
+        return status;
     }
 
 
@@ -128,6 +199,7 @@ namespace Plugin {
         }
         _dataStoreMutex.lock();
         // remove dataStore file
+        LOGWARN("Deleting dataStore file");
         if(!dataStore.Destroy()){
             LOGERR("Unable to delete dataStore file");
             return false;
@@ -223,10 +295,10 @@ namespace Plugin {
             _curLineIndex = 1;
             if(!dataStore.Exists()) {
                 // check if the directory exist
-                if(!dataStoreDir.Exists())
+                if(!dataStoreDir.Exists()) {
                     // assuming /opt/secure path already exist and "migration" folder needs to be under /opt/secure/
                     dataStoreDir.Create();
-                
+                }
                 if(!dataStore.Create()) {
                     LOGERR("Failed to create migration datastore %s, errno: %d, reason: %s", DATASTORE_PATH, errno, strerror(errno));
                     _dataStoreMutex.unlock();
