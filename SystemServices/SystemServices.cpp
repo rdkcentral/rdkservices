@@ -4031,18 +4031,20 @@ namespace WPEFramework {
                 LOGINFO("Got cached powerStateBeforeReboot: '%s'", m_powerStateBeforeReboot.c_str());
             } else {
                 IARM_Bus_PWRMgr_GetPowerStateBeforeReboot_Param_t param;
+                param.powerStateBeforeReboot[0] = 0;
                 IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
                                        IARM_BUS_PWRMGR_API_GetPowerStateBeforeReboot, (void *)&param,
                                        sizeof(param));
     
-                LOGWARN("getPowerStateBeforeReboot called, current powerStateBeforeReboot is: %s\n",
-                         param.powerStateBeforeReboot);
-                response["state"] = string (param.powerStateBeforeReboot);
                 if (IARM_RESULT_SUCCESS == res) {
+                    LOGWARN("getPowerStateBeforeReboot called, current powerStateBeforeReboot is: %s",
+                        param.powerStateBeforeReboot);
+                    response["state"] = string (param.powerStateBeforeReboot);
                     retVal = true;
                     m_powerStateBeforeReboot = param.powerStateBeforeReboot;
                     m_powerStateBeforeRebootValid = true;
                 } else {
+                    LOGWARN("IARM_BUS_PWRMGR_API_GetPowerStateBeforeReboot call failed: %d", res);
                     retVal = false;
                 }
             }
