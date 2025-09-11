@@ -12,6 +12,14 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 * The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.6.0] - 2025-09-04
+### Added
+- Added stop pairing API
+- Added a new notification onValidation event
+
+### Removed
+- Removed individual validation begin, end, and key press events
+
 ## [1.5.4] - 2025-01-07
 ### Added
 - Added four new APIs unpair and start, cancel, and statusFirmwareUpdate
