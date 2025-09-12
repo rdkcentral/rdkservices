@@ -143,7 +143,6 @@ namespace Plugin {
             // trim white space, new line and comma from the line
             start = line.find_first_not_of(" \n");
             end = line.find_last_not_of(" \n,");
-            line =  line.substr(start, end-start+1);
             if(start == string::npos || end == string::npos) {
                 LOGERR("DataStore file could be tampered - empty line or key:value pair is missing in line: %lld", lineIndex);
                 status = false;
@@ -156,11 +155,7 @@ namespace Plugin {
             if(line == "{" || line == "}"){
                 continue;
             }
-            ASSERT(start > end);
-            // if line is empty or { or } continue
-            if(line.empty() || line == "{" || line == "}")
-		        continue;
-            
+
             // increment line index
             lineIndex++;
             //extract key
@@ -175,6 +170,7 @@ namespace Plugin {
                 status = false; 
                 break;
             }
+
             key = line.substr(1,colPos-2);
             
             //add key to the map
@@ -188,7 +184,6 @@ namespace Plugin {
         _dataStoreMutex.unlock();
         return status;
     }
-
 
     bool MigrationPreparerImplementation::resetDatastore(void){
         WPEFramework::Core::File dataStore;
