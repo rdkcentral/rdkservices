@@ -344,6 +344,7 @@ namespace Plugin {
                 , GstQuirks()
                 , GstHolePunchQuirk()
                 , HDRRefreshDelay(1000) // Default to 1 second for HDR refresh delay
+                , MediaCapabilitiesEnabled(true)
             {
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
@@ -417,6 +418,7 @@ namespace Plugin {
                 Add(_T("gstquirks"), &GstQuirks);
                 Add(_T("gstholepunchquirk"), &GstHolePunchQuirk);
                 Add(_T("hdrrefreshDelay"), &HDRRefreshDelay);
+                Add(_T("mediacapabilitiesenabled"), &MediaCapabilitiesEnabled);
             }
             ~Config()
             {
@@ -495,6 +497,7 @@ namespace Plugin {
             Core::JSON::String GstQuirks;
             Core::JSON::String GstHolePunchQuirk;
             Core::JSON::DecUInt16 HDRRefreshDelay; // Delay in miliseconds to refresh HDR support
+            Core::JSON::Boolean MediaCapabilitiesEnabled;
         };
 
         class HangDetector
@@ -2506,6 +2509,9 @@ namespace Plugin {
             webkit_settings_set_enable_media_stream(preferences, TRUE);
             webkit_settings_set_enable_page_cache(preferences, FALSE);
             webkit_settings_set_enable_directory_upload(preferences, FALSE);
+#if WEBKIT_CHECK_VERSION(2, 46, 0)
+            webkit_settings_set_enable_media_capabilities(preferences, _config.MediaCapabilitiesEnabled.Value());
+#endif
 
 #if WEBKIT_CHECK_VERSION(2, 38, 0)
             webkit_settings_set_enable_webrtc(preferences, TRUE);
