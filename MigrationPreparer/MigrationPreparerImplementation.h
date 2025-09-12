@@ -41,6 +41,7 @@
 #define TR181_MIGRATION_READY "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.MigrationReady"
 #define MIGRATIONREADY_PATH _T("/opt/secure/migration/migrationready.txt")
 #define MIGRATIONREADY_DIR _T("/opt/secure/migration/")
+#define POSTMORTEM_DIR _T("/opt/persistent/odm-data/corrupted-migration/")
 
 // PLUGIN SPECIFIC CUSTOM ERROR CODES
 #define ERROR_CREATE    4
@@ -110,7 +111,7 @@ namespace Plugin {
         enum sedType {PATTERN, REPLACEMENT};
         string escapeSed(string, enum sedType);
         // Fn. to store the keys and their line numbers from dataStore to lineNumber map
-        void storeKeys(void);
+        bool storeKeys(void);
         // Fn. to delete dataStore
         bool resetDatastore(void);
         //Fn. to populate list with values from a string
@@ -122,6 +123,16 @@ namespace Plugin {
         int8_t join(string& value, std::list<string>& list, std::string delimiter = "_");
         bool isDuplicate(string& searchString, std::list<string>& list);
         bool resetMigrationready(void);
+
+        enum sanityStatus {
+            PASS,
+            FAIL_OPEN,
+            FAIL_DIR,
+            FAIL_JSON,
+            FAIL_STORE
+        };
+        sanityStatus doSanityCheck(void);
+        void backupDataStore(void);
         /*Helpers: End*/
     };
 } // namespace Plugin
