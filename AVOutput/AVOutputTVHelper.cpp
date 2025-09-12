@@ -132,6 +132,84 @@ namespace Plugin {
 
         return 0;
     }
+    int AVOutputTV::getParamIndexV2(std::string param, capDetails_t& paramInfo, paramIndex_t& indexInfo)
+    {
+        LOGINFO("Entry : %s  param : %s pqmode : %s source : %s format : %s\n",
+            __FUNCTION__, param.c_str(), paramInfo.pqmode.c_str(), paramInfo.source.c_str(), paramInfo.format.c_str());
+        initializeReverseMaps();
+        if (paramInfo.source == "none" || paramInfo.source == "Current") {
+            tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
+            GetCurrentVideoSource(&currentSource);
+            indexInfo.sourceIndex = static_cast<int>(currentSource);
+        } else {
+            auto it = videoSrcReverseMap.find(paramInfo.source);
+            indexInfo.sourceIndex = (it != videoSrcReverseMap.end()) ? static_cast<int>(it->second) : -1;
+        }
+        if (paramInfo.pqmode == "none" || paramInfo.pqmode == "Current") {
+            char picMode[PIC_MODE_NAME_MAX] = {0};
+            if (!getCurrentPictureMode(picMode)) {
+                LOGERR("Failed to get the Current picture mode\n");
+                indexInfo.pqmodeIndex = -1;
+            } else {
+                std::string local = picMode;
+                auto it = pqModeReverseMap.find(local);
+                indexInfo.pqmodeIndex = (it != pqModeReverseMap.end()) ? static_cast<int>(it->second) : -1;
+            }
+        } else {
+            auto it = pqModeReverseMap.find(paramInfo.pqmode);
+            indexInfo.pqmodeIndex = (it != pqModeReverseMap.end()) ? static_cast<int>(it->second) : -1;
+        }
+        if (paramInfo.format == "none" || paramInfo.format == "Current") {
+            tvVideoFormatType_t currentFormat = VIDEO_FORMAT_NONE;
+            GetCurrentVideoFormat(&currentFormat);
+            if (currentFormat == VIDEO_FORMAT_NONE) {
+                indexInfo.formatIndex = VIDEO_FORMAT_SDR; // Legacy default
+            } else {
+                indexInfo.formatIndex = static_cast<int>(currentFormat);
+            }
+        } else {
+            auto it = videoFormatReverseMap.find(paramInfo.format);
+            indexInfo.formatIndex = (it != videoFormatReverseMap.end()) ? static_cast<int>(it->second) : -1;
+        }
+        if (param == "CMS") {
+            tvDataComponentColor_t level = tvDataColor_NONE;
+            if (getCMSColorEnumFromString(paramInfo.color, level) == -1) {
+                LOGERR("%s : GetColorEnumFromString Failed!!! ", __FUNCTION__);
+                return -1;
+            }
+            indexInfo.colorIndex = level;
+            tvComponentType_t componentLevel;
+            if (getCMSComponentEnumFromString(paramInfo.component, componentLevel) == -1) {
+                LOGERR("%s : GetComponentEnumFromString Failed!!! ", __FUNCTION__);
+                return -1;
+            }
+            indexInfo.componentIndex = componentLevel;
+            LOGINFO("%s colorIndex : %d , componentIndex : %d\n",
+                __FUNCTION__, indexInfo.colorIndex, indexInfo.componentIndex);
+        }
+        if (param == "WhiteBalance") {
+            tvWBColor_t level;
+            if (getWBColorEnumFromString(paramInfo.color, level) == -1) {
+                LOGERR("%s : GetColorEnumFromString Failed!!! ", __FUNCTION__);
+                return -1;
+            }
+            indexInfo.colorIndex = level;
+            tvWBControl_t controlLevel;
+            if (getWBControlEnumFromString(paramInfo.control, controlLevel) == -1) {
+                LOGERR("%s : GetComponentEnumFromString Failed!!! ", __FUNCTION__);
+                return -1;
+            }
+            indexInfo.controlIndex = controlLevel;
+            LOGINFO("%s colorIndex : %d , controlIndex : %d\n",
+                __FUNCTION__, indexInfo.colorIndex, indexInfo.controlIndex);
+        }
+        if (indexInfo.sourceIndex == -1 || indexInfo.pqmodeIndex == -1 || indexInfo.formatIndex == -1) {
+            return -1;
+        }
+        LOGINFO("%s: Exit sourceIndex = %d pqmodeIndex = %d formatIndex = %d\n",
+            __FUNCTION__, indexInfo.sourceIndex, indexInfo.pqmodeIndex, indexInfo.formatIndex);
+        return 0;
+    }
 
     int AVOutputTV::getParamIndex(std::string param, capDetails_t& paramInfo, paramIndex_t& indexInfo)
     {
@@ -928,7 +1006,7 @@ namespace Plugin {
             std::map<std::string, std::function<void(int, std::string&)>> fnMap = {
                 {"ColorTemp", [this](int v, std::string& s) { getColorTempStringFromEnum(v, s); }},
                 {"DimmingMode", [this](int v, std::string& s) { getDimmingModeStringFromEnum(v, s); }},
-                {"AspectRatio", [this](int v, std::string& s) { getDisplayModeStringFromEnum(v, s); }},
+                {"ZoomMode", [this](int v, std::string& s) { getDisplayModeStringFromEnum(v, s); }},
                 {"BacklightMode", [this](int v, std::string& s) { getBacklightModeStringFromEnum(v, s); }},
                 {"SDRGamma", [this](int v, std::string& s) { getSdrGammaStringFromEnum(static_cast<tvSdrGamma_t>(v), s); }}
             };
@@ -1810,6 +1888,47 @@ namespace Plugin {
                 }
                 return 0;
             }
+            else if (forParam.compare("ZoomMode") == 0) {
+                if (strncmp(param.value, "TV 16X9 STRETCH", strlen(param.value)) == 0) {
+                    value = tvDisplayMode_16x9;
+                }
+                else if (strncmp(param.value, "TV 4X3 PILLARBOX", strlen(param.value)) == 0) {
+                    value = tvDisplayMode_4x3;
+                }
+                else if (strncmp(param.value, "TV NORMAL", strlen(param.value)) == 0) {
+                    value = tvDisplayMode_NORMAL;
+                }
+                else if (strncmp(param.value, "TV DIRECT", strlen(param.value)) == 0) {
+                    value = tvDisplayMode_DIRECT;
+                }
+                else if (strncmp(param.value, "TV AUTO", strlen(param.value)) == 0) {
+                    value = tvDisplayMode_AUTO;
+                }
+                else if (strncmp(param.value, "TV ZOOM", strlen(param.value)) == 0) {
+                    value = tvDisplayMode_ZOOM;
+                }
+                else if (strncmp(param.value, "TV FULL", strlen(param.value)) == 0) {
+                    value = tvDisplayMode_FULL;
+                }
+                // Handle legacy formats without "TV" prefix
+                else if (strncmp(param.value, "16:9", strlen(param.value)) == 0) {
+                    value = tvDisplayMode_16x9;
+                }
+                else if (strncmp(param.value, "4:3", strlen(param.value)) == 0) {
+                    value = tvDisplayMode_4x3;
+                }
+                else if (strncmp(param.value, "Normal", strlen(param.value)) == 0) {
+                    value = tvDisplayMode_NORMAL;
+                }
+                else if (strncmp(param.value, "Full", strlen(param.value)) == 0) {
+                    value = tvDisplayMode_FULL;
+                }
+                else {
+                    LOGWARN("Unknown ZoomMode value '%s', defaulting to TV AUTO", param.value);
+                    value = tvDisplayMode_AUTO;
+                }
+                return 0;
+            }
            else {
                value=std::stoi(param.value);
                return 0;  
@@ -2196,7 +2315,7 @@ namespace Plugin {
     tvError_t AVOutputTV::setAspectRatioZoomSettings(tvDisplayMode_t mode)
     {
         tvError_t ret = tvERROR_GENERAL;
-        LOGERR("%s: mode selected is: %d", __FUNCTION__, m_videoZoomMode);
+        LOGINFO("%s: mode selected is: %d", __FUNCTION__, m_videoZoomMode);
 #if !defined (HDMIIN_4K_ZOOM)
         if (AVOutputTV::instance->m_isDisabledHdmiIn4KZoom) {
             if (AVOutputTV::instance->m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
@@ -2288,7 +2407,7 @@ namespace Plugin {
                     LOGINFO("Aspect Ratio initialized successfully, value: %s\n", param.value);
                 }
                 else {
-                    updateAVoutputTVParamV2("set", "AspectRatio", paramJson, PQ_PARAM_ASPECT_RATIO,mode);
+                    updateAVoutputTVParamV2("set", "ZoomMode", paramJson, PQ_PARAM_ASPECT_RATIO,mode);
                 }
             }
 
@@ -2641,7 +2760,7 @@ namespace Plugin {
         return 0;
     }
 //JSON Based V2 Helpers
-    const std::map<int, std::string> AVOutputTV::pqModeMap = {
+    const std::unordered_map<int, std::string> AVOutputTV::pqModeMap = {
         {PQ_MODE_SPORTS, "Sports"},
         {PQ_MODE_THEATER, "Theater"},
         {PQ_MODE_GAME, "Game"},
@@ -2655,7 +2774,7 @@ namespace Plugin {
         {PQ_MODE_CUSTOM, "Custom"}
     };
 
-    const std::map<int, std::string> AVOutputTV::videoFormatMap = {
+    const std::unordered_map<int, std::string> AVOutputTV::videoFormatMap = {
         {VIDEO_FORMAT_NONE, "None"},
         {VIDEO_FORMAT_SDR, "SDR"},
         {VIDEO_FORMAT_HDR10, "HDR10"},
@@ -2664,7 +2783,7 @@ namespace Plugin {
         {VIDEO_FORMAT_HLG, "HLG"}
     };
 
-    const std::map<int, std::string> AVOutputTV::videoSrcMap = {
+    const std::unordered_map<int, std::string> AVOutputTV::videoSrcMap = {
         {VIDEO_SOURCE_COMPOSITE1, "Composite1"},
         {VIDEO_SOURCE_HDMI1, "HDMI1"},
         {VIDEO_SOURCE_HDMI2, "HDMI2"},
@@ -2976,7 +3095,7 @@ namespace Plugin {
         else if (paramName == "ColorTemp") caps = m_colortempCaps;
         else if (paramName == "DimmingMode") caps = m_dimmingModeCaps;
         else if (paramName == "PictureMode") caps = m_pictureModeCaps;
-        else if (paramName == "AspectRatio") caps = m_aspectRatioCaps;
+        else if (paramName == "ZoomMode") caps = m_aspectRatioCaps;
         else if (paramName == "LowLatencyState") caps = m_lowLatencyStateCaps;
         else if (paramName == "PrecisionDetail") caps = m_precisionDetailCaps;
         else if (paramName == "LocalContrastEnhancement") caps = m_localContrastEnhancementCaps;

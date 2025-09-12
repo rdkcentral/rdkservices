@@ -523,7 +523,7 @@ namespace Plugin {
     }
 
     // Shared zoom mode mappings
-    static const std::unordered_map<tvDisplayMode_t, std::string> zoomModeReverseMap = {
+    static const std::unordered_map<int, std::string> zoomModeReverseMap = {
         {tvDisplayMode_16x9,     "TV 16X9 STRETCH"},
         {tvDisplayMode_4x3,      "TV 4X3 PILLARBOX"},
         {tvDisplayMode_NORMAL,   "TV NORMAL"},
@@ -532,7 +532,7 @@ namespace Plugin {
         {tvDisplayMode_ZOOM,     "TV ZOOM"},
         {tvDisplayMode_FULL,     "TV FULL"}
     };
-    static const std::unordered_map<std::string, tvDisplayMode_t> zoomModeMap = {
+    static const std::unordered_map<std::string, int> zoomModeMap = {
         {"TV 16X9 STRETCH", tvDisplayMode_16x9},
         {"TV 4X3 PILLARBOX", tvDisplayMode_4x3},
         {"TV NORMAL",        tvDisplayMode_NORMAL},
@@ -1355,37 +1355,15 @@ namespace Plugin {
         }
         else
         {
-            std::string value = parameters.HasLabel("zoomMode") ? parameters["zoomMode"].String() : "";
-            returnIfParamNotFound(parameters, "zoomMode");
-
-            auto it = zoomModeMap.find(value);
-            if (it == zoomModeMap.end()) {
-                LOGERR("Invalid zoom mode: %s. Not in supported options.", value.c_str());
-                returnResponse(false);
-            }
-            tvDisplayMode_t mode = it->second;
-            tvError_t ret = setAspectRatioZoomSettings(mode);
-            if (ret != tvERROR_NONE) {
-                returnResponse(false);
-            }
-            else
-            {
-                // Save DisplayMode to local store and ssm_data
-                int retval = updateAVoutputTVParamV2("set", "AspectRatio", parameters, PQ_PARAM_ASPECT_RATIO, mode);
-                if (retval != 0) {
-                    LOGERR("Failed to Save DisplayMode to ssm_data\n");
-                    returnResponse(false);
-                }
-                tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_ASPECTRATIO_RFC_PARAM, value.c_str());
-                if (err != tr181Success) {
-                    LOGERR("setLocalParam for %s Failed : %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
-                    returnResponse(false);
-                } else {
-                    LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, value.c_str());
-                }
-                LOGINFO("Exit : SetAspectRatio() value : %s\n", value.c_str());
-                returnResponse(true);
-            }
+            return setContextPQParam(
+                parameters, response,
+                "zoomMode",
+                "ZoomMode",
+                tvDisplayMode_MAX - 1,
+                PQ_PARAM_ASPECT_RATIO,
+                [this](tvVideoSrcType_t /*src*/, tvPQModeIndex_t /*mode*/, tvVideoFormatType_t /*fmt*/, int val) {
+                return setAspectRatioZoomSettings(static_cast<tvDisplayMode_t>(val));}
+            );
         }
     }
 
@@ -1443,33 +1421,48 @@ namespace Plugin {
     uint32_t AVOutputTV::resetZoomMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-        capDetails_t inputInfo;
-        tvError_t ret = tvERROR_NONE;
+        if(m_aspectRatioStatus == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            capDetails_t inputInfo;
+            tvError_t ret = tvERROR_NONE;
 
-        if (parsingSetInputArgument(parameters, "AspectRatio",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if (parsingSetInputArgument(parameters, "AspectRatio",inputInfo) != 0) {
+                LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        if( !isCapablityCheckPassed( "AspectRatio",inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for AspectRatio\n", __FUNCTION__);
-            returnResponse(false);
-        }
+            if( !isCapablityCheckPassed( "AspectRatio",inputInfo )) {
+                LOGERR("%s: CapablityCheck failed for AspectRatio\n", __FUNCTION__);
+                returnResponse(false);
+            }
 
-        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,AVOUTPUT_ASPECTRATIO_RFC_PARAM);
-        if ( err != tr181Success ) {
-            LOGERR("clearLocalParam for %s Failed : %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
-            ret  = tvERROR_GENERAL;
+            tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,AVOUTPUT_ASPECTRATIO_RFC_PARAM);
+            if ( err != tr181Success ) {
+                LOGERR("clearLocalParam for %s Failed : %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
+                ret  = tvERROR_GENERAL;
+            }
+            else {
+                ret = setDefaultAspectRatio(inputInfo.pqmode,inputInfo.source,inputInfo.format);
+            }
+            if(ret != tvERROR_NONE) {
+                returnResponse(false);
+            }
+            else {
+                LOGINFO("Exit : resetDefaultAspectRatio()\n");
+                returnResponse(true);
+            }
         }
-        else {
-            ret = setDefaultAspectRatio(inputInfo.pqmode,inputInfo.source,inputInfo.format);
-        }
-        if(ret != tvERROR_NONE) {
-            returnResponse(false);
-        }
-        else {
-            LOGINFO("Exit : resetDefaultAspectRatio()\n");
-            returnResponse(true);
+        else
+        {
+            bool success = resetEnumPQParamToDefault(
+            parameters,
+            "ZoomMode",
+            PQ_PARAM_ASPECT_RATIO,
+            zoomModeReverseMap,
+            [this](int intVal, const std::unordered_map<int, std::string>& valueMap) -> tvError_t {
+                return setAspectRatioZoomSettings(static_cast<tvDisplayMode_t>(intVal));
+            });
+            returnResponse(success);
         }
     }
 
@@ -1669,6 +1662,14 @@ namespace Plugin {
             auto it = sdrGammaMap.find(valueStr);
             if (it == sdrGammaMap.end()) {
                 LOGERR("Invalid SDRGamma value: %s", valueStr.c_str());
+                returnResponse(false);
+            }
+            enumValue = it->second;
+        }
+        else if (pqParamType == PQ_PARAM_ASPECT_RATIO) {
+            auto it = zoomModeMap.find(valueStr);
+            if (it == zoomModeMap.end()) {
+                LOGERR("Invalid ZoomMode value: %s", valueStr.c_str());
                 returnResponse(false);
             }
             enumValue = it->second;
@@ -1947,7 +1948,7 @@ namespace Plugin {
             inputInfo.source = "Current";
             inputInfo.format = "Current";
 
-            if (getParamIndex(paramName, inputInfo, indexInfo) == 0 &&
+            if (getParamIndexV2(paramName, inputInfo, indexInfo) == 0 &&
                 getLocalparam(paramName, indexInfo, intVal, pqIndex) == 0)
             {
                 LOGINFO("%s: getLocalparam success for %s [format=%d, source=%d, mode=%d] → value=%d\n",
@@ -2003,7 +2004,7 @@ namespace Plugin {
             inputInfo.source = "Current";
             inputInfo.format = "Current";
 
-            if (getParamIndex(paramName, inputInfo, indexInfo) == 0 &&
+            if (getParamIndexV2(paramName, inputInfo, indexInfo) == 0 &&
                 getLocalparam(paramName, indexInfo, level, pqIndex) == 0)
             {
                 LOGINFO("%s: getLocalparam success for %s: format=%d, source=%d, mode=%d, value=%d\n",
@@ -2060,7 +2061,7 @@ namespace Plugin {
             inputInfo.source = "Current";
             inputInfo.format = "Current";
 
-            if (getParamIndex(paramName, inputInfo, indexInfo) == 0 &&
+            if (getParamIndexV2(paramName, inputInfo, indexInfo) == 0 &&
                 getLocalparam(paramName, indexInfo, level, pqIndex) == 0)
             {
                 LOGINFO("%s: getLocalparam success for %s: format=%d, source=%d, mode=%d, value=%d\n",

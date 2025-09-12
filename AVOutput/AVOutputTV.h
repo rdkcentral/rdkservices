@@ -328,6 +328,7 @@ class AVOutputTV : public AVOutputBase {
 		int getDolbyModeIndex(const char * dolbyMode);
 		int getHDRModeIndex(const std::string HDRMode, const std::string format,tvDolbyMode_t &value);
 		tvDimmingMode_t getDimmingModeIndex(string mode);
+    	int getParamIndexV2(std::string param, capDetails_t& paramInfo, paramIndex_t& indexInfo);
 		
 		bool isIncluded(const std::set<string> set1,const std::set<string> set2);
 		bool isSetRequired(std::string pqmode,std::string source,std::string format);
@@ -428,14 +429,14 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
 		tvError_t setDefaultAspectRatio(std::string pqmode="none",std::string format="none",std::string source="none");
 		template <typename T>
-		static int getEnumFromString(const std::map<std::string, int>& reverseMap, const std::string& key, T defaultVal) {
+		static int getEnumFromString(const std::unordered_map<std::string, int>& reverseMap, const std::string& key, T defaultVal) {
 			auto it = reverseMap.find(key);
 			return (it != reverseMap.end()) ? it->second : defaultVal;
 		}
 
-		static const std::map<int, std::string> pqModeMap;
-		static const std::map<int, std::string> videoFormatMap;
-		static const std::map<int, std::string> videoSrcMap;
+		static const std::unordered_map<int, std::string> pqModeMap;
+		static const std::unordered_map<int, std::string> videoFormatMap;
+		static const std::unordered_map<int, std::string> videoSrcMap;
 		static const std::unordered_map<int, std::string> backlightModeMap;
 
 		static std::unordered_map<std::string, tvPQModeIndex_t> pqModeReverseMap;
