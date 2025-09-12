@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.5] - 2025-09-12
+### Fixed
+- Sync low latency for AVOutput initialization
+
 ## [1.1.4] - 2025-08-26
 ### Fixed
 - Fixed getDolbyVisionMode() for non DV content
