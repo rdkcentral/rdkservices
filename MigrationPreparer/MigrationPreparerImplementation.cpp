@@ -78,7 +78,8 @@ namespace Plugin {
     }
 
      MigrationPreparerImplementation::sanityStatus MigrationPreparerImplementation::doSanityCheck(void){
-        WPEFramework::Core::File dataStore(DATASTORE_PATH);
+        WPEFramework::Core::File dataStore;
+		dataStore = string("/opt/secure/migration/migration_data_store.json");
         WPEFramework::Core::OptionalType<WPEFramework::Core::JSON::Error> error;
         JsonObject dataStoreJB;
         sanityStatus status = sanityStatus::PASS; 
