@@ -41,7 +41,7 @@
 #define TR181_MIGRATION_READY "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.MigrationReady"
 #define MIGRATIONREADY_PATH _T("/opt/secure/migration/migrationready.txt")
 #define MIGRATIONREADY_DIR _T("/opt/secure/migration/")
-#define POSTMORTEM_DIR _T("/opt/persistent/odm-data/corrupted-migration/")
+#define POSTMORTEM_DIR _T("/opt/secure/corrupted-migration/")
 
 
 // PLUGIN SPECIFIC CUSTOM ERROR CODES
