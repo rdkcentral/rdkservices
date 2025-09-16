@@ -686,7 +686,7 @@ namespace Plugin {
                                Timeout, _T("showWatermark"), out, callback);
                            if (result != Core::ERROR_NONE) {
                                TRACE(Trace::Error,
-                                   (_T("show failed %" PRIu32), result));
+                                   (_T("DEBUGSAMEE123 show failed %" PRIu32), result));
                            }
                        })
                 == Core::ERROR_NONE);
