@@ -67,7 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 6
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -97,6 +97,7 @@ using namespace std;
 #define LOG_UPLOAD_STATUS_SUCCESS "UPLOAD_SUCCESS"
 #define LOG_UPLOAD_STATUS_FAILURE "UPLOAD_FAILURE"
 #define LOG_UPLOAD_STATUS_ABORTED "UPLOAD_ABORTED"
+#define BOOT_TYPE_FILE "/tmp/bootType"
 
 /**
  * @struct firmwareUpdate
@@ -492,7 +493,7 @@ namespace WPEFramework {
                 &SystemServices::getPlatformConfiguration, this);
 	    registerMethod("getFriendlyName", &SystemServices::getFriendlyName, this);
             registerMethod("setFriendlyName", &SystemServices::setFriendlyName, this);
-
+            registerMethod("getBootTypeInfo", &SystemServices::getBootTypeInfo, this);
         }
 
         SystemServices::~SystemServices()
@@ -4699,6 +4700,33 @@ namespace WPEFramework {
           response.Load(m_shellService, query);
 
           return Core::ERROR_NONE;
+        }
+
+         /**
+          * @brief : API to query BootType details
+          *
+          * @param1[in]  : {"params":{}}}
+          * @param2[out] : "result":{<key>:<BootType Info Details>,"success":<bool>}
+          * @return      : Core::<StatusCode>
+
+ 	    */
+
+        uint32_t SystemServices::getBootTypeInfo(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool status = true;
+            if(Utils::fileExists(BOOT_TYPE_FILE)){
+                ifstream inFile(BOOT_TYPE_FILE);
+                string str;
+                getline (inFile, str);
+                response["bootType"] = str;
+                LOGINFO("Current Boot Type is %s\n", str.c_str());
+            }
+            else{
+                status = false;
+                LOGERR("Failed to read Boot Type");
+            }
+            returnResponse(status);
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */
