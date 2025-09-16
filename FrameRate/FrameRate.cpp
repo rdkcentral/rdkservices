@@ -235,7 +235,7 @@ namespace WPEFramework
             }
             catch(const std::exception& err)
             {
-                LOG_DEVICE_EXCEPTION1(sPortId);
+                LOGERR("exception: %s", err.what());
                 success = false;
             }
             catch(...)
@@ -266,7 +266,7 @@ namespace WPEFramework
             }
             catch(const std::exception& err)
             {
-                LOG_DEVICE_EXCEPTION0();
+                LOGERR("exception: %s", err.what());
                 success = false;
             }
             catch(...)
@@ -301,7 +301,7 @@ namespace WPEFramework
             }
             catch(const std::exception& err)
             {
-                LOG_DEVICE_EXCEPTION1(sFramerate);
+                LOGERR("exception: %s", err.what());
                 success = false;
             }
             catch(...)
@@ -331,7 +331,7 @@ namespace WPEFramework
             }
             catch(const std::exception& err)
             {
-                LOG_DEVICE_EXCEPTION1(std::string(sFramerate));
+                LOGERR("exception: %s", err.what());
                 success = false;
             }
             catch(...)

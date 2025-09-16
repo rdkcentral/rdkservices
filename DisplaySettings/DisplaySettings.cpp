@@ -1274,7 +1274,7 @@ namespace WPEFramework {
             }
             catch(const std::exception& err)
             {
-                LOG_DEVICE_EXCEPTION0();
+                LOGERR("exception: %s", err.what());
             }
             catch(...)
             {
@@ -1404,7 +1404,7 @@ namespace WPEFramework {
             }
             catch(const std::exception& err)
             {
-                LOG_DEVICE_EXCEPTION0();
+                LOGERR("exception: %s", err.what());
                 success = false;
             }
             catch(...)
@@ -1449,7 +1449,7 @@ namespace WPEFramework {
             }
             catch(const std::exception& err)
             {
-                LOG_DEVICE_EXCEPTION0();
+                LOGERR("exception: %s", err.what());
                 success = false;
             }
             catch(...)
@@ -2074,7 +2074,7 @@ namespace WPEFramework {
                 }
                 catch(const std::exception& err)
                 {
-                    LOG_DEVICE_EXCEPTION0();
+                    LOGERR("exception: %s", err.what());
                 }
                 catch(...)
                 {
@@ -6065,7 +6065,7 @@ void DisplaySettings::sendMsgThread()
             }
             catch(const std::exception& err)
             {
-                LOG_DEVICE_EXCEPTION0();
+                LOGERR("exception: %s", err.what());
                 return videoFormats;
             }
             catch(...)
