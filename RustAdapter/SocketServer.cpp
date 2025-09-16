@@ -306,18 +306,21 @@ void SocketServer::Close()
 
 int SocketServer::ReadExact(uint8_t* p, int len)
 {
+  if (!p || len <= 0)
+    return -1;
+
   if (m_serverSocket <= 0 || m_clientSocket <= 0)
     return -1;
 
-  int remaining = len;
+  size_t remaining = (size_t)len;
 
   while (remaining > 0)
   {
-    int num = (int)read(m_clientSocket, p, remaining);
+    ssize_t num = read(m_clientSocket, p, remaining);
 
     if (num <= 0)
     {
-        LOGERR("SocketServer::ReadExact failed: num=%d", num);
+        LOGERR("SocketServer::ReadExact failed: num=%zd", num);
 
         if (num == 0)
           return CLIENT_DISCONNECT;
@@ -327,13 +330,13 @@ int SocketServer::ReadExact(uint8_t* p, int len)
     else
     {
       p += num;
-      remaining -= num;
+      remaining -= (size_t)num;
     }
   }
 
   if (remaining != 0)
   {
-    LOGERR("SocketServer::ReadExact: failed: remaining=%d", remaining);
+    LOGERR("SocketServer::ReadExact: failed: remaining=%zu", remaining);
     return -1;
   }
 
