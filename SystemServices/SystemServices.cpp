@@ -2627,6 +2627,7 @@ namespace WPEFramework {
 	uint32_t SystemServices::setTerritory(const JsonObject& parameters, JsonObject& response)
 	{
 		bool resp = false;
+		std::lock_guard<std::mutex> lock(m_territoryMutex);
 		if(parameters.HasLabel("territory")){
 			makePersistentDir();
 			string regionStr = "";
@@ -2704,6 +2705,7 @@ namespace WPEFramework {
 	uint32_t SystemServices::getTerritory(const JsonObject& parameters, JsonObject& response)
 	{
 		bool resp = true;
+		std::lock_guard<std::mutex> lock(m_territoryMutex);
 		m_strTerritory = "";
 		m_strRegion = "";
 		resp = readTerritoryFromFile();
