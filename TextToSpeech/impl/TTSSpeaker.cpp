@@ -423,6 +423,7 @@ TTSSpeaker::~TTSSpeaker() {
 
     if(m_gstThread) {
         m_gstThread->join();
+        delete m_gstThread;
         m_gstThread = NULL;
     }
 
