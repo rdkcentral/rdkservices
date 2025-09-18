@@ -1381,6 +1381,8 @@ namespace Plugin {
             updateAVoutputTVParamV2("sync", "Backlight", paramJson, PQ_PARAM_BACKLIGHT, level);
         }
 
+	syncWBParams();
+
         //Ambient Bakclight Mode
         m_backlightModeStatus = GetBacklightModeCaps(&m_backlightModes, &m_numBacklightModes, &m_backlightModeCaps);
         if (m_backlightModeStatus == tvERROR_NONE) {
