@@ -2,7 +2,7 @@
 <a name="VoiceControl_Plugin"></a>
 # VoiceControl Plugin
 
-**Version: [1.4.3](https://github.com/rdkcentral/rdkservices/blob/main/VoiceControl/CHANGELOG.md)**
+**Version: [1.4.4](https://github.com/rdkcentral/rdkservices/blob/main/VoiceControl/CHANGELOG.md)**
 
 A org.rdk.VoiceControl plugin for Thunder framework.
 
@@ -396,6 +396,7 @@ Requests a voice session using the specified request type and optional parameter
 | params | object |  |
 | params?.transcription | string | <sup>*(optional)*</sup> The transcription text to be sent to the voice server for request types "ptt_transcription" and "mic_transcription" |
 | params?.audio_file | string | <sup>*(optional)*</sup> The full path to the audio file to be sent to the voice server for request types "ptt_audio_file" and "mic_audio_file" |
+| params?.name | string | <sup>*(optional)*</sup> The name of the application requesting the voice session |
 | params.type | string | The request type to initiate the voice session (see [voiceSessionTypes](#voiceSessionTypes) API for list of request types) |
 
 ### Result
@@ -417,6 +418,7 @@ Requests a voice session using the specified request type and optional parameter
     "params": {
         "transcription": "Watch Comedy Central",
         "audio_file": "/opt/audio_file.wav",
+        "name": "Application",
         "type": "ptt_transcription"
     }
 }
