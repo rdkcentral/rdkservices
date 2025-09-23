@@ -311,8 +311,9 @@ namespace Plugin {
             uint16_t classification, uint16_t reason)
         {
             Core::OptionalType<uint32_t> result;
-            // https://github.com/comcast-contentsecurity/spec
+            // https://github.com/comcast-contentsecurity/spec/blob/master/device-security/SecManagerResultStatus.md
             static std::map<std::tuple<uint16_t, uint16_t>, uint32_t> map{
+                { { 100, 2 }, 21003 },
                 { { 100, 3 }, 21003 },
                 { { 100, 4 }, 21004 },
                 { { 100, 5 }, 21005 },
@@ -330,10 +331,15 @@ namespace Plugin {
                 { { 200, 11 }, 22011 },
                 { { 200, 12 }, 22012 },
                 { { 200, 13 }, 22013 },
-                { { 200, 16 }, 22016 },
+                { { 200, 102 }, 22016 },
                 { { 300, 1 }, 23001 },
                 { { 300, 3 }, 23003 },
-                { { 300, 12 }, 23012 }
+                { { 300, 12 }, 23012 },
+                { { 300, 1002 }, 23014 },
+                { { 300, 1003 }, 23014 },
+                { { 300, 1004 }, 23014 },
+                { { 300, 1007 }, 23014 },
+                { { 300, 1008 }, 23014 }
             };
             auto it = map.find(std::make_tuple(classification, reason));
             if (it != map.end()) {
