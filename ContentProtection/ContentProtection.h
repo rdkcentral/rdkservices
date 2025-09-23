@@ -741,6 +741,16 @@ namespace Plugin {
                                out.ClutKey = params.WatermarkClutBufferKey;
                                out.ClutSize = palette.Value().clutSize;
                                out.ClutType = palette.Value().clutType;
+                               // Skip palette size parameter.
+                               // Because of watermark plugin, which
+                               // by default having logic that works for
+                               // palette size of 256*4. When same watermark
+                               // plugin is interacted from aamp instead of
+                               // content protection, palette size parameter
+                               // is not passed and defaulted to 256*4 inside
+                               // watermark plugin.
+                               out.Remove(_T("clutSize"));
+
                                Callback1 callback =
                                    [&, id](const JsonObject& in) {
                                        if (!in["success"].Boolean()) {
