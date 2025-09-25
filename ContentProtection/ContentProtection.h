@@ -311,7 +311,7 @@ namespace Plugin {
             Core::OptionalType<uint32_t> result;
             // https://github.com/comcast-contentsecurity/spec/blob/master/device-security/SecManagerResultStatus.md
             static std::map<std::tuple<uint16_t, uint16_t>, uint32_t> map{
-                { { 100, 2 }, 21003 },
+                { { 100, 2 }, 21002 },
                 { { 100, 3 }, 21003 },
                 { { 100, 4 }, 21004 },
                 { { 100, 5 }, 21005 },
