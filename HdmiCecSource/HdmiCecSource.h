@@ -109,7 +109,7 @@ namespace WPEFramework {
 		std::unique_lock<std::mutex> lk;
 
 		CECDeviceInfo_2()
-		: m_logicalAddress(0),m_vendorID(0,0,0),m_osdName("NA"), m_isOSDNameUpdated (false), m_isVendorIDUpdated (false)
+		: m_logicalAddress(0),m_vendorID(0,0,0),m_osdName("NA"),m_deviceInfoStatus(0), m_isOSDNameUpdated (false), m_isVendorIDUpdated (false)
 		{
 			BITMASK_CLEAR(m_deviceInfoStatus, 0xFFFF); //Clear all bits
 		}

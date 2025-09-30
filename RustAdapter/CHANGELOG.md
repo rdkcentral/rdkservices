@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.6] - 2025-09-30
+### Fixed
+- Fixed coverity reported issues
+
 ## [1.0.5] - 2025-06-19
 ### Fixed
 - Fixed coverity reported issues
