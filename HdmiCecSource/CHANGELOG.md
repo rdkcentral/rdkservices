@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.5] - 2025-09-30
+### Fixed
+- Fixed coverity reported issues
+
 ## [1.1.4] - 2025-05-08
 ### Changed
 - Added retry timeout for the CEC OTP messages
