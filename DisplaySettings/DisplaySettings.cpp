@@ -85,7 +85,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 2
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 7
+#define API_VERSION_NUMBER_PATCH 10
 
 static bool isCecEnabled = false;
 static bool isResCacheUpdated = false;
@@ -5112,7 +5112,7 @@ void DisplaySettings::sendMsgThread()
             if (parameters.HasLabel("ShortAudioDescriptor")) {
                 shortAudioDescriptorList = parameters["ShortAudioDescriptor"].Array();
 		int currentSADState = getAudioDeviceSADState();
-		if (currentSADState == AUDIO_DEVICE_SAD_REQUESTED) { {
+		if (currentSADState == AUDIO_DEVICE_SAD_REQUESTED) {
                     try
                     {
 		        setAudioDeviceSADState(AUDIO_DEVICE_SAD_RECEIVED);
