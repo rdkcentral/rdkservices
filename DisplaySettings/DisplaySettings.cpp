@@ -85,7 +85,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 2
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 8
+#define API_VERSION_NUMBER_PATCH 7
 
 static bool isCecEnabled = false;
 static bool isResCacheUpdated = false;
