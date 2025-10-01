@@ -172,8 +172,8 @@ namespace WPEFramework {
         {
             const char * pipeName = "PATH=${PATH}:/sbin:/usr/sbin /lib/rdk/getDeviceDetails.sh read";
             FILE* pipe = popen(pipeName, "r");
-            LOGWARN("%s: opened pipe for command '%s', with result %s : %s\n",
-                    __FUNCTION__ , pipeName, pipe ? "sucess" : "failure", strerror(errno));
+            LOGWARN("%s: opened pipe for command '%s', with result %s\n",
+                    __FUNCTION__ , pipeName, pipe ? "success" : "failure");
             if (!pipe) {
                 LOGERR("%s: SERVICEMANAGER_FILE_ERROR: Can't open pipe for command '%s' for read mode: %s\n"
                         , __FUNCTION__, pipeName, strerror(errno));
