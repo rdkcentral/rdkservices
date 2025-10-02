@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.9] - 2025-01-02
+### Fixed
+- Added error checking to various try catch statements.
+
 ## [1.0.8] - 2025-01-02
 ### Security
 - Resolved security vulnerabilities
