@@ -93,7 +93,7 @@ namespace TTS {
 
 #else
 
-    static int gDefaultLogLevel = INFO_LEVEL;
+    static int gDefaultLogLevel = ERROR_LEVEL;
     // static int gDefaultLogLevel = VERBOSE_LEVEL;
 
     void logger_init()
