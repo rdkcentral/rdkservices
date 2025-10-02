@@ -29,6 +29,10 @@
 #include <fstream>
 #include <glib.h>
 #include <semaphore.h>
+#include <iostream>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
 #include <MiracastLogger.h>
 
 using namespace std;
@@ -364,6 +368,27 @@ class MiracastCommon
         static std::string parse_opt_flag( std::string file_name , bool integer_check = false, bool debugStats = true );
         static int execute_SystemCommand( const char* system_command_buffer );
         static bool execute_PopenCommand( const char* popen_command, const char* expected_char, unsigned int retry_count, std::string& popen_buffer, unsigned int interval_micro_sec );
+};
+
+#define DEFAULT_MSGQ_WAIT_TIME_MS   (3000*1000)
+
+class MessageQueue
+{
+private:
+    std::mutex mutexSync;
+    std::queue<void*> m_internalQueue;  // Queue to hold void* data
+    std::condition_variable m_condNotEmpty;
+    std::condition_variable m_condNotFull;
+    int m_currentMsgCount;  // Guard with Mutex, keep track of queue size
+    int m_maxMsgCount{5};  // Maximum size of the queue
+    void (*m_free_resource_cb)(void *);
+    bool m_isDestructing{false};
+
+public:
+    MessageQueue(int queueSize,void (*free_cb)(void *param));
+    ~MessageQueue();
+    void sendData(void* new_value, int wait_time_ms = DEFAULT_MSGQ_WAIT_TIME_MS);
+    void ReceiveData(void*& value, int wait_time_ms = DEFAULT_MSGQ_WAIT_TIME_MS);
 };
 
 #endif
