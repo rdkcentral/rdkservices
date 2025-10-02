@@ -68,6 +68,29 @@
                 ]
             }
         },
+        "reserveTTSResourceForApps": {
+            "summary": "Reserves the Text To speech Resource for specified clients.",
+            "params": {
+                "type": "object",
+                "properties":{
+                    "appIds": {
+                        "summary": "A list of application callsigns",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "xumo"
+                        },
+                        "minItems": 1
+                    }
+                },
+                "required": [
+                    "appIds"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },		
         "reserveTTSResource": {
             "summary": "Reserves the Text To speech Resource for specified client.",
             "params": {
