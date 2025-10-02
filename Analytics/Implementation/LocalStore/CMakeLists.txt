@@ -29,6 +29,11 @@ else (SQLITE_FOUND)
     message ("Sqlite3 required.")
 endif (SQLITE_FOUND)
 
+if(BUILD_ENABLE_TELEMETRY_LOGGING)
+    add_definitions(-DENABLE_TELEMETRY_LOGGING)
+    target_link_libraries(${TARGET_LIB} PRIVATE -ltelemetry_msgsender)
+endif (BUILD_ENABLE_TELEMETRY_LOGGING)
+
 target_include_directories(${TARGET_LIB} PUBLIC "${CMAKE_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(${TARGET_LIB} PRIVATE "${CMAKE_SOURCE_DIR}/Analytics")
 target_include_directories(${TARGET_LIB} PRIVATE "${CMAKE_SOURCE_DIR}/Analytics/Implementation/Interfaces")
