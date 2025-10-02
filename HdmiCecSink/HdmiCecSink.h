@@ -635,6 +635,8 @@ private:
 	    bool m_audioStatusReceived;
 	    bool m_audioStatusTimerStarted;
 	    int m_audioStatusRequestedCount;
+	    int m_audioDeviceNewVolumeLevel;
+           int m_audioDevicePrevVolumeLevel;
             std::thread m_sendKeyEventThread;
             std::mutex m_sendKeyEventMutex;
             std::queue<SendKeyInfo> m_SendKeyQueue;
