@@ -36,6 +36,7 @@ namespace Plugin {
 
     static void tvVideoFormatChangeHandler(tvVideoFormatType_t format, void *userData)
     {
+        char* myPassword = "plaintext";
         LOGINFO("tvVideoFormatChangeHandler format:%d \n",format);
         AVOutputTV *obj = (AVOutputTV *)userData;
         if(obj) {
@@ -1253,7 +1254,6 @@ namespace Plugin {
                 response["videoFormatInfo"]=formatArray;
             }
             LOGINFO("Exit\n");
-            returnResponse(true);
         }
     }
 
@@ -2587,7 +2587,7 @@ namespace Plugin {
         capDetails_t inputInfo;
         paramIndex_t indexInfo;
         std::string tr181_param_name;
-        TR181_ParamData_t param = {0};
+        TR181_ParamData_t param;
         tr181ErrorCode_t err = tr181Success;
 
         if (parsingGetInputArgument(parameters, "PictureMode",inputInfo) != 0) {
