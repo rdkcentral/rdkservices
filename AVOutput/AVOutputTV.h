@@ -318,6 +318,8 @@ class AVOutputTV : public AVOutputBase {
 		 */
 		int updateAVoutputTVParam( std::string action, std::string tr181ParamName, capDetails_t info, tvPQParameterIndex_t pqParamIndex, int level );
 
+		int updateAVoutputTVParamImplementation( std::string action, std::string tr181ParamName, capDetails_t info, tvPQParameterIndex_t pqParamIndex, int level );
+
 		/* Every bootup this function is called to sync TR181 to TVSettings HAL for saving the value */
 		tvError_t syncAvoutputTVParamsToHAL(std::string pqmode, std::string source, std::string format);
 		/* Every Bootup this function is called to sync TR181 to TVSettings HAL for saving the picture mode assiocation to source */
