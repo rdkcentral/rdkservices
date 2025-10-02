@@ -675,14 +675,6 @@ public:
         {
             TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
         }
-        catch(const std::exception& err)
-        {
-            TRACE(Trace::Error, (_T("Standard exception: %s"), err.what()));
-        }
-        catch(...)
-        {
-            TRACE(Trace::Error, (_T("Unknown exception occurred")));
-        }
         if(!capabilities) hdrCapabilities.push_back(HDR_OFF);
         if(capabilities & dsHDRSTANDARD_HDR10) hdrCapabilities.push_back(HDR_10);
         if(capabilities & dsHDRSTANDARD_HLG) hdrCapabilities.push_back(HDR_HLG);
@@ -710,14 +702,6 @@ public:
         catch(const device::Exception& err)
         {
             TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
-        }
-        catch(const std::exception& err)
-        {
-            TRACE(Trace::Error, (_T("Standard exception: %s"), err.what()));
-        }
-        catch(...)
-        {
-            TRACE(Trace::Error, (_T("Unknown exception occurred")));
         }
         if(!capabilities) hdrCapabilities.push_back(HDR_OFF);
         if(capabilities & dsHDRSTANDARD_HDR10) hdrCapabilities.push_back(HDR_10);
