@@ -14,6 +14,10 @@ All notable changes to this RDK Service will be documented in this file.
 
     For more details, refer to versioning section under Main README.
 
+
+## [1.0.2] - 2025-09-09
+- Changes to ensure data integrity of migration data store file.
+
 ## [1.0.1] - 2025-20-01
 - Changes to avoid any "value" field from getting printed in MigrationPreparer related logs.
 
