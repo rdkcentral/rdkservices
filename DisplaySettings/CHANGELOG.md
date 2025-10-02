@@ -16,6 +16,17 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [2.0.11] - 2025-10-01
+### Fixed
+- Added error checking to various try catch statements.
+
+## [2.0.10] - 2025-10-01
+### Fixed
+- Fixed coverity reported issues
+## [2.0.8] - 2025-09-30
+### Fixed
+- Fixed coverity reported issues
+
 ## [2.0.7] - 2025-06-02
 ### Added
 - Set AVI content type & scan info frames during the ALLM Game mode and reset on video mode
