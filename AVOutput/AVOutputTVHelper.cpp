@@ -615,6 +615,30 @@ namespace Plugin {
         return 0;
     }
 
+    int AVOutputTV::validateFadeDisplayInputParameter(std::string param, std::string name, int inputValue)
+    {
+        capVectors_t info;
+        tvError_t ret = getParamsCaps(param, info);
+
+        if (ret != tvERROR_NONE) {
+            LOGERR("Failed to fetch the range capability[%s] \n", param.c_str());
+            return -1;
+        }
+        if ( (name == "Range")){
+            if (inputValue < std::stoi(info.rangeVector[0]) || inputValue > std::stoi(info.rangeVector[1])){
+                LOGERR("wrong Input Value[%d]", inputValue);
+                return -1;
+            }
+        }
+        if ( (name == "Duration")){
+            if (inputValue > std::stoi(info.rangeVector[2]) || inputValue < std::stoi(info.rangeVector[3])){
+                LOGERR("wrong Input Value[%d]", inputValue);
+                return -1;
+            }
+        }
+        return 0;
+    }
+
     int AVOutputTV::fetchCapablities(string pqparam, capDetails_t& info) {
 
        capVectors_t vectorInfo;
@@ -2348,6 +2372,15 @@ namespace Plugin {
                 configString = param + ".range_Offset_from";
                 info.range += ","+inFile.Get<std::string>(configString);
                 configString = param + ".range_Offset_to";
+                info.range += ","+inFile.Get<std::string>(configString);
+            } else if ( (param == "BacklightFade")) {
+                configString = param + ".range_from";
+                info.range = inFile.Get<std::string>(configString);
+                configString = param + ".range_to";
+                info.range += ","+inFile.Get<std::string>(configString);
+                configString = param + ".duration_from";
+                info.range += ","+inFile.Get<std::string>(configString);
+                configString = param + ".duration_to";
                 info.range += ","+inFile.Get<std::string>(configString);
             } else {
                 configString = param + ".range_from";
