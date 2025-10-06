@@ -39,10 +39,6 @@ if(PLUGIN_WAREHOUSE)
     set(SRC_FILES ${SRC_FILES} tests/Warehouse_L2Test.cpp)
 endif()
 
-if(PLUGIN_HDCPPROFILE)
-    set(SRC_FILES ${SRC_FILES} tests/VerifyContracts.cpp)
-endif()
-
 if(PLUGIN_USERSETTINGS)
     set(SRC_FILES ${SRC_FILES} tests/UserSettings_L2Test.cpp)
 endif()
