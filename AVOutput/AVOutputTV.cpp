@@ -358,6 +358,11 @@ namespace Plugin {
         registerMethod("resetAutoBacklightMode", &AVOutputTV::resetAutoBacklightMode, this);
         registerMethod("getAutoBacklightModeCaps", &AVOutputTV::getAutoBacklightModeCaps, this);
 
+        registerMethod("getFadeDisplayCaps", &AVOutputTV::getFadeDisplayCaps, this);
+        registerMethod("fadeDisplay", &AVOutputTV::fadeDisplay, this);
+        registerMethod("getWBMode", &AVOutputTV::getWBMode, this);
+        registerMethod("setWBMode", &AVOutputTV::setWBMode, this);
+
         LOGINFO("Exit\n");
     }
     
@@ -3890,7 +3895,7 @@ namespace Plugin {
 
         tvError_t ret = tvERROR_NONE;
 
-	if (isPlatformSupport("AutoBacklightMode") != 0) {
+        if (isPlatformSupport("AutoBacklightMode") != 0) {
             returnResponse(false);
         }
 
@@ -3945,7 +3950,121 @@ namespace Plugin {
         {
             returnResponse(true);
         }
-    }    
+    }
+
+    uint32_t AVOutputTV::getFadeDisplayCaps(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        capVectors_t info;
+        JsonObject rangeObj;
+
+        tvError_t ret = getParamsCaps("BacklightFade",info);
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+
+        response["platformSupport"] = (info.isPlatformSupportVector[0].compare("true") == 0 ) ? true : false;
+        response["from"] = stoi(info.rangeVector[0]);
+        response["to"] = stoi(info.rangeVector[1]);
+        rangeObj["from"] = stoi(info.rangeVector[2]);
+        rangeObj["to"] = stoi(info.rangeVector[3]);
+        response["durationInfo"] = rangeObj;
+        LOGINFO("Exit\n");
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::fadeDisplay(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        std::string from,to,duration;
+        int fromValue = 0,toValue = 0, durationValue = 0;
+
+        if (isPlatformSupport("BacklightFade") != 0) {
+            LOGERR("Platform Support (%s) false", __FUNCTION__);
+            returnResponse(false);
+        }
+        from = parameters.HasLabel("from") ? parameters["from"].String() : "";
+        if (from.empty() || validateFadeDisplayInputParameter("BacklightFade", "Range", std::stoi(from)) != 0) {
+            LOGERR("%s: Range validation failed for BacklightFade From\n", __FUNCTION__);
+            LOGWARN("%s: Using default value, from = 100\n", __FUNCTION__);
+            fromValue = 100;
+        } else
+            fromValue = std::stoi(from);
+
+        to = parameters.HasLabel("to") ? parameters["to"].String() : "";
+        if(to.empty() || validateFadeDisplayInputParameter("BacklightFade", "Range", std::stoi(to)) != 0) {
+            LOGERR("%s: Range validation failed for BacklightFade To\n", __FUNCTION__);
+            LOGWARN("%s: Using default value, to = 0\n", __FUNCTION__);
+            toValue = 0;
+        } else
+            toValue = std::stoi(to);
+
+        duration = parameters.HasLabel("duration") ? parameters["duration"].String() : "";
+        if(duration.empty() || validateFadeDisplayInputParameter("BacklightFade", "Duration", std::stoi(duration)) != 0) {
+            LOGERR("%s: Range validation failed for BacklightFade Duration\n", __FUNCTION__);
+            LOGWARN("%s: Using default value, duration = 0\n", __FUNCTION__);
+            durationValue = 0;
+        } else
+            durationValue = std::stoi(duration);
+
+        LOGINFO("from = %d to = %d duration = %d\n" ,fromValue,toValue,durationValue);
+        tvError_t ret = SetBacklightFade(fromValue,toValue,durationValue);
+        if(ret != tvERROR_NONE) {
+           LOGERR("Failed to set BacklightFade \n");
+           returnResponse(false);
+        }
+        else {
+           LOGINFO("Exit : backlightFade Success \n");
+           returnResponse(true);
+        }
+    }
+
+    uint32_t AVOutputTV::getWBMode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry - Is stubbed api will return 0'\n");
+        bool mode = 0;
+        tvError_t ret = GetCurrentWBCalibrationMode(&mode);
+        if(ret != tvERROR_NONE) {
+           LOGERR("Failed to get WBCalibrationMode \n");
+           returnResponse(false);
+        }
+        else
+        {
+            response["wbMode"] = (mode);
+            returnResponse(true);
+        }
+    }
+
+    uint32_t AVOutputTV::setWBMode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        std::string value;
+        tvError_t ret = tvERROR_NONE;
+        bool mode = 0;
+        if(parameters.HasLabel("mode")) {
+            value = parameters["mode"].String();
+            if(value == "true") {
+                mode = 1;
+            } else if(value == "false") {
+                mode = 0;
+            } else {
+                LOGERR("Invalid WBMode param value\n");
+                returnResponse(false);
+            }
+            ret = EnableWBCalibrationMode(mode);
+            if(ret != tvERROR_NONE) {
+                LOGERR("enableWBmode failed\n");
+                returnResponse(false);
+            }
+            else{
+                LOGINFO("setWBmode to %s\n", mode ? "true" : "false");
+                returnResponse(true);
+            }
+        } else {
+            LOGERR("Invalid Param\n");
+            returnResponse(false);
+        }
+    }
 
     uint32_t AVOutputTV::getVideoSource(const JsonObject& parameters,JsonObject& response)
     {
