@@ -3702,12 +3702,12 @@ namespace Plugin {
         else {
             response["platformSupport"] = (info.isPlatformSupportVector[0].compare("true") == 0)  ? true : false;
 
-            gainInfo["from"] = stoi(info.rangeVector[0]);
-            gainInfo["to"]   = stoi(info.rangeVector[1]);
+            gainInfo["from"] = stoi(info.gainRangeVector[0]);
+            gainInfo["to"]   = stoi(info.gainRangeVector[1]);
             response["gainInfo"]=gainInfo;
 
-            offsetInfo["from"] = stoi(info.rangeVector[0]);
-            offsetInfo["to"]   = stoi(info.rangeVector[1]);
+            offsetInfo["from"] = stoi(info.offsetRangeVector[0]);
+            offsetInfo["to"]   = stoi(info.offsetRangeVector[1]);
             response["offsetInfo"]=offsetInfo;
             
             
