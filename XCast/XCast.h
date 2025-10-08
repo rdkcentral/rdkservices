@@ -155,6 +155,12 @@ namespace Plugin {
         uint32_t registerApplications(const JsonObject& parameters, JsonObject& response);
         uint32_t unregisterApplications(const JsonObject& parameters, JsonObject& response);
         uint32_t getProtocolVersion(const JsonObject& parameters, JsonObject& response);
+
+        uint32_t setManufacturerName(const JsonObject& parameters, JsonObject& response);
+        uint32_t getManufacturerName(const JsonObject& parameters, JsonObject& response);
+        uint32_t setModelName(const JsonObject& parameters, JsonObject& response);
+        uint32_t getModelName(const JsonObject& parameters, JsonObject& response);
+
         uint32_t registerApplicationsInternal(std::vector<DynamicAppConfig*> appConfigEntries);
         //End methods
         /**

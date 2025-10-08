@@ -50,6 +50,8 @@ XCast interface methods:
 | [getApiVersionNumber](#getApiVersionNumber) | Gets the API version number |
 | [getEnabled](#getEnabled) | Reports whether xcast plugin is enabled or disabled |
 | [getFriendlyName](#getFriendlyName) | Returns the friendly name set by setFriendlyName API |
+| [getManufacturerName](#getManufacturerName) | Returns the friendly name set by setManufacturerName API |
+| [getModelName](#getModelName) | Returns the friendly name set by setModelName API |
 | [getProtocolVersion](#getProtocolVersion) | Returns the DIAL protocol version supported by the server |
 | [getStandbyBehavior](#getStandbyBehavior) | Return current standby behavior option string set uisng setStandbyBehavior or default value  |
 | [onApplicationStateChanged](#onApplicationStateChanged) | Provides notification whenever an application changes state due to user activity, an internal error, or other reasons |
@@ -57,6 +59,8 @@ XCast interface methods:
 | [unregisterApplications](#unregisterApplications) | Unregisters an application |
 | [setEnabled](#setEnabled) | Enable or disable XCAST service |
 | [setFriendlyName](#setFriendlyName) | Sets the friendly name of device |
+| [setManufacturerName](#setManufacturerName) | Sets the Manufacturer name of device |
+| [setModelName](#setModelName) | Sets the Model name of device |
 | [setStandbyBehavior](#setStandbyBehavior) | Sets the expected xcast behavior in standby mode |
 
 
@@ -194,7 +198,99 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "friendlyname": "Manufacturer name",
+        "friendlyname": "Friendly name",
+        "success": true
+    }
+}
+```
+
+<a name="getManufacturerName"></a>
+## *getManufacturerName*
+
+Returns the friendly name set by setManufacturerName API.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.manufacturer | string | The Manufacturer name of the device which used to update in dd.xml |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Xcast.getManufacturerName"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "manufacturer": "Manufacturer name",
+        "success": true
+    }
+}
+```
+
+<a name="getModelName"></a>
+## *getModelName*
+
+Returns the friendly name set by setModelName API.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.model | string | The Model name of the device which used to update in dd.xml |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Xcast.getModelName"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "model": "Model name",
         "success": true
     }
 }
@@ -574,7 +670,107 @@ No Events
     "id": 42,
     "method": "org.rdk.Xcast.setFriendlyName",
     "params": {
-        "friendlyname": "Manufacturer name"
+        "friendlyname": "Friendly name"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="setManufacturerName"></a>
+## *setManufacturerName*
+
+Sets the Manufacturer name of device. It allows an application to override the default manufacturer name value with the manufacturer name passed as an argument. The provided name  should not be empty. Manufacturer name is not persisted on device after each reboot or reconnect application should call API to update the manufacturerName.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.manufacturer | string | The Manufacturer name of the device which used to update in dd.xml |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Xcast.setManufacturerName",
+    "params": {
+        "manufacturer": "Manufacturer name"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="setModelName"></a>
+## *setModelName*
+
+Sets the Model name of device. It allows an application to override the default model name value with the model name passed as an argument. The provided name  should not be empty. Model name is not persisted on device after each reboot or reconnect application should call API to update the modelName.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.model | string | The Model name of the device which used to update in dd.xml |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Xcast.setModelName",
+    "params": {
+        "model": "Model name"
     }
 }
 ```
