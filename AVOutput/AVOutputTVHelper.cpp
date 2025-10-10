@@ -391,6 +391,8 @@ namespace Plugin {
 
          // Initializing the streamVector with stringstreams and corresponding vectors
         streamVector.push_back({std::stringstream(stringInfo.range), vectorInfo.rangeVector});
+        streamVector.push_back({std::stringstream(stringInfo.range), vectorInfo.gainRangeVector});
+        streamVector.push_back({std::stringstream(stringInfo.range), vectorInfo.offsetRangeVector});
         streamVector.push_back({std::stringstream(stringInfo.pqmode), vectorInfo.pqmodeVector});
         streamVector.push_back({std::stringstream(stringInfo.format), vectorInfo.formatVector});
         streamVector.push_back({std::stringstream(stringInfo.source), vectorInfo.sourceVector});
@@ -2341,14 +2343,14 @@ namespace Plugin {
                 info.range += ","+inFile.Get<std::string>(configString);
             } else if ( (param == "CustomWhiteBalance")) {
                 configString = param + ".range_Gain_from";
-                info.range = inFile.Get<std::string>(configString);
+                info.gainRange = inFile.Get<std::string>(configString);
                 configString = param + ".range_Gain_to";
-                info.range += ","+inFile.Get<std::string>(configString);
+                info.gainRange += ","+inFile.Get<std::string>(configString);
 
                 configString = param + ".range_Offset_from";
-                info.range += ","+inFile.Get<std::string>(configString);
+                info.offsetRange += ","+inFile.Get<std::string>(configString);
                 configString = param + ".range_Offset_to";
-                info.range += ","+inFile.Get<std::string>(configString);
+                info.offsetRange += ","+inFile.Get<std::string>(configString);
             } else {
                 configString = param + ".range_from";
                 info.range = inFile.Get<std::string>(configString);

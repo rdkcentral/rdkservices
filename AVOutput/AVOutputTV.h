@@ -122,6 +122,8 @@ namespace Plugin {
 typedef struct
 {
     std::string range;
+    std::string gainRange;
+    std::string offsetRange;
     std::string pqmode;
     std::string format;
     std::string source;
@@ -136,6 +138,8 @@ typedef struct
 typedef struct
 {
     std::vector<std::string> rangeVector;
+    std::vector<std::string> gainRangeVector;
+    std::vector<std::string> offsetRangeVector;
     std::vector<std::string> pqmodeVector;
     std::vector<std::string> formatVector;
     std::vector<std::string> sourceVector;
