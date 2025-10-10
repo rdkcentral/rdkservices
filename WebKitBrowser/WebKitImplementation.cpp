@@ -193,13 +193,13 @@ namespace
         return input.substr(0, end).append("/");
     }
 
-    string normalizedUrl(const string& url) {
+    string normalizedHostNameInURL(const string& url) {
         static thread_local CURLU *normalizedUrl = curl_url();
         string ret {url};
         char *normalizedCstr = nullptr;
         CURLUcode ecode;
         if (CURLUE_OK == (ecode = curl_url_set(normalizedUrl, CURLUPART_URL, url.c_str(), 0))) {
-            if (CURLUE_OK == (ecode = curl_url_get(normalizedUrl, CURLUPART_URL, &normalizedCstr, 0))) {
+            if (CURLUE_OK == (ecode = curl_url_get(normalizedUrl, CURLUPART_HOST, &normalizedCstr, 0))) {
                 ret = normalizedCstr;
             }
         }
@@ -213,8 +213,18 @@ namespace
         return ret;
     }
 
-    bool normalizedUrlsEqual(const string& url1, const string& url2) {
-        return normalizedUrl(url1) == normalizedUrl(url2);
+    bool normalizedHostNamesInUrlsEqual(const string& url1, const string& url2) {
+
+        std::string host1 = normalizedHostNameInURL(url1);
+        std::string host2 = normalizedHostNameInURL(url2);
+
+        /*Case insensitive string comparison for host names in URLs*/
+        std::transform(host1.begin(), host1.end(), host1.begin(),
+                   [](unsigned char c){ return std::tolower(c); });
+        std::transform(host2.begin(), host2.end(), host2.begin(),
+                   [](unsigned char c){ return std::tolower(c); });
+
+        return host1 == host2;
     }
 }
 
@@ -4683,7 +4693,7 @@ static GSourceFuncs _handlerIntervention =
                         urlData_.loadResult.waitForFailedOrFinished,
                         Core::ERROR_NONE == result ? "OK" : "NOK",
                         URL.c_str());
-            if (urlData_.loadResult.waitForFailedOrFinished && normalizedUrlsEqual(URL, urlData_.loadResult.loadUrl)) {
+            if (urlData_.loadResult.waitForFailedOrFinished && normalizedHostNamesInUrlsEqual(URL, urlData_.loadResult.loadUrl)) {
                 TRACE_L1("Notyfying with result = %s, url: %s\n", Core::ERROR_NONE == result ? "OK" : "NOK", URL.c_str());
                 urlData_.result = result;
                 urlData_.loadResult.waitForFailedOrFinished = false;
