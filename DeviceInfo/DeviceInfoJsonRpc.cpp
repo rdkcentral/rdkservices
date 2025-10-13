@@ -139,6 +139,12 @@ namespace Plugin {
                     result = Core::ERROR_GENERAL;
                 }
             }
+			if (_firmwareVersion->Pdri(value) == Core::ERROR_NONE) {
+			    response.pdri = value;
+			} else {
+				TRACE(Trace::Fatal, (_T("Unknown value %s"), value.c_str()));
+				result = Core::ERROR_GENERAL;
+			}
         }
 
         return result;
