@@ -7,7 +7,6 @@
 
 using ::testing::_;
 using ::testing::Eq;
-using ::testing::Invoke;
 using ::testing::IsFalse;
 using ::testing::IsTrue;
 using ::testing::NiceMock;
@@ -65,7 +64,7 @@ TEST_F(APersistentStore, GetsValueInDeviceScopeViaJsonRpc)
         PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, GetValue(_, _, _, _, _))
-                .WillRepeatedly(Invoke(
+                .WillRepeatedly(
                     [](const IStore2::ScopeType scope, const string& ns, const string& key, string& value, uint32_t& ttl) {
                         EXPECT_THAT(scope, Eq(IStore2::ScopeType::DEVICE));
                         EXPECT_THAT(ns, Eq(kAppId));
@@ -73,7 +72,7 @@ TEST_F(APersistentStore, GetsValueInDeviceScopeViaJsonRpc)
                         value = kValue;
                         ttl = kTtl;
                         return WPEFramework::Core::ERROR_NONE;
-                    }));
+                    });
         }
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
@@ -102,7 +101,7 @@ TEST_F(APersistentStore, SetsValueInDeviceScopeViaJsonRpc)
         PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, SetValue(_, _, _, _, _))
-                .WillRepeatedly(Invoke(
+                .WillRepeatedly(
                     [](const IStore2::ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) {
                         EXPECT_THAT(scope, Eq(IStore2::ScopeType::DEVICE));
                         EXPECT_THAT(ns, Eq(kAppId));
@@ -110,7 +109,7 @@ TEST_F(APersistentStore, SetsValueInDeviceScopeViaJsonRpc)
                         EXPECT_THAT(value, Eq(kValue));
                         EXPECT_THAT(ttl, Eq(kTtl));
                         return WPEFramework::Core::ERROR_NONE;
-                    }));
+                    });
         }
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
@@ -137,13 +136,13 @@ TEST_F(APersistentStore, DeletesKeyInDeviceScopeViaJsonRpc)
         PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, DeleteKey(_, _, _))
-                .WillRepeatedly(Invoke(
+                .WillRepeatedly(
                     [](const IStore2::ScopeType scope, const string& ns, const string& key) {
                         EXPECT_THAT(scope, Eq(IStore2::ScopeType::DEVICE));
                         EXPECT_THAT(ns, Eq(kAppId));
                         EXPECT_THAT(key, Eq(kKey));
                         return WPEFramework::Core::ERROR_NONE;
-                    }));
+                    });
         }
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
@@ -168,12 +167,12 @@ TEST_F(APersistentStore, DeletesNamespaceInDeviceScopeViaJsonRpc)
         PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, DeleteNamespace(_, _))
-                .WillRepeatedly(Invoke(
+                .WillRepeatedly(
                     [](const IStore2::ScopeType scope, const string& ns) {
                         EXPECT_THAT(scope, Eq(IStore2::ScopeType::DEVICE));
                         EXPECT_THAT(ns, Eq(kAppId));
                         return WPEFramework::Core::ERROR_NONE;
-                    }));
+                    });
         }
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
@@ -217,13 +216,13 @@ TEST_F(APersistentStore, GetsKeysInDeviceScopeViaJsonRpc)
         PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, GetKeys(_, _, _))
-                .WillRepeatedly(Invoke(
+                .WillRepeatedly(
                     [](const IStoreInspector::ScopeType scope, const string& ns, IStringIterator*& keys) {
                         EXPECT_THAT(scope, Eq(IStoreInspector::ScopeType::DEVICE));
                         EXPECT_THAT(ns, Eq(kAppId));
                         keys = (WPEFramework::Core::Service<StringIterator>::Create<IStringIterator>(kKeys));
                         return WPEFramework::Core::ERROR_NONE;
-                    }));
+                    });
         }
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
@@ -255,12 +254,12 @@ TEST_F(APersistentStore, GetsNamespacesInDeviceScopeViaJsonRpc)
         PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, GetNamespaces(_, _))
-                .WillRepeatedly(Invoke(
+                .WillRepeatedly(
                     [](const IStoreInspector::ScopeType scope, IStringIterator*& namespaces) {
                         EXPECT_THAT(scope, Eq(IStoreInspector::ScopeType::DEVICE));
                         namespaces = (WPEFramework::Core::Service<StringIterator>::Create<IStringIterator>(kAppIds));
                         return WPEFramework::Core::ERROR_NONE;
-                    }));
+                    });
         }
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
@@ -288,12 +287,12 @@ TEST_F(APersistentStore, GetsStorageSizesInDeviceScopeViaJsonRpc)
         PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, GetStorageSizes(_, _))
-                .WillRepeatedly(Invoke(
+                .WillRepeatedly(
                     [](const IStoreInspector::ScopeType scope, INamespaceSizeIterator*& storageList) {
                         EXPECT_THAT(scope, Eq(IStoreInspector::ScopeType::DEVICE));
                         storageList = (WPEFramework::Core::Service<IteratorType<INamespaceSizeIterator>>::Create<INamespaceSizeIterator>(kSizes));
                         return WPEFramework::Core::ERROR_NONE;
-                    }));
+                    });
         }
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
@@ -323,13 +322,13 @@ TEST_F(APersistentStore, GetsNamespaceStorageLimitInDeviceScopeViaJsonRpc)
         PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, GetNamespaceStorageLimit(_, _, _))
-                .WillRepeatedly(Invoke(
+                .WillRepeatedly(
                     [](const IStoreLimit::ScopeType scope, const string& ns, uint32_t& size) {
                         EXPECT_THAT(scope, Eq(IStoreLimit::ScopeType::DEVICE));
                         EXPECT_THAT(ns, Eq(kAppId));
                         size = kSize;
                         return WPEFramework::Core::ERROR_NONE;
-                    }));
+                    });
         }
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
@@ -356,13 +355,13 @@ TEST_F(APersistentStore, SetsNamespaceStorageLimitInDeviceScopeViaJsonRpc)
         PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, SetNamespaceStorageLimit(_, _, _))
-                .WillRepeatedly(Invoke(
+                .WillRepeatedly(
                     [](const IStoreLimit::ScopeType scope, const string& ns, const uint32_t size) {
                         EXPECT_THAT(scope, Eq(IStoreLimit::ScopeType::DEVICE));
                         EXPECT_THAT(ns, Eq(kAppId));
                         EXPECT_THAT(size, Eq(kSize));
                         return WPEFramework::Core::ERROR_NONE;
-                    }));
+                    });
         }
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
@@ -387,13 +386,13 @@ TEST_F(APersistentStore, GetsValueInDeviceScopeViaIStore)
         PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, GetValue(_, _, _))
-                .WillRepeatedly(Invoke(
+                .WillRepeatedly(
                     [](const string& ns, const string& key, string& value) {
                         EXPECT_THAT(ns, Eq(kAppId));
                         EXPECT_THAT(key, Eq(kKey));
                         value = kValue;
                         return WPEFramework::Core::ERROR_NONE;
-                    }));
+                    });
         }
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
@@ -414,13 +413,13 @@ TEST_F(APersistentStore, SetsValueInDeviceScopeViaIStore)
         PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, SetValue(_, _, _))
-                .WillRepeatedly(Invoke(
+                .WillRepeatedly(
                     [](const string& ns, const string& key, const string& value) {
                         EXPECT_THAT(ns, Eq(kAppId));
                         EXPECT_THAT(key, Eq(kKey));
                         EXPECT_THAT(value, Eq(kValue));
                         return WPEFramework::Core::ERROR_NONE;
-                    }));
+                    });
         }
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
@@ -439,12 +438,12 @@ TEST_F(APersistentStore, DeletesKeyInDeviceScopeViaIStore)
         PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, DeleteKey(_, _))
-                .WillRepeatedly(Invoke(
+                .WillRepeatedly(
                     [](const string& ns, const string& key) {
                         EXPECT_THAT(ns, Eq(kAppId));
                         EXPECT_THAT(key, Eq(kKey));
                         return WPEFramework::Core::ERROR_NONE;
-                    }));
+                    });
         }
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
@@ -463,11 +462,11 @@ TEST_F(APersistentStore, DeletesNamespaceInDeviceScopeViaIStore)
         PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, DeleteNamespace(_))
-                .WillRepeatedly(Invoke(
+                .WillRepeatedly(
                     [](const string& ns) {
                         EXPECT_THAT(ns, Eq(kAppId));
                         return WPEFramework::Core::ERROR_NONE;
-                    }));
+                    });
         }
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
