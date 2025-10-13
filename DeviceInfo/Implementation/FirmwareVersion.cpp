@@ -26,6 +26,35 @@ namespace Plugin {
 
             return result;
         }
+
+        uint32_t GetStringRegex(const string& input, const std::regex& regex) {
+            uint32_t result = Core::ERROR_GENERAL;
+            std::smatch sm;
+ 
+            if ((std::regex_match(input, sm, regex)) && (sm.size() > 1)) {
+                result = Core::ERROR_NONE;
+            }
+            return result;
+        }
+
+        static bool RunCommand(const string& command, const string& args, string& result)
+        {
+            FILE* fp = v_secure_popen("r", command.c_str(), args.c_str());
+            if (!fp) {
+                return false;
+            }
+            std::ostringstream oss;
+            char buffer[64];
+            while (fgets(buffer, sizeof(buffer), fp) != nullptr) {
+                oss << buffer;
+            }
+            v_secure_pclose(fp);
+            result = oss.str();
+            if (result.empty()) {
+               return false;
+            }
+            return true;
+      }
     }
 
     SERVICE_REGISTRATION(FirmwareVersion, 1, 0);
@@ -33,6 +62,15 @@ namespace Plugin {
     uint32_t FirmwareVersion::Imagename(string& imagename) const
     {
         return GetFileRegex(_T("/version.txt"), std::regex("^imagename:([^\\n]+)$"), imagename);
+    }
+
+    uint32_t FirmwareVersion::Pdri(string& pdri) const
+    {
+        if (RunCommand("/usr/bin/mfr_util", "--PDRIVersion", pdri)) {
+           return GetStringRegex(pdri, std::regex("failed"));
+        }
+
+        return Core::ERROR_GENERAL;
     }
 
     uint32_t FirmwareVersion::Sdk(string& sdk) const
