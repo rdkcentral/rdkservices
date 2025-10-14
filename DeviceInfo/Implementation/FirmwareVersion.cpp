@@ -2,6 +2,9 @@
 
 #include <fstream>
 #include <regex>
+#include <cstdio>      
+#include <sstream>     
+#include <string>
 
 namespace WPEFramework {
 namespace Plugin {
