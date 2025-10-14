@@ -37,24 +37,28 @@ namespace Plugin {
             return result;
         }
 
-        static bool RunCommand(const string& command, const string& args, string& result)
-        {
-            FILE* fp = v_secure_popen("r", command.c_str(), args.c_str());
-            if (!fp) {
-                return false;
-            }
-            std::ostringstream oss;
-            char buffer[64];
-            while (fgets(buffer, sizeof(buffer), fp) != nullptr) {
-                oss << buffer;
-            }
-            v_secure_pclose(fp);
-            result = oss.str();
-            if (result.empty()) {
-               return false;
-            }
-            return true;
-      }
+       static bool RunCommand(const std::string& command, std::string& result) {
+           FILE* fp = popen(command.c_str(), "r");
+           if (!fp) {
+              return false;
+           }
+
+           std::ostringstream oss;
+           char buffer[64];
+           while (fgets(buffer, sizeof(buffer), fp) != nullptr) {
+              oss << buffer;
+           }
+           
+           int status = pclose(fp);
+           result = oss.str();
+
+           if (result.empty()) {
+             return false;
+           }
+           
+           return true;
+       }
+
     }
 
     SERVICE_REGISTRATION(FirmwareVersion, 1, 0);
@@ -66,7 +70,7 @@ namespace Plugin {
 
     uint32_t FirmwareVersion::Pdri(string& pdri) const
     {
-        if (RunCommand("/usr/bin/mfr_util", "--PDRIVersion", pdri)) {
+        if (RunCommand("/usr/bin/mfr_util --PDRIVersion", pdri)) {
            return GetStringRegex(pdri, std::regex("failed"));
         }
 
