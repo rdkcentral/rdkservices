@@ -52,7 +52,7 @@ namespace Plugin {
               oss << buffer;
            }
            
-           int status = pclose(fp);
+           pclose(fp);
            result = oss.str();
 
            if (result.empty()) {
