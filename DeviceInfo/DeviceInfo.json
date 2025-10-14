@@ -457,7 +457,7 @@
           "pdri": {
             "type": "string",
             "example": "PX051AEI_VBN_2203_sprint_20220331225312sdy_NG"
-          },
+          }
         },
         "required": [
           "imagename"
