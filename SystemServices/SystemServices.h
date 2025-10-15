@@ -162,7 +162,7 @@ namespace WPEFramework {
                 pid_t m_uploadLogsPid;
                 std::mutex m_uploadLogsMutex;
                 std::mutex m_territoryMutex;
-                                
+
             public:
                 SystemServices();
                 virtual ~SystemServices();
