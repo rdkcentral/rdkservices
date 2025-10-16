@@ -193,6 +193,7 @@ namespace WPEFramework {
             virtual string Information() const override { return {}; }
             static HdmiCecSource* _instance;
             CECDeviceInfo_2 deviceList[16];
+            std::mutex m_deviceListMutex;
             pthread_cond_t m_condSig;
             pthread_mutex_t m_lock;
             pthread_cond_t m_condSigUpdate;

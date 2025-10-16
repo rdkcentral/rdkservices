@@ -127,9 +127,16 @@ namespace WPEFramework
                 size_t len = 0;
 
                 in.getBuffer(&buf, &len);
-                for (unsigned int i = 0; i < len; i++) {
+                // Ensure we don't overflow the buffer: each byte needs 3 chars ("%02X "), plus null terminator
+                size_t maxBytes = (sizeof(strBuffer) - 1) / 3; // Reserve space for null terminator
+                size_t safelen = (len > maxBytes) ? maxBytes : len;
+                
+                for (unsigned int i = 0; i < safelen; i++) {
                    snprintf(strBuffer + (i*3) , sizeof(strBuffer) - (i*3), "%02X ",(uint8_t) *(buf + i));
                 }
+                // Ensure null termination
+                strBuffer[sizeof(strBuffer) - 1] = '\0';
+                
                 LOGINFO("   >>>>>    Received CEC Frame: :%s \n",strBuffer);
 
                 MessageDecoder(processor).decode(in);
@@ -269,6 +276,7 @@ namespace WPEFramework
              printHeader(header);
              LOGINFO("Command: SetOSDName OSDName : %s\n",msg.osdName.toString().c_str());
              if (HdmiCecSource::_instance) {
+                 std::lock_guard<std::mutex> lock(HdmiCecSource::_instance->m_deviceListMutex);
                  bool isOSDNameUpdated = HdmiCecSource::_instance->deviceList[header.from.toInt()].update(msg.osdName);
                  if (isOSDNameUpdated)
                      HdmiCecSource::_instance->sendDeviceUpdateInfo(header.from.toInt());
@@ -326,6 +334,7 @@ namespace WPEFramework
              printHeader(header);
              LOGINFO("Command: DeviceVendorID VendorID : %s\n",msg.vendorId.toString().c_str());
              if (HdmiCecSource::_instance){
+                 std::lock_guard<std::mutex> lock(HdmiCecSource::_instance->m_deviceListMutex);
                  bool isVendorIdUpdated = HdmiCecSource::_instance->deviceList[header.from.toInt()].update(msg.vendorId);
                  if (isVendorIdUpdated)
                      HdmiCecSource::_instance->sendDeviceUpdateInfo(header.from.toInt());
@@ -1509,11 +1518,13 @@ namespace WPEFramework
 		pthread_cond_signal(&(_instance->m_condSig));
 
 		bool success = true;
-		response["numberofdevices"] = HdmiCecSource::_instance->m_numberOfDevices;
-		LOGINFO("getDeviceListWrapper  m_numberOfDevices :%d \n", HdmiCecSource::_instance->m_numberOfDevices);
 		JsonArray deviceListArg;
 		try
 		{
+			std::lock_guard<std::mutex> lock(HdmiCecSource::_instance->m_deviceListMutex);
+			response["numberofdevices"] = HdmiCecSource::_instance->m_numberOfDevices;
+			LOGINFO("getDeviceListWrapper  m_numberOfDevices :%d \n", HdmiCecSource::_instance->m_numberOfDevices);
+			
 			int i = 0;
 			for(i=0; i< LogicalAddress::UNREGISTERED; i++ ) {
 				if (BIT_CHECK(deviceList[i].m_deviceInfoStatus, BIT_DEVICE_PRESENT)) {
@@ -1558,7 +1569,13 @@ namespace WPEFramework
 		}
 		catch(CECNoAckException &e)
 		{
-			if (BIT_CHECK(_instance->deviceList[idev].m_deviceInfoStatus, BIT_DEVICE_PRESENT)) {
+			bool deviceWasPresent = false;
+			{
+				std::lock_guard<std::mutex> lock(_instance->m_deviceListMutex);
+				deviceWasPresent = BIT_CHECK(_instance->deviceList[idev].m_deviceInfoStatus, BIT_DEVICE_PRESENT);
+			}
+			
+			if (deviceWasPresent) {
 				LOGINFO("Device disconnected: %d \r\n",idev);
 				removeDevice (idev);
 			} else {
@@ -1580,7 +1597,13 @@ namespace WPEFramework
 
 		/* If we get ACK, then the device is present in the network*/
 		isConnected = true;
-		if ( !(BIT_CHECK(_instance->deviceList[idev].m_deviceInfoStatus, BIT_DEVICE_PRESENT)) )
+		bool deviceWasAbsent = false;
+		{
+			std::lock_guard<std::mutex> lock(_instance->m_deviceListMutex);
+			deviceWasAbsent = !(BIT_CHECK(_instance->deviceList[idev].m_deviceInfoStatus, BIT_DEVICE_PRESENT));
+		}
+		
+		if (deviceWasAbsent)
 		{
 			LOGINFO("Device connected: %d \r\n",idev);
 			addDevice (idev);
@@ -1606,6 +1629,7 @@ namespace WPEFramework
 			return;
 		}
 
+		std::lock_guard<std::mutex> lock(HdmiCecSource::_instance->m_deviceListMutex);
 		if ( !(BIT_CHECK(HdmiCecSource::_instance->deviceList[logicalAddress].m_deviceInfoStatus, BIT_DEVICE_PRESENT)) )
 		 {
 			BIT_SET(HdmiCecSource::_instance->deviceList[logicalAddress].m_deviceInfoStatus, BIT_DEVICE_PRESENT);
@@ -1633,6 +1657,7 @@ namespace WPEFramework
 			return;
 		}
 
+		std::lock_guard<std::mutex> lock(HdmiCecSource::_instance->m_deviceListMutex);
 		if (BIT_CHECK(HdmiCecSource::_instance->deviceList[logicalAddress].m_deviceInfoStatus, BIT_DEVICE_PRESENT))
 		{
 			_instance->m_numberOfDevices--;
@@ -1799,48 +1824,60 @@ namespace WPEFramework
 			//Wait for mutex signal here to continue the worker thread again.
 			pthread_cond_wait(&(_instance->m_condSigUpdate), &(_instance->m_lockUpdate));
 
-			LOGINFO("Starting cec device update check");
-			for(i=0; ((i< LogicalAddress::UNREGISTERED)&&(!_instance->m_updateThreadExit)); i++ ) {
-				//If details are not updated. update now.
-				if (BIT_CHECK(HdmiCecSource::_instance->deviceList[i].m_deviceInfoStatus, BIT_DEVICE_PRESENT))
-				{
-					int itr = 0;
-					bool retry = true;
-					int iCounter = 0;
-					for (itr = 0; ((itr<5)&&(retry)); itr++){
-
-						if (!HdmiCecSource::_instance->deviceList[i].m_isOSDNameUpdated){
-							iCounter = 0;
-							while ((!_instance->m_updateThreadExit) && (iCounter < (2*10))) { //sleep for 2sec.
-								usleep (100 * 1000); //sleep for 100 milli sec
-								iCounter ++;
-							}
-
-							HdmiCecSource::_instance->requestOsdName (i);
-							retry = true;
-						}
-						else {
-							retry = false;
-						}
-
-						if (!HdmiCecSource::_instance->deviceList[i].m_isVendorIDUpdated){
-							iCounter = 0;
-							while ((!_instance->m_updateThreadExit) && (iCounter < (2*10))) { //sleep for 1sec.
-								usleep (100 * 1000); //sleep for 100 milli sec
-								iCounter ++;
-							}
-
-							HdmiCecSource::_instance->requestVendorID (i);
-							retry = true;
-						}
-					}
-					if (retry){
-						LOGINFO("cec device: %d update time out", i);
-					}
+		LOGINFO("Starting cec device update check");
+		for(i=0; ((i< LogicalAddress::UNREGISTERED)&&(!_instance->m_updateThreadExit)); i++ ) {
+			//If details are not updated. update now.
+			bool devicePresent = false;
+			bool isOSDNameUpdated = false;
+			bool isVendorIDUpdated = false;
+			
+			// Check device status with mutex protection
+			{
+				std::lock_guard<std::mutex> lock(HdmiCecSource::_instance->m_deviceListMutex);
+				devicePresent = BIT_CHECK(HdmiCecSource::_instance->deviceList[i].m_deviceInfoStatus, BIT_DEVICE_PRESENT);
+				if (devicePresent) {
+					isOSDNameUpdated = HdmiCecSource::_instance->deviceList[i].m_isOSDNameUpdated;
+					isVendorIDUpdated = HdmiCecSource::_instance->deviceList[i].m_isVendorIDUpdated;
 				}
 			}
+			
+			if (devicePresent)
+			{
+				int itr = 0;
+				bool retry = true;
+				int iCounter = 0;
+				for (itr = 0; ((itr<5)&&(retry)); itr++){
 
-		}
+					if (!isOSDNameUpdated){
+						iCounter = 0;
+						while ((!_instance->m_updateThreadExit) && (iCounter < (2*10))) { //sleep for 2sec.
+							usleep (100 * 1000); //sleep for 100 milli sec
+							iCounter ++;
+						}
+
+						HdmiCecSource::_instance->requestOsdName (i);
+						retry = true;
+					}
+					else {
+						retry = false;
+					}
+
+					if (!isVendorIDUpdated){
+						iCounter = 0;
+						while ((!_instance->m_updateThreadExit) && (iCounter < (2*10))) { //sleep for 1sec.
+							usleep (100 * 1000); //sleep for 100 milli sec
+							iCounter ++;
+						}
+
+						HdmiCecSource::_instance->requestVendorID (i);
+						retry = true;
+					}
+				}
+				if (retry){
+					LOGINFO("cec device: %d update time out", i);
+				}
+			}
+		}		}
 		pthread_mutex_unlock(&(_instance->m_lockUpdate));
 	        LOGINFO("%s: Thread exited", __FUNCTION__);
 	}

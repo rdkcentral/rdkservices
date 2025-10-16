@@ -209,9 +209,16 @@ namespace WPEFramework
                 size_t len = 0;
 
                 in.getBuffer(&buf, &len);
-                for (unsigned int i = 0; i < len; i++) {
+                // Ensure we don't overflow the buffer: each byte needs 3 chars ("%02X "), plus null terminator
+                size_t maxBytes = (sizeof(strBuffer) - 1) / 3; // Reserve space for null terminator
+                size_t safelen = (len > maxBytes) ? maxBytes : len;
+                
+                for (unsigned int i = 0; i < safelen; i++) {
                    snprintf(strBuffer + (i*3) , sizeof(strBuffer) - (i*3), "%02X ",(uint8_t) *(buf + i));
                 }
+                // Ensure null termination
+                strBuffer[sizeof(strBuffer) - 1] = '\0';
+                
                 LOGINFO("   >>>>>    Received CEC Frame: :%s \n",strBuffer);
 
                 MessageDecoder(processor).decode(in);
@@ -308,10 +315,13 @@ namespace WPEFramework
 	     printHeader(header);
              LOGINFO("Command: CECVersion Version : %s \n",msg.version.toString().c_str());
 
-	     HdmiCecSink::_instance->addDevice(header.from.toInt());
-	     updateStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isVersionUpdated;
-             LOGINFO("updateStatus %d\n",updateStatus);
-	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.version);
+             {
+                 std::lock_guard<std::mutex> lock(HdmiCecSink::_instance->m_deviceListMutex);
+	         HdmiCecSink::_instance->addDevice(header.from.toInt());
+	         updateStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isVersionUpdated;
+                 LOGINFO("updateStatus %d\n",updateStatus);
+	         HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.version);
+             }
 	     if(!updateStatus)
 	     HdmiCecSink::_instance->sendDeviceUpdateInfo(header.from.toInt());
        }
@@ -386,14 +396,17 @@ namespace WPEFramework
 		return;
 	     }
 
-	     HdmiCecSink::_instance->addDevice(header.from.toInt());
-	     updateStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isOSDNameUpdated;
-	     LOGINFO("updateStatus %d\n",updateStatus);
-	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.osdName);
-	     if(HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry > 0 &&
+             {
+                 std::lock_guard<std::mutex> lock(HdmiCecSink::_instance->m_deviceListMutex);
+	         HdmiCecSink::_instance->addDevice(header.from.toInt());
+	         updateStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isOSDNameUpdated;
+	         LOGINFO("updateStatus %d\n",updateStatus);
+	         HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.osdName);
+	         if(HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry > 0 &&
 			HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequested == CECDeviceParams::REQUEST_OSD_NAME) {
-	         HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry = 0;
-	     }
+	             HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry = 0;
+	         }
+             }
              if(!updateStatus)
 	     HdmiCecSink::_instance->sendDeviceUpdateInfo(header.from.toInt());
        }
@@ -435,20 +448,23 @@ namespace WPEFramework
 
 	     if(!HdmiCecSink::_instance)
 	        return;
-             HdmiCecSink::_instance->addDevice(header.from.toInt());
-	     updateDeviceTypeStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isDeviceTypeUpdated;
-             updatePAStatus   = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isPAUpdated;
-	     LOGINFO("updateDeviceTypeStatus %d updatePAStatus %d \n",updateDeviceTypeStatus,updatePAStatus);
-	     if(HdmiCecSink::_instance->deviceList[header.from.toInt()].m_physicalAddr.toString() != msg.physicalAddress.toString() && updatePAStatus){
-                updatePAStatus= false;
-                LOGINFO("There is a change in physical address from current PA %s to newly reported PA %s\n",HdmiCecSink::_instance->deviceList[header.from.toInt()].m_physicalAddr.toString().c_str(),msg.physicalAddress.toString().c_str());
-             }
-	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.physicalAddress);
-	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.deviceType);
-	     if(HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry > 0 &&
+             {
+                 std::lock_guard<std::mutex> lock(HdmiCecSink::_instance->m_deviceListMutex);
+                 HdmiCecSink::_instance->addDevice(header.from.toInt());
+	         updateDeviceTypeStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isDeviceTypeUpdated;
+                 updatePAStatus   = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isPAUpdated;
+	         LOGINFO("updateDeviceTypeStatus %d updatePAStatus %d \n",updateDeviceTypeStatus,updatePAStatus);
+	         if(HdmiCecSink::_instance->deviceList[header.from.toInt()].m_physicalAddr.toString() != msg.physicalAddress.toString() && updatePAStatus){
+                    updatePAStatus= false;
+                    LOGINFO("There is a change in physical address from current PA %s to newly reported PA %s\n",HdmiCecSink::_instance->deviceList[header.from.toInt()].m_physicalAddr.toString().c_str(),msg.physicalAddress.toString().c_str());
+                 }
+	         HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.physicalAddress);
+	         HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.deviceType);
+	         if(HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry > 0 &&
 			HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequested == CECDeviceParams::REQUEST_PHISICAL_ADDRESS) {
-	         HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry = 0;
-	     }
+	             HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry = 0;
+	         }
+             }
 	     HdmiCecSink::_instance->updateDeviceChain(header.from, msg.physicalAddress);
 	     if (!updateDeviceTypeStatus || !updatePAStatus)
              HdmiCecSink::_instance->sendDeviceUpdateInfo(header.from.toInt());
@@ -463,10 +479,13 @@ namespace WPEFramework
 		return;
 	     }
 
-	     HdmiCecSink::_instance->addDevice(header.from.toInt());
-	     updateStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isVendorIDUpdated;
-             LOGINFO("updateStatus %d\n",updateStatus);
-	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.vendorId);
+             {
+                 std::lock_guard<std::mutex> lock(HdmiCecSink::_instance->m_deviceListMutex);
+	         HdmiCecSink::_instance->addDevice(header.from.toInt());
+	         updateStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isVendorIDUpdated;
+                 LOGINFO("updateStatus %d\n",updateStatus);
+	         HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.vendorId);
+             }
 	     if (!updateStatus)
              HdmiCecSink::_instance->sendDeviceUpdateInfo(header.from.toInt());
        }
@@ -496,10 +515,13 @@ namespace WPEFramework
 		LOGINFO("Ignore Broadcast messages, accepts only direct messages");
 		return;
 	     }
-           oldPowerStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_powerStatus.toInt();
-	   HdmiCecSink::_instance->addDevice(header.from.toInt());
-	   HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.status);
-	   newPowerStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_powerStatus.toInt();
+           {
+               std::lock_guard<std::mutex> lock(HdmiCecSink::_instance->m_deviceListMutex);
+               oldPowerStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_powerStatus.toInt();
+	       HdmiCecSink::_instance->addDevice(header.from.toInt());
+	       HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.status);
+	       newPowerStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_powerStatus.toInt();
+           }
 	   LOGINFO(" oldPowerStatus %d newpower status %d \n",oldPowerStatus,newPowerStatus);
            if ((oldPowerStatus != newPowerStatus) )
 	   {
@@ -520,6 +542,8 @@ namespace WPEFramework
 		return;
 	     }
 
+             {
+                 std::lock_guard<std::mutex> lock(HdmiCecSink::_instance->m_deviceListMutex);
 			 if(header.from.toInt() < LogicalAddress::UNREGISTERED &&    
 			 		msg.reason.toInt()   == AbortReason::UNRECOGNIZED_OPCODE)
 			 {
@@ -553,6 +577,7 @@ namespace WPEFramework
 
 				HdmiCecSink::_instance->deviceList[header.from.toInt()].m_featureAborts.push_back(msg);
 			 }
+             }
 
 			LogicalAddress logicaladdress = header.from.toInt();
                         OpCode featureOpcode =  msg.feature;
@@ -610,11 +635,14 @@ namespace WPEFramework
             if (HdmiArcPortID == 2 )
                physical_addr_arc_port = {0x03,0x00,0x00,0x00};
 
-            if( (HdmiCecSink::_instance->deviceList[0x5].m_physicalAddr.toString() == physical_addr_arc_port.toString()) || (HdmiCecSink::_instance->deviceList[0x5].m_physicalAddr.toString() == physical_addr_invalid.toString()) ) {
-                LOGINFO("Command: INITIATE_ARC InitiateArc success %s \n",HdmiCecSink::_instance->deviceList[0x5].m_physicalAddr.toString().c_str());
-                HdmiCecSink::_instance->Process_InitiateArc();
-            } else {
-                LOGINFO("Command: INITIATE_ARC InitiateArc ignore %s \n",HdmiCecSink::_instance->deviceList[0x5].m_physicalAddr.toString().c_str());
+            {
+                std::lock_guard<std::mutex> lock(HdmiCecSink::_instance->m_deviceListMutex);
+                if( (HdmiCecSink::_instance->deviceList[0x5].m_physicalAddr.toString() == physical_addr_arc_port.toString()) || (HdmiCecSink::_instance->deviceList[0x5].m_physicalAddr.toString() == physical_addr_invalid.toString()) ) {
+                    LOGINFO("Command: INITIATE_ARC InitiateArc success %s \n",HdmiCecSink::_instance->deviceList[0x5].m_physicalAddr.toString().c_str());
+                    HdmiCecSink::_instance->Process_InitiateArc();
+                } else {
+                    LOGINFO("Command: INITIATE_ARC InitiateArc ignore %s \n",HdmiCecSink::_instance->deviceList[0x5].m_physicalAddr.toString().c_str());
+                }
             }
        }
        void HdmiCecSinkProcessor::process (const TerminateArc &msg, const Header &header)
@@ -972,7 +1000,10 @@ namespace WPEFramework
 		        {
 					if ( _instance->m_logicalAddressAllocated != LogicalAddress::UNREGISTERED )
 					{
+                                            {
+                                                std::lock_guard<std::mutex> lock(_instance->m_deviceListMutex);
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
+                                            }
 
 						if ( powerState != DEVICE_POWER_STATE_ON )
 						{
@@ -1496,12 +1527,14 @@ namespace WPEFramework
 
 	  uint32_t HdmiCecSink::getActiveSourceWrapper(const JsonObject& parameters, JsonObject& response)
        {
-       		char routeString[1024] = {'\0'};
+       		char routeString[1024] = {0}; // Initialize to all zeros
 			int length = 0;
 			std::stringstream temp;
 			
-       		if ( HdmiCecSink::_instance->m_currentActiveSource != -1 )
-			{
+        {
+            std::lock_guard<std::mutex> lock(HdmiCecSink::_instance->m_deviceListMutex);
+            if ( HdmiCecSink::_instance->m_currentActiveSource != -1 )
+			    {
 				int n = HdmiCecSink::_instance->m_currentActiveSource;
 				response["available"] = true;
 				response["logicalAddress"] = HdmiCecSink::_instance->deviceList[n].m_logicalAddress.toInt();
@@ -1514,20 +1547,31 @@ namespace WPEFramework
 
 				if ( HdmiCecSink::_instance->deviceList[n].m_physicalAddr.getByteValue(0) != 0 )
 				{
-					snprintf(&routeString[length], sizeof(routeString) - length, "%s%d", "HDMI",(HdmiCecSink::_instance->deviceList[n].m_physicalAddr.getByteValue(0) - 1));
+					int written = snprintf(&routeString[length], sizeof(routeString) - length, "%s%d", "HDMI",(HdmiCecSink::_instance->deviceList[n].m_physicalAddr.getByteValue(0) - 1));
+					if (written > 0 && written < (int)(sizeof(routeString) - length)) {
+						length += written;
+					}
 				}
 				else if ( HdmiCecSink::_instance->deviceList[n].m_physicalAddr.getByteValue(0) == 0 )
 				{
-					snprintf(&routeString[length], sizeof(routeString) - length, "%s", "TV");
+					int written = snprintf(&routeString[length], sizeof(routeString) - length, "%s", "TV");
+					if (written > 0 && written < (int)(sizeof(routeString) - length)) {
+						length += written;
+					}
 				}
 				
-				temp << (char *)routeString;
+				// Ensure null termination
+				routeString[sizeof(routeString) - 1] = '\0';
+				
+				temp << routeString;
 				response["port"] = temp.str();
 				
-			}
-			else
-			{
+			    }
+			    else
+			    {
 				response["available"] = false;
+                            }
+        }
 			}
 			
             returnResponse(true);
@@ -1541,8 +1585,10 @@ namespace WPEFramework
                         LOGINFO("getDeviceListWrapper  m_numberOfDevices :%d \n", HdmiCecSink::_instance->m_numberOfDevices);
 			JsonArray deviceList;
 			
-			for (int n = 0; n <= LogicalAddress::UNREGISTERED; n++)
-			{
+                        {
+                            std::lock_guard<std::mutex> lock(HdmiCecSink::_instance->m_deviceListMutex);
+			    for (int n = 0; n <= LogicalAddress::UNREGISTERED; n++)
+			    {
 
 				if ( n != HdmiCecSink::_instance->m_logicalAddressAllocated && 
 						HdmiCecSink::_instance->deviceList[n].m_isDevicePresent )
@@ -1571,7 +1617,8 @@ namespace WPEFramework
                                         device["portNumber"] = hdmiPortNumber;
                                         deviceList.Add(device);
 				}
-			}
+			    }
+                        }
 
 			response["deviceList"] = deviceList;
 
@@ -1638,7 +1685,7 @@ namespace WPEFramework
 		uint32_t HdmiCecSink::getActiveRouteWrapper(const JsonObject& parameters, JsonObject& response)
         {
       	    std::vector<uint8_t> route;	
-			char routeString[1024] = {'\0'};
+			char routeString[1024] = {0}; // Initialize to all zeros
 			int length = 0;
 			JsonArray pathList;
 			std::stringstream temp;
@@ -1653,8 +1700,10 @@ namespace WPEFramework
 					response["available"] = true;
 					response["length"] = route.size();
 
-					for (unsigned int i=0; i < route.size(); i++)
-					{
+                                        {
+                                            std::lock_guard<std::mutex> lock(HdmiCecSink::_instance->m_deviceListMutex);
+					    for (unsigned int i=0; i < route.size(); i++)
+					    {
 						if ( route[i] != LogicalAddress::UNREGISTERED )
 						{
 							JsonObject device;
@@ -1667,21 +1716,44 @@ namespace WPEFramework
 										
 							pathList.Add(device);
 							
-							snprintf(&routeString[length], sizeof(routeString) - length, "%s", _instance->deviceList[route[i]].m_logicalAddress.toString().c_str());
-							length += _instance->deviceList[route[i]].m_logicalAddress.toString().length();
-							snprintf(&routeString[length], sizeof(routeString) - length, "(%s", _instance->deviceList[route[i]].m_osdName.toString().c_str());
-							length += _instance->deviceList[route[i]].m_osdName.toString().length();
-							snprintf(&routeString[length], sizeof(routeString) - length, "%s", ")-->");
-							length += strlen(")-->");
-							if( i + 1 ==  route.size() )
+							// Safe string building with proper bounds checking
+							if (length < (int)sizeof(routeString) - 1) {
+								int written = snprintf(&routeString[length], sizeof(routeString) - length, "%s", _instance->deviceList[route[i]].m_logicalAddress.toString().c_str());
+								if (written > 0 && written < (int)(sizeof(routeString) - length)) {
+									length += written;
+								}
+							}
+							
+							if (length < (int)sizeof(routeString) - 1) {
+								int written = snprintf(&routeString[length], sizeof(routeString) - length, "(%s", _instance->deviceList[route[i]].m_osdName.toString().c_str());
+								if (written > 0 && written < (int)(sizeof(routeString) - length)) {
+									length += written;
+								}
+							}
+							
+							if (length < (int)sizeof(routeString) - 1) {
+								int written = snprintf(&routeString[length], sizeof(routeString) - length, "%s", ")-->");
+								if (written > 0 && written < (int)(sizeof(routeString) - length)) {
+									length += written;
+								}
+							}
+							
+							if( i + 1 ==  route.size() && length < (int)sizeof(routeString) - 1)
 							{
-								snprintf(&routeString[length], sizeof(routeString) - length, "%s%d", "HDMI",(HdmiCecSink::_instance->deviceList[route[i]].m_physicalAddr.getByteValue(0) - 1));
+								int written = snprintf(&routeString[length], sizeof(routeString) - length, "%s%d", "HDMI",(HdmiCecSink::_instance->deviceList[route[i]].m_physicalAddr.getByteValue(0) - 1));
+								if (written > 0 && written < (int)(sizeof(routeString) - length)) {
+									length += written;
+								}
 							}
 						}
-					}
+					    }
+                                        }
+
+					// Ensure null termination
+					routeString[sizeof(routeString) - 1] = '\0';
 
 					response["pathList"] = pathList;
-					temp << (char *)routeString;
+					temp << routeString;
 					response["ActiveRoute"] = temp.str(); 
 					LOGINFO("ActiveRoute = [%s]", routeString);
 				}
@@ -2608,9 +2680,11 @@ namespace WPEFramework
 				return;
 			}
 			
-			if ( !HdmiCecSink::_instance->deviceList[logicalAddress].m_isDevicePresent )
-			 {
-			 	HdmiCecSink::_instance->deviceList[logicalAddress].m_isDevicePresent = true;
+                        {
+                            std::lock_guard<std::mutex> lock(_instance->m_deviceListMutex);
+			    if ( !HdmiCecSink::_instance->deviceList[logicalAddress].m_isDevicePresent )
+			     {
+			     	HdmiCecSink::_instance->deviceList[logicalAddress].m_isDevicePresent = true;
 				HdmiCecSink::_instance->deviceList[logicalAddress].m_logicalAddress = LogicalAddress(logicalAddress);
 				HdmiCecSink::_instance->m_numberOfDevices++;
 				HdmiCecSink::_instance->m_pollNextState = POLL_THREAD_STATE_INFO;
@@ -2625,7 +2699,8 @@ namespace WPEFramework
 				}
 
 				sendNotify(eventString[HDMICECSINK_EVENT_DEVICE_ADDED], JsonObject())
-			 }
+			     }
+                        }
 		}
 
 		void HdmiCecSink::removeDevice(const int logicalAddress) {
@@ -2639,8 +2714,10 @@ namespace WPEFramework
 				return;
 			}
 
-			if (_instance->deviceList[logicalAddress].m_isDevicePresent)
-			{
+                        {
+                            std::lock_guard<std::mutex> lock(_instance->m_deviceListMutex);
+			    if (_instance->deviceList[logicalAddress].m_isDevicePresent)
+			    {
 				_instance->m_numberOfDevices--;
 
 				for (int i=0; i < m_numofHdmiInput; i++) 
@@ -2671,7 +2748,8 @@ namespace WPEFramework
 				_instance->deviceList[logicalAddress].m_isRequestRetry = 0;
 				_instance->deviceList[logicalAddress].clear();
 				sendNotify(eventString[HDMICECSINK_EVENT_DEVICE_REMOVED], JsonObject());
-			}
+			    }
+                        }
 		}
 
 		void HdmiCecSink::requestPowerStatus(const int logicalAddress) {

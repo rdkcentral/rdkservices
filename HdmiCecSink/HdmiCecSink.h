@@ -525,6 +525,7 @@ private:
             virtual string Information() const override { return {}; }
             static HdmiCecSink* _instance;
 			CECDeviceParams deviceList[16];
+			std::mutex m_deviceListMutex;
 			std::vector<HdmiPortMap> hdmiInputs;
 			int m_currentActiveSource;
 			void updateInActiveSource(const int logical_address, const InActiveSource &source );
