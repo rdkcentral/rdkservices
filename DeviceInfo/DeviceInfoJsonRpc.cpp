@@ -118,7 +118,7 @@ namespace Plugin {
     uint32_t DeviceInfo::get_firmwareversion(FirmwareversionData& response) const
     {
         auto result = Core::ERROR_GENERAL;
-        TRACE(Trace::Fatal, (_T("preeja IN"));
+        TRACE(Trace::Fatal, (_T("preeja IN")));
         // imagename is required
         string value;
         if (_firmwareVersion->Imagename(value) == Core::ERROR_NONE) {
@@ -139,7 +139,7 @@ namespace Plugin {
                     result = Core::ERROR_GENERAL;
                 }
             }
-			TRACE(Trace::Fatal, (_T("preeja calling pdri"));
+			TRACE(Trace::Fatal, (_T("preeja calling pdri")));
 			if (_firmwareVersion->Pdri(value) == Core::ERROR_NONE) {
 			    response.Pdri = value;
 			} else {
