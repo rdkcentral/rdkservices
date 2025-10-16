@@ -29,7 +29,7 @@ namespace Plugin {
 
             return result;
         }
-
+#if 0
         uint32_t GetStringRegex(const string& input, const std::regex& regex) {
             uint32_t result = Core::ERROR_GENERAL;
             std::smatch sm;
@@ -61,7 +61,7 @@ namespace Plugin {
            
            return true;
        }
-
+#endif
     }
 
     SERVICE_REGISTRATION(FirmwareVersion, 1, 0);
