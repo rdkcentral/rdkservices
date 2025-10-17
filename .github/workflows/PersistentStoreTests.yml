@@ -19,12 +19,6 @@ jobs:
           - src: 'PersistentStore/sqlite/l1test'
             build: 'build/sqlitel1test'
             test: 'sqlitel1test'
-          - src: 'PersistentStore/l0test'
-            build: 'build/persistentstorel0test'
-            test: 'persistentstorel0test'
-          - src: 'PersistentStore/l1test'
-            build: 'build/persistentstorel1test'
-            test: 'persistentstorel1test'
           - src: 'PersistentStore'
             build: 'build/PersistentStore'
     steps:

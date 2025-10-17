@@ -8,7 +8,6 @@
 using ::testing::_;
 using ::testing::Eq;
 using ::testing::Gt;
-using ::testing::Invoke;
 using ::testing::IsFalse;
 using ::testing::IsTrue;
 using ::testing::Le;
@@ -159,7 +158,7 @@ TEST_F(AStore2, SendsValueChangedEventWhenSetValue)
     WPEFramework::Core::Event lock(false, true);
     WPEFramework::Core::Sink<NiceMock<Store2NotificationMock>> sink;
     EXPECT_CALL(sink, ValueChanged(_, _, _, _))
-        .WillRepeatedly(Invoke(
+        .WillRepeatedly(
             [&](const IStore2::ScopeType scope, const string& ns,
                 const string& key, const string& value) {
                 eventScope = scope;
@@ -168,7 +167,7 @@ TEST_F(AStore2, SendsValueChangedEventWhenSetValue)
                 eventValue = value;
                 lock.SetEvent();
                 return WPEFramework::Core::ERROR_NONE;
-            }));
+            });
     store2->Register(&sink);
     EXPECT_THAT(store2->SetValue(
                     IStore2::ScopeType::DEVICE, kAppId, kKey, kValue, kNoTtl),
