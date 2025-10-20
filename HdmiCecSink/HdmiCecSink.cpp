@@ -1534,7 +1534,7 @@ namespace WPEFramework
         {
             std::lock_guard<std::mutex> lock(HdmiCecSink::_instance->m_deviceListMutex);
             if ( HdmiCecSink::_instance->m_currentActiveSource != -1 )
-			    {
+			{
 				int n = HdmiCecSink::_instance->m_currentActiveSource;
 				response["available"] = true;
 				response["logicalAddress"] = HdmiCecSink::_instance->deviceList[n].m_logicalAddress.toInt();
@@ -1566,13 +1566,12 @@ namespace WPEFramework
 				temp << routeString;
 				response["port"] = temp.str();
 				
-			    }
-			    else
-			    {
-				response["available"] = false;
-                            }
-        }
 			}
+			else
+			{
+			    response["available"] = false;
+            }
+        }
 			
             returnResponse(true);
        }
