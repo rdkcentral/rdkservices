@@ -141,7 +141,7 @@ namespace Plugin {
             }
 				
 			if (_firmwareVersion->NewImage(value) == Core::ERROR_NONE)
-			    response.Pdri = value;
+			    response.Newimage = value;
 			
         }
 
