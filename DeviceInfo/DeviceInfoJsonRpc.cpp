@@ -139,15 +139,10 @@ namespace Plugin {
                     result = Core::ERROR_GENERAL;
                 }
             }
-		#if 0
-			TRACE(Trace::Fatal, (_T("preeja calling pdri")));
-			if (_firmwareVersion->Pdri(value) == Core::ERROR_NONE) {
+				
+			if (_firmwareVersion->NewImage(value) == Core::ERROR_NONE)
 			    response.Pdri = value;
-			} else {
-				//TRACE(Trace::Fatal, (_T("Unknown value %s"), value.c_str()));
-				result = Core::ERROR_GENERAL;
-			}
-		#endif
+			
         }
 
         return result;
