@@ -29,7 +29,7 @@ namespace Plugin {
 
             return result;
         }
-#if 0
+
         uint32_t GetStringRegex(const string& input, const std::regex& regex) {
             uint32_t result = Core::ERROR_GENERAL;
             std::smatch sm;
@@ -61,7 +61,7 @@ namespace Plugin {
            
            return true;
        }
-#endif
+
     }
 
     SERVICE_REGISTRATION(FirmwareVersion, 1, 0);
@@ -71,14 +71,13 @@ namespace Plugin {
         return GetFileRegex(_T("/version.txt"), std::regex("^imagename:([^\\n]+)$"), imagename);
     }
 
-    uint32_t FirmwareVersion::Pdri(string& pdri) const
+    uint32_t FirmwareVersion::NewImage(string& pdri) const
     {
-      //  if (RunCommand("/usr/bin/mfr_util --PDRIVersion", pdri)) {
-        //   return GetStringRegex(pdri, std::regex("failed"));
-       // }
-        pdri = "test";
-
-        return Core::ERROR_NONE;
+       if (RunCommand("/usr/bin/mfr_util --PDRIVersion", pdri)) {
+           return GetStringRegex(pdri, std::regex("failed"));
+       }
+        
+       return Core::ERROR_NONE;
     }
 
     uint32_t FirmwareVersion::Sdk(string& sdk) const
