@@ -30,18 +30,12 @@ namespace Plugin {
             return result;
         }
 
-        uint32_t GetStringRegex(const string& input, const std::regex& regex) {
-            if ((std::regex_search(input, regex))) {
-                return Core::ERROR_GENERAL;
-            }
-            TRACE_GLOBAL(Trace::Fatal, (_T("preeja3 return success")));
-            return Core::ERROR_NONE;
-        }
-
-       static bool RunCommand(const std::string& command, std::string& result) {
+       static uint32_t RunCommand(const std::string& command, std::string& result) {
+           uint32_t ret = Core::ERROR_GENERAL;
+           
            FILE* fp = popen(command.c_str(), "r");
            if (!fp) {
-              return false;
+              return ret;
            }
 
            std::ostringstream oss;
@@ -54,10 +48,10 @@ namespace Plugin {
            result = oss.str();
            TRACE_GLOBAL(Trace::Fatal, (_T("preeja2 result %s"), result.c_str()));
            if (result.empty()) {
-             return false;
+             return ret;
            }
            
-           return true;
+           return Core::ERROR_NONE;
        }
 
     }
@@ -71,11 +65,7 @@ namespace Plugin {
 
     uint32_t FirmwareVersion::NewImage(string& pdri) const
     {
-       if (RunCommand("/usr/bin/mfr_util --PDRIVersion", pdri)) {
-           return GetStringRegex(pdri, std::regex("failed", std::regex_constants::icase));
-       }
-        
-       return Core::ERROR_GENERAL;
+         return RunCommand("/usr/bin/mfr_util --PDRIVersion", pdri);
     }
 
     uint32_t FirmwareVersion::Sdk(string& sdk) const
