@@ -31,13 +31,11 @@ namespace Plugin {
         }
 
         uint32_t GetStringRegex(const string& input, const std::regex& regex) {
-            uint32_t result = Core::ERROR_GENERAL;
-            std::smatch sm;
- 
-            if ((std::regex_match(input, sm, regex)) && (sm.size() > 1)) {
-                result = Core::ERROR_NONE;
+            if ((std::regex_search(input, regex))) {
+                return Core::ERROR_GENERAL;
             }
-            return result;
+            TRACE_GLOBAL(Trace::Fatal, (_T("preeja3 return success")));
+            return Core::ERROR_NONE;
         }
 
        static bool RunCommand(const std::string& command, std::string& result) {
@@ -74,10 +72,10 @@ namespace Plugin {
     uint32_t FirmwareVersion::NewImage(string& pdri) const
     {
        if (RunCommand("/usr/bin/mfr_util --PDRIVersion", pdri)) {
-           return GetStringRegex(pdri, std::regex("failed"));
+           return GetStringRegex(pdri, std::regex("failed", std::regex_constants::icase));
        }
         
-       return Core::ERROR_NONE;
+       return Core::ERROR_GENERAL;
     }
 
     uint32_t FirmwareVersion::Sdk(string& sdk) const
