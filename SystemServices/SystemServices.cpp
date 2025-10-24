@@ -2627,6 +2627,7 @@ namespace WPEFramework {
 	uint32_t SystemServices::setTerritory(const JsonObject& parameters, JsonObject& response)
 	{
 		bool resp = false;
+		const std::lock_guard<std::mutex> lock(m_territoryMutex);
 		if(parameters.HasLabel("territory")){
 			makePersistentDir();
 			string regionStr = "";
@@ -2704,6 +2705,7 @@ namespace WPEFramework {
 	uint32_t SystemServices::getTerritory(const JsonObject& parameters, JsonObject& response)
 	{
 		bool resp = true;
+		const std::lock_guard<std::mutex> lock(m_territoryMutex);
 		m_strTerritory = "";
 		m_strRegion = "";
 		resp = readTerritoryFromFile();
@@ -2711,6 +2713,16 @@ namespace WPEFramework {
 		response["region"] = m_strRegion;
 		returnResponse(resp);
 	}
+
+    string SystemServices::safeExtractAfterColon(const std::string& inputLine) {
+        size_t pos = inputLine.find(':');
+        if ((pos != std::string::npos) && (pos + 1 < inputLine.length())) {
+           return inputLine.substr(pos + 1);
+        } else {
+           LOGERR("Territory file corrupted");  
+        }
+        return "";
+    }
 
 	bool SystemServices::readTerritoryFromFile()
 	{
@@ -2722,12 +2734,12 @@ namespace WPEFramework {
 			getline (inFile, str);
 			if(str.length() > 0){
 				retValue = true;
-				m_strTerritory = str.substr(str.find(":")+1,str.length());
+				m_strTerritory = safeExtractAfterColon(str);
 				int index = m_strStandardTerritoryList.find(m_strTerritory);
 				if((m_strTerritory.length() == 3) && (index >=0 && index <= 1100) ){
 					getline (inFile, str);
 					if(str.length() > 0){
-					    m_strRegion = str.substr(str.find(":")+1,str.length());
+					    m_strRegion = safeExtractAfterColon(str);
 					    if(!isRegionValid(m_strRegion))
 					    {
 						    m_strTerritory = "";
