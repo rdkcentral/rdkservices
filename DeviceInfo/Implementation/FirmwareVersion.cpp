@@ -46,7 +46,6 @@ namespace Plugin {
            
            pclose(fp);
            result = oss.str();
-           TRACE_GLOBAL(Trace::Fatal, (_T("preeja2 result %s"), result.c_str()));
            if (result.empty()) {
              return ret;
            }
