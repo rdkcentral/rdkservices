@@ -32,6 +32,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <iostream>
 
 #include "StateObserver.h"
 #include "libIARM.h"
@@ -306,14 +307,17 @@ namespace WPEFramework {
 				checkForStandalone = false;
 			}
 			IARM_Bus_SYSMgr_GetSystemStates_Param_t param;
-			IARM_Bus_Call(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_API_GetSystemStates, &param, sizeof(param));
+			IARM_Result_t res = IARM_Bus_Call(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_API_GetSystemStates, &param, sizeof(param));
 			JsonArray response_arr;
-			for( std::vector<string>::iterator it = pname.begin(); it!= pname.end(); ++it )
+			if (res == IARM_RESULT_SUCCESS)
 			{
-				string err_str="none";
-				JsonObject devProp;
-				if(*it == SYSTEM_CHANNEL_MAP)
+				std::cout << "akshay IARM BUS CALL SUCCESS" << std::endl;
+				for( std::vector<string>::iterator it = pname.begin(); it!= pname.end(); ++it )
 				{
+					string err_str="none";
+					JsonObject devProp;
+					if(*it == SYSTEM_CHANNEL_MAP)
+					{
 					int channelMapState = param.channel_map.state;
 					int channelMapError = param.channel_map.error;
 					if (stbStandAloneMode)
@@ -589,7 +593,11 @@ namespace WPEFramework {
 				}
 
 			}
-
+		}
+		else
+		{
+			std::cout << "akshay iarm bus call failed" << std::endl;
+		}
 			response["properties"]=response_arr;
 			#if(DEBUG_INFO)
 				string json_str;
