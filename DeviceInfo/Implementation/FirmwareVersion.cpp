@@ -49,7 +49,12 @@ namespace Plugin {
            if (result.empty()) {
              return ret;
            }
-           
+        
+           // Remove trailing newline if present
+           if (result.back() == '\n') {
+              result.pop_back();
+           }
+
            return Core::ERROR_NONE;
        }
 
