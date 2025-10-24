@@ -118,7 +118,7 @@ namespace Plugin {
     uint32_t DeviceInfo::get_firmwareversion(FirmwareversionData& response) const
     {
         auto result = Core::ERROR_GENERAL;
-		
+
         // imagename is required
         string value;
         if (_firmwareVersion->Imagename(value) == Core::ERROR_NONE) {
