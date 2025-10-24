@@ -23,7 +23,7 @@ namespace Plugin {
         uint32_t Sdk(string& sdk) const override;
         uint32_t Mediarite(string& mediarite) const override;
         uint32_t Yocto(string& yocto) const override;
-        uint32_t NewImage(string& pdri) const override;
+        uint32_t Pdriversion(string& pdriversion) const override;
     };
 }
 }
