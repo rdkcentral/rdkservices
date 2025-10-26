@@ -306,16 +306,22 @@ namespace WPEFramework {
 				checkForStandalone = false;
 			}
 			IARM_Bus_SYSMgr_GetSystemStates_Param_t param;
-			IARM_Bus_Call(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_API_GetSystemStates, &param, sizeof(param));
+			IARM_Result_t res = IARM_Bus_Call(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_API_GetSystemStates, &param, sizeof(param));
 			JsonArray response_arr;
-			for( std::vector<string>::iterator it = pname.begin(); it!= pname.end(); ++it )
+
+			if(res == IARM_RESULT_SUCCESS)
 			{
+				LOGINFO("akshay IARM_Bus_Call Success\n");
+				std::cout << "akshay IARM_Bus_Call Success\n" << std::endl;
+				for( std::vector<string>::iterator it = pname.begin(); it!= pname.end(); ++it )
+				{
 				string err_str="none";
 				JsonObject devProp;
 				if(*it == SYSTEM_CHANNEL_MAP)
 				{
 					int channelMapState = param.channel_map.state;
 					int channelMapError = param.channel_map.error;
+					std::cout << "akshay channelMapState " << channelMapState << " channelMapError " << channelMapError << std::endl;
 					if (stbStandAloneMode)
 					{
 						LOGINFO("stand alone mode true\n");
@@ -589,6 +595,19 @@ namespace WPEFramework {
 				}
 
 			}
+		}
+		else
+		{
+			LOGINFO("akshay IARM_Bus_Call failed\n");
+			std::cout << "akshay IARM_Bus_Call failed\n" << std::endl;
+			for (auto it = pname.begin(); it != pname.end(); ++it)
+    			{
+        			JsonObject devProp;
+        			devProp["propertyName"] = *it;
+        			devProp["error"] = "IARM_Bus_Call failed";
+        			response_arr.Add(devProp);
+    			}
+		}
 
 			response["properties"]=response_arr;
 			#if(DEBUG_INFO)
