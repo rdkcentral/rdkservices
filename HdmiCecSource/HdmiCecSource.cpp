@@ -127,9 +127,16 @@ namespace WPEFramework
                 size_t len = 0;
 
                 in.getBuffer(&buf, &len);
-                for (unsigned int i = 0; i < len; i++) {
+                // Ensure we don't overflow the buffer: each byte needs 3 chars ("%02X "), plus null terminator
+                size_t maxBytes = (sizeof(strBuffer) - 1) / 3; // Reserve space for null terminator
+                size_t safelen = (len > maxBytes) ? maxBytes : len;
+                
+                for (unsigned int i = 0; i < safelen; i++) {
                    snprintf(strBuffer + (i*3) , sizeof(strBuffer) - (i*3), "%02X ",(uint8_t) *(buf + i));
                 }
+                // Ensure null termination
+                strBuffer[sizeof(strBuffer) - 1] = '\0';
+                
                 LOGINFO("   >>>>>    Received CEC Frame: :%s \n",strBuffer);
 
                 MessageDecoder(processor).decode(in);
