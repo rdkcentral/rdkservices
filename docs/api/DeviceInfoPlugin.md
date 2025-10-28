@@ -613,6 +613,7 @@ No Events
 | (property)?.sdk | string | <sup>*(optional)*</sup>  |
 | (property)?.mediarite | string | <sup>*(optional)*</sup>  |
 | (property)?.yocto | string | <sup>*(optional)*</sup> Yocto version (must be one of the following: *dunfell*, *morty*, *daisy*) |
+| (property)?.pdri | string | <sup>*(optional)*</sup> PDRI version 
 
 ### Errors
 
@@ -642,7 +643,8 @@ No Events
         "imagename": "PX051AEI_VBN_2203_sprint_20220331225312sdy_NG",
         "sdk": "17.3",
         "mediarite": "8.3.53",
-        "yocto": "dunfell"
+        "yocto": "dunfell",
+        "pdri": "COESST11AEI_PDRI_PROD_20240119170804_3.2.2.0.bin"
     }
 }
 ```
