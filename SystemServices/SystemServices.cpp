@@ -1815,7 +1815,8 @@ namespace WPEFramework {
                 LOGINFO("Got cached NetworkStandbyMode: '%s'", m_networkStandbyMode ? "true" : "false");
             }
             else {
-                IARM_Bus_PWRMgr_NetworkStandbyMode_Param_t param;
+                IARM_Bus_PWRMgr_NetworkStandbyMode_Param_t param = {};
+
                 IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
                                        IARM_BUS_PWRMGR_API_GetNetworkStandbyMode, (void *)&param,
                                        sizeof(param));
@@ -1825,14 +1826,17 @@ namespace WPEFramework {
                 //          nwStandby?("Enabled"):("Disabled"));
                 // response["nwStandby"] = nwStandby;
                 if (IARM_RESULT_SUCCESS == res) {
+                    std::cout << "akshay IARM Bus call passed" << std::endl;
                     bool nwStandby = param.bStandbyMode;
-                    LOGWARN("getNetworkStandbyMode called, current NwStandbyMode is: %s\n",
+                    std::cout << "akshay nwStandby: " << nwStandby << std::endl;
+                    LOGWARN("akshay getNetworkStandbyMode called, current NwStandbyMode is: %s\n",
                          nwStandby?("Enabled"):("Disabled"));
                     response["nwStandby"] = nwStandby;
                     retVal = true;
                     m_networkStandbyMode = nwStandby;
                     m_networkStandbyModeValid = true;
                 } else {
+                    std::cout << "akshay IARM Bus call failed" << std::endl;
                     response["nwStandby"] = false;
                     retVal = false;
                 }
