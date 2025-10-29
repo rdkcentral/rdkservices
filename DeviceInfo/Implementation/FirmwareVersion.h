@@ -24,9 +24,6 @@ namespace Plugin {
         uint32_t Mediarite(string& mediarite) const override;
         uint32_t Yocto(string& yocto) const override;
         uint32_t Pdri(string& pdri) const override;
-
-    private:
-         static constexpr const char* MFRUTIL = "/usr/bin/mfr_util %s";
     };
 }
 }
