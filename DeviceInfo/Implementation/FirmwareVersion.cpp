@@ -30,7 +30,7 @@ namespace Plugin {
             return result;
         }
 
-       static uint32_t RunCommand(const char* command, std::string& arg, std::string& result) {
+       static uint32_t RunCommand(const char* command, const std::string& arg, std::string& result) {
            uint32_t ret = Core::ERROR_GENERAL;
                       
            FILE* fp = v_secure_popen("r", command, arg.c_str());
@@ -46,7 +46,7 @@ namespace Plugin {
            
            pclose(fp);
            result = oss.str();
-           LOGINFO("predebug %s\n", result.c_str());
+           TRACE_GLOBAL(Trace::Fatal, (_T("preeja  res=%s"), result.c_str()));
            if (result.empty()) {
              return ret;
            }
