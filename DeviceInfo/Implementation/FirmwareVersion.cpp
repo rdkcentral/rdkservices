@@ -64,7 +64,7 @@ namespace Plugin {
 
     uint32_t FirmwareVersion::Imagename(string& imagename) const
     {
-         return GetFileRegex(_T("/version.txt"), std::regex("^imagename:([^\\n]+)$"), imagename);
+        return GetFileRegex(_T("/version.txt"), std::regex("^imagename:([^\\n]+)$"), imagename);
     }
 
     uint32_t FirmwareVersion::Pdri(string& pdri) const
