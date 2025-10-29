@@ -4,10 +4,7 @@
 #include <regex>
 #include <sstream>     
 #include <string>
-
-extern "C" {
-    #include <v_secure_popen.h>
-}
+#include <secure_wrapper.h>
 
 namespace WPEFramework {
 namespace Plugin {
@@ -69,12 +66,12 @@ namespace Plugin {
     {
         return GetFileRegex(_T("/version.txt"), std::regex("^imagename:([^\\n]+)$"), imagename);
     }
-
+#if 0
     uint32_t FirmwareVersion::Pdri(string& pdri) const
     {
          return RunCommand("/usr/bin/mfr_util --PDRIVersion", pdri);
     }
-
+#endif
     uint32_t FirmwareVersion::Sdk(string& sdk) const
     {
         return GetFileRegex(_T("/version.txt"), std::regex("^SDK_VERSION=([^\\n]+)$"), sdk);
