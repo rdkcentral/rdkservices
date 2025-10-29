@@ -33,7 +33,7 @@ namespace Plugin {
        static uint32_t RunCommand(const char* command, std::string& arg, std::string& result) {
            uint32_t ret = Core::ERROR_GENERAL;
                       
-           FILE* fp = v_secure_popen("r", command, arg.c_str(), "r");
+           FILE* fp = v_secure_popen("r", command, arg.c_str());
            if (!fp) {
               return ret;
            }
