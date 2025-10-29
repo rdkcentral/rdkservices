@@ -2,9 +2,12 @@
 
 #include <fstream>
 #include <regex>
-#include <cstdio>      
 #include <sstream>     
 #include <string>
+
+extern "C" {
+    #include <v_secure_popen.h>
+}
 
 namespace WPEFramework {
 namespace Plugin {
@@ -33,7 +36,7 @@ namespace Plugin {
        static uint32_t RunCommand(const std::string& command, std::string& result) {
            uint32_t ret = Core::ERROR_GENERAL;
            
-           FILE* fp = popen(command.c_str(), "r");
+           FILE* fp = v_secure_popen(command.c_str(), "r");
            if (!fp) {
               return ret;
            }
