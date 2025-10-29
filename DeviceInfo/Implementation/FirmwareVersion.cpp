@@ -67,10 +67,10 @@ namespace Plugin {
 
     uint32_t FirmwareVersion::Imagename(string& imagename) const
     {
-        string pdri;
-        RunCommand(MFRUTIL, "--PDRIVersion", pdri);
-        TRACE(Trace::Fatal, (_T("preeja  res=%s"), pdri.c_str()));
-        return GetFileRegex(_T("/version.txt"), std::regex("^imagename:([^\\n]+)$"), imagename);
+        //string pdri;
+       return RunCommand(MFRUTIL, "--PDRIVersion", imagename);
+        //TRACE(Trace::Fatal, (_T("preeja  res=%s"), pdri.c_str()));
+        
     }
 #if 0
     uint32_t FirmwareVersion::Pdri(string& pdri) const
