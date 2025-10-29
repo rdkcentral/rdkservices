@@ -30,10 +30,10 @@ namespace Plugin {
             return result;
         }
 
-       static uint32_t RunCommand(const std::string& command, std::string& result) {
+       static uint32_t RunCommand(const char* command, std::string& arg, std::string& result) {
            uint32_t ret = Core::ERROR_GENERAL;
-           
-           FILE* fp = v_secure_popen(command.c_str(), "r");
+                      
+           FILE* fp = v_secure_popen("r", command, arg.c_str(), "r");
            if (!fp) {
               return ret;
            }
@@ -46,6 +46,7 @@ namespace Plugin {
            
            pclose(fp);
            result = oss.str();
+           LOGINFO("predebug %s\n", result.c_str());
            if (result.empty()) {
              return ret;
            }
@@ -69,7 +70,7 @@ namespace Plugin {
 
     uint32_t FirmwareVersion::Pdri(string& pdri) const
     {
-         return RunCommand("/usr/bin/mfr_util --PDRIVersion", pdri);
+         return RunCommand(MFRUTIL, "--PDRIVersion", pdri);
     }
 
     uint32_t FirmwareVersion::Sdk(string& sdk) const
