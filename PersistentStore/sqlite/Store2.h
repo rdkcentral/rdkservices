@@ -259,7 +259,7 @@ namespace Plugin {
                 Core::SafeSyncType<Core::CriticalSection> lock(_clientLock);
 
                 ASSERT(std::find(_clients.begin(), _clients.end(), notification) == _clients.end());
-SYSLOG(Logging::Startup, (_T("preeja register in")));
+
                 notification->AddRef();
                 _clients.push_back(notification);
 
@@ -271,11 +271,11 @@ SYSLOG(Logging::Startup, (_T("preeja register in")));
 
                 std::list<INotification*>::iterator
                     index(std::find(_clients.begin(), _clients.end(), notification));
-               SYSLOG(Logging::Startup, (_T("preeja unregister in")));
+              
                 ASSERT(index != _clients.end());
 
                 if (index != _clients.end()) {
-                   SYSLOG(Logging::Startup, (_T("preeja unregistered")));
+                   
                     notification->Release();
                     _clients.erase(index);
                 }
