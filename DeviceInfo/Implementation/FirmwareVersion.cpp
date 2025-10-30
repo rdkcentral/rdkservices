@@ -32,10 +32,10 @@ namespace Plugin {
             return result;
         }
 
-       static uint32_t RunCommand(const char* command, const std::string& arg, std::string& result) {
+       static uint32_t RunCommand(const std::string& arg, std::string& result) {
            uint32_t ret = Core::ERROR_GENERAL;
                       
-           FILE* fp = v_secure_popen("r", command, arg.c_str());
+           FILE* fp = v_secure_popen("r", MFRUTIL, arg.c_str());
            if (!fp) {
               return ret;
            }
@@ -69,7 +69,7 @@ namespace Plugin {
 
     uint32_t FirmwareVersion::Pdri(string& pdri) const
     {
-         return RunCommand(MFRUTIL, "--PDRIVersion", pdri);
+         return RunCommand("--PDRIVersion", pdri);
     }
 
     uint32_t FirmwareVersion::Sdk(string& sdk) const
