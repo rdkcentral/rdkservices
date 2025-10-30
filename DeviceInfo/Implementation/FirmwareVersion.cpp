@@ -6,7 +6,7 @@
 #include <string>
 #include "secure_wrapper.h"
 
-#define MFRUTIL "/usr/bin/mfr_util %s"
+// #define MFRUTIL "/usr/bin/mfr_util %s"
 
 namespace WPEFramework {
 namespace Plugin {
@@ -32,10 +32,10 @@ namespace Plugin {
             return result;
         }
 
-       static uint32_t RunCommand(const std::string& arg, std::string& result) {
+       static uint32_t RunCommand(const std:string& command, const std::string& arg, std::string& result) {
            uint32_t ret = Core::ERROR_GENERAL;
                       
-           FILE* fp = v_secure_popen("r", MFRUTIL, arg.c_str());
+           FILE* fp = v_secure_popen("r","%s %s", command.c_str(), arg.c_str());
            if (!fp) {
               return ret;
            }
@@ -69,7 +69,7 @@ namespace Plugin {
 
     uint32_t FirmwareVersion::Pdri(string& pdri) const
     {
-         return RunCommand("--PDRIVersion", pdri);
+         return RunCommand("/usr/bin/mfr_util", "--PDRIVersion", pdri);
     }
 
     uint32_t FirmwareVersion::Sdk(string& sdk) const
