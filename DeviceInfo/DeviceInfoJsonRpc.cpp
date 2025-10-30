@@ -139,9 +139,11 @@ namespace Plugin {
                     result = Core::ERROR_GENERAL;
                 }
             }
-			
-			if (_firmwareVersion->Pdri(value) == Core::ERROR_NONE)
+			result = firmwareVersion->Pdri(value);
+			if (result == Core::ERROR_NONE)
 			    response.Pdri = std::move(value);
+			else 
+				response.Pdri = "";
 
 		}
 
