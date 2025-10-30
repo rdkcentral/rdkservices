@@ -1837,11 +1837,10 @@ namespace WPEFramework {
                     m_networkStandbyModeValid = true;
                 } else {
                     std::cout << "akshay IARM Bus call failed" << std::endl;
-                    response["nwStandby"] = false;
+                    std::cout << "akshay not returting nwStandby" << std::endl;
                     retVal = false;
                 }
             }
-
             returnResponse(retVal);
         }
 
