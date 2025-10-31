@@ -53,7 +53,7 @@ namespace Plugin {
              oss << buffer;
          }
            
-         pclose(fp);
+         v_secure_pclose(fp);
          pdri = oss.str();
                            
          // Remove trailing newline if present
