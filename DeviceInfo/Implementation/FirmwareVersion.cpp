@@ -6,8 +6,6 @@
 #include <string>
 #include "secure_wrapper.h"
 
-// #define MFRUTIL "/usr/bin/mfr_util %s"
-
 namespace WPEFramework {
 namespace Plugin {
     namespace {
