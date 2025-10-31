@@ -139,11 +139,11 @@ namespace Plugin {
                     result = Core::ERROR_GENERAL;
                 }
             }
-			result = _firmwareVersion->Pdri(value);
-			if (result == Core::ERROR_NONE)
-			    response.Pdri = std::move(value);
-			else 
+			if(_firmwareVersion->Pdri(value) == Core::ERROR_NONE) {
+				response.Pdri = std::move(value);
+			} else {
 				response.Pdri = "";
+			}
 
 		}
 
