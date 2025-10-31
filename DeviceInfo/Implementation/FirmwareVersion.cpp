@@ -55,8 +55,7 @@ namespace Plugin {
            
          pclose(fp);
          pdri = oss.str();
-         TRACE_GLOBAL(Trace::Fatal, (_T("preeja  pdri=%s"), pdri.c_str()));
-                  
+                           
          // Remove trailing newline if present
          if (!pdri.empty() && pdri.back() == '\n') {
              pdri.pop_back();
