@@ -306,10 +306,12 @@ namespace WPEFramework {
 				checkForStandalone = false;
 			}
 			IARM_Bus_SYSMgr_GetSystemStates_Param_t param;
-			IARM_Bus_Call(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_API_GetSystemStates, &param, sizeof(param));
+			IARM_Result_t res = IARM_Bus_Call(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_API_GetSystemStates, &param, sizeof(param));
 			JsonArray response_arr;
-			for( std::vector<string>::iterator it = pname.begin(); it!= pname.end(); ++it )
+			if(res == IARM_RESULT_SUCCESS)
 			{
+				for( std::vector<string>::iterator it = pname.begin(); it!= pname.end(); ++it )
+				{
 				string err_str="none";
 				JsonObject devProp;
 				if(*it == SYSTEM_CHANNEL_MAP)
@@ -589,6 +591,7 @@ namespace WPEFramework {
 				}
 
 			}
+		}
 
 			response["properties"]=response_arr;
 			#if(DEBUG_INFO)
