@@ -276,7 +276,7 @@ namespace Plugin {
 
                 if (index != _clients.end()) {
                    LOGINFO("predebug store unregistering clients");  
-                    notification->Release();
+                    (*index)->Release();
                     _clients.erase(index);
                 }
 
