@@ -32,32 +32,6 @@ namespace Plugin {
             return result;
         }
 
-       static uint32_t RunCommand(const std:string& command, const std::string& arg, std::string& result) {
-           uint32_t ret = Core::ERROR_GENERAL;
-                      
-           FILE* fp = v_secure_popen("r","%s %s", command.c_str(), arg.c_str());
-           if (!fp) {
-              return ret;
-           }
-
-           std::ostringstream oss;
-           char buffer[64];
-           while (fgets(buffer, sizeof(buffer), fp) != nullptr) {
-              oss << buffer;
-           }
-           
-           pclose(fp);
-           result = oss.str();
-           TRACE_GLOBAL(Trace::Fatal, (_T("preeja  res=%s"), result.c_str()));
-                  
-           // Remove trailing newline if present
-           if (!result.empty() && result.back() == '\n') {
-              result.pop_back();
-           }
-
-           return Core::ERROR_NONE;
-       }
-
     }
 
     SERVICE_REGISTRATION(FirmwareVersion, 1, 0);
@@ -69,7 +43,29 @@ namespace Plugin {
 
     uint32_t FirmwareVersion::Pdri(string& pdri) const
     {
-         return RunCommand("/usr/bin/mfr_util", "--PDRIVersion", pdri);
+         uint32_t ret = Core::ERROR_GENERAL;
+                      
+         FILE* fp = v_secure_popen("r", "/usr/bin/mfr_util --PDRIVersion");
+         if (!fp) {
+            return ret;
+         }
+
+         std::ostringstream oss;
+         char buffer[64];
+         while (fgets(buffer, sizeof(buffer), fp) != nullptr) {
+             oss << buffer;
+         }
+           
+         pclose(fp);
+         pdri = oss.str();
+         TRACE_GLOBAL(Trace::Fatal, (_T("preeja  pdri=%s"), pdri.c_str()));
+                  
+         // Remove trailing newline if present
+         if (!pdri.empty() && pdri.back() == '\n') {
+             pdri.pop_back();
+         }
+
+         return Core::ERROR_NONE;
     }
 
     uint32_t FirmwareVersion::Sdk(string& sdk) const
