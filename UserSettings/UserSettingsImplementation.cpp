@@ -129,8 +129,8 @@ UserSettingsImplementation::~UserSettingsImplementation()
     LOGINFO("UserSettingsImplementation Destructor");    
     if(_remotStoreObject)
     {
-       // LOGINFO("UserSettingsImplementation unregistering events from store");    
-       // _remotStoreObject->Unregister(&_storeNotification);
+       LOGINFO("UserSettingsImplementation unregistering events from store");    
+       _remotStoreObject->Unregister(&_storeNotification);
         _remotStoreObject->Release();
         _remotStoreObject = nullptr;
     }
