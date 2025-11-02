@@ -48,11 +48,11 @@ namespace Plugin {
 
     uint32_t FirmwareVersion::Pdri(string& pdri) const
     {
-         uint32_t ret = Core::ERROR_GENERAL;
+         uint32_t result = Core::ERROR_GENERAL;
                       
          FILE* fp = v_secure_popen("r", "/usr/bin/mfr_util --PDRIVersion");
          if (!fp) {
-            return ret;
+            return result;
          }
 
          std::ostringstream oss;
@@ -63,17 +63,19 @@ namespace Plugin {
            
          v_secure_pclose(fp);
          pdri = oss.str();
-         pdri="IARM_Bus_Call provider returned error (3) for the method mfrGetManufacturerData Call failed for mfrSERIALIZED_TYPE_PDRIVERSION: error code:3";                  
+         if (pdri.empty())
+             return result;
+         pdri="IARM_Bus_Call provider returned error (3) for the method mfrGetManufacturerData Call failed for mfrSERIALIZED_TYPE_PDRIVERSION: error code:3\n";                  
          // Remove trailing newline if present
-         if (!pdri.empty() && pdri.back() == '\n') {
+         if (pdri.back() == '\n')
              pdri.pop_back();
-             // Return empty as PDRI version when device not have pdri image
-             if (GetStringRegex(pdri, std::regex("failed"))) {
-                 pdri = "";
-             }
-         }
-
-         return Core::ERROR_NONE;
+        
+        // Return empty as PDRI version when device not have pdri image
+        if (GetStringRegex(pdri, std::regex("failed"))) {
+            pdri = "";
+        }
+        
+        return Core::ERROR_NONE;
     }
 
     uint32_t FirmwareVersion::Sdk(string& sdk) const
