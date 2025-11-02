@@ -29,6 +29,14 @@ namespace Plugin {
 
             return result;
         }
+
+        bool GetStringRegex(const string& input, const std::regex& regex) {
+            if ((std::regex_search(input, regex))) {
+                return true;
+            }
+            
+            return false;
+        }
     }
 
     SERVICE_REGISTRATION(FirmwareVersion, 1, 0);
@@ -48,17 +56,21 @@ namespace Plugin {
          }
 
          std::ostringstream oss;
-         char buffer[64];
+         char buffer[256];
          while (fgets(buffer, sizeof(buffer), fp) != nullptr) {
              oss << buffer;
          }
            
          v_secure_pclose(fp);
          pdri = oss.str();
-                           
+         pdri="IARM_Bus_Call provider returned error (3) for the method mfrGetManufacturerData Call failed for mfrSERIALIZED_TYPE_PDRIVERSION: error code:3";                  
          // Remove trailing newline if present
          if (!pdri.empty() && pdri.back() == '\n') {
              pdri.pop_back();
+             // Return empty as PDRI version when device not have pdri image
+             if (GetStringRegex(pdri, std::regex("failed"))) {
+                 pdri = "";
+             }
          }
 
          return Core::ERROR_NONE;
