@@ -29,10 +29,6 @@ namespace Plugin {
 
             return result;
         }
-
-        bool GetStringRegex(const string& input, const std::regex& regex) {
-            return std::regex_search(input, regex);
-        }
     }
 
     SERVICE_REGISTRATION(FirmwareVersion, 1, 0);
