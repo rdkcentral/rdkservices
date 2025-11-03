@@ -34,7 +34,7 @@ namespace Plugin {
             if ((std::regex_search(input, regex))) {
                 return true;
             }
-            
+          
             return false;
         }
     }
@@ -59,15 +59,13 @@ namespace Plugin {
          char buffer[256];
          while (fgets(buffer, sizeof(buffer), fp) != nullptr) {
              oss << buffer;
-         }
-           
+         }   
          v_secure_pclose(fp);
+        
          pdri = oss.str();
-         if (pdri.empty())
-             return result;
-         pdri="IARM_Bus_Call provider returned error (3) for the method mfrGetManufacturerData Call failed for mfrSERIALIZED_TYPE_PDRIVERSION: error code:3\n";                  
+                      
          // Remove trailing newline if present
-         if (pdri.back() == '\n')
+         if (!pdri.empty() && pdri.back() == '\n')
              pdri.pop_back();
         
         // Return empty as PDRI version when device not have pdri image
