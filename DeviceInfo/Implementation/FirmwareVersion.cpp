@@ -31,11 +31,7 @@ namespace Plugin {
         }
 
         bool GetStringRegex(const string& input, const std::regex& regex) {
-            if ((std::regex_search(input, regex))) {
-                return true;
-            }
-          
-            return false;
+            return std::regex_search(input, regex);
         }
     }
 
