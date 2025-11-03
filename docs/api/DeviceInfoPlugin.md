@@ -613,7 +613,7 @@ No Events
 | (property)?.sdk | string | <sup>*(optional)*</sup>  |
 | (property)?.mediarite | string | <sup>*(optional)*</sup>  |
 | (property)?.yocto | string | <sup>*(optional)*</sup> Yocto version (must be one of the following: *dunfell*, *morty*, *daisy*) |
-| (property)?.pdri | string | <sup>*(optional)*</sup> PDRI version 
+| (property)?.pdri | string | <sup>*(optional)*</sup> PDRI version
 
 ### Errors
 
