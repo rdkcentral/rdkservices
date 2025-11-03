@@ -1522,23 +1522,11 @@ namespace WPEFramework
 
 				if ( HdmiCecSink::_instance->deviceList[n].m_physicalAddr.getByteValue(0) != 0 )
 				{
-					size_t remaining = sizeof(routeString) - length;
-					if (remaining > 0) {
-						int written = snprintf(&routeString[length], remaining, "%s%d", "HDMI",(HdmiCecSink::_instance->deviceList[n].m_physicalAddr.getByteValue(0) - 1));
-						if (written > 0 && (size_t)written < remaining) {
-							length += written;
-						}
-					}
+					snprintf(&routeString[length], sizeof(routeString) - length, "%s%d", "HDMI",(HdmiCecSink::_instance->deviceList[n].m_physicalAddr.getByteValue(0) - 1));
 				}
 				else if ( HdmiCecSink::_instance->deviceList[n].m_physicalAddr.getByteValue(0) == 0 )
 				{
-					size_t remaining = sizeof(routeString) - length;
-					if (remaining > 0) {
-						int written = snprintf(&routeString[length], remaining, "%s", "TV");
-						if (written > 0 && (size_t)written < remaining) {
-							length += written;
-						}
-					}
+					snprintf(&routeString[length], sizeof(routeString) - length, "%s", "TV");
 				}
 				// Ensure null termination
 				routeString[sizeof(routeString) - 1] = '\0';
@@ -1689,42 +1677,16 @@ namespace WPEFramework
 										
 							pathList.Add(device);
 							
-							// Safe buffer operations with bounds checking
-							size_t remaining = sizeof(routeString) - length;
-							if (remaining > 1) {  // Need at least 1 byte for null terminator
-								std::string logicalAddrStr = _instance->deviceList[route[i]].m_logicalAddress.toString();
-								int written = snprintf(&routeString[length], remaining, "%s", logicalAddrStr.c_str());
-								if (written > 0 && (size_t)written < remaining) {
-									length += written;
-									remaining = sizeof(routeString) - length;
-								}
-							}
-							
-							if (remaining > 1) {
-								std::string osdNameStr = _instance->deviceList[route[i]].m_osdName.toString();
-								int written = snprintf(&routeString[length], remaining, "(%s", osdNameStr.c_str());
-								if (written > 0 && (size_t)written < remaining) {
-									length += written;
-									remaining = sizeof(routeString) - length;
-								}
-							}
-							
-							if (remaining > 1) {
-								int written = snprintf(&routeString[length], remaining, "%s", ")-->");
-								if (written > 0 && (size_t)written < remaining) {
-									length += written;
-									remaining = sizeof(routeString) - length;
-								}
-							}
-							
-							if( i + 1 ==  route.size() && remaining > 1 )
+							snprintf(&routeString[length], sizeof(routeString) - length, "%s", _instance->deviceList[route[i]].m_logicalAddress.toString().c_str());
+							length += _instance->deviceList[route[i]].m_logicalAddress.toString().length();
+							snprintf(&routeString[length], sizeof(routeString) - length, "(%s", _instance->deviceList[route[i]].m_osdName.toString().c_str());
+							length += _instance->deviceList[route[i]].m_osdName.toString().length();
+							snprintf(&routeString[length], sizeof(routeString) - length, "%s", ")-->");
+							length += strlen(")-->");
+							if( i + 1 ==  route.size() )
 							{
-								int written = snprintf(&routeString[length], remaining, "%s%d", "HDMI",(HdmiCecSink::_instance->deviceList[route[i]].m_physicalAddr.getByteValue(0) - 1));
-								if (written > 0 && (size_t)written < remaining) {
-									length += written;
-								}
+								snprintf(&routeString[length], sizeof(routeString) - length, "%s%d", "HDMI",(HdmiCecSink::_instance->deviceList[route[i]].m_physicalAddr.getByteValue(0) - 1));
 							}
-							
 							// Ensure null termination
 							routeString[sizeof(routeString) - 1] = '\0';
 						}
