@@ -64,8 +64,8 @@ namespace Plugin {
          if (!pdri.empty() && pdri.back() == '\n')
              pdri.pop_back();
         
-        // Return empty as PDRI version when device not have pdri image
-        if (GetStringRegex(pdri, std::regex("failed"))) {
+        // Return empty as PDRI version when device does not have pdri image
+        if (pdri.find("failed") != std::string::npos) {
             pdri = "";
         }
         
