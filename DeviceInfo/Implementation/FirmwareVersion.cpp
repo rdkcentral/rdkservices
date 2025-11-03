@@ -44,7 +44,7 @@ namespace Plugin {
                       
          FILE* fp = v_secure_popen("r", "/usr/bin/mfr_util --PDRIVersion");
          if (!fp) {
-            return result;
+	        return result;
          }
 
          std::ostringstream oss;
