@@ -57,8 +57,9 @@ namespace Plugin {
          pdri = oss.str();
                       
          // Remove trailing newline if present
-         if (!pdri.empty() && pdri.back() == '\n')
+         if (!pdri.empty() && pdri.back() == '\n') {
              pdri.pop_back();
+         }
         
         // Return empty as PDRI version when device does not have pdri image
         if (pdri.find("failed") != std::string::npos) {
