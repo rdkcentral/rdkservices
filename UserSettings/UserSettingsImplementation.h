@@ -98,7 +98,6 @@ namespace Plugin {
         ~UserSettingsImplementation() override;
 
         static UserSettingsImplementation* instance(UserSettingsImplementation *UserSettingsImpl = nullptr);
-        void Deinitialize();
 
         // We do not allow this plugin to be copied !!
         UserSettingsImplementation(const UserSettingsImplementation&) = delete;
@@ -227,7 +226,6 @@ namespace Plugin {
 
     private:
         uint32_t SetUserSettingsValue(const string& key, const string& value);
-
         uint32_t GetUserSettingsValue(const string& key, string &value) const;
 
     private:
