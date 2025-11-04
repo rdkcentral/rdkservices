@@ -124,7 +124,7 @@ UserSettingsImplementation* UserSettingsImplementation::instance(UserSettingsImp
    return(UserSettingsImpl_instance);
 }
 
-UserSettingsImplementation::Deinitialize() 
+void UserSettingsImplementation::Deinitialize() 
 {
     LOGINFO("UserSettingsImplementation Deinitialize");    
     if(_remotStoreObject)
@@ -145,7 +145,6 @@ UserSettingsImplementation::~UserSettingsImplementation()
        _service->Release();
        _service = nullptr;
     }
-    _registeredEventHandlers = false;
 }
 
 void UserSettingsImplementation::registerEventHandlers()
