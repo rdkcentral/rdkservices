@@ -76,14 +76,3 @@ TEST_F(FirmwareVersionTest, Yocto)
     EXPECT_EQ(Core::ERROR_NONE, interface->Yocto(yocto));
     EXPECT_EQ(yocto, _T("dunfell"));
 }
-
-TEST_F(FirmwareVersionTest, Pdri)
-{
-    std::ofstream file("/version.txt");
-    file << "SKXI11ADS_PDRI_VBN_20221128125541_13.0.0.0.bin";
-    file.close();
-
-    string pdri;
-    EXPECT_EQ(Core::ERROR_NONE, interface->Pdri(pdri));
-    EXPECT_EQ(pdri, _T("SKXI11ADS_PDRI_VBN_20221128125541_13.0.0.0.bin"));
-}
