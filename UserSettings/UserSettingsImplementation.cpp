@@ -126,7 +126,7 @@ UserSettingsImplementation* UserSettingsImplementation::instance(UserSettingsImp
 
 UserSettingsImplementation::Deinitialize() 
 {
-    LOGINFO("UserSettingsImplementation Destructor");    
+    LOGINFO("UserSettingsImplementation Deinitialize");    
     if(_remotStoreObject)
     {
        LOGINFO("UserSettingsImplementation unregistering events from store");    
@@ -139,6 +139,7 @@ UserSettingsImplementation::Deinitialize()
 
 UserSettingsImplementation::~UserSettingsImplementation()
 {
+  LOGINFO("UserSettingsImplementation Destructor");    
     if (_service != nullptr)
     {
        _service->Release();
