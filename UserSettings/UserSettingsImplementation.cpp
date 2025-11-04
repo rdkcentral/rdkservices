@@ -80,7 +80,7 @@ UserSettingsImplementation::UserSettingsImplementation()
 , _service(nullptr)
 {
     LOGINFO("Create UserSettingsImplementation Instance");
-    UserSettingsImplementation::instance(this);
+    // UserSettingsImplementation::instance(this);
 }
 
 uint32_t UserSettingsImplementation::Configure(PluginHost::IShell* service)
