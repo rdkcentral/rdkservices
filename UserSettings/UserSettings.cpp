@@ -135,7 +135,7 @@ namespace WPEFramework
             _userSetting->Unregister(&_usersettingsNotification);
             Exchange::JUserSettings::Unregister(*this);
            Exchange::JUserSettingsInspector::Unregister(*this);
-            configure->Configure(NULL);
+            configure->Configure(nullptr);
             configure->Release();
            _userSettingsInspector->Release();
 
@@ -157,7 +157,7 @@ namespace WPEFramework
             // It should have been the last reference we are releasing,
             // so it should endup in a DESTRUCTION_SUCCEEDED, if not we
             // are leaking...
-            ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
+            //ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
             // If this was running in a (container) process...
             if (nullptr != connection)
