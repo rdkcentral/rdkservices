@@ -86,8 +86,18 @@ UserSettingsImplementation::UserSettingsImplementation()
 uint32_t UserSettingsImplementation::Configure(PluginHost::IShell* service)
 {
     uint32_t result = Core::ERROR_GENERAL;
-
-    if (service != nullptr )
+    if (service == nullptr && _service != nullptr) {
+       LOGINFO("UserSettingsImplementation Deinitialize");    
+       if(_remotStoreObject)
+       {
+         LOGINFO("UserSettingsImplementation unregistering events from store");    
+         _remotStoreObject->Unregister(&_storeNotification);
+          _remotStoreObject->Release();
+            _remotStoreObject = nullptr;
+       }
+       _registeredEventHandlers = false;
+      
+    } else if (service != nullptr )
     {
         _service = service;
         _service->AddRef();
@@ -124,18 +134,6 @@ UserSettingsImplementation* UserSettingsImplementation::instance(UserSettingsImp
    return(UserSettingsImpl_instance);
 }
 
-void UserSettingsImplementation::Deinitialize() 
-{
-    LOGINFO("UserSettingsImplementation Deinitialize");    
-    if(_remotStoreObject)
-    {
-       LOGINFO("UserSettingsImplementation unregistering events from store");    
-       _remotStoreObject->Unregister(&_storeNotification);
-        _remotStoreObject->Release();
-        _remotStoreObject = nullptr;
-    }
-    _registeredEventHandlers = false;
-}
 
 UserSettingsImplementation::~UserSettingsImplementation()
 {
