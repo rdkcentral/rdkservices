@@ -80,7 +80,7 @@ UserSettingsImplementation::UserSettingsImplementation()
 , _service(nullptr)
 {
     LOGINFO("Create UserSettingsImplementation Instance");
-    // UserSettingsImplementation::instance(this);
+     UserSettingsImplementation::instance(this);
 }
 
 uint32_t UserSettingsImplementation::Configure(PluginHost::IShell* service)
@@ -124,7 +124,7 @@ UserSettingsImplementation* UserSettingsImplementation::instance(UserSettingsImp
    return(UserSettingsImpl_instance);
 }
 
-UserSettingsImplementation::~UserSettingsImplementation()
+UserSettingsImplementation::Deinitialize() 
 {
     LOGINFO("UserSettingsImplementation Destructor");    
     if(_remotStoreObject)
@@ -134,6 +134,11 @@ UserSettingsImplementation::~UserSettingsImplementation()
         _remotStoreObject->Release();
         _remotStoreObject = nullptr;
     }
+    _registeredEventHandlers = false;
+}
+
+UserSettingsImplementation::~UserSettingsImplementation()
+{
     if (_service != nullptr)
     {
        _service->Release();
