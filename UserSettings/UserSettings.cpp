@@ -144,7 +144,7 @@ namespace WPEFramework
 
             // Stop processing:
             RPC::IRemoteConnection* connection = service->RemoteConnection(_connectionId);
-            _
+            
             uint32_t result = _userSetting->Release();
 
             _userSetting = nullptr;
