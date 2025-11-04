@@ -48,7 +48,7 @@ namespace WPEFramework
      **/
     SERVICE_REGISTRATION(UserSettings, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
-    UserSettings::UserSettings() : _service(nullptr), _connectionId(0), _userSetting(nullptr),  _usersettingsNotification(this)
+    UserSettings::UserSettings() : _service(nullptr), _connectionId(0), _userSetting(nullptr), _userSettingsInspector(nullptr),  _usersettingsNotification(this)
     {
         SYSLOG(Logging::Startup, (_T("UserSettings Constructor")));
     }
@@ -95,7 +95,7 @@ namespace WPEFramework
             _userSetting->Register(&_usersettingsNotification);
             // Invoking Plugin API register to wpeframework
             Exchange::JUserSettings::Register(*this, _userSetting);
-#if 0
+#if 1
             _userSettingsInspector = _userSetting->QueryInterface<Exchange::IUserSettingsInspector>();
             if (_userSettingsInspector != nullptr)
             {
@@ -134,16 +134,17 @@ namespace WPEFramework
         {
             _userSetting->Unregister(&_usersettingsNotification);
             Exchange::JUserSettings::Unregister(*this);
-        //    Exchange::JUserSettingsInspector::Unregister(*this);
-
+           Exchange::JUserSettingsInspector::Unregister(*this);
+            configure->Configure(NULL);
             configure->Release();
-          //  _userSettingsInspector->Release();
+           _userSettingsInspector->Release();
 
             configure = nullptr;
-          //  _userSettingsInspector = nullptr;
+            _userSettingsInspector = nullptr;
 
             // Stop processing:
             RPC::IRemoteConnection* connection = service->RemoteConnection(_connectionId);
+            _
             VARIABLE_IS_NOT_USED uint32_t result = _userSetting->Release();
 
             _userSetting = nullptr;
