@@ -1,5 +1,11 @@
+commit 34aade59f285b69802e2568d13be5d04cbc4bf49 (HEAD)
+Author: preeja <preeja_raveendran@comcast.com>
+Date:   Wed Nov 5 16:31:00 2025 +0530
+
+     R4.4.1 L2 test AddPdriApi.patch
+
 diff --git a/interfaces/IFirmwareVersion.h b/interfaces/IFirmwareVersion.h
-index ba6ce5a..259afca 100644
+index 0a3439f..8eb4828 100644
 --- a/interfaces/IFirmwareVersion.h
 +++ b/interfaces/IFirmwareVersion.h
 @@ -14,6 +14,7 @@ namespace Exchange {
@@ -11,10 +17,10 @@ index ba6ce5a..259afca 100644
  }
  }
 diff --git a/jsonrpc/DeviceInfo.json b/jsonrpc/DeviceInfo.json
-index 8725868..30c97dc 100644
+index c0519fc..07cbb14 100644
 --- a/jsonrpc/DeviceInfo.json
 +++ b/jsonrpc/DeviceInfo.json
-@@ -824,6 +824,10 @@
+@@ -818,6 +818,10 @@
            "yocto": {
              "type": "string",
              "$ref": "#/definitions/yocto"
@@ -25,4 +31,3 @@ index 8725868..30c97dc 100644
            }
          },
          "required": [
-
