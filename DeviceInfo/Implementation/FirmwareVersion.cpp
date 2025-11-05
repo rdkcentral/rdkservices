@@ -40,11 +40,9 @@ namespace Plugin {
 
     uint32_t FirmwareVersion::Pdri(string& pdri) const
     {
-    	uint32_t result = Core::ERROR_GENERAL;
-
-    	FILE* fp = v_secure_popen("r", "/usr/bin/mfr_util --PDRIVersion");
+       	FILE* fp = v_secure_popen("r", "/usr/bin/mfr_util --PDRIVersion");
     	if (!fp) {
-        	return result;
+        	return Core::ERROR_GENERAL;
     	}
 		
 		std::ostringstream oss;
