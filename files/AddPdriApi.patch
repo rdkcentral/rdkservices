@@ -1,0 +1,28 @@
+diff --git a/interfaces/IFirmwareVersion.h b/interfaces/IFirmwareVersion.h
+index ba6ce5a..259afca 100644
+--- a/interfaces/IFirmwareVersion.h
++++ b/interfaces/IFirmwareVersion.h
+@@ -14,6 +14,7 @@ namespace Exchange {
+         virtual uint32_t Sdk(string& sdk /* @out */) const = 0;
+         virtual uint32_t Mediarite(string& mediarite /* @out */) const = 0;
+         virtual uint32_t Yocto(string& yocto /* @out */) const = 0;
++        virtual uint32_t Pdri(string& pdri /* @out */) const = 0;
+     };
+ }
+ }
+diff --git a/jsonrpc/DeviceInfo.json b/jsonrpc/DeviceInfo.json
+index 8725868..30c97dc 100644
+--- a/jsonrpc/DeviceInfo.json
++++ b/jsonrpc/DeviceInfo.json
+@@ -824,6 +824,10 @@
+           "yocto": {
+             "type": "string",
+             "$ref": "#/definitions/yocto"
++          },
++          "pdri": {
++            "type": "string",
++            "example": "PX051AEI_VBN_2203_sprint_20220331225312sdy_NG"
+           }
+         },
+         "required": [
+
