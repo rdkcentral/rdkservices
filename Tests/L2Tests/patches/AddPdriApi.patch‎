@@ -32,7 +32,7 @@ index ed32927..6173e74 100644
 +          },
 +          "pdri": {
 +            "type": "string",
-+            "example": "PX051AEI_VBN_2203_sprint_20220331225312sdy_NG"
++            "example": "COESST11AEI_PDRI_PROD_20240119170804_3.2.2.0.bin"
            }
          },
          "required": [
