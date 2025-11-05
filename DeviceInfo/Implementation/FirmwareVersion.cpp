@@ -61,6 +61,7 @@ namespace Plugin {
 
     	// Return empty as PDRI version when device does not have pdri image
     	if (pdri.find("failed") != std::string::npos) {
+			LOGERR("no/bad PDRI Image found\n");
     		pdri = "";
     	}
 
