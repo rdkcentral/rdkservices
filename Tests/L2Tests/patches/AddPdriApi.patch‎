@@ -1,3 +1,14 @@
+From a7c0ae1b152d2c92e9de54c89e4b5a9130e011ab Mon Sep 17 00:00:00 2001
+From: preeja <preeja_raveendran@comcast.com>
+Date: Wed, 5 Nov 2025 21:12:19 +0530
+Subject: [PATCH] RDK-59565: Add new property named "pdri"
+
+Signed-off-by: preeja <preeja_raveendran@comcast.com>
+---
+ interfaces/IFirmwareVersion.h | 1 +
+ jsonrpc/DeviceInfo.json       | 4 ++++
+ 2 files changed, 5 insertions(+)
+
 diff --git a/interfaces/IFirmwareVersion.h b/interfaces/IFirmwareVersion.h
 index ba6ce5a..db792e1 100644
 --- a/interfaces/IFirmwareVersion.h
@@ -11,10 +22,10 @@ index ba6ce5a..db792e1 100644
  }
  }
 diff --git a/jsonrpc/DeviceInfo.json b/jsonrpc/DeviceInfo.json
-index c0519fc..07cbb14 100644
+index ed32927..6173e74 100644
 --- a/jsonrpc/DeviceInfo.json
 +++ b/jsonrpc/DeviceInfo.json
-@@ -818,6 +818,10 @@
+@@ -468,6 +468,10 @@
            "yocto": {
              "type": "string",
              "$ref": "#/definitions/yocto"
@@ -25,3 +36,6 @@ index c0519fc..07cbb14 100644
            }
          },
          "required": [
+-- 
+2.34.1
+
