@@ -1,21 +1,48 @@
-commit 34aade59f285b69802e2568d13be5d04cbc4bf49 (HEAD)
+commit 1f954ab65182b7c10abe00bfa15aa027577d94aa (HEAD)
 Author: preeja <preeja_raveendran@comcast.com>
-Date:   Wed Nov 5 16:31:00 2025 +0530
+Date:   Wed Nov 5 17:45:43 2025 +0530
 
-     R4.4.1 L2 test AddPdriApi.patch
+    Firmware Version interface patch
 
 diff --git a/interfaces/IFirmwareVersion.h b/interfaces/IFirmwareVersion.h
-index 0a3439f..8eb4828 100644
---- a/interfaces/IFirmwareVersion.h
+new file mode 100644
+index 0000000..8eb4828
+--- /dev/null
 +++ b/interfaces/IFirmwareVersion.h
-@@ -14,6 +14,7 @@ namespace Exchange {
-         virtual uint32_t Sdk(string& sdk /* @out */) const = 0;
-         virtual uint32_t Mediarite(string& mediarite /* @out */) const = 0;
-         virtual uint32_t Yocto(string& yocto /* @out */) const = 0;
+@@ -0,0 +1,21 @@
++#pragma once
++
++#include "Module.h"
++
++namespace WPEFramework {
++namespace Exchange {
++
++    struct EXTERNAL IFirmwareVersion : virtual public Core::IUnknown {
++        enum { ID = ID_FIRMWARE_VERSION };
++
++        virtual ~IFirmwareVersion() override = default;
++
++        virtual uint32_t Imagename(string& imagename /* @out */) const = 0;
++        virtual uint32_t Sdk(string& sdk /* @out */) const = 0;
++        virtual uint32_t Mediarite(string& mediarite /* @out */) const = 0;
++        virtual uint32_t Yocto(string& yocto /* @out */) const = 0;
 +        virtual uint32_t Pdri(string& pdri /* @out */) const = 0;
-     };
- }
- }
++    };
++}
++}
++
+diff --git a/interfaces/Ids.h b/interfaces/Ids.h
+index a37db24..2932adf 100644
+--- a/interfaces/Ids.h
++++ b/interfaces/Ids.h
+@@ -264,6 +264,7 @@ namespace Exchange {
+         ID_DEVICE_CAPABILITIES_VIDEO                 = ID_DEVICE_INFO + 6,
+         ID_DEVICE_CAPABILITIES_VIDEO_OUTPUT          = ID_DEVICE_INFO + 7,
+         ID_DEVICE_CAPABILITIES_RESOLUTION            = ID_DEVICE_INFO + 8,
++        ID_FIRMWARE_VERSION                          = ID_DEVICE_INFO + 9,
+ 
+         ID_DIALSERVER                                = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x380,
+         ID_DIALSERVER_APPLICATION                    = ID_DIALSERVER + 1,
 diff --git a/jsonrpc/DeviceInfo.json b/jsonrpc/DeviceInfo.json
 index c0519fc..07cbb14 100644
 --- a/jsonrpc/DeviceInfo.json
