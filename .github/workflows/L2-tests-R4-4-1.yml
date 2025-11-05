@@ -147,6 +147,7 @@ jobs:
               patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/Use_Legact_Alt_In_ThunderInterfaces_Based_On_ThunderTools_R4.4.3.patch
               patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/RDK-51362-System-Mode-Thunder-Plugin.patch
               patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-Add-IAnalytics-interface-R4.4.patch
+              patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/AddPdriApi.patch
               cd ..
 
       - name: Build ThunderInterfaces
