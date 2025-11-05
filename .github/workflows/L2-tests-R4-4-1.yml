@@ -140,7 +140,6 @@ jobs:
               cd ThunderInterfaces
               echo "Current branch is: $(git branch --show-current)"
               patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/R.4.4.1-0001-Add-TextToSpeech-Interface.patch
-              patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/SplitDeviceCapablities.patch
               patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0007-RDK-IDeviceInfo-Changes.patch
               patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-RDK-45037-Secure-Storage-Thunder-Plugin.patch
               patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/RDKV-48604-User-Settings-Thunder-Plugin.patch
