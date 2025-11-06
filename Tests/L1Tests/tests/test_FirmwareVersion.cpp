@@ -3,9 +3,6 @@
 #include "Implementation/FirmwareVersion.h"
 
 #include <fstream>
-using ::testing::_;
-using ::testing::Return;
-using ::testing::StrEq;
 
 using namespace WPEFramework;
 
@@ -80,21 +77,13 @@ TEST_F(FirmwareVersionTest, Yocto)
     EXPECT_EQ(yocto, _T("dunfell"));
 }
 
-TEST_F(FirmwareVersionTest, PdriSuccessWithVersion)
+TEST_F(FirmwareVersionTest, Pdri)
 {
-    FILE* tmpFile = tmpfile();
-    fputs("1.2.3\n", tmpFile);
-    fseek(tmpFile, 0, SEEK_SET);
-
-    EXPECT_CALL(wrapsImpl, v_secure_popen(StrEq("r"), StrEq("/usr/bin/mfr_util --PDRIVersion"), _))
-        .WillOnce(Return(tmpFile));
-    
-    EXPECT_CALL(wrapsImpl, v_secure_pclose(tmpFile))
-        .WillOnce(Return(0));
+    std::ofstream file("/tmp/pdri_output.txt");
+    file << "1.2.3\n";
+    file.close();
 
     string pdri;
     EXPECT_EQ(Core::ERROR_NONE, interface->Pdri(pdri));
     EXPECT_EQ(pdri, _T("1.2.3"));
-    
-    fclose(tmpFile);
 }
