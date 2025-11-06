@@ -87,10 +87,10 @@ TEST_F(FirmwareVersionTest, PdriSuccessWithVersion)
     fputs("1.2.3\n", tmpFile);
     fseek(tmpFile, 0, SEEK_SET);
 
-    EXPECT_CALL(wrapsImpl, v_secure_popen(_, _, _))
+    EXPECT_CALL(WrapsImpl, v_secure_popen(_, _, _))
         .WillOnce(Return(tmpFile));
     
-    EXPECT_CALL(wrapsImpl, v_secure_pclose(tmpFile))
+    EXPECT_CALL(WrapsImpl, v_secure_pclose(tmpFile))
         .WillOnce(Return(0));
 
     string pdri;
