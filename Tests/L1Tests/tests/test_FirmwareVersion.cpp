@@ -7,7 +7,7 @@
 #include <fstream>
 
 using namespace WPEFramework;
-
+using ::testing::NiceMock;
 
 class FirmwareVersionTest : public ::testing::Test {
 protected:
