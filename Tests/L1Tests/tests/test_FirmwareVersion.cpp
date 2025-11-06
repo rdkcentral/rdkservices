@@ -9,6 +9,7 @@
 using namespace WPEFramework;
 using ::testing::_;
 using ::testing::Return;
+using ::testing::StrEq;
 
 class FirmwareVersionTest : public ::testing::Test {
 protected:
@@ -87,12 +88,11 @@ TEST_F(FirmwareVersionTest, PdriSuccessWithVersion)
     fputs("1.2.3\n", tmpFile);
     fseek(tmpFile, 0, SEEK_SET);
 
-    EXPECT_CALL(WrapsImpl, v_secure_popen(_, _, _))
-        .WillOnce(Return(tmpFile));
+    EXPECT_CALL(wrapsImpl, v_secure_popen(::testing::StrEq("r"), ::testing::StrEq("/usr/bin/mfr_util --PDRIVersion"), ::testing::_))
+        .WillOnce(::testing::Return(tmpFile));
     
-    EXPECT_CALL(WrapsImpl, v_secure_pclose(tmpFile))
-        .WillOnce(Return(0));
-
+    EXPECT_CALL(wrapsImpl, v_secure_pclose(tmpFile))
+        .WillOnce(::testing::Return(0))
     string pdri;
     EXPECT_EQ(Core::ERROR_NONE, interface->Pdri(pdri));
     EXPECT_EQ(pdri, _T("1.2.3"));
