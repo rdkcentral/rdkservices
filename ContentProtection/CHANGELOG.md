@@ -16,6 +16,14 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [3.1.0] - 2025-10-03
+### Added
+- Update the interface for handling Invalid aspect dimension, Watermark perceptibility, and DRM entitlement errors
+
+## [3.0.3] - 2025-09-30
+### Fixed
+- Skip palette size parameter in watermark plugin call, similarly to aamp
+
 ## [3.0.2] - 2025-08-08
 ### Fixed
 - JSON-RPC calls changed from sync to a-sync
