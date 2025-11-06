@@ -92,7 +92,7 @@ TEST_F(FirmwareVersionTest, Yocto)
 TEST_F(FirmwareVersionTest, PdriSuccessWithVersion)
 {
     FILE* tmpFile = tmpfile();
-    fputs("1.2.3\n", tmpFile);
+    fputs("SKXI11ADS_PDRI_PROD_20221208113233_13.0.0.0.bin\n", tmpFile);
     fseek(tmpFile, 0, SEEK_SET);
 
     EXPECT_CALL(*p_wrapsImplMock, v_secure_popen(::testing::StrEq("r"), ::testing::StrEq("/usr/bin/mfr_util --PDRIVersion"), ::testing::_))
@@ -103,5 +103,31 @@ TEST_F(FirmwareVersionTest, PdriSuccessWithVersion)
     
     string pdri;
     EXPECT_EQ(Core::ERROR_NONE, interface->Pdri(pdri));
-    EXPECT_EQ(pdri, _T("1.2.3"));
+    EXPECT_EQ(pdri, _T("SKXI11ADS_PDRI_PROD_20221208113233_13.0.0.0.bin"));
+}
+
+TEST_F(FirmwareVersionTest, PdriOutputContainsFailed)
+{
+    FILE* tmpFile = tmpfile();
+    fputs("IARM_Bus_Call provider returned error (3) for the method mfrGetManufacturerData Call failed for mfrSERIALIZED_TYPE_PDRIVERSION: error code:3\n", tmpFile);
+    fseek(tmpFile, 0, SEEK_SET);
+
+    EXPECT_CALL(*p_wrapsImplMock, v_secure_popen(::testing::StrEq("r"), ::testing::StrEq("/usr/bin/mfr_util --PDRIVersion"), ::testing::_))
+        .WillOnce(::testing::Return(tmpFile));
+    
+    EXPECT_CALL(*p_wrapsImplMock, v_secure_pclose(tmpFile))
+        .WillOnce(::testing::Return(0));
+    
+    string pdri;
+    EXPECT_EQ(Core::ERROR_NONE, interface->Pdri(pdri));
+    EXPECT_EQ(pdri, _T(""));
+}
+
+TEST_F(FirmwareVersionTest, PdriPopenFails)
+{
+    EXPECT_CALL(*p_wrapsImplMock, v_secure_popen(::testing::StrEq("r"), ::testing::StrEq("/usr/bin/mfr_util --PDRIVersion"), ::testing::_))
+        .WillOnce(::testing::Return(nullptr));
+
+    string pdri;
+    EXPECT_EQ(Core::ERROR_GENERAL, interface->Pdri(pdri));
 }
