@@ -1,10 +1,14 @@
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
+#include "WrapsMock.h"
 
 #include "Implementation/FirmwareVersion.h"
 
 #include <fstream>
 
 using namespace WPEFramework;
+using ::testing::_;
+using ::testing::Return;
 
 class FirmwareVersionTest : public ::testing::Test {
 protected:
@@ -77,11 +81,17 @@ TEST_F(FirmwareVersionTest, Yocto)
     EXPECT_EQ(yocto, _T("dunfell"));
 }
 
-TEST_F(FirmwareVersionTest, Pdri)
+TEST_F(FirmwareVersionTest, PdriSuccessWithVersion)
 {
-    std::ofstream file("/tmp/pdri_output.txt");
-    file << "1.2.3\n";
-    file.close();
+    FILE* tmpFile = tmpfile();
+    fputs("1.2.3\n", tmpFile);
+    fseek(tmpFile, 0, SEEK_SET);
+
+    EXPECT_CALL(wrapsImpl, v_secure_popen(_, _, _))
+        .WillOnce(Return(tmpFile));
+    
+    EXPECT_CALL(wrapsImpl, v_secure_pclose(tmpFile))
+        .WillOnce(Return(0));
 
     string pdri;
     EXPECT_EQ(Core::ERROR_NONE, interface->Pdri(pdri));
