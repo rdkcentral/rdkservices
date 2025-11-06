@@ -76,3 +76,30 @@ TEST_F(FirmwareVersionTest, Yocto)
     EXPECT_EQ(Core::ERROR_NONE, interface->Yocto(yocto));
     EXPECT_EQ(yocto, _T("dunfell"));
 }
+
+TEST_F(FirmwareVersionTest, PdriSuccessWithVersion)
+{
+    FILE* mockFile = reinterpret_cast<FILE*>(0x12345);
+    
+    EXPECT_CALL(wrapsImpl, v_secure_popen(StrEq("r"), StrEq("/usr/bin/mfr_util --PDRIVersion"), _))
+        .WillOnce(Return(mockFile));
+    
+    EXPECT_CALL(wrapsImpl, v_secure_pclose(mockFile))
+        .WillOnce(Return(0));
+
+    // Mock fgets behavior - first call returns "1.2.3\n", second returns nullptr
+    static bool firstCall = true;
+    ON_CALL(wrapsImpl, v_secure_popen(_, _, _))
+        .WillByDefault([](const char*, const char*, va_list) -> FILE* {
+            FILE* tmpFile = tmpfile();
+            if (tmpFile) {
+                fputs("1.2.3\n", tmpFile);
+                fseek(tmpFile, 0, SEEK_SET);
+            }
+            return tmpFile;
+        });
+
+    string pdri;
+    EXPECT_EQ(Core::ERROR_NONE, interface->Pdri(pdri));
+    EXPECT_EQ(pdri, _T("1.2.3"));
+}
