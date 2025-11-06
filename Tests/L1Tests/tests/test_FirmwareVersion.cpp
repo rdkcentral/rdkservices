@@ -7,23 +7,30 @@
 #include <fstream>
 
 using namespace WPEFramework;
-using ::testing::_;
-using ::testing::Return;
-using ::testing::StrEq;
+
 
 class FirmwareVersionTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::FirmwareVersion> firmwareVersion;
     Exchange::IFirmwareVersion* interface;
+    WrapsImplMock *p_wrapsImplMock = nullptr;
 
     FirmwareVersionTest()
         : firmwareVersion(Core::ProxyType<Plugin::FirmwareVersion>::Create())
     {
         interface = static_cast<Exchange::IFirmwareVersion*>(
             firmwareVersion->QueryInterface(Exchange::IFirmwareVersion::ID));
+         p_wrapsImplMock = new NiceMock<WrapsImplMock>;
+         Wraps::setImpl(p_wrapsImplMock);
     }
     virtual ~FirmwareVersionTest()
     {
+         Wraps::setImpl(nullptr);
+        if (p_wrapsImplMock != nullptr)
+        {
+            delete p_wrapsImplMock;
+            p_wrapsImplMock = nullptr;
+        }
         interface->Release();
     }
 
