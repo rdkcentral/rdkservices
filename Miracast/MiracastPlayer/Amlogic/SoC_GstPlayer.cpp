@@ -19,6 +19,7 @@
 
 #include <gst/audio/audio.h>
 #include <gst/app/gstappsink.h>
+#include <gst/app/gstappsrc.h>
 #include <unistd.h>
 #include <cstdio>
 #include <cstring>
@@ -189,124 +190,6 @@ bool SoC_GstPlayer::resume()
     return changePipelineState(GST_STATE_PLAYING);
 }
 
-bool SoC_GstPlayer::stop()
-{
-    MIRACASTLOG_TRACE("Entering..");
-
-    if (!m_pipeline)
-    {
-        MIRACASTLOG_ERROR("Pipeline is NULL");
-        return false;
-    }
-    m_statistics_thread_loop = false;
-    if (m_player_statistics_tid){
-        pthread_join(m_player_statistics_tid,nullptr);
-        m_player_statistics_tid = 0;
-    }
-    if (m_main_loop)
-    {
-        g_main_loop_quit(m_main_loop);
-    }
-    if (m_playback_thread)
-    {
-        pthread_join(m_playback_thread,nullptr);
-    }
-    GstStateChangeReturn ret;
-    ret = gst_element_set_state(m_pipeline, GST_STATE_NULL);
-    if (ret == GST_STATE_CHANGE_FAILURE)
-    {
-        MIRACASTLOG_ERROR("Failed to set gst_element_set_state as NULL");
-    }
-    GstBus *bus = gst_pipeline_get_bus(GST_PIPELINE(m_pipeline));
-    if (bus)
-    {
-        gst_bus_set_sync_handler(bus, nullptr, nullptr, nullptr);
-        gst_object_unref(bus);
-    }
-    if (m_audio_sink)
-    {
-        gst_object_unref(m_audio_sink);
-        m_audio_sink = nullptr;
-    }
-    if (m_audioconvert)
-    {
-        gst_object_unref(m_audioconvert);
-        m_audioconvert = nullptr;
-    }
-    if (m_avdec_aac)
-    {
-        gst_object_unref(m_avdec_aac);
-        m_avdec_aac = nullptr;
-    }
-    if (m_aacparse)
-    {
-        gst_object_unref(m_aacparse);
-        m_aacparse = nullptr;
-    }
-    if (m_aQueue)
-    {
-        gst_object_unref(m_aQueue);
-        m_aQueue = nullptr;
-    }
-    if (m_video_sink)
-    {
-        gst_object_unref(m_video_sink);
-        m_video_sink = nullptr;
-    }
-    if (m_h264parse)
-    {
-        gst_object_unref(m_h264parse);
-        m_h264parse = nullptr;
-    }
-    if (m_vQueue)
-    {
-        gst_object_unref(m_vQueue);
-        m_vQueue = nullptr;
-    }
-    if (m_tsdemux)
-    {
-        gst_object_unref(m_tsdemux);
-        m_tsdemux = nullptr;
-    }
-    if (m_tsparse)
-    {
-        gst_object_unref(m_tsparse);
-        m_tsparse = nullptr;
-    }
-    if (m_rtpmp2tdepay)
-    {
-        gst_object_unref(m_rtpmp2tdepay);
-        m_rtpmp2tdepay = nullptr;
-    }
-    if (m_rtpjitterbuffer)
-    {
-        gst_object_unref(m_rtpjitterbuffer);
-        m_tsparse = nullptr;
-    }
-    if (m_udpsrc)
-    {
-        gst_object_unref(m_udpsrc);
-        m_udpsrc = nullptr;
-    }
-    if (m_main_loop)
-    {
-        g_main_loop_unref(m_main_loop);
-        m_main_loop = nullptr;
-    }
-    if (m_main_loop_context)
-    {
-        g_main_context_unref(m_main_loop_context);
-        m_main_loop_context = nullptr;
-    }
-    if (m_pipeline)
-    {
-        g_object_unref(m_pipeline);
-        m_pipeline = nullptr;
-    }
-    MIRACASTLOG_TRACE("Exiting..");
-    return true;
-}
-
 bool SoC_GstPlayer::changePipelineState(GstState state) const
 {
     MIRACASTLOG_TRACE("Entering..!!!");
@@ -431,7 +314,7 @@ bool SoC_GstPlayer::seekTo(double seconds, GstElement *pipeline )
 
     if (!gst_element_seek(pipeline, 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, cur, GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE))
     {
-        MIRACASTLOG_VERBOSE("SeekToPos success\n");
+        MIRACASTLOG_VERBOSE("SeekToPos success");
         ret = true;
     }
     else
@@ -448,7 +331,7 @@ void SoC_GstPlayer::print_pipeline_state(GstElement *pipeline)
 
     if ( nullptr == pipeline )
     {
-        MIRACASTLOG_ERROR("pipeline is NULL. Can't proceed with print_pipeline_state(). \n");
+        MIRACASTLOG_ERROR("pipeline is NULL. Can't proceed with print_pipeline_state(). ");
     }
     else
     {
@@ -474,7 +357,7 @@ bool SoC_GstPlayer::get_player_statistics()
 
     if (nullptr == m_video_sink )
     {
-        MIRACASTLOG_ERROR("video-sink is NULL. Can't proceed with getPlayerStatistics(). \n");
+        MIRACASTLOG_ERROR("video-sink is NULL. Can't proceed with getPlayerStatistics(). ");
         return false;
     }
     MIRACASTLOG_INFO("============= Player Statistics =============");
@@ -517,7 +400,7 @@ bool SoC_GstPlayer::get_player_statistics()
         gst_structure_free( stats );
      }
     print_pipeline_state(m_pipeline);
-    MIRACASTLOG_INFO("\n=============================================\n");
+    MIRACASTLOG_INFO("\n=============================================");
     MIRACASTLOG_TRACE("Exiting..!!!");	
     return ret;
 }
@@ -526,7 +409,7 @@ gboolean SoC_GstPlayer::busMessageCb(GstBus *bus, GstMessage *msg, gpointer user
 {
     SoC_GstPlayer *self = static_cast<SoC_GstPlayer*>(userdata);
 
-    MIRACASTLOG_TRACE("Entering...\n");
+    MIRACASTLOG_TRACE("Entering...");
     switch (GST_MESSAGE_TYPE(msg))
     {
         case GST_MESSAGE_ERROR:
@@ -633,7 +516,7 @@ gboolean SoC_GstPlayer::busMessageCb(GstBus *bus, GstMessage *msg, gpointer user
         }
         break;
     }
-    MIRACASTLOG_TRACE("Exiting...\n");
+    MIRACASTLOG_TRACE("Exiting...");
     return TRUE;
 }
 
@@ -727,6 +610,7 @@ void SoC_GstPlayer::notifyPlaybackState(eMIRA_GSTPLAYER_STATES gst_player_state,
     MIRACASTLOG_TRACE("Exiting..!!!");
 }
 
+#if 0
 bool SoC_GstPlayer::createPipeline()
 {
     MIRACASTLOG_TRACE("Entering..!!!");
@@ -952,3 +836,742 @@ bool SoC_GstPlayer::createPipeline()
     MIRACASTLOG_TRACE("Exiting..!!!");
     return return_value;
 }
+
+bool SoC_GstPlayer::stop()
+{
+    MIRACASTLOG_TRACE("Entering..");
+
+    if (!m_pipeline)
+    {
+        MIRACASTLOG_ERROR("Pipeline is NULL");
+        return false;
+    }
+    m_statistics_thread_loop = false;
+    if (m_player_statistics_tid){
+        pthread_join(m_player_statistics_tid,nullptr);
+        m_player_statistics_tid = 0;
+    }
+    if (m_main_loop)
+    {
+        g_main_loop_quit(m_main_loop);
+    }
+    if (m_playback_thread)
+    {
+        pthread_join(m_playback_thread,nullptr);
+    }
+    GstStateChangeReturn ret;
+    ret = gst_element_set_state(m_pipeline, GST_STATE_NULL);
+    if (ret == GST_STATE_CHANGE_FAILURE)
+    {
+        MIRACASTLOG_ERROR("Failed to set gst_element_set_state as NULL");
+    }
+    GstBus *bus = gst_pipeline_get_bus(GST_PIPELINE(m_pipeline));
+    if (bus)
+    {
+        gst_bus_set_sync_handler(bus, nullptr, nullptr, nullptr);
+        gst_object_unref(bus);
+    }
+    if (m_audio_sink)
+    {
+        gst_object_unref(m_audio_sink);
+        m_audio_sink = nullptr;
+    }
+    if (m_audioconvert)
+    {
+        gst_object_unref(m_audioconvert);
+        m_audioconvert = nullptr;
+    }
+    if (m_avdec_aac)
+    {
+        gst_object_unref(m_avdec_aac);
+        m_avdec_aac = nullptr;
+    }
+    if (m_aacparse)
+    {
+        gst_object_unref(m_aacparse);
+        m_aacparse = nullptr;
+    }
+    if (m_aQueue)
+    {
+        gst_object_unref(m_aQueue);
+        m_aQueue = nullptr;
+    }
+    if (m_video_sink)
+    {
+        gst_object_unref(m_video_sink);
+        m_video_sink = nullptr;
+    }
+    if (m_h264parse)
+    {
+        gst_object_unref(m_h264parse);
+        m_h264parse = nullptr;
+    }
+    if (m_vQueue)
+    {
+        gst_object_unref(m_vQueue);
+        m_vQueue = nullptr;
+    }
+    if (m_tsdemux)
+    {
+        gst_object_unref(m_tsdemux);
+        m_tsdemux = nullptr;
+    }
+    if (m_tsparse)
+    {
+        gst_object_unref(m_tsparse);
+        m_tsparse = nullptr;
+    }
+    if (m_rtpmp2tdepay)
+    {
+        gst_object_unref(m_rtpmp2tdepay);
+        m_rtpmp2tdepay = nullptr;
+    }
+    if (m_rtpjitterbuffer)
+    {
+        gst_object_unref(m_rtpjitterbuffer);
+        m_tsparse = nullptr;
+    }
+    if (m_udpsrc)
+    {
+        gst_object_unref(m_udpsrc);
+        m_udpsrc = nullptr;
+    }
+    if (m_main_loop)
+    {
+        g_main_loop_unref(m_main_loop);
+        m_main_loop = nullptr;
+    }
+    if (m_main_loop_context)
+    {
+        g_main_context_unref(m_main_loop_context);
+        m_main_loop_context = nullptr;
+    }
+    if (m_pipeline)
+    {
+        g_object_unref(m_pipeline);
+        m_pipeline = nullptr;
+    }
+    MIRACASTLOG_TRACE("Exiting..");
+    return true;
+}
+#else
+#define DEFAULT_MAX_PUSH_BUFFER_SIZE    ( 1 * 1024 * 1024 )
+typedef struct
+{
+    guint sourceid;
+
+    GstElement *udpsrcProp;
+    GstElement *rtpjitterbufferProp;
+    GstElement *rtpmp2tdepayProp;
+    GstElement *tsparseProp;
+    GstElement *queueProp;
+    GstElement *appsinkProp;
+    GstElement *appsrcProp;
+
+    GstElement *udpsrc_appsink_pipeline;
+    GstElement *playbin_pipeline;
+    bool sampleAvailable;
+    GstCaps *capsSrc;
+    GstCaps *capsSink;
+    GMainLoop *loop;
+    gsize length;
+    gboolean bPushData;
+    gboolean bExit;
+    guint64     m_max_pushbuffer_size{DEFAULT_MAX_PUSH_BUFFER_SIZE};
+    guint64     m_current_pushbuffer_size{0};
+    guint8      *m_push_buffer_ptr{nullptr};
+    guint8      *m_current_buffer_ptr{nullptr};
+    bool m_destroyTimer{false};
+}
+MiracastCustomData;
+
+static MiracastCustomData *custom_data_ptr = nullptr;
+static MessageQueue* m_queueHandle = nullptr;
+
+static GstFlowReturn on_new_sample_from_sink(GstElement *elt, MiracastCustomData *self)
+{
+    GstSample *sample = NULL;
+    GstBuffer *buffer = NULL;
+    GstMapInfo map;
+
+    if (nullptr == self->appsrcProp)
+    {
+        MIRACASTLOG_WARNING("Yet to get the Appsrc handle");
+        return GST_FLOW_OK;
+    }
+
+    // Pull the sample from appsink
+    sample = gst_app_sink_pull_sample(GST_APP_SINK(elt));
+    if (!sample)
+    {
+        MIRACASTLOG_ERROR("Failed to pull sample from appsink\n");
+        return GST_FLOW_ERROR;
+    }
+
+    // Get the buffer from the sample
+    buffer = gst_sample_get_buffer(sample);
+    if (!buffer)
+    {
+        MIRACASTLOG_ERROR("Failed to get buffer from sample\n");
+        gst_sample_unref(sample);
+        return GST_FLOW_ERROR;
+    }
+
+    // Map the buffer for reading
+    if (!gst_buffer_map(buffer, &map, GST_MAP_READ))
+    {
+        MIRACASTLOG_ERROR("Failed to map buffer\n");
+        gst_sample_unref(sample);
+        return GST_FLOW_ERROR;
+    }
+
+    GstBuffer *new_buffer = gst_buffer_new_allocate(NULL, map.size, NULL);
+
+    // Copy data from the original buffer to the new buffer
+    gst_buffer_fill(new_buffer, 0, map.data, map.size);
+
+    MIRACASTLOG_INFO("==> Received sample size [%u][%x] <==",map.size,new_buffer);
+
+    m_queueHandle->sendData(static_cast<void*>(new_buffer));
+
+#if 0
+    if (GST_FLOW_OK != gst_app_src_push_buffer(GST_APP_SRC(self->appsrcProp), new_buffer))
+    {
+        MIRACASTLOG_ERROR("Failed to gst_app_src_push_buffer");
+    }
+#endif
+
+    // Unmap and cleanup
+    gst_buffer_unmap(buffer, &map);
+    gst_sample_unref(sample);
+
+    return GST_FLOW_OK;
+}
+
+/* called when we get a GstMessage from the source pipeline when we get EOS, we
+ * notify the appsrc of it. */
+static gboolean on_appsink_bus_message (GstBus * bus, GstMessage * message, MiracastCustomData * custom_data_ptr)
+{
+  GstElement *source;
+  //MIRACASTLOG_INFO("Entering...");
+  switch (GST_MESSAGE_TYPE (message))
+  {
+    case GST_MESSAGE_EOS:
+      MIRACASTLOG_INFO ("The source got dry");
+      source = gst_bin_get_by_name (GST_BIN (custom_data_ptr->udpsrc_appsink_pipeline), "miracast_appsink");
+      gst_app_src_end_of_stream (GST_APP_SRC (source));
+      gst_object_unref (source);
+      break;
+    case GST_MESSAGE_ERROR:
+    {
+        GError *error;
+        gchar *info;
+        gst_message_parse_error(message, &error, &info);
+        MIRACASTLOG_ERROR("Error received from element [%s | %s | %s].", GST_OBJECT_NAME(message->src), error->message, info ? info : "none");
+        g_error_free(error);
+        g_free(info);
+        GST_DEBUG_BIN_TO_DOT_FILE((GstBin *)custom_data_ptr->udpsrc_appsink_pipeline, GST_DEBUG_GRAPH_SHOW_ALL, "miracast_udpsrc2appsink_error");
+        gst_element_set_state(custom_data_ptr->udpsrc_appsink_pipeline, GST_STATE_READY);
+        g_main_loop_quit(custom_data_ptr->loop);
+        break;
+    }
+    case GST_MESSAGE_STATE_CHANGED:
+    {
+        GstState old, now, pending;
+        gst_message_parse_state_changed(message, &old, &now, &pending);
+        MIRACASTLOG_VERBOSE("[GST_MESSAGE_STATE_CHANGED] Element [%s], Pipeline state change from Old [%s] -> New [%s] and Pending state is [%s]",
+                                    GST_ELEMENT_NAME(GST_MESSAGE_SRC(message)),
+                                    gst_element_state_get_name(old),
+                                    gst_element_state_get_name(now),
+                                    gst_element_state_get_name(pending));
+
+        if (GST_MESSAGE_SRC(message) == GST_OBJECT(custom_data_ptr->udpsrc_appsink_pipeline))
+        {
+            char fileName[128] = {0};
+            static int playbin_id = 0;
+            playbin_id++;
+            snprintf( fileName,
+                        sizeof(fileName),
+                        "MiracastUdpsrcAppsink_%s_%s_%s_%s_DBG",
+                        GST_OBJECT_NAME(custom_data_ptr->udpsrc_appsink_pipeline),
+                        std::to_string(playbin_id).c_str(),
+                        gst_element_state_get_name(old),
+                        gst_element_state_get_name(now));
+            GST_DEBUG_BIN_TO_DOT_FILE((GstBin *)custom_data_ptr->udpsrc_appsink_pipeline, GST_DEBUG_GRAPH_SHOW_ALL, fileName);
+        }
+    }
+    break;
+    default:
+      break;
+  }
+  //MIRACASTLOG_INFO("Exiting...");
+  return TRUE;
+}
+
+/* called when we get a GstMessage from the sink pipeline when we get EOS, we
+ * exit the mainloop and this testapp. */
+static gboolean on_playbin_bus_message (GstBus * bus, GstMessage * message, MiracastCustomData *custom_data_ptr)
+{
+    // MIRACASTLOG_INFO("Entering...");
+    /* nil */
+    switch (GST_MESSAGE_TYPE(message))
+    {
+    case GST_MESSAGE_EOS:
+        MIRACASTLOG_INFO("Finished playback");
+        g_main_loop_quit(custom_data_ptr->loop);
+        break;
+    case GST_MESSAGE_ERROR:
+        MIRACASTLOG_ERROR("Received error");
+        GError *error;
+        gchar *info;
+        gst_message_parse_error(message, &error, &info);
+        MIRACASTLOG_ERROR("Error received from element [%s | %s | %s].", GST_OBJECT_NAME(message->src), error->message, info ? info : "none");
+        g_error_free(error);
+        g_free(info);
+        GST_DEBUG_BIN_TO_DOT_FILE((GstBin *)custom_data_ptr->playbin_pipeline, GST_DEBUG_GRAPH_SHOW_ALL, "miracast_playbin2appSrc_error");
+        g_main_loop_quit(custom_data_ptr->loop);
+        break;
+    case GST_MESSAGE_STATE_CHANGED:
+    {
+        GstState old, now, pending;
+        gst_message_parse_state_changed(message, &old, &now, &pending);
+        MIRACASTLOG_VERBOSE("[GST_MESSAGE_STATE_CHANGED] Element [%s], Pipeline state change from Old [%s] -> New [%s] and Pending state is [%s]",
+                                    GST_ELEMENT_NAME(GST_MESSAGE_SRC(message)),
+                                    gst_element_state_get_name(old),
+                                    gst_element_state_get_name(now),
+                                    gst_element_state_get_name(pending));
+
+        if (GST_MESSAGE_SRC(message) == GST_OBJECT(custom_data_ptr->playbin_pipeline))
+        {
+            char fileName[128] = {0};
+            static int playbin_id = 0;
+            playbin_id++;
+            snprintf( fileName,
+                        sizeof(fileName),
+                        "MiracastPlaybinAppsrc_%s_%s_%s_%s_DBG",
+                        GST_OBJECT_NAME(custom_data_ptr->playbin_pipeline),
+                        std::to_string(playbin_id).c_str(),
+                        gst_element_state_get_name(old),
+                        gst_element_state_get_name(now));
+            GST_DEBUG_BIN_TO_DOT_FILE((GstBin *)custom_data_ptr->playbin_pipeline, GST_DEBUG_GRAPH_SHOW_ALL, fileName);
+        }
+    }
+    break;
+    default:
+        break;
+    }
+    // MIRACASTLOG_INFO("Exiting...");
+    return TRUE;
+}
+
+static gboolean pushBufferToAppsrc(MiracastCustomData *self)
+{
+    MIRACASTLOG_TRACE("Entering...");
+    void* buffer;
+    GstBuffer *gstBuffer;
+    m_queueHandle->ReceiveData(buffer);
+
+    gstBuffer = static_cast<GstBuffer*>(buffer);
+
+    if (nullptr != gstBuffer)
+    {
+    #if 1
+        // Push the new buffer to appsrc
+        GstFlowReturn ret = gst_app_src_push_buffer(GST_APP_SRC(self->appsrcProp), gstBuffer);
+        if (ret != GST_FLOW_OK)
+        {
+            MIRACASTLOG_ERROR("Error pushing buffer to appsrc");
+        }
+    #endif
+    }
+    MIRACASTLOG_TRACE("Exiting...");
+    return TRUE;
+}
+
+// Module functions
+static void gst_bin_need_data(GstAppSrc *src, guint length, gpointer user_data)
+{
+    //MIRACASTLOG_INFO("Entering...");
+    MiracastCustomData *self = (MiracastCustomData *)user_data;
+    MIRACASTLOG_INFO("AppSrc empty");
+    if ((self->sourceid == 0) && (false == self->m_destroyTimer))
+    {
+        MIRACASTLOG_INFO("start feeding\n");
+        self->sourceid = g_idle_add((GSourceFunc)pushBufferToAppsrc, self);
+    }
+    self->bPushData = true;
+    //MIRACASTLOG_INFO("Exiting...");
+    return;
+}
+
+static void gst_bin_enough_data(GstAppSrc *src, gpointer user_data)
+{
+    MiracastCustomData *self = (MiracastCustomData *)user_data;
+    MIRACASTLOG_INFO("AppSrc Full!!!!");
+    if (self->sourceid != 0)
+    {
+        MIRACASTLOG_INFO("stop feeding\n");
+        g_source_remove(self->sourceid);
+        self->sourceid = 0;
+    }
+    self->bPushData = false;
+    return;
+}
+
+/* This function is called when playbin2 has created the appsrc element, so we have
+ * a chance to configure it. */
+static void source_setup(GstElement *pipeline, GstElement *source, MiracastCustomData *user_data)
+{
+    MiracastCustomData *pData = (MiracastCustomData *)user_data;
+    MIRACASTLOG_INFO("Entering...");
+    MIRACASTLOG_INFO("Source has been created. Configuring [%x]",source);
+    pData->appsrcProp = source;
+    // Set AppSrc parameters
+    GstAppSrcCallbacks callbacks = {gst_bin_need_data, gst_bin_enough_data, NULL};
+    gst_app_src_set_callbacks(GST_APP_SRC(pData->appsrcProp), &callbacks, (gpointer)(pData), NULL);
+    g_object_set(GST_APP_SRC(pData->appsrcProp), "max-bytes", (guint64) 20 * 1024 * 1024, NULL);
+
+    g_object_set(GST_APP_SRC(pData->appsrcProp), "format", GST_FORMAT_TIME, NULL);
+    g_object_set(GST_APP_SRC(pData->appsrcProp), "is-live", true, NULL);
+    const gchar *set_cap = "video/mpegts, systemstream=(boolean)true, packetsize=(int)188";
+    GstCaps *caps = gst_caps_from_string (set_cap);
+    g_object_set(GST_APP_SRC(pData->appsrcProp), "caps", caps, NULL);
+    if(caps) {
+      pData->capsSrc = caps;
+    }
+    MIRACASTLOG_INFO("Exiting... ");
+}
+
+static void gstBufferReleaseCallback(void* userParam)
+{
+    GstBuffer *gstBuffer;
+    gstBuffer = static_cast<GstBuffer*>(userParam);
+
+    if (nullptr != gstBuffer)
+    {
+        MIRACASTLOG_INFO("gstBuffer[%x]",gstBuffer);
+        gst_buffer_unref(gstBuffer);
+    }
+}
+
+bool SoC_GstPlayer::createPipeline()
+{
+    MIRACASTLOG_TRACE("Entering..!!!");
+    GstStateChangeReturn ret;
+    GstBus *bus = nullptr;
+    bool return_value = true;
+    custom_data_ptr = g_new0(MiracastCustomData, 1);
+    m_queueHandle = new MessageQueue(100,gstBufferReleaseCallback);
+
+    /* create gst pipeline */
+    m_main_loop_context = g_main_context_new();
+    g_main_context_push_thread_default(m_main_loop_context);
+    m_main_loop = g_main_loop_new(m_main_loop_context, FALSE);
+
+    MIRACASTLOG_INFO("Creating Pipeline...");
+
+    // Create a new pipeline
+    custom_data_ptr->udpsrc_appsink_pipeline = gst_pipeline_new("udp-appsink-pipeline");
+    // Create elements
+    custom_data_ptr->udpsrcProp = gst_element_factory_make("udpsrc", "miracast_udpsrc");
+    custom_data_ptr->rtpjitterbufferProp = gst_element_factory_make("rtpjitterbuffer", "miracast_rtpjitterbuffer");
+    custom_data_ptr->rtpmp2tdepayProp = gst_element_factory_make("rtpmp2tdepay", "miracast_rtpmp2tdepay");
+    custom_data_ptr->tsparseProp = gst_element_factory_make("tsparse", "miracast_tsparse");
+    custom_data_ptr->queueProp = gst_element_factory_make("queue", "miracast_queue");
+    custom_data_ptr->appsinkProp = gst_element_factory_make("appsink", "miracast_appsink");
+    m_video_sink = gst_element_factory_make("westerossink", "miracast_westerossink");
+    m_audio_sink = gst_element_factory_make("amlhalasink", "miracast_amlhalasink");
+
+    if (!custom_data_ptr->udpsrc_appsink_pipeline ||
+        !custom_data_ptr->udpsrcProp ||
+        !custom_data_ptr->rtpjitterbufferProp ||
+        !custom_data_ptr->rtpmp2tdepayProp ||
+        !custom_data_ptr->tsparseProp ||
+        !custom_data_ptr->queueProp ||
+        !custom_data_ptr->appsinkProp)
+    {
+        MIRACASTLOG_ERROR("Not all elements could be created.");
+        return -1;
+    }
+
+    /*{{{ udpsrc related element configuration*/
+    MIRACASTLOG_TRACE(">>>>>>>udpsrc configuration start");
+    MIRACASTLOG_TRACE("Set the port[%llu] and to udp source.",m_streaming_port);
+    g_object_set(G_OBJECT(custom_data_ptr->udpsrcProp), "port", m_streaming_port, nullptr);
+
+    GstCaps *caps = gst_caps_new_simple("application/x-rtp", "media", G_TYPE_STRING, "video", nullptr);
+    if (caps)
+    {
+        g_object_set(custom_data_ptr->udpsrcProp, "caps", caps, nullptr);
+        gst_caps_unref(caps);
+        MIRACASTLOG_TRACE("Set the caps to udp source.");
+    }
+    else
+    {
+        MIRACASTLOG_ERROR("Unable to Set caps to udp source.");
+    }
+    MIRACASTLOG_TRACE("udpsrc configuration end<<<<<<<<");
+    /*}}}*/
+
+    /*{{{ rtpjitterbuffer related element configuration*/
+    MIRACASTLOG_TRACE(">>>>>>>rtpjitterbuffer configuration start");
+    MIRACASTLOG_TRACE("Set the 'post-drop-messages' and 'do-lost' to rtpjitterbuffer.");
+    g_object_set(G_OBJECT(custom_data_ptr->rtpjitterbufferProp), 
+                    "post-drop-messages", true, "do-lost" , true , nullptr );
+    MIRACASTLOG_TRACE("rtpjitterbuffer configuration end<<<<<<<<");
+    /*}}}*/
+
+    /*{{{ tsparse related element configuration*/
+    MIRACASTLOG_TRACE(">>>>>>>tsparse configuration start");
+    uint64_t packetsPerBuffer = 512;
+    MIRACASTLOG_TRACE("Set 'set-timestamps' to tsparse");
+    g_object_set(G_OBJECT(custom_data_ptr->tsparseProp), "set-timestamps", true, nullptr );
+    MIRACASTLOG_TRACE("Set 'alignment' to tsparse");
+    g_object_set(G_OBJECT(custom_data_ptr->tsparseProp), "alignment", packetsPerBuffer, nullptr );
+    MIRACASTLOG_TRACE("tsparse configuration end<<<<<<<<");
+    /*}}}*/
+
+    /* to be notified of messages from this pipeline, mostly EOS */
+    bus = gst_element_get_bus(custom_data_ptr->udpsrc_appsink_pipeline);
+    gst_bus_add_watch(bus, (GstBusFunc)on_appsink_bus_message, custom_data_ptr);
+    gst_object_unref(bus);
+    
+    // Configure the appsink
+    g_object_set(G_OBJECT(custom_data_ptr->appsinkProp), "emit-signals", TRUE, "sync", FALSE, NULL);
+    
+    //gst_base_sink_set_sync(GST_BASE_SINK_CAST(appsink), false);
+    //MIRACASTLOG_INFO("===> gst_base_sink_set_sync, set to False");
+    g_object_set(G_OBJECT(custom_data_ptr->appsinkProp), "async", FALSE, NULL);
+
+    // Set up a signal handler for new buffer signals from appsink
+    g_signal_connect(G_OBJECT(custom_data_ptr->appsinkProp), "new-sample", G_CALLBACK(on_new_sample_from_sink), custom_data_ptr);
+
+    // Add elements to the pipeline
+    gst_bin_add_many(GST_BIN(custom_data_ptr->udpsrc_appsink_pipeline), 
+                        custom_data_ptr->udpsrcProp,
+                        custom_data_ptr->rtpjitterbufferProp,
+                        custom_data_ptr->queueProp,
+                        custom_data_ptr->rtpmp2tdepayProp,
+                        custom_data_ptr->tsparseProp,
+                        custom_data_ptr->appsinkProp,
+                        nullptr );
+
+    if (!gst_element_link_many(custom_data_ptr->udpsrcProp,
+                                custom_data_ptr->rtpjitterbufferProp,
+                                custom_data_ptr->queueProp,
+                                custom_data_ptr->rtpmp2tdepayProp,
+                                custom_data_ptr->tsparseProp,
+                                custom_data_ptr->appsinkProp,
+                                nullptr ))
+    {
+        MIRACASTLOG_ERROR("Elements could not be linked.");
+        gst_object_unref(custom_data_ptr->udpsrc_appsink_pipeline);
+        return -1;
+    }
+
+    // Set up pipeline
+    custom_data_ptr->playbin_pipeline = gst_element_factory_make("playbin", "miracast_playbin");
+    if (!custom_data_ptr->playbin_pipeline)
+    {
+        MIRACASTLOG_ERROR( "Failed to create pipeline.");
+    }
+    else
+    {
+        bus = gst_element_get_bus (custom_data_ptr->playbin_pipeline);
+        gst_bus_add_watch (bus, (GstBusFunc) on_playbin_bus_message, custom_data_ptr);
+        gst_object_unref (bus);
+        // Pipeline created
+        g_object_set(custom_data_ptr->playbin_pipeline, "uri", "appsrc://", nullptr);
+
+        //g_signal_connect( custom_data_ptr->playbin_pipeline, "deep-notify::source", G_CALLBACK(found_source), custom_data_ptr );
+        g_signal_connect(custom_data_ptr->playbin_pipeline, "source-setup", G_CALLBACK(source_setup), custom_data_ptr);
+        
+        /*{{{ westerossink related element configuration*/
+        MIRACASTLOG_TRACE(">>>>>>>westerossink configuration start");
+        updateVideoSinkRectangle();
+
+        g_signal_connect(m_video_sink, "first-video-frame-callback",G_CALLBACK(onFirstVideoFrameCallback), (gpointer)this);
+        MIRACASTLOG_TRACE("westerossink configuration end<<<<<<<<");
+        g_object_set(custom_data_ptr->playbin_pipeline, "video-sink", m_video_sink, nullptr);
+        /*}}}*/
+
+        /*{{{ amlhalasink related element configuration*/
+        MIRACASTLOG_TRACE(">>>>>>>amlhalasink configuration start");
+        
+        MIRACASTLOG_TRACE("Set disable-xrun as true to amlhalasink");
+        g_object_set(G_OBJECT(m_audio_sink), "disable-xrun" , true, nullptr );
+        MIRACASTLOG_INFO("[DEFAULT] Set avsync-mode as 2(IPTV) to amlhalasink");
+        g_object_set(G_OBJECT(m_audio_sink), "avsync-mode" , 2, nullptr );
+
+        MIRACASTLOG_TRACE("amlhalasink configuration end<<<<<<<<");
+        g_object_set(custom_data_ptr->playbin_pipeline, "audio-sink", m_audio_sink, nullptr);
+        /*}}}*/
+    }
+
+    g_main_context_pop_thread_default(m_main_loop_context);
+    pthread_create(&m_playback_thread, nullptr, SoC_GstPlayer::playbackThread, this);
+
+    /* launching things */
+    MIRACASTLOG_INFO("custom_data_ptr->playbin_pipeline, GST_STATE_PLAYING");
+    ret = gst_element_set_state(custom_data_ptr->udpsrc_appsink_pipeline, GST_STATE_PLAYING);
+    ret = gst_element_set_state(custom_data_ptr->playbin_pipeline, GST_STATE_PLAYING);
+
+    if (ret == GST_STATE_CHANGE_FAILURE)
+    {
+        MIRACASTLOG_ERROR("Unable to set the pipeline to the playing state.");
+        return_value = false;
+    }
+    else if (ret == GST_STATE_CHANGE_NO_PREROLL)
+    {
+        MIRACASTLOG_TRACE("Streaming live");
+        m_is_live = true;
+    }
+
+    MIRACASTLOG_TRACE("Exiting..!!!");
+    return return_value;
+}
+
+bool SoC_GstPlayer::stop()
+{
+    GstStateChangeReturn ret;
+    MIRACASTLOG_TRACE("Entering..");
+
+    if (!custom_data_ptr->playbin_pipeline)
+    {
+        MIRACASTLOG_ERROR("Pipeline is NULL");
+        return false;
+    }
+    custom_data_ptr->m_destroyTimer = true;
+    if (custom_data_ptr->sourceid != 0)
+    {
+        MIRACASTLOG_INFO("remove Timer");
+        g_source_remove(custom_data_ptr->sourceid);
+        custom_data_ptr->sourceid = 0;
+    }
+    ret = gst_element_set_state(custom_data_ptr->playbin_pipeline, GST_STATE_NULL);
+    if (ret == GST_STATE_CHANGE_FAILURE)
+    {
+        MIRACASTLOG_ERROR("Failed to set gst_element_set_state as NULL");
+    }
+    ret = gst_element_set_state(custom_data_ptr->udpsrc_appsink_pipeline, GST_STATE_NULL);
+    if (ret == GST_STATE_CHANGE_FAILURE)
+    {
+        MIRACASTLOG_ERROR("Failed to set gst_element_set_state as NULL");
+    }
+
+    if (m_main_loop)
+    {
+        g_main_loop_quit(m_main_loop);
+    }
+    if (m_playback_thread)
+    {
+        pthread_join(m_playback_thread,nullptr);
+    }
+    GstBus *bus = gst_pipeline_get_bus(GST_PIPELINE(custom_data_ptr->udpsrc_appsink_pipeline));
+    if (bus)
+    {
+        gst_bus_set_sync_handler(bus, nullptr, nullptr, nullptr);
+        gst_object_unref(bus);
+    }
+
+    bus = gst_pipeline_get_bus(GST_PIPELINE(custom_data_ptr->playbin_pipeline));
+    if (bus)
+    {
+        gst_bus_set_sync_handler(bus, nullptr, nullptr, nullptr);
+        gst_object_unref(bus);
+    }
+
+    if (m_audio_sink)
+    {
+        gst_object_unref(m_audio_sink);
+        m_audio_sink = nullptr;
+    }
+    if (m_audioconvert)
+    {
+        gst_object_unref(m_audioconvert);
+        m_audioconvert = nullptr;
+    }
+    if (m_avdec_aac)
+    {
+        gst_object_unref(m_avdec_aac);
+        m_avdec_aac = nullptr;
+    }
+    if (m_aacparse)
+    {
+        gst_object_unref(m_aacparse);
+        m_aacparse = nullptr;
+    }
+    if (m_aQueue)
+    {
+        gst_object_unref(m_aQueue);
+        m_aQueue = nullptr;
+    }
+    if (m_video_sink)
+    {
+        gst_object_unref(m_video_sink);
+        m_video_sink = nullptr;
+    }
+    if (m_h264parse)
+    {
+        gst_object_unref(m_h264parse);
+        m_h264parse = nullptr;
+    }
+    if (m_vQueue)
+    {
+        gst_object_unref(m_vQueue);
+        m_vQueue = nullptr;
+    }
+    if (m_tsdemux)
+    {
+        gst_object_unref(m_tsdemux);
+        m_tsdemux = nullptr;
+    }
+    if (m_tsparse)
+    {
+        gst_object_unref(m_tsparse);
+        m_tsparse = nullptr;
+    }
+    if (m_rtpmp2tdepay)
+    {
+        gst_object_unref(m_rtpmp2tdepay);
+        m_rtpmp2tdepay = nullptr;
+    }
+    if (m_rtpjitterbuffer)
+    {
+        gst_object_unref(m_rtpjitterbuffer);
+        m_tsparse = nullptr;
+    }
+    if (m_udpsrc)
+    {
+        gst_object_unref(m_udpsrc);
+        m_udpsrc = nullptr;
+    }
+    if (m_main_loop)
+    {
+        g_main_loop_unref(m_main_loop);
+        m_main_loop = nullptr;
+    }
+    if (m_main_loop_context)
+    {
+        g_main_context_unref(m_main_loop_context);
+        m_main_loop_context = nullptr;
+    }
+    if (m_pipeline)
+    {
+        g_object_unref(m_pipeline);
+        m_pipeline = nullptr;
+    }
+    if ( custom_data_ptr )
+    {
+        g_free(custom_data_ptr);
+        custom_data_ptr = nullptr;
+    }
+    if (m_queueHandle)
+    {
+        delete m_queueHandle;
+        m_queueHandle = nullptr;
+    }
+    MIRACASTLOG_TRACE("Exiting..");
+    return true;
+}
+#endif
