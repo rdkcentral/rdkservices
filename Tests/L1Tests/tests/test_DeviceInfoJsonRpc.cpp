@@ -11,6 +11,7 @@
 #include "VideoOutputPortMock.h"
 #include "VideoOutputPortTypeMock.h"
 #include "VideoResolutionMock.h"
+#include "WrapsMock.h"
 
 #include "SystemInfo.h"
 
@@ -30,6 +31,7 @@ protected:
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
+    WrapsImplMock *p_wrapsImplMock = nullptr;
 
     DeviceInfoJsonRpcTest()
         : plugin(Core::ProxyType<Plugin::DeviceInfo>::Create())
@@ -52,6 +54,9 @@ protected:
     {
         p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
         IarmBus::setImpl(p_iarmBusImplMock);
+        
+        p_wrapsImplMock = new NiceMock<WrapsImplMock>;
+        Wraps::setImpl(p_wrapsImplMock);
 
         p_managerImplMock  = new NiceMock <ManagerImplMock>;
         device::Manager::setImpl(p_managerImplMock);
@@ -85,6 +90,12 @@ protected:
         {
             delete p_managerImplMock;
             p_managerImplMock = nullptr;
+        }
+        Wraps::setImpl(nullptr);
+        if (p_wrapsImplMock != nullptr)
+        {
+            delete p_wrapsImplMock;
+            p_wrapsImplMock = nullptr;
         }
     }
 };
