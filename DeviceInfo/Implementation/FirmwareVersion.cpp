@@ -2,6 +2,9 @@
 
 #include <fstream>
 #include <regex>
+#include <sstream>  
+#include <string>
+#include "secure_wrapper.h"
 
 namespace WPEFramework {
 namespace Plugin {
@@ -26,6 +29,36 @@ namespace Plugin {
 
             return result;
         }
+
+       uint32_t FirmwareVersion::Pdri(string& pdri) const
+       {
+           FILE* fp = v_secure_popen("r", "/usr/bin/mfr_util --PDRIVersion");
+    	   if (!fp) {
+               return Core::ERROR_GENERAL;
+    	   }
+		
+		   std::ostringstream oss;
+    	   char buffer[256];
+    	   while (fgets(buffer, sizeof(buffer), fp) != nullptr) {
+        	   oss << buffer;
+           }
+    	   v_secure_pclose(fp);
+		
+    	   pdri = oss.str();
+
+    	  // Remove trailing newline if present
+    	  if (!pdri.empty() && pdri.back() == '\n') {
+              pdri.pop_back();
+    	  }
+
+    	  // Return empty as PDRI version when device does not have pdri image
+    	  if (pdri.find("failed") != std::string::npos) {
+		      TRACE(Trace::Error, (_T("no/bad PDRI Image found")));
+    	      pdri = "";Expand commentComment on line R65ResolvedCode has comments. Press enter to view.
+    	  }
+
+    	  return Core::ERROR_NONE;
+      }
     }
 
     SERVICE_REGISTRATION(FirmwareVersion, 1, 0);

@@ -142,6 +142,7 @@ jobs:
           cd ThunderInterfaces
           patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/DeviceInfo_brand_R2_L1tests.patch
           patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-RDKEMW-2565-Add-deviceIdentification-plugin-details-.patch
+          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/AddPdriApi.patch
           cd ..
 
       - name: Build ThunderInterfaces
@@ -245,7 +246,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/secure_wrappermock.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/WpaCtrl.h
           -Wall -Werror -Wno-error=format=
-          -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
+          -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog -Wl,-wrap,v_secure_system -Wl,-wrap,v_secure_popen -Wl,-wrap,v_secure_pclose -Wl,-wrap,v_secure_system -Wl,-wrap,pclose
           -DENABLE_TELEMETRY_LOGGING
           -DUSE_IARMBUS
           -DENABLE_SYSTEM_GET_STORE_DEMO_LINK
