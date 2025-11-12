@@ -2,6 +2,9 @@
 
 #include <fstream>
 #include <regex>
+#include <sstream>  
+#include <string>
+#include "secure_wrapper.h"
 
 namespace WPEFramework {
 namespace Plugin {
