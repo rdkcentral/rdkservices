@@ -390,6 +390,8 @@ public:
             {
                 soundmode = aPort.getStereoMode();
                 if (soundmode == device::AudioStereoMode::kSurround) mode = SURROUND;
+                else if(soundmode == device::AudioStereoMode::kDD) mode = DOLBYDIGITAL;
+                else if(soundmode == device::AudioStereoMode::kDDPlus) mode = DOLBYDIGITALPLUS;
                 else if(soundmode == device::AudioStereoMode::kStereo) mode = STEREO;
                 else if(soundmode == device::AudioStereoMode::kMono) mode = MONO;
                 else if(soundmode == device::AudioStereoMode::kPassThru) mode = PASSTHRU;
