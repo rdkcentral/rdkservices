@@ -29,8 +29,9 @@ namespace Plugin {
 
             return result;
         }
+  }
 
-   SERVICE_REGISTRATION(FirmwareVersion, 1, 0);
+    SERVICE_REGISTRATION(FirmwareVersion, 1, 0);
 
     uint32_t FirmwareVersion::Imagename(string& imagename) const
     {
