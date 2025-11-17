@@ -29,7 +29,7 @@ namespace Plugin {
 
             return result;
         }
-   }
+    }
 
     SERVICE_REGISTRATION(FirmwareVersion, 1, 0);
 
