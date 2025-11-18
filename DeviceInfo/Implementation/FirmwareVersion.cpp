@@ -66,7 +66,6 @@ namespace Plugin {
     	 }
 
     	  return Core::ERROR_NONE;
-      }
     }
 
     uint32_t FirmwareVersion::Sdk(string& sdk) const
