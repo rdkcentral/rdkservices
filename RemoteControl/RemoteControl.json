@@ -69,7 +69,7 @@
                     "name": {
                         "summary": "The remote name",
                         "type": "string",
-                        "example": "P073 SkyQ EC201"
+                        "example": "P073 MyQ EC201"
                     },
                     "remoteId": {
                         "summary": "This integer is the remote ID number, assigned by the network",
@@ -144,7 +144,7 @@
                     "wakeupCustomList": {
                         "summary": "will only be present if wakeupConfig is custom, this parameter will list the linux keycodes that can wake the target from deepsleep",
                         "type": "string",
-                        "example":"[3,1]"
+                        "example": "[3,1]"
                     },
                     "upgradeSessionId": {
                         "$ref": "#/definitions/upgradeSessionId"
@@ -173,20 +173,29 @@
                 "IN_PROGRESS",
                 "CTRLM_RESTART"
             ],
-            "example": "SUCCESS"
+            "example": "PENDING"
         },
         "validationCode": {
             "summary": "The pairing code for manual pairing which consists of 3 key codes (KEY_*).",
             "type": "array",
             "items": {
-                "type":"integer",
-                "example": "[2, 3, 4] -> [KEY_1, KEY_2, KEY_3]"
+                "type": "integer",
+                "example": "2, 3, 4"
             }
         },
         "validationKey": {
             "summary": "A single key code (KEY_*) that is used to validate against the manual pair code in manual pairing mode.",
             "type": "integer",
-            "example": "2 -> KEY_1"
+            "example": 2
+        },
+        "validationStatusObject": {
+            "type": "object",
+            "properties": {
+                "status": { "$ref": "#/definitions/validationStatus" },
+                "code":   { "$ref": "#/definitions/validationCode"   },
+                "key":    { "$ref": "#/definitions/validationKey"    }
+            },
+            "required": [ "status" ]
         },
         "avDevType": {
             "summary": "Whether the device is a video (TV) or audio (AVR, amplifier, or soundbar) device",
@@ -200,7 +209,7 @@
         "manufacturer": {
             "summary": "The manufacturer name of the AV device",
             "type": "string",
-            "example": "Samsung"
+            "example": "TvManfacName"
         },
         "model": {
             "summary": "The model name of the AV device",
@@ -254,7 +263,7 @@
             }
         },
         "result": {
-            "type":"object",
+            "type": "object",
             "properties": {
                 "success": {
                     "$ref": "#/definitions/success"
@@ -345,7 +354,7 @@
         "startPairing": {
             "summary": "Initiates pairing a remote with the STB on the specified network.",
             "events": {
-                "onStatus" : "pairingState will be updated to relect the current status of the request, along with updated remoteData upon a successful pairing."
+                "onStatus": "pairingState will be updated to reflect the current status of the request, along with updated remoteData upon a successful pairing."
             },
             "params": {
                 "type": "object",
@@ -422,7 +431,7 @@
         "clearIRCodes": {
             "summary": "Clears the IR codes from the specified remote.",
             "events": {
-                "onStatus" : "irProgState will be updated to relect the current status of the request"
+                "onStatus": "irProgState will be updated to reflect the current status of the request"
             },
             "params": {
                 "type": "object",
@@ -446,7 +455,7 @@
         "setIRCode": {
             "summary": "Programs an IR code into the specified remote control.",
             "events":{
-                "onStatus" : "irProgState will be updated to relect the current status of the request"
+                "onStatus": "irProgState will be updated to reflect the current status of the request"
             },
             "params": {
                 "type": "object",
@@ -496,7 +505,7 @@
                     "tvManufacturer": {
                         "summary": "The TV manufacturer for which codes are provided",
                         "type": "string",
-                        "example": "Samsung"
+                        "example": "TvManfacName"
                     },
                     "tvModel": {
                         "summary": "The TV model for which codes are provided (this is a best guess and might not be completely accurate)",
@@ -514,7 +523,7 @@
                     "avrManufacturer": {
                         "summary": "The AVR manufacturer for which codes are provided",
                         "type": "string",
-                        "example": "Samsung"
+                        "example": "TvManfacName"
                     },
                     "avrModel": {
                         "summary": "The AVR model for which codes are provided (this is a best guess and might not be completely accurate)",
@@ -632,7 +641,7 @@
                         "type": "array",
                         "items": {
                             "type": "string",
-                            "example": "Samsung"
+                            "example": "TvManfacName"
                         }
                     },
                     "success": {
@@ -855,7 +864,7 @@
         "startFirmwareUpdate": {
             "summary": "Starts a firmware image update session for the specified remote(s).",
             "events":{
-                "onFirmwareUpdateProgress" : "Generated at 0 and 100 percent and each time a download percent increment is reached"
+                "onFirmwareUpdateProgress": "Generated at 0 and 100 percent and each time a download percent increment is reached"
             },
             "params": {
                 "type": "object",
@@ -1029,20 +1038,13 @@
                 "type": "object",
                 "properties": {
                     "status": {
-                        "$ref": "#/definitions/validationStatus"
-                    },
-                    "code": {
-                        "$ref": "#/definitions/validationCode"
-                    },
-                    "key": {
-                        "$ref": "#/definitions/validationKey"
+                        "$ref": "#/definitions/validationStatusObject"
                     }
                 },
                 "required": [
                     "status"
                 ]
             }
-
         }
     }
 }
