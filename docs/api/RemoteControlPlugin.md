@@ -2,7 +2,7 @@
 <a name="RemoteControl_Plugin"></a>
 # RemoteControl Plugin
 
-**Version: [1.5.4](https://github.com/rdkcentral/rdkservices/blob/main/RemoteControl/CHANGELOG.md)**
+**Version: [1.6.0](https://github.com/rdkcentral/rdkservices/blob/main/RemoteControl/CHANGELOG.md)**
 
 A org.rdk.RemoteControl plugin for Thunder framework.
 
@@ -198,7 +198,7 @@ No Events
                 {
                     "macAddress": "E8:1C:FD:9A:07:1E",
                     "connected": true,
-                    "name": "P073 SkyQ EC201",
+                    "name": "P073 MyQ EC201",
                     "remoteId": 1,
                     "deviceId": 65,
                     "make": "Omni Remotes",
@@ -231,7 +231,7 @@ Initiates pairing a remote with the STB on the specified network.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onStatus](#onStatus) | pairingState will be updated to relect the current status of the request, along with updated remoteData upon a successful pairing. |
+| [onStatus](#onStatus) | pairingState will be updated to reflect the current status of the request, along with updated remoteData upon a successful pairing. |
 ### Parameters
 
 | Name | Type | Description |
@@ -393,7 +393,7 @@ Clears the IR codes from the specified remote.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onStatus](#onStatus) | irProgState will be updated to relect the current status of the request |
+| [onStatus](#onStatus) | irProgState will be updated to reflect the current status of the request |
 ### Parameters
 
 | Name | Type | Description |
@@ -446,7 +446,7 @@ Programs an IR code into the specified remote control.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onStatus](#onStatus) | irProgState will be updated to relect the current status of the request |
+| [onStatus](#onStatus) | irProgState will be updated to reflect the current status of the request |
 ### Parameters
 
 | Name | Type | Description |
@@ -547,12 +547,12 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "tvManufacturer": "Samsung",
+        "tvManufacturer": "TvManfacName",
         "tvModel": "AH5",
         "tvCodes": [
             "1156"
         ],
-        "avrManufacturer": "Samsung",
+        "avrManufacturer": "TvManfacName",
         "avrModel": "AH5",
         "avrCodes": [
             "R2467"
@@ -605,7 +605,7 @@ No Events
     "params": {
         "netType": 21,
         "avDevType": "AMP",
-        "manufacturer": "Samsung",
+        "manufacturer": "TvManfacName",
         "model": "AH5901068L"
     }
 }
@@ -619,7 +619,7 @@ No Events
     "id": 42,
     "result": {
         "avDevType": "AMP",
-        "manufacturer": "Samsung",
+        "manufacturer": "TvManfacName",
         "model": "AH5901068L",
         "codes": [
             "R2467"
@@ -683,7 +683,7 @@ No Events
     "result": {
         "avDevType": "AMP",
         "manufacturers": [
-            "Samsung"
+            "TvManfacName"
         ],
         "success": true
     }
@@ -732,7 +732,7 @@ No Events
     "params": {
         "netType": 21,
         "avDevType": "AMP",
-        "manufacturer": "Samsung",
+        "manufacturer": "TvManfacName",
         "model": "AH5"
     }
 }
@@ -746,7 +746,7 @@ No Events
     "id": 42,
     "result": {
         "avDevType": "AMP",
-        "manufacturer": "Samsung",
+        "manufacturer": "TvManfacName",
         "models": [
             "AH5901068L"
         ],
@@ -1274,7 +1274,7 @@ Triggered at any time when the status of any one of the supported STB remote net
                 {
                     "macAddress": "E8:1C:FD:9A:07:1E",
                     "connected": true,
-                    "name": "P073 SkyQ EC201",
+                    "name": "P073 MyQ EC201",
                     "remoteId": 1,
                     "deviceId": 65,
                     "make": "Omni Remotes",
@@ -1342,10 +1342,29 @@ Generated for manual pairing validation.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.status | string | The validation status of the manual pairing request. (must be one of the following: *SUCCESS*, *PENDING*, *TIMEOUT*, *COLLISION*, *FAILURE*, *ABORT*, *FULL_ABORT*, *FAILED*, *BIND_TABLE_FULL*, *IN_PROGRESS*, *CTRLM_RESTART*) |
-| params?.code | array | <sup>*(optional)*</sup> The pairing code for manual pairing which consists of 3 key codes (KEY_*) |
-| params?.code[#] | integer | <sup>*(optional)*</sup>  |
-| params?.key | integer | <sup>*(optional)*</sup> A single key code (KEY_*) that is used to validate against the manual pair code in manual pairing mode |
+| params.status | object |  |
+| params.status.status | string | The validation status of the manual pairing request. (must be one of the following: *SUCCESS*, *PENDING*, *TIMEOUT*, *COLLISION*, *FAILURE*, *ABORT*, *FULL_ABORT*, *FAILED*, *BIND_TABLE_FULL*, *IN_PROGRESS*, *CTRLM_RESTART*) |
+| params.status?.code | array | <sup>*(optional)*</sup> The pairing code for manual pairing which consists of 3 key codes (KEY_*) |
+| params.status?.code[#] | integer | <sup>*(optional)*</sup>  |
+| params.status?.key | integer | <sup>*(optional)*</sup> A single key code (KEY_*) that is used to validate against the manual pair code in manual pairing mode |
 
 ### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onValidation",
+    "params": {
+        "status": {
+            "status": "PENDING",
+            "code": [
+                2,
+                3,
+                4
+            ],
+            "key": 2
+        }
+    }
+}
+```
 
