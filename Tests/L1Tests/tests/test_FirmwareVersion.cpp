@@ -25,6 +25,7 @@ protected:
     }
     virtual ~FirmwareVersionTest()
     {
+        Wraps::setImpl(nullptr);
         if (p_wrapsImplMock != nullptr)
         {
             delete p_wrapsImplMock;
