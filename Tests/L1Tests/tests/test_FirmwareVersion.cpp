@@ -20,8 +20,8 @@ protected:
     {
         interface = static_cast<Exchange::IFirmwareVersion*>(
             firmwareVersion->QueryInterface(Exchange::IFirmwareVersion::ID));
-         p_wrapsImplMock = new NiceMock<WrapsImplMock>;
-         Wraps::setImpl(p_wrapsImplMock);
+        p_wrapsImplMock = new NiceMock<WrapsImplMock>;
+        Wraps::setImpl(p_wrapsImplMock);
     }
     virtual ~FirmwareVersionTest()
     {
