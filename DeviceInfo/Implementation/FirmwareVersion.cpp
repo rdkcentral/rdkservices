@@ -40,32 +40,32 @@ namespace Plugin {
 
     uint32_t FirmwareVersion::Pdri(string& pdri) const
     {
-         FILE* fp = v_secure_popen("r", "/usr/bin/mfr_util --PDRIVersion");
-    	 if (!fp) {
+        FILE* fp = v_secure_popen("r", "/usr/bin/mfr_util --PDRIVersion");
+        if (!fp) {
             return Core::ERROR_GENERAL;
-    	 }
-		
-		 std::ostringstream oss;
-    	 char buffer[256];
-    	 while (fgets(buffer, sizeof(buffer), fp) != nullptr) {
-        	 oss << buffer;
-         }
-    	 v_secure_pclose(fp);
-		
-    	 pdri = oss.str();
+        }
 
-    	 // Remove trailing newline if present
-    	 if (!pdri.empty() && pdri.back() == '\n') {
-             pdri.pop_back();
-    	 }
+        std::ostringstream oss;
+        char buffer[256];
+        while (fgets(buffer, sizeof(buffer), fp) != nullptr) {
+            oss << buffer;
+        }
+        v_secure_pclose(fp);
 
-    	  // Return empty as PDRI version when device does not have pdri image
-    	 if (pdri.find("failed") != std::string::npos) {
-		    TRACE(Trace::Error, (_T("no/bad PDRI Image found")));
-    	     pdri = "";
-    	 }
+        pdri = oss.str();
 
-    	  return Core::ERROR_NONE;
+        // Remove trailing newline if present
+        if (!pdri.empty() && pdri.back() == '\n') {
+            pdri.pop_back();
+        }
+
+        // Return empty as PDRI version when device does not have pdri image
+        if (pdri.find("failed") != std::string::npos) {
+            TRACE(Trace::Error, (_T("no/bad PDRI Image found")));
+            pdri = "";
+        }
+
+        return Core::ERROR_NONE;
     }
 
     uint32_t FirmwareVersion::Sdk(string& sdk) const
