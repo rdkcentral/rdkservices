@@ -644,7 +644,7 @@ No Events
         "sdk": "17.3",
         "mediarite": "8.3.53",
         "yocto": "dunfell",
-         "pdri": "COESST11AEI_PDRI_PROD_20240119170804_3.2.2.0.bin"
+        "pdri": "COESST11AEI_PDRI_PROD_20240119170804_3.2.2.0.bin"
     }
 }
 ```
