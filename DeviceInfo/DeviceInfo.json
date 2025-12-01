@@ -453,6 +453,10 @@
           "yocto": {
             "type": "string",
             "$ref": "#/definitions/yocto"
+          },
+          "pdri": {
+            "type": "string",
+            "example": "COESST11AEI_PDRI_PROD_20240119170804_3.2.2.0.bin"
           }
         },
         "required": [
