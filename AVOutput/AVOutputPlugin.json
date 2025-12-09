@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+  "info": {
+      "title": "AVOutput Plugin",
+      "callsign": "org.rdk.AVOutput",
+      "locator": "libWPEFrameworkAVOutput.so",
+      "status": "production",
+      "description": "The AVOutput plugin lets you control the picture properties. It provides flexibility to modify picture properties per picture mode, source and format to the application. The `AVOutput` plugin replaces `ControlSettings` plugin.",
+      "autostart": true
+    },
+    "interface": {
+      "$ref": "AVOutput.json#"
+    }
+}
