@@ -312,6 +312,11 @@ public:
         dsATMOSCapability_t atmosCapability = dsAUDIO_ATMOS_NOTSUPPORTED;
         supported = false;
         string audioPort = "HDMI0"; //default to HDMI
+        if (!device::Host::getInstance().isHDMIOutPortPresent())
+	{
+            audioPort = "SPEAKER0"; // This device is likely to be TV. Default audio outport are speakers
+            TRACE(Trace::Error, (_T("isHDMIOutPortPresent port not present so default port is SPEAKER0 !\n")));
+	}
         try
         {
             /*  Check if the device has an HDMI_ARC out. If ARC is connected, then SPEAKERS and SPDIF are disabled.
@@ -330,6 +335,7 @@ public:
             device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
             if (aPort.isConnected())
             {
+                TRACE(Trace::Error, (_T("getSinkAtmosCapability for the connected port audioPort: %s !\n",audioPort.c_str())));
                 aPort.getSinkDeviceAtmosCapability(atmosCapability);
             }
             else
