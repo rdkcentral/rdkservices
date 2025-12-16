@@ -28,8 +28,8 @@ set(PLUGIN_PERSISTENTSTORE_PATH "/opt/secure/persistent/rdkservicestore" CACHE S
 set(PLUGIN_PERSISTENTSTORE_LEGACYPATH "/opt/persistent/rdkservicestore" CACHE STRING "Previously used path")
 set(PLUGIN_PERSISTENTSTORE_KEY "" CACHE STRING "Encryption key")
 set(PLUGIN_PERSISTENTSTORE_MAXSIZE "1000000" CACHE STRING "For all text data, in bytes")
-set(PLUGIN_PERSISTENTSTORE_MAXVALUE "3000" CACHE STRING "For single text data, in bytes")
-set(PLUGIN_PERSISTENTSTORE_LIMIT "10000" CACHE STRING "Default for all text data in namespace, in bytes")
+set(PLUGIN_PERSISTENTSTORE_MAXVALUE "10000" CACHE STRING "For single text data, in bytes")
+set(PLUGIN_PERSISTENTSTORE_LIMIT "50000" CACHE STRING "Default for all text data in namespace, in bytes")
 set(PLUGIN_PERSISTENTSTORE_STARTUPORDER "" CACHE STRING "To configure startup order of PersistentStore plugin")
 
 add_library(${MODULE_NAME} SHARED
