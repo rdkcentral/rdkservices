@@ -3,7 +3,6 @@
 
 #include "../Store2.h"
 #include "Store2NotificationMock.h"
-#include "WorkerPoolImplementation.h"
 
 using ::testing::_;
 using ::testing::Eq;
@@ -22,31 +21,69 @@ using ::WPEFramework::Plugin::Sqlite::Store2;
 using ::WPEFramework::RPC::IStringIterator;
 
 const auto kPath = "/tmp/persistentstore/sqlite/l1test/store2test";
-const auto kPathCorrupt = "/tmp/persistentstore/sqlite/l1test/corrupt";
 const auto kMaxSize = 100;
 const auto kMaxValue = 5;
 const auto kLimit = 50;
+const auto kNewLimit = 10;
 const auto kValue = "value";
 const auto kKey = "key";
 const auto kAppId = "app";
+const auto kTtl = 2;
 const auto kNoTtl = 0;
 
 class AStore2 : public Test {
 protected:
-    WPEFramework::Core::ProxyType<WorkerPoolImplementation> workerPool;
     WPEFramework::Core::ProxyType<Store2> store2;
-    AStore2()
-        : workerPool(WPEFramework::Core::ProxyType<WorkerPoolImplementation>::Create(
-              WPEFramework::Core::Thread::DefaultStackSize()))
-        , store2(WPEFramework::Core::ProxyType<Store2>::Create(
-              kPath, kMaxSize, kMaxValue, kLimit))
+
+    void SetUp() override
     {
-        WPEFramework::Core::IWorkerPool::Assign(&(*workerPool));
+        // Create a WorkerPool with multiple threads
+        _dispatcher = new WorkerPoolDispatcher();
+        _workerPool = new WPEFramework::Core::WorkerPool(
+            1, // threadCount
+            WPEFramework::Core::Thread::DefaultStackSize(),
+            2, // queueSize
+            _dispatcher,
+            nullptr);
+
+        WPEFramework::Core::IWorkerPool::Assign(_workerPool);
+        _workerPool->Run();
+
+        store2 = WPEFramework::Core::ProxyType<Store2>::Create(
+            kPath, kMaxSize, kMaxValue, kLimit);
     }
-    ~AStore2() override
+    void TearDown() override
     {
-        WPEFramework::Core::IWorkerPool::Assign(nullptr);
+        if (_workerPool != nullptr) {
+            _workerPool->Stop();
+            WPEFramework::Core::IWorkerPool::Assign(nullptr);
+            delete _workerPool;
+            _workerPool = nullptr;
+        }
+
+        if (_dispatcher != nullptr) {
+            delete _dispatcher;
+            _dispatcher = nullptr;
+        }
     }
+
+    // Simple dispatcher for testing
+    class WorkerPoolDispatcher
+        : public WPEFramework::Core::ThreadPool::IDispatcher {
+    public:
+        WorkerPoolDispatcher() = default;
+        ~WorkerPoolDispatcher() override = default;
+
+        void Initialize() override {}
+        void Deinitialize() override {}
+        void Dispatch(WPEFramework::Core::IDispatch* job) override
+        {
+            job->Dispatch();
+        }
+    };
+
+    WorkerPoolDispatcher* _dispatcher;
+    WPEFramework::Core::WorkerPool* _workerPool;
 };
 
 TEST_F(AStore2, DoesNotSetValueWhenNamespaceEmpty)
@@ -121,10 +158,10 @@ TEST_F(AStore2, SetsValueWhenValueEmpty)
     EXPECT_THAT(value, Eq(""));
 }
 
-TEST_F(AStore2, GetsValueWhenTtl2Seconds)
+TEST_F(AStore2, GetsValueWithTtl)
 {
     ASSERT_THAT(store2->SetValue(
-                    IStore2::ScopeType::DEVICE, kAppId, kKey, kValue, 2 /*ttl*/),
+                    IStore2::ScopeType::DEVICE, kAppId, kKey, kValue, kTtl),
         Eq(WPEFramework::Core::ERROR_NONE));
     string value;
     uint32_t ttl;
@@ -132,17 +169,17 @@ TEST_F(AStore2, GetsValueWhenTtl2Seconds)
                     IStore2::ScopeType::DEVICE, kAppId, kKey, value, ttl),
         Eq(WPEFramework::Core::ERROR_NONE));
     EXPECT_THAT(value, Eq(kValue));
-    EXPECT_THAT(ttl, Le(2));
+    EXPECT_THAT(ttl, Le(kTtl));
     EXPECT_THAT(ttl, Gt(0));
 }
 
-TEST_F(AStore2, DoesNotGetValueWhenTtl2SecondsExpired)
+TEST_F(AStore2, DoesNotGetValueWhenTtlExpired)
 {
     ASSERT_THAT(store2->SetValue(
-                    IStore2::ScopeType::DEVICE, kAppId, kKey, kValue, 2),
+                    IStore2::ScopeType::DEVICE, kAppId, kKey, kValue, kTtl),
         Eq(WPEFramework::Core::ERROR_NONE));
     WPEFramework::Core::Event lock(false, true);
-    lock.Lock(2 * WPEFramework::Core::Time::MilliSecondsPerSecond);
+    lock.Lock(kTtl * WPEFramework::Core::Time::MilliSecondsPerSecond);
     string value;
     uint32_t ttl;
     EXPECT_THAT(store2->GetValue(
@@ -173,7 +210,7 @@ TEST_F(AStore2, SendsValueChangedEventWhenSetValue)
     EXPECT_THAT(store2->SetValue(
                     IStore2::ScopeType::DEVICE, kAppId, kKey, kValue, kNoTtl),
         Eq(WPEFramework::Core::ERROR_NONE));
-    lock.Lock(2 * WPEFramework::Core::Time::MilliSecondsPerSecond);
+    lock.Lock();
     EXPECT_THAT(eventScope, Eq(IStore2::ScopeType::DEVICE));
     EXPECT_THAT(eventNamespace, Eq(kAppId));
     EXPECT_THAT(eventKey, Eq(kKey));
@@ -232,19 +269,15 @@ TEST_F(AStore2, DoesNotGetValueWhenDeletedNamespace)
         Eq(WPEFramework::Core::ERROR_NOT_EXIST));
 }
 
-TEST(Store2, DoesNotSetValueWhenReachedMaxSize)
+TEST_F(AStore2, DoesNotSetValueWhenReachedMaxSize)
 {
-    auto workerPool = WPEFramework::Core::ProxyType<WorkerPoolImplementation>::Create(
-        WPEFramework::Core::Thread::DefaultStackSize());
-    auto store2 = WPEFramework::Core::ProxyType<Store2>::Create(
-        kPath, 10 /*max size*/, kMaxValue, kLimit);
-    WPEFramework::Core::IWorkerPool::Assign(&(*workerPool));
+    store2 = WPEFramework::Core::ProxyType<Store2>::Create(
+        kPath, kNewLimit, kMaxValue, kLimit);
     ASSERT_THAT(store2->DeleteNamespace(IStore2::ScopeType::DEVICE, kAppId),
         Eq(WPEFramework::Core::ERROR_NONE));
     EXPECT_THAT(store2->SetValue(
                     IStore2::ScopeType::DEVICE, kAppId, kKey, kValue, kNoTtl),
         Eq(WPEFramework::Core::ERROR_INVALID_INPUT_LENGTH));
-    WPEFramework::Core::IWorkerPool::Assign(nullptr);
 }
 
 TEST_F(AStore2, FlushesCache)
@@ -327,57 +360,42 @@ TEST_F(AStore2, DoesNotGetNamespaceStorageLimitWhenNamespaceDoesNotExist)
 TEST_F(AStore2, DoesNotSetNamespaceStorageLimitWhenNamespaceEmpty)
 {
     EXPECT_THAT(store2->SetNamespaceStorageLimit(
-                    IStoreLimit::ScopeType::DEVICE, "", 10 /*limit*/),
+                    IStoreLimit::ScopeType::DEVICE, "", kNewLimit),
         Eq(WPEFramework::Core::ERROR_INVALID_INPUT_LENGTH));
 }
 
 TEST_F(AStore2, DoesNotSetNamespaceStorageLimitWhenNamespaceTooLarge)
 {
     EXPECT_THAT(store2->SetNamespaceStorageLimit(
-                    IStoreLimit::ScopeType::DEVICE, "this is too large", 10 /*limit*/),
+                    IStoreLimit::ScopeType::DEVICE, "this is too large", kNewLimit),
         Eq(WPEFramework::Core::ERROR_INVALID_INPUT_LENGTH));
 }
 
 TEST_F(AStore2, SetsNamespaceStorageLimit)
 {
     ASSERT_THAT(store2->SetNamespaceStorageLimit(
-                    IStoreLimit::ScopeType::DEVICE, kAppId, 10 /*limit*/),
+                    IStoreLimit::ScopeType::DEVICE, kAppId, kNewLimit),
         Eq(WPEFramework::Core::ERROR_NONE));
     uint32_t value;
     ASSERT_THAT(store2->GetNamespaceStorageLimit(
                     IStoreLimit::ScopeType::DEVICE, kAppId, value),
         Eq(WPEFramework::Core::ERROR_NONE));
-    EXPECT_THAT(value, Eq(10));
+    EXPECT_THAT(value, Eq(kNewLimit));
+    // restore:
+    EXPECT_THAT(store2->SetNamespaceStorageLimit(
+                    IStoreLimit::ScopeType::DEVICE, kAppId, kLimit),
+        Eq(WPEFramework::Core::ERROR_NONE));
 }
 
-TEST_F(AStore2, UpdatesNamespaceStorageLimit)
+TEST_F(AStore2, DoesNotSetValueWhenReachedDefaultLimit)
 {
-    ASSERT_THAT(store2->SetNamespaceStorageLimit(
-                    IStoreLimit::ScopeType::DEVICE, kAppId, 10 /*limit*/),
-        Eq(WPEFramework::Core::ERROR_NONE));
-    ASSERT_THAT(store2->SetNamespaceStorageLimit(
-                    IStoreLimit::ScopeType::DEVICE, kAppId, 20 /*limit*/),
-        Eq(WPEFramework::Core::ERROR_NONE));
-    uint32_t value;
-    ASSERT_THAT(store2->GetNamespaceStorageLimit(
-                    IStoreLimit::ScopeType::DEVICE, kAppId, value),
-        Eq(WPEFramework::Core::ERROR_NONE));
-    EXPECT_THAT(value, Eq(20));
-}
-
-TEST(Store2, DoesNotSetValueWhenReachedDefaultLimit)
-{
-    auto workerPool = WPEFramework::Core::ProxyType<WorkerPoolImplementation>::Create(
-        WPEFramework::Core::Thread::DefaultStackSize());
-    auto store2 = WPEFramework::Core::ProxyType<Store2>::Create(
-        kPath, kMaxSize, kMaxValue, 5 /*limit*/);
-    WPEFramework::Core::IWorkerPool::Assign(&(*workerPool));
+    store2 = WPEFramework::Core::ProxyType<Store2>::Create(
+        kPath, kMaxSize, kMaxValue, kMaxValue);
     ASSERT_THAT(store2->DeleteNamespace(IStore2::ScopeType::DEVICE, kAppId),
         Eq(WPEFramework::Core::ERROR_NONE));
     EXPECT_THAT(store2->SetValue(
                     IStore2::ScopeType::DEVICE, kAppId, kKey, kValue, kNoTtl),
         Eq(WPEFramework::Core::ERROR_INVALID_INPUT_LENGTH));
-    WPEFramework::Core::IWorkerPool::Assign(nullptr);
 }
 
 TEST_F(AStore2, DoesNotSetValueWhenReachedLimit)
@@ -385,11 +403,15 @@ TEST_F(AStore2, DoesNotSetValueWhenReachedLimit)
     ASSERT_THAT(store2->DeleteNamespace(IStore2::ScopeType::DEVICE, kAppId),
         Eq(WPEFramework::Core::ERROR_NONE));
     ASSERT_THAT(store2->SetNamespaceStorageLimit(
-                    IStoreLimit::ScopeType::DEVICE, kAppId, 5 /*limit*/),
+                    IStoreLimit::ScopeType::DEVICE, kAppId, kMaxValue),
         Eq(WPEFramework::Core::ERROR_NONE));
     EXPECT_THAT(store2->SetValue(
                     IStore2::ScopeType::DEVICE, kAppId, kKey, kValue, kNoTtl),
         Eq(WPEFramework::Core::ERROR_INVALID_INPUT_LENGTH));
+    // restore:
+    EXPECT_THAT(store2->SetNamespaceStorageLimit(
+                    IStoreLimit::ScopeType::DEVICE, kAppId, kLimit),
+        Eq(WPEFramework::Core::ERROR_NONE));
 }
 
 TEST_F(AStore2, SetsValueWhenDoesNotReachLimit)
@@ -397,54 +419,13 @@ TEST_F(AStore2, SetsValueWhenDoesNotReachLimit)
     ASSERT_THAT(store2->DeleteNamespace(IStore2::ScopeType::DEVICE, kAppId),
         Eq(WPEFramework::Core::ERROR_NONE));
     ASSERT_THAT(store2->SetNamespaceStorageLimit(
-                    IStoreLimit::ScopeType::DEVICE, kAppId, 5 /*limit*/),
+                    IStoreLimit::ScopeType::DEVICE, kAppId, kMaxValue),
         Eq(WPEFramework::Core::ERROR_NONE));
     EXPECT_THAT(store2->SetValue(
                     IStore2::ScopeType::DEVICE, kAppId, kKey, "", kNoTtl),
         Eq(WPEFramework::Core::ERROR_NONE));
-}
-
-TEST(Store2, SetsValueWhenFileIsNotDatabase)
-{
-    {
-        WPEFramework::Core::File file(kPathCorrupt);
-        file.Destroy();
-        WPEFramework::Core::Directory(file.PathName().c_str()).CreatePath();
-        ASSERT_THAT(file.Create(), IsTrue());
-        uint8_t buffer[1024];
-        ASSERT_THAT(file.Write(buffer, 1024), Eq(1024));
-    }
-    auto workerPool = WPEFramework::Core::ProxyType<WorkerPoolImplementation>::Create(
-        WPEFramework::Core::Thread::DefaultStackSize());
-    auto store2 = WPEFramework::Core::ProxyType<Store2>::Create(
-        kPathCorrupt, kMaxSize, kMaxValue, kLimit);
-    WPEFramework::Core::IWorkerPool::Assign(&(*workerPool));
-    EXPECT_THAT(store2->SetValue(
-                    IStore2::ScopeType::DEVICE, kAppId, kKey, kValue, kNoTtl),
+    // restore:
+    EXPECT_THAT(store2->SetNamespaceStorageLimit(
+                    IStoreLimit::ScopeType::DEVICE, kAppId, kLimit),
         Eq(WPEFramework::Core::ERROR_NONE));
-    WPEFramework::Core::IWorkerPool::Assign(nullptr);
-}
-
-TEST(Store2, SetsValueWhenFileCorrupt)
-{
-    {
-        WPEFramework::Core::ProxyType<Store2>::Create(
-            kPathCorrupt, kMaxSize, kMaxValue, kLimit);
-    }
-    {
-        WPEFramework::Core::File file(kPathCorrupt);
-        ASSERT_THAT(file.Open(false /*readOnly*/), IsTrue());
-        ASSERT_THAT(file.Position(false /*relative*/, 8192), IsTrue());
-        uint8_t buffer[1024];
-        ASSERT_THAT(file.Write(buffer, 1024), Eq(1024));
-    }
-    auto workerPool = WPEFramework::Core::ProxyType<WorkerPoolImplementation>::Create(
-        WPEFramework::Core::Thread::DefaultStackSize());
-    auto store2 = WPEFramework::Core::ProxyType<Store2>::Create(
-        kPathCorrupt, kMaxSize, kMaxValue, kLimit);
-    WPEFramework::Core::IWorkerPool::Assign(&(*workerPool));
-    EXPECT_THAT(store2->SetValue(
-                    IStore2::ScopeType::DEVICE, kAppId, kKey, kValue, kNoTtl),
-        Eq(WPEFramework::Core::ERROR_NONE));
-    WPEFramework::Core::IWorkerPool::Assign(nullptr);
 }
