@@ -16,6 +16,12 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.31] - 2025-12-23
+### Fixed
+- WPEWebkit 2.46 integration
+- Dynamic management of HDR settings
+- Disable ICE Candidate Filtering by default
+- Set GST Quirks envs
 
 ## [1.1.30] - 2025-06-27
 ### Fixed
