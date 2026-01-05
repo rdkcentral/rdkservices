@@ -79,14 +79,11 @@ namespace Plugin {
             {
             }
             Store2(const string& path, const uint64_t maxSize, const uint64_t maxValue, const uint64_t limit)
-                : IStore2()
-                , IStoreCache()
-                , IStoreInspector()
-                , IStoreLimit()
-                , _path(path)
+                : _path(path)
                 , _maxSize(maxSize)
                 , _maxValue(maxValue)
                 , _limit(limit)
+                , _data(nullptr)
                 , _corrupt(false)
             {
                 TempDirectoryCheck();

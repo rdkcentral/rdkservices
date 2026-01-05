@@ -58,15 +58,13 @@ namespace Plugin {
                     _items.emplace(id, item);
                 }
             }
-            Core::OptionalType<OBJECT> Get(KEY id)
+            void Get(KEY id, Core::OptionalType<OBJECT>& result)
             {
                 Core::SafeSyncType<Core::CriticalSection> lock(_lock);
-                Core::OptionalType<OBJECT> result;
                 auto it = _items.find(id);
                 if (it != _items.end()) {
                     result = it->second;
                 }
-                return result;
             }
             void Delete(KEY id)
             {
@@ -435,7 +433,8 @@ namespace Plugin {
             uint32_t SetDrmSessionState(uint32_t sessionId,
                 State sessionState) override
             {
-                auto session = _parent._sessionStorage.Get(sessionId);
+                Core::OptionalType<Session> session;
+                _parent._sessionStorage.Get(sessionId, session);
                 if (!session.IsSet()) {
                     return NoSuchSession;
                 }
@@ -461,7 +460,8 @@ namespace Plugin {
                 const string& licenseRequest,
                 const string& initData, string& response) override
             {
-                auto session = _parent._sessionStorage.Get(sessionId);
+                Core::OptionalType<Session> session;
+                _parent._sessionStorage.Get(sessionId, session);
                 if (!session.IsSet()) {
                     return NoSuchSession;
                 }
@@ -498,7 +498,8 @@ namespace Plugin {
             uint32_t CloseDrmSession(uint32_t sessionId,
                 string& /*response*/) override
             {
-                auto session = _parent._sessionStorage.Get(sessionId);
+                Core::OptionalType<Session> session;
+                _parent._sessionStorage.Get(sessionId, session);
                 if (!session.IsSet()) {
                     return NoSuchSession;
                 }
@@ -590,8 +591,8 @@ namespace Plugin {
             ASSERT(_secManager->Subscribe<OnAddWatermarkParams>(
                        Timeout, _T("onAddWatermark"),
                        [&](const OnAddWatermarkParams& params) {
-                           auto session = _sessionStorage.Get(
-                               params.SessionId);
+                           Core::OptionalType<Session> session;
+                           _sessionStorage.Get(params.SessionId, session);
                            if (!session.IsSet()) {
                                return; // No such session
                            }
@@ -627,13 +628,13 @@ namespace Plugin {
             ASSERT(_secManager->Subscribe<OnRemoveWatermarkParams>(
                        Timeout, _T("onRemoveWatermark"),
                        [&](const OnRemoveWatermarkParams& params) {
-                           auto session = _sessionStorage.Get(
-                               params.SessionId);
+                           Core::OptionalType<Session> session;
+                           _sessionStorage.Get(params.SessionId, session);
                            if (!session.IsSet()) {
                                return; // No such session
                            }
-                           auto watermark = _watermarkStorage
-                                                .Get(params.GraphicId);
+                           Core::OptionalType<Watermark> watermark;
+                           _watermarkStorage.Get(params.GraphicId, watermark);
                            if (!watermark.IsSet()) {
                                TRACE(Trace::Error,
                                    (_T("no watermark %" PRIu32),
@@ -664,13 +665,13 @@ namespace Plugin {
             ASSERT(_secManager->Subscribe<OnDisplayWatermarkParams>(
                        Timeout, _T("onDisplayWatermark"),
                        [&](const OnDisplayWatermarkParams& params) {
-                           auto session = _sessionStorage.Get(
-                               params.SessionId);
+                           Core::OptionalType<Session> session;
+                           _sessionStorage.Get(params.SessionId, session);
                            if (!session.IsSet()) {
                                return; // No such session
                            }
-                           auto watermark = _watermarkStorage
-                                                .Get(params.GraphicId);
+                           Core::OptionalType<Watermark> watermark;
+                           _watermarkStorage.Get(params.GraphicId, watermark);
                            if (!watermark.IsSet()) {
                                TRACE(Trace::Error,
                                    (_T("no watermark %" PRIu32),
@@ -698,8 +699,8 @@ namespace Plugin {
             ASSERT(_secManager->Subscribe<OnWatermarkSessionParams>(
                        Timeout, _T("onWatermarkSession"),
                        [&](const OnWatermarkSessionParams& params) {
-                           auto session = _sessionStorage.Get(
-                               params.SessionId);
+                           Core::OptionalType<Session> session;
+                           _sessionStorage.Get(params.SessionId, session);
                            if (!session.IsSet()) {
                                return; // No such session
                            }
@@ -719,13 +720,15 @@ namespace Plugin {
             ASSERT(_secManager->Subscribe<OnUpdateWatermarkParams>(
                        Timeout, _T("onUpdateWatermark"),
                        [&](const OnUpdateWatermarkParams& params) {
-                           auto session = _sessionStorage.Get(
-                               params.SessionId);
+                           Core::OptionalType<Session> session;
+                           _sessionStorage.Get(params.SessionId, session);
                            if (!session.IsSet()) {
                                return; // No such session
                            }
                            auto id = params.GraphicId.Value();
-                           auto palette = _palettedImageDataStorage.Get(id);
+                           Core::OptionalType<Exchange::PalettedImageData>
+                               palette;
+                           _palettedImageDataStorage.Get(id, palette);
                            if (!palette.IsSet()) {
                                TRACE(Trace::Error,
                                    (_T("no palette %" PRIu32), id));
@@ -781,8 +784,8 @@ namespace Plugin {
                                // which call ended, can be any. Can't take this
                                // information as a response
                            } else if (!params.Success) {
-                               auto watermark = _watermarkStorage
-                                                    .Get(params.Id);
+                               Core::OptionalType<Watermark> watermark;
+                               _watermarkStorage.Get(params.Id, watermark);
                                if (watermark.IsSet()) {
                                    TRACE(Trace::Error,
                                        (_T("%s %" PRIu32 " failed"),
@@ -791,7 +794,8 @@ namespace Plugin {
                                }
                            } else if (params.Type == "create") {
                                auto id = params.Id.Value();
-                               auto watermark = _watermarkStorage.Get(id);
+                               Core::OptionalType<Watermark> watermark;
+                               _watermarkStorage.Get(id, watermark);
                                if (watermark.IsSet()) {
                                    UpdateWatermarkParams out;
                                    out.Id = params.Id;
@@ -821,7 +825,8 @@ namespace Plugin {
                                }
                            } else if (params.Type == "update") {
                                auto id = params.Id.Value();
-                               auto watermark = _watermarkStorage.Get(id);
+                               Core::OptionalType<Watermark> watermark;
+                               _watermarkStorage.Get(id, watermark);
                                if (watermark.IsSet()
                                    && watermark.Value()
                                        .AdjustVisibilityRequired) {
@@ -906,11 +911,12 @@ namespace Plugin {
             ASSERT(_watermark->Subscribe<OnWatermarkRenderFailedParams>(
                        Timeout, _T("onWatermarkRenderFailed"),
                        [&](const OnWatermarkRenderFailedParams& params) {
-                           auto watermark = _watermarkStorage
-                                                .Get(params.Image);
+                           Core::OptionalType<Watermark> watermark;
+                           _watermarkStorage.Get(params.Image, watermark);
                            if (watermark.IsSet()) {
-                               auto session = _sessionStorage.Get(
-                                   watermark.Value().SessionId);
+                               Core::OptionalType<Session> session;
+                               _sessionStorage.Get(watermark.Value().SessionId,
+                                   session);
                                if (!session.IsSet()) {
                                    TRACE(Trace::Error,
                                        (_T("no session %" PRIu32),
