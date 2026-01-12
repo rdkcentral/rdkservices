@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.6] - 2026-01-12
+### Added
+- Add FadeDisplay and WBMode AVOutput functionality
+
 ## [1.1.5] - 2025-09-22
 ### Fixed
 - Sync low latency for AVOutput initialization
