@@ -60,3 +60,6 @@ install(TARGETS ${MODULE_NAME}
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
 write_config(${PLUGIN_NAME})
+
+#Adding some comments in the end to commit this file again 
+
