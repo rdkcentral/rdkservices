@@ -1096,8 +1096,8 @@ Triggered when the `scan` method is called and SSIDs are obtained. The event con
 | params.ssids[#] | object |  |
 | params.ssids[#].ssid | string | The paired SSID |
 | params.ssids[#].security | integer | The security mode. See `getSupportedSecurityModes` |
-| params.ssids[#].signalStrength | string | The RSSI value in dBm |
-| params.ssids[#].frequency | string | The supported frequency for this SSID in GHz |
+| params.ssids[#].signalStrength | integer | The RSSI value in dBm |
+| params.ssids[#].frequency | number | The supported frequency for this SSID in GHz |
 | params.moreData | boolean | When `true`, scanning is not complete and more SSIDs are returned as separate events |
 
 ### Example
@@ -1111,8 +1111,8 @@ Triggered when the `scan` method is called and SSIDs are obtained. The event con
             {
                 "ssid": "123412341234",
                 "security": 2,
-                "signalStrength": "-27.000000",
-                "frequency": "2.442000"
+                "signalStrength": -27,
+                "frequency": 2.4
             }
         ],
         "moreData": true
