@@ -882,6 +882,24 @@
                 ]
             }
         },
+        "getBootTypeInfo":{
+            "summary": "Getting Boot Type",
+            "result": {
+	        "type": "object",
+                "properties": {
+                    "boottype": {
+                        "$ref": "#/definitions/boottype"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "boottype",
+                    "success"
+                ]
+            }
+         },
         "getPowerState":{
             "summary": "Returns the power state of the device.",
             "result": {
