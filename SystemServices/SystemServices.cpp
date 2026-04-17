@@ -35,6 +35,7 @@
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
 #include "uploadlogs.h"
+#include "UtilsProcess.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIBusDaemon.h"
