@@ -648,22 +648,20 @@ namespace WPEFramework {
         uint32_t SystemServices::requestSystemReboot(const JsonObject& parameters,
                 JsonObject& response)
         {
-            int32_t nfxResult = E_NOK;
+            bool nfxResult = false;
             string customReason = "No custom reason provided";
             string otherReason = "No other reason supplied";
             bool result = false;
+			string fname = "nrdplugin";
 
-            nfxResult = system("pgrep nrdPlugin");
-            if (E_OK == nfxResult) {
+            nfxResult = Utils::killProcess(fname);
+            if (true == nfxResult) {
                 LOGINFO("SystemService shutting down Netflix...\n");
-                nfxResult = system("pkill nrdPlugin");
-                if (E_OK == nfxResult) {
-                    //give Netflix process some time to terminate gracefully.
-                    sleep(5);
-                } else {
-                    LOGINFO("SystemService unable to shutdown Netflix \
-                            process. nfxResult = %ld\n", (long int)nfxResult);
-                }
+                //give Netflix process some time to terminate gracefully.
+                sleep(5);
+            } else {
+                LOGINFO("SystemService unable to shutdown Netflix \
+                        process. nfxResult = %ld\n", (long int)nfxResult);
             }
 
             if (parameters.HasLabel("rebootReason")) {
