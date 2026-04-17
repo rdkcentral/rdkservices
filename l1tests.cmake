@@ -22,6 +22,7 @@ set(EMPTY_HEADERS_DIRS
 	${BASEDIR}/rdkshell
         ${BASEDIR}/opkg
         ${BASEDIR}/UsbAccess
+		${BASEDIR}/systemservices/proc
 	   )
 
 set(EMPTY_HEADERS
