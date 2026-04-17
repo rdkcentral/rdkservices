@@ -11,7 +11,13 @@ extern "C" {
 #define PROC_FILLCOM 0
 
 typedef struct PROCTAB { int dummy; } PROCTAB;
-typedef struct proc_t { int dummy; } proc_t;
+typedef struct proc_t {
+    int dummy;
+    char* cmd;
+    char** cmdline;
+    int tid;
+    int ppid;
+} proc_t;
 
 static inline PROCTAB* openproc(int) { return 0; }
 static inline proc_t* readproc(PROCTAB*, proc_t*) { return 0; }
