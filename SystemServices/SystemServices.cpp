@@ -239,6 +239,21 @@ string collectDeviceInfo(string methodType)
     return respBuffer;
 }
 
+static string sanitizeDeviceDetailsOutput(const string& value)
+{
+    // Strip common ANSI sequences (CSI, OSC, and single-char ESC forms).
+    static const std::regex kAnsiEscapePattern(
+        "\\x1B(?:[@-Z\\\\-_]|\\[[0-?]*[ -/]*[@-~]|\\][^\\x1B\\x07]*(?:\\x07|\\x1B\\\\))");
+    string sanitized = std::regex_replace(value, kAnsiEscapePattern, "");
+
+    sanitized.erase(std::remove_if(sanitized.begin(), sanitized.end(), [](unsigned char ch) {
+        return std::iscntrl(ch);
+    }), sanitized.end());
+
+    Utils::String::trim(sanitized);
+    return sanitized;
+}
+
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 
 std::string iarmModeToString(IARM_Bus_Daemon_SysMode_t& iarmMode)
@@ -1090,7 +1105,7 @@ namespace WPEFramework {
                         if (std::string::npos != eq)
                         {
                             std::string key = line.substr(0, eq);
-                            std::string value = line.substr(eq + 1);
+                            std::string value = sanitizeDeviceDetailsOutput(line.substr(eq + 1));
 
                             response[key.c_str()] = value;
 
@@ -1116,8 +1131,8 @@ namespace WPEFramework {
 #endif
                 } else {
                     retAPIStatus = true;
-                    Utils::String::trim(res);
-                        response[queryParams.c_str()] = res;
+                    std::string sanitizedValue = sanitizeDeviceDetailsOutput(res);
+                    response[queryParams.c_str()] = sanitizedValue;
                     }
                 }
             returnResponse(retAPIStatus);
@@ -2387,9 +2402,9 @@ namespace WPEFramework {
                 LOGWARN("cmd = %s\n", cmdBuffer.c_str());
                 tempBuffer.clear();
                 tempBuffer = Utils::cRunScript(cmdBuffer.c_str());
-                removeCharsFromString(tempBuffer, "\n\r");
-                LOGWARN("resp = %s\n", tempBuffer.c_str());
-                params[macTypeList[i].c_str()] = (tempBuffer.empty()? "00:00:00:00:00:00" : tempBuffer.c_str());
+                tempBuffer = sanitizeDeviceDetailsOutput(tempBuffer);
+                const char* macValue = (tempBuffer.empty()? "00:00:00:00:00:00" : tempBuffer.c_str());
+                params[macTypeList[i].c_str()] = macValue;
                 listLength++;
             }
             if (listLength != i) {
