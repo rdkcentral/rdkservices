@@ -29,7 +29,7 @@
 #include "DispatcherMock.h"
 #include "SleepModeMock.h"
 #include "WrapsMock.h"
-
+#include "readproc_mock.h"
 #include "deepSleepMgr.h"
 #include "exception.hpp"
 
@@ -3992,7 +3992,7 @@ TEST_F(SystemServicesEventTest, onMacAddressesRetrieved)
             } else if (strcmp(command, "/lib/rdk/getDeviceDetails.sh read wifi_mac") == 0) {
                 valueToReturn = "A8:11:XX:FD:0C:XX";
             } else if (strcmp(command, "/lib/rdk/getDeviceDetails.sh read bluetooth_mac") == 0) {
-                valueToReturn = "AA:AA:AA:AA:AA:AA";
+                valueToReturn = "AA:AA:AA:AA:AA:AA\x1B[0m";
             } else if (strcmp(command, "/lib/rdk/getDeviceDetails.sh read rf4ce_mac") == 0) {
                 valueToReturn = "00:00:00:00:00:00";
             }

@@ -35,6 +35,7 @@
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
 #include "uploadlogs.h"
+#include "UtilsProcess.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIBusDaemon.h"
@@ -67,7 +68,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 3
 #define API_VERSION_NUMBER_MINOR 5
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 2
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -237,6 +238,21 @@ string collectDeviceInfo(string methodType)
         }
     }
     return respBuffer;
+}
+
+static string sanitizeDeviceDetailsOutput(const string& value)
+{
+    // Strip common ANSI sequences (CSI, OSC, and single-char ESC forms).
+    static const std::regex kAnsiEscapePattern(
+        "\\x1B(?:[@-Z\\\\-_]|\\[[0-?]*[ -/]*[@-~]|\\][^\\x1B\\x07]*(?:\\x07|\\x1B\\\\))");
+    string sanitized = std::regex_replace(value, kAnsiEscapePattern, "");
+
+    sanitized.erase(std::remove_if(sanitized.begin(), sanitized.end(), [](unsigned char ch) {
+        return std::iscntrl(ch);
+    }), sanitized.end());
+
+    Utils::String::trim(sanitized);
+    return sanitized;
 }
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
@@ -633,22 +649,20 @@ namespace WPEFramework {
         uint32_t SystemServices::requestSystemReboot(const JsonObject& parameters,
                 JsonObject& response)
         {
-            int32_t nfxResult = E_NOK;
+            bool nfxResult = false;
             string customReason = "No custom reason provided";
             string otherReason = "No other reason supplied";
             bool result = false;
+			string fname = "nrdplugin";
 
-            nfxResult = system("pgrep nrdPluginApp");
-            if (E_OK == nfxResult) {
+            nfxResult = Utils::killProcess(fname);
+            if (true == nfxResult) {
                 LOGINFO("SystemService shutting down Netflix...\n");
-                nfxResult = system("pkill nrdPluginApp");
-                if (E_OK == nfxResult) {
-                    //give Netflix process some time to terminate gracefully.
-                    sleep(10);
-                } else {
-                    LOGINFO("SystemService unable to shutdown Netflix \
-                            process. nfxResult = %ld\n", (long int)nfxResult);
-                }
+                //give Netflix process some time to terminate gracefully.
+                sleep(5);
+            } else {
+                LOGINFO("SystemService unable to shutdown Netflix \
+                        process. nfxResult = %ld\n", (long int)nfxResult);
             }
 
             if (parameters.HasLabel("rebootReason")) {
@@ -1090,7 +1104,7 @@ namespace WPEFramework {
                         if (std::string::npos != eq)
                         {
                             std::string key = line.substr(0, eq);
-                            std::string value = line.substr(eq + 1);
+                            std::string value = sanitizeDeviceDetailsOutput(line.substr(eq + 1));
 
                             response[key.c_str()] = value;
 
@@ -1116,8 +1130,8 @@ namespace WPEFramework {
 #endif
                 } else {
                     retAPIStatus = true;
-                    Utils::String::trim(res);
-                        response[queryParams.c_str()] = res;
+                    std::string sanitizedValue = sanitizeDeviceDetailsOutput(res);
+                    response[queryParams.c_str()] = sanitizedValue;
                     }
                 }
             returnResponse(retAPIStatus);
@@ -2387,9 +2401,9 @@ namespace WPEFramework {
                 LOGWARN("cmd = %s\n", cmdBuffer.c_str());
                 tempBuffer.clear();
                 tempBuffer = Utils::cRunScript(cmdBuffer.c_str());
-                removeCharsFromString(tempBuffer, "\n\r");
-                LOGWARN("resp = %s\n", tempBuffer.c_str());
-                params[macTypeList[i].c_str()] = (tempBuffer.empty()? "00:00:00:00:00:00" : tempBuffer.c_str());
+                tempBuffer = sanitizeDeviceDetailsOutput(tempBuffer);
+                const char* macValue = (tempBuffer.empty()? "00:00:00:00:00:00" : tempBuffer.c_str());
+                params[macTypeList[i].c_str()] = macValue;
                 listLength++;
             }
             if (listLength != i) {

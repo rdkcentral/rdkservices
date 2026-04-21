@@ -22,7 +22,9 @@ set(EMPTY_HEADERS_DIRS
 	${BASEDIR}/rdkshell
         ${BASEDIR}/opkg
         ${BASEDIR}/UsbAccess
-        )
+		${BASEDIR}/systemservices
+		${BASEDIR}/systemservices/proc
+	   )
 
 set(EMPTY_HEADERS
         ${BASEDIR}/audiocapturemgr/audiocapturemgr_iarm.h
@@ -107,6 +109,7 @@ set(EMPTY_HEADERS
 	    ${BASEDIR}/opkg/opkg_message.h
 	    ${BASEDIR}/opkg/opkg_cmd.h
 	    ${BASEDIR}/opkg/opkg_download.h
+		${BASEDIR}/systemservices/proc/readproc.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
