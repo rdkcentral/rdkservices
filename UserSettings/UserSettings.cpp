@@ -48,7 +48,7 @@ namespace WPEFramework
      **/
     SERVICE_REGISTRATION(UserSettings, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
-    UserSettings::UserSettings() : _service(nullptr), _connectionId(0), _userSetting(nullptr), _userSettingsInspector(nullptr), _usersettingsNotification(this)
+    UserSettings::UserSettings() : _service(nullptr), _connectionId(0), _userSetting(nullptr), _userSettingsInspector(nullptr), _usersettingsNotification(this), configure(nullptr), _backupProvider(nullptr)
     {
         SYSLOG(Logging::Startup, (_T("UserSettings Constructor")));
     }
@@ -76,7 +76,6 @@ namespace WPEFramework
 
         if(nullptr != _userSetting)
         {
-
             configure = _userSetting->QueryInterface<Exchange::IConfiguration>();
             if (configure != nullptr)
             {
@@ -89,6 +88,13 @@ namespace WPEFramework
             else
             {
                 message = _T("UserSettings implementation did not provide a configuration interface");
+            }
+
+            _backupProvider = _userSetting->QueryInterface<Exchange::IBackupProvider>();
+            if (_backupProvider == nullptr)
+            {
+                LOGERR("UserSettings implementation did not provide a IBackupProvider interface");
+                message = _T("UserSettings implementation did not provide a IBackupProvider interface");
             }
 
             // Register for notifications
@@ -135,11 +141,20 @@ namespace WPEFramework
             Exchange::JUserSettings::Unregister(*this);
             Exchange::JUserSettingsInspector::Unregister(*this);
 
-            configure->Release();
-            _userSettingsInspector->Release();
+            if (configure != nullptr) {
+                configure->Release();
+                configure = nullptr;
+            }
+            
+            if (_userSettingsInspector != nullptr) {
+                _userSettingsInspector->Release();
+                _userSettingsInspector = nullptr;
+            }
 
-            configure = nullptr;
-            _userSettingsInspector = nullptr;
+            if (_backupProvider != nullptr) {
+                _backupProvider->Release();
+                _backupProvider = nullptr;
+            }
 
             // Stop processing:
             RPC::IRemoteConnection* connection = service->RemoteConnection(_connectionId);

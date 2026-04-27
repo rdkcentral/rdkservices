@@ -1,0 +1,11 @@
+precondition = ["Platform"]
+callsign = "org.rdk.BackupManager"
+autostart = "false"
+startuporder = "@PLUGIN_BACKUPMANAGER_STARTUPORDER@"
+
+configuration = JSON()
+rootobject = JSON()
+
+rootobject.add("locator", "lib@PLUGIN_IMPLEMENTATION@.so")
+
+configuration.add("root", rootobject)

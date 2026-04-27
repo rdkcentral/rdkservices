@@ -22,6 +22,7 @@
 #include <regex>
 #include "UtilsJsonRpc.h"
 #include <mutex>
+#include <fstream>
 #include "tracing/Logging.h"
 
 namespace WPEFramework {
@@ -45,7 +46,8 @@ const std::map<string, string> UserSettingsImplementation::usersettingsDefaultMa
                          {USERSETTINGS_VOICE_GUIDANCE_KEY, "false"},
                          {USERSETTINGS_VOICE_GUIDANCE_RATE_KEY, "1"},
                          {USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY, "false"},
-                         {USERSETTINGS_CONTENT_PIN_KEY, ""}};
+                         {USERSETTINGS_CONTENT_PIN_KEY, ""},
+                         {USERSETTINGS_PRIVACY_MODE_KEY, "SHARE"}};
 
 const std::map<Exchange::IUserSettingsInspector::SettingsKey, string> UserSettingsImplementation::_userSettingsInspectorMap =
          {{Exchange::IUserSettingsInspector::SettingsKey::PREFERRED_AUDIO_LANGUAGES, USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY},
@@ -65,7 +67,12 @@ const std::map<Exchange::IUserSettingsInspector::SettingsKey, string> UserSettin
          {Exchange::IUserSettingsInspector::SettingsKey::VOICE_GUIDANCE, USERSETTINGS_VOICE_GUIDANCE_KEY},
          {Exchange::IUserSettingsInspector::SettingsKey::VOICE_GUIDANCE_RATE, USERSETTINGS_VOICE_GUIDANCE_RATE_KEY},
          {Exchange::IUserSettingsInspector::SettingsKey::VOICE_GUIDANCE_HINTS, USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY},
-         {Exchange::IUserSettingsInspector::SettingsKey::CONTENT_PIN, USERSETTINGS_CONTENT_PIN_KEY}};
+         {Exchange::IUserSettingsInspector::SettingsKey::CONTENT_PIN, USERSETTINGS_CONTENT_PIN_KEY},
+         {Exchange::IUserSettingsInspector::SettingsKey::PRIVACY_MODE, USERSETTINGS_PRIVACY_MODE_KEY}};
+
+const std::map<Exchange::Scenario, string> UserSettingsImplementation::_backupScenarioMap = 
+                        {{Exchange::Scenario::HOSPITALITY_RESET, "HOSPITALITY_RESET"}};
+
 
 const double UserSettingsImplementation::minVGR = 0.1;
 const double UserSettingsImplementation::maxVGR = 10;
@@ -648,7 +655,7 @@ Core::hresult UserSettingsImplementation::GetPreferredClosedCaptionService(strin
     return status;
 }
 
-uint32_t UserSettingsImplementation::SetPrivacyMode(const string& privacyMode)
+Core::hresult UserSettingsImplementation::SetPrivacyMode(const string& privacyMode)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -682,7 +689,7 @@ uint32_t UserSettingsImplementation::SetPrivacyMode(const string& privacyMode)
     return status;
 }
 
-uint32_t UserSettingsImplementation::GetPrivacyMode(string &privacyMode) const
+Core::hresult UserSettingsImplementation::GetPrivacyMode(string &privacyMode) const
 {
     uint32_t status = Core::ERROR_NONE;
     std::string value = "";
@@ -1131,5 +1138,228 @@ Core::hresult UserSettingsImplementation::GetMigrationStates(IUserSettingsMigrat
 
     return status;
 }
+
+bool UserSettingsImplementation::IsValidVariant(const string& value) const
+{
+    // check value for alphanumeric characters and length less than 30 characters to avoid file system issues
+    std::regex alphaNumRegex("^[a-zA-Z0-9_]{0,30}$");
+    return std::regex_match(value, alphaNumRegex);
+}
+
+Core::hresult UserSettingsImplementation::Backup(const Exchange::BackupContext& context)
+{
+    LOGINFO("Backup scenario [%d] with persistentPath [%s] and variant [%s]", context.scenario, context.persistentPath.c_str(), context.variant.c_str());
+
+    // check context.variant for alphanumeric characters and length less than 30 characters to avoid file system issues
+    if (!IsValidVariant(context.variant))
+    {
+        LOGERR("Variant [%s] is not valid. It should be alphanumeric and up to 30 characters long.", context.variant.c_str());
+        return Core::ERROR_INVALID_PARAMETER;
+    }
+
+    if (_backupScenarioMap.find(context.scenario) == _backupScenarioMap.end())
+    {
+        LOGERR("Unknown backup scenario [%d]", context.scenario);
+        return Core::ERROR_INVALID_PARAMETER;
+    }
+
+    Core::SafeSyncType<Core::CriticalSection> lock(_adminLock);
+
+    if (nullptr == _remotStoreObject)
+    {
+        LOGERR("No access to IStore2 object");
+        return Core::ERROR_GENERAL;
+    }
+
+    if (context.persistentPath.empty() || access(context.persistentPath.c_str(), W_OK) != 0)
+    {
+        LOGERR("Persistent path [%s] is not accessible for writing backup data", context.persistentPath.c_str());
+        return Core::ERROR_INVALID_PARAMETER;
+    }
+
+    uint32_t status = Core::ERROR_NONE;
+
+    JsonObject backupData;
+
+    for (auto uimap = _userSettingsInspectorMap.begin(); uimap != _userSettingsInspectorMap.end(); uimap++)
+    {
+        string value = "";
+
+        uint32_t ttl = 0;
+        uint32_t getStatus = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, uimap->second, value, ttl);
+        LOGINFO("Backup - Key [%s] status [%d]", (uimap->second).c_str(), getStatus);
+        if (Core::ERROR_NONE == getStatus)
+        {
+            backupData[uimap->second.c_str()] = value;
+        }
+        else if (Core::ERROR_UNKNOWN_KEY != getStatus && Core::ERROR_NOT_EXIST != getStatus)
+        {
+            LOGERR("Backup - Failed to get value for Key [%s] with status [%d] ", (uimap->second).c_str(), getStatus);
+            status = Core::ERROR_GENERAL;
+            break;
+
+        }    
+    }
+
+    if (Core::ERROR_NONE != status)
+    {
+        LOGERR("Backup - Failed to get user settings values, backup data is not complete");
+        return status;
+    }
+
+    std::string fileName = context.persistentPath + "/" + _backupScenarioMap.find(context.scenario)->second + "_" + context.variant + ".json";
+    LOGINFO("Backup - Backup file name is [%s]", fileName.c_str());
+
+    std::ofstream backupFile(fileName);
+    if (backupFile.is_open())
+    {
+        std::string jsonString;
+        backupData.ToString(jsonString);
+        backupFile << jsonString;
+        backupFile.flush();
+
+        if (!backupFile.good())
+        {
+            LOGERR("Backup - Failed to write backup data to file [%s]", fileName.c_str());
+            status = Core::ERROR_GENERAL;
+        }
+        else
+        {
+            LOGINFO("Backup - Backup data is written to file successfully");
+        }
+
+        backupFile.close();
+    }
+    else
+    {
+        LOGERR("Backup - Failed to open backup file for writing");
+        status = Core::ERROR_GENERAL;
+    }
+
+    return status;
+}
+
+Core::hresult UserSettingsImplementation::Restore(const Exchange::BackupContext& context)
+{
+    LOGINFO("Restore scenario [%d] with persistentPath [%s] and variant [%s]", context.scenario, context.persistentPath.c_str(), context.variant.c_str());
+
+    // check context.variant for alphanumeric characters and length less than 30 characters to avoid file system issues
+    if (!IsValidVariant(context.variant))
+    {
+        LOGERR("Variant [%s] is not valid. It should be alphanumeric and up to 30 characters long.", context.variant.c_str());
+        return Core::ERROR_INVALID_PARAMETER;
+    }
+
+    if (_backupScenarioMap.find(context.scenario) == _backupScenarioMap.end())
+    {
+        LOGERR("Unknown backup scenario [%d]", context.scenario);
+        return Core::ERROR_INVALID_PARAMETER;
+    }
+
+    Core::SafeSyncType<Core::CriticalSection> lock(_adminLock);
+
+    if (nullptr == _remotStoreObject)
+    {
+        LOGERR("No access to IStore2 object");
+        return Core::ERROR_GENERAL;
+    }
+
+    std::string fileName = context.persistentPath + "/" + _backupScenarioMap.find(context.scenario)->second + "_" + context.variant + ".json";
+    LOGINFO("Restore - Backup file name is [%s]", fileName.c_str());
+
+    if (access(fileName.c_str(), R_OK) != 0)
+    {
+        LOGERR("Backup file [%s] is not accessible for reading", fileName.c_str());
+        return Core::ERROR_INVALID_PARAMETER;
+    }
+
+    uint32_t status = Core::ERROR_NONE;
+
+    std::ifstream backupFile(fileName);
+    if (backupFile.is_open())
+    {
+        std::stringstream buffer;
+        buffer << backupFile.rdbuf();
+        backupFile.close();
+
+        LOGINFO("Restore - Backup data is read from file successfully.");
+
+        JsonObject backupData;
+        if (backupData.FromString(buffer.str()))
+        {
+            for (auto uimap = _userSettingsInspectorMap.begin(); uimap != _userSettingsInspectorMap.end(); uimap++)
+            {
+                if (backupData.HasLabel(uimap->second.c_str()))
+                {
+                    std::string value = backupData[uimap->second.c_str()].String();
+                    LOGINFO("Restore - Key [%s]", (uimap->second).c_str());
+                    status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, uimap->second, value, 0);
+                    if (Core::ERROR_NONE != status)
+                    {
+                        LOGERR("Restore - Failed to set value for Key [%s] with status [%d] ", (uimap->second).c_str(), status);
+                        break;
+                    }
+                }
+                else
+                {
+                    LOGWARN("Restore - Backup data does not contain value for Key, removing that key from persistent store [%s]", (uimap->second).c_str());
+                    uint32_t deleteStatus = _remotStoreObject->DeleteKey(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, uimap->second);
+                    if (Core::ERROR_NONE != deleteStatus)
+                    {
+                        LOGERR("Restore - Failed to delete key [%s] with status [%d]", (uimap->second).c_str(), deleteStatus);
+                        status = deleteStatus;
+                        break;
+                    }
+                }
+            }
+        }
+        else
+        {
+            LOGERR("Restore - Failed to parse backup data from file");
+            status = Core::ERROR_GENERAL;
+        }
+    }
+    else
+    {
+        LOGERR("Restore - Failed to open backup file for reading");
+        status = Core::ERROR_GENERAL;
+    }
+
+    return status;
+}
+
+Core::hresult UserSettingsImplementation::Delete(const Exchange::BackupContext& context)
+{
+    LOGINFO("Delete backup for scenario [%d] with persistentPath [%s] and variant [%s]", context.scenario, context.persistentPath.c_str(), context.variant.c_str());
+    
+    // check context.variant for alphanumeric characters and length less than 30 characters to avoid file system issues
+    if (!IsValidVariant(context.variant))
+    {
+        LOGERR("Variant [%s] is not valid. It should be alphanumeric and up to 30 characters long.", context.variant.c_str());
+        return Core::ERROR_INVALID_PARAMETER;
+    }
+
+    if (_backupScenarioMap.find(context.scenario) == _backupScenarioMap.end())
+    {
+        LOGERR("Unknown backup scenario [%d]", context.scenario);
+        return Core::ERROR_INVALID_PARAMETER;
+    }
+
+    std::string fileName = context.persistentPath + "/" + _backupScenarioMap.find(context.scenario)->second + "_" + context.variant + ".json";
+    uint32_t status = Core::ERROR_NONE;
+
+    if (remove(fileName.c_str()) != 0)
+    {
+        LOGERR("Failed to delete backup file [%s]", fileName.c_str());
+        status = Core::ERROR_GENERAL;
+    }
+    else
+    {
+        LOGINFO("Backup file [%s] is deleted successfully", fileName.c_str());
+    }
+
+    return status;
+}
+
 } // namespace Plugin
 } // namespace WPEFramework

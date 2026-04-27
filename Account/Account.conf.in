@@ -1,0 +1,11 @@
+precondition = ["Platform"]
+callsign = "org.rdk.Account"
+autostart = "false"
+startuporder = "@PLUGIN_ACCOUNT_STARTUPORDER@"
+
+configuration = JSON()
+rootobject = JSON()
+
+rootobject.add("locator", "lib@PLUGIN_IMPLEMENTATION@.so")
+
+configuration.add("root", rootobject)
