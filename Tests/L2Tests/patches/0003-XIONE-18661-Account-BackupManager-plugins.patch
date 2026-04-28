@@ -1,0 +1,212 @@
+diff -uprN a/interfaces/IAccount.h b/interfaces/IAccount.h
+--- a/interfaces/IAccount.h	1970-01-01 03:00:00.000000000 +0300
++++ b/interfaces/IAccount.h	2026-04-18 00:06:09.000000000 +0300
+@@ -0,0 +1,51 @@
++/*
++ * If not stated otherwise in this file or this component's LICENSE file the
++ * following copyright and licenses apply:
++ *
++ * Copyright 2026 RDK Management
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#pragma once
++#include "Module.h"
++
++
++namespace WPEFramework {
++namespace Exchange {
++    // Account Plugin provides various operations that can be made at account level
++    // @json 1.0.0 @text:keep
++    struct EXTERNAL IAccount : virtual public Core::IUnknown {
++        enum { ID = ID_ACCOUNT };
++
++        virtual ~IAccount() = default;
++
++        struct GetLastCheckoutResetTimeResult {
++            uint64_t resetTime; // @text resetTime
++        };
++
++        // @text getLastCheckoutResetTime
++        // @brief Gets the last reset time for Hotel Checkout.
++        // @param resetTime: Time in UTC. Returns 0, if time is not available.
++        // @retval Core::ERROR_NONE Last Checkout reset time is successfully retrieved
++        virtual Core::hresult GetLastCheckoutResetTime(GetLastCheckoutResetTimeResult& resetTime /* @out */) const = 0;
++
++        // @text setLastCheckoutResetTime
++        // @brief Sets the last reset time for Hotel Checkout.
++        // @param resetTime: Time in UTC.
++        // @retval Core::ERROR_NONE Last Checkout reset time is successfully set
++        virtual Core::hresult SetLastCheckoutResetTime(const uint64_t resetTime) = 0;
++    };
++}
++}
++
+diff -uprN a/interfaces/IBackup.h b/interfaces/IBackup.h
+--- a/interfaces/IBackup.h	1970-01-01 03:00:00.000000000 +0300
++++ b/interfaces/IBackup.h	2026-04-18 00:06:09.000000000 +0300
+@@ -0,0 +1,109 @@
++/*
++ * If not stated otherwise in this file or this component's LICENSE file the
++ * following copyright and licenses apply:
++ *
++ * Copyright 2026 RDK Management
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#pragma once
++#include "Module.h"
++
++namespace WPEFramework
++{
++    namespace Exchange
++    {
++        enum Scenario : uint8_t
++        {
++            HOSPITALITY_RESET /* @text HOSPITALITY_RESET */
++        };
++
++        struct EXTERNAL BackupContext
++        {
++            Scenario scenario /* @text scenario */ 
++                             /* @brief The scenario for which the backup operations are done */;
++            string variant /* @text variant */ 
++                           /* @brief Variant label for the backup context (for example, user profile for which the backup operations are done) */ 
++                           /* @default:"generic" */;
++            string persistentPath /* @text persistentPath */ 
++                                  /* @brief Filesystem path where backup data is stored persistently */ 
++                                  /* @default:"/opt/secure/persistent/settings_backup/" */;
++        };
++
++        /*
++         * Manages "backup and restore" operations for various settings in the system
++         * by working with other plugins in the system
++         */
++        // @json 1.0.0 @text:keep
++        struct EXTERNAL IBackupManager : virtual public Core::IUnknown
++        {
++            enum
++            {
++                ID = ID_BACKUP_MANAGER
++            };
++
++            virtual ~IBackupManager() = default;
++
++            // @text backupSettings
++            // @brief Backup settings across the system
++            // @param context: Context for which the backup to happen
++            // @retval Core::ERROR_NONE Successfully backed up the settings
++            virtual Core::hresult BackupSettings(const BackupContext& context) = 0;
++
++            // @text restoreSettings
++            // @brief Restore settings across the system
++            // @param context: Context for which the restore to happen
++            // @retval Core::ERROR_NONE Successfully restored the settings
++            virtual Core::hresult RestoreSettings(const BackupContext& context) = 0;
++
++            // @text deleteBackup
++            // @brief Deletes the previously backed up settings across the system
++            // @param context: Context for which the backup to be deleted
++            // @retval Core::ERROR_NONE Successfully deleted the backup
++            virtual Core::hresult DeleteBackup(const BackupContext& context) = 0;
++        };
++
++        /*
++         * Provides APIs to "backup" and "restore" the settings the plugin owns.
++         * Exact list of settings that gets backed up and restored are internal to the implementation.
++         */
++        struct EXTERNAL IBackupProvider : virtual public Core::IUnknown
++        {
++            enum
++            {
++                ID = ID_BACKUP_PROVIDER
++            };
++
++            virtual ~IBackupProvider() = default;
++
++            // @text backup
++            // @brief Backup settings that belong to this component.
++            // @param context: Context for which the backup to happen
++            // @retval Core::ERROR_NONE Successfully backed up
++            virtual Core::hresult Backup(const BackupContext& context) = 0;
++
++            // @text restore
++            // @brief Restore settings that belong to this component.
++            // @param context: Context for which the restore to happen
++            // @retval Core::ERROR_NONE Successfully restored
++            virtual Core::hresult Restore(const BackupContext& context) = 0;
++
++            // @text delete
++            // @brief Deletes the previously backed up settings that belong to this component.
++            // @param context: Context for which the backup to be deleted
++            // @retval Core::ERROR_NONE Successfully deleted the backup
++            virtual Core::hresult Delete(const BackupContext& context) = 0;
++        };
++    }
++}
+\ No newline at end of file
+diff -uprN a/interfaces/Ids.h b/interfaces/Ids.h
+--- a/interfaces/Ids.h	2025-11-20 09:23:01.475783701 +0200
++++ b/interfaces/Ids.h	2026-04-27 22:53:44.989463335 +0300
+@@ -356,6 +356,11 @@ namespace Exchange {
+ 
+         ID_WATCHDOG                                  = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x4A0,
+ 
++        ID_ACCOUNT                                   = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x4A1,
++
++        ID_BACKUP_MANAGER                            = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x4A2,
++        ID_BACKUP_PROVIDER                           = ID_BACKUP_MANAGER + 1,
++
+         ID_SCRIPT_ENGINE                             = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x4B0,
+         ID_SCRIPT_ENGINE_NOTIFICATION                = ID_SCRIPT_ENGINE + 1,
+ 
+diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
+--- a/interfaces/IUserSettings.h	2025-11-20 09:23:00.076754010 +0200
++++ b/interfaces/IUserSettings.h	2026-04-25 06:12:36.406852094 +0300
+@@ -229,12 +229,12 @@ struct EXTERNAL IUserSettings : virtual
+   // @details The setting should be honored by the Telemetry.
+   // If privacyMode is "DO_NOT_SHARE", logs and crash report should not be uploaded.
+   // @param privacyMode: "SHARE", "DO_NOT_SHARE"
+-  virtual uint32_t SetPrivacyMode(const string& privacyMode /* @in @text privacyMode*/) = 0;
++  virtual Core::hresult SetPrivacyMode(const string& privacyMode /* @in @text privacyMode*/) = 0;
+ 
+   // @text getPrivacyMode
+   // @brief Gets the current PrivacyMode setting.
+   // @param privacyMode e.g "SHARE"
+-  virtual uint32_t GetPrivacyMode(string &privacyMode /* @out @text privacyMode */) const = 0;
++  virtual Core::hresult GetPrivacyMode(string &privacyMode /* @out @text privacyMode */) const = 0;
+ 
+     // @text setPinControl
+     // @brief Sets PinControl ON/OFF. Parental Control as a whole is enabled or disabled.
+@@ -401,7 +401,8 @@ struct EXTERNAL IUserSettingsInspector :
+         VOICE_GUIDANCE = 15,
+         VOICE_GUIDANCE_RATE = 16,
+         VOICE_GUIDANCE_HINTS = 17,
+-        CONTENT_PIN = 18
++        CONTENT_PIN = 18,
++        PRIVACY_MODE = 19
+     };
+ 
+     struct SettingsMigrationState
