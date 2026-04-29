@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [2.5.0] - 2026-04-29
+### Added
+- Added support for IBackupProvider interface.
+
 ## [2.4.0] - 2025-06-24
 ### Added
 - Add "contentPin" parameter in User Settings.
