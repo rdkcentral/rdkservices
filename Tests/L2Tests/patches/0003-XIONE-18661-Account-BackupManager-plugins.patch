@@ -1,7 +1,7 @@
 diff -uprN a/interfaces/IAccount.h b/interfaces/IAccount.h
 --- a/interfaces/IAccount.h	1970-01-01 03:00:00.000000000 +0300
-+++ b/interfaces/IAccount.h	2026-04-18 00:06:09.000000000 +0300
-@@ -0,0 +1,51 @@
++++ b/interfaces/IAccount.h	2026-04-29 19:09:36.495820909 +0300
+@@ -0,0 +1,50 @@
 +/*
 + * If not stated otherwise in this file or this component's LICENSE file the
 + * following copyright and licenses apply:
@@ -52,10 +52,9 @@ diff -uprN a/interfaces/IAccount.h b/interfaces/IAccount.h
 +    };
 +}
 +}
-+
 diff -uprN a/interfaces/IBackup.h b/interfaces/IBackup.h
 --- a/interfaces/IBackup.h	1970-01-01 03:00:00.000000000 +0300
-+++ b/interfaces/IBackup.h	2026-04-18 00:06:09.000000000 +0300
++++ b/interfaces/IBackup.h	2026-04-29 19:09:28.417616523 +0300
 @@ -0,0 +1,109 @@
 +/*
 + * If not stated otherwise in this file or this component's LICENSE file the
@@ -166,7 +165,6 @@ diff -uprN a/interfaces/IBackup.h b/interfaces/IBackup.h
 +        };
 +    }
 +}
-\ No newline at end of file
 diff -uprN a/interfaces/Ids.h b/interfaces/Ids.h
 --- a/interfaces/Ids.h	2025-11-20 09:23:01.475783701 +0200
 +++ b/interfaces/Ids.h	2026-04-27 22:53:44.989463335 +0300
