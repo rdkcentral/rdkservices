@@ -413,14 +413,6 @@ if (PLUGIN_ANALYTICS)
     add_subdirectory(Analytics)
 endif()
 
-if(PLUGIN_ACCOUNT)
-    add_subdirectory(Account)
-endif()
-
-if(PLUGIN_BACKUPMANAGER)
-    add_subdirectory(BackupManager)
-endif()
-
 if(PLUGIN_MIGRATIONPREPARER)
 	add_subdirectory(MigrationPreparer)
 endif()
