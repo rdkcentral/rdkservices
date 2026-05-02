@@ -17,8 +17,8 @@
  * limitations under the License.
  **/
 
-#ifndef _MIRACAST_PLAYER_H_
-#define _MIRACAST_PLAYER_H_
+#ifndef _MIRACAST_GST_PLAYER_H_
+#define _MIRACAST_GST_PLAYER_H_
 
 #include <string>
 #include <vector>
@@ -29,10 +29,28 @@
 #include <pthread.h>
 #include <stdint.h>
 
-class SoC_GstPlayer
+/**
+ * @enum GstPlayFlags
+ * @brief Enum of configuration flags used by playbin
+ */
+typedef enum {
+	GST_PLAY_FLAG_VIDEO = (1 << 0),             /**< value is 0x001 */
+	GST_PLAY_FLAG_AUDIO = (1 << 1),             /**< value is 0x002 */
+	GST_PLAY_FLAG_TEXT = (1 << 2),              /**< value is 0x004 */
+	GST_PLAY_FLAG_VIS = (1 << 3),               /**< value is 0x008 */
+	GST_PLAY_FLAG_SOFT_VOLUME = (1 << 4),       /**< value is 0x010 */
+	GST_PLAY_FLAG_NATIVE_AUDIO = (1 << 5),      /**< value is 0x020 */
+	GST_PLAY_FLAG_NATIVE_VIDEO = (1 << 6),      /**< value is 0x040 */
+	GST_PLAY_FLAG_DOWNLOAD = (1 << 7),          /**< value is 0x080 */
+	GST_PLAY_FLAG_BUFFERING = (1 << 8),         /**< value is 0x100 */
+	GST_PLAY_FLAG_DEINTERLACE = (1 << 9),       /**< value is 0x200 */
+	GST_PLAY_FLAG_SOFT_COLORBALANCE = (1 << 10) /**< value is 0x400 */
+}GstPlayFlags;
+
+class MiracastGstPlayer
 {
 public:
-    static SoC_GstPlayer *getInstance();
+    static MiracastGstPlayer *getInstance();
     static void destroyInstance();
     bool launch(std::string& localip , std::string& streaming_port,MiracastRTSPMsg *rtsp_instance);
     bool stop();
@@ -47,20 +65,23 @@ public:
     void print_pipeline_state(GstElement *pipeline = nullptr);
 
 private:
-    GstElement  *m_pipeline{nullptr};
+    GstElement  *m_append_pipeline{nullptr};
     GstElement  *m_udpsrc{nullptr};
-    GstElement  *m_rtpmp2tdepay{nullptr};
     GstElement  *m_rtpjitterbuffer{nullptr};
-    GstElement *m_tsparse{nullptr};
-    GstElement *m_tsdemux{nullptr};
-    GstElement *m_vQueue{nullptr};
-    GstElement *m_h264parse{nullptr};
-    GstElement *m_aQueue{nullptr};
-    GstElement *m_aacparse{nullptr};
-    GstElement *m_avdec_aac{nullptr};
-    GstElement *m_audioconvert{nullptr};
+    GstElement  *m_rtpmp2tdepay{nullptr};
+    GstElement  *m_Queue{nullptr};
+    GstElement  *m_tsparse{nullptr};
+    GstElement  *m_appsink{nullptr};
+
+    GstElement  *m_playbin_pipeline{nullptr};
+    GstElement  *m_appsrc;
+    GstCaps     *m_capsSrc;
+
     bool m_firstVideoFrameReceived{false};
+
     MiracastRTSPMsg *m_rtsp_reference_instance{nullptr};
+    MessageQueue* m_customQueueHandle{nullptr};
+    std::mutex m_QueueStateMutex;
 
     std::string m_uri;
     guint64 m_streaming_port;
@@ -75,28 +96,38 @@ private:
     pthread_t m_playback_thread{0};
     VIDEO_RECT_STRUCT m_video_rect_st;
 
-    static SoC_GstPlayer *m_GstPlayer;
-    SoC_GstPlayer();
-    virtual ~SoC_GstPlayer();
-    SoC_GstPlayer &operator=(const SoC_GstPlayer &) = delete;
-    SoC_GstPlayer(const SoC_GstPlayer &) = delete;
+    static MiracastGstPlayer *m_GstPlayer;
+    MiracastGstPlayer();
+    virtual ~MiracastGstPlayer();
+    MiracastGstPlayer &operator=(const MiracastGstPlayer &) = delete;
+    MiracastGstPlayer(const MiracastGstPlayer &) = delete;
 
     bool createPipeline();
     bool updateVideoSinkRectangle(void);
     static void onFirstVideoFrameCallback(GstElement* object, guint arg0, gpointer arg1,gpointer userdata);
     void notifyPlaybackState(eMIRA_GSTPLAYER_STATES gst_player_state, eM_PLAYER_REASON_CODE state_reason_code = MIRACAST_PLAYER_REASON_CODE_SUCCESS );
-    static gboolean busMessageCb(GstBus *bus, GstMessage *msg, gpointer user_data);
-    bool changePipelineState(GstState state) const;
+    bool changePipelineState(GstElement* pipeline, GstState state) const;
 
     static void *playbackThread(void *ctx);
     GMainLoop *m_main_loop{nullptr};
     GMainContext *m_main_loop_context{nullptr};
 
-    bool m_statistics_thread_loop{false};
-    
+    bool m_statistics_thread_loop{false};    
     pthread_t m_player_statistics_tid{0};
     static void *monitor_player_statistics_thread(void *ctx);
-    static void pad_added_handler(GstElement *gstelement, GstPad *new_pad, gpointer userdata);
+
+    bool m_pushbuffer_handler_thread_loop{false};    
+    pthread_t m_pushbuffer_handler_tid{0};
+    static void *pushbuffer_handler_thread(void *ctx);
+
+    static GstFlowReturn appendPipelineNewSampleHandler(GstElement *elt, gpointer userdata);
+    static gboolean appendPipelineBusMessage(GstBus * bus, GstMessage * message, gpointer userdata);
+    static gboolean playbinPipelineBusMessage (GstBus * bus, GstMessage * message, gpointer userdata);
+    static gboolean pushBufferToAppsrc(gpointer userdata);
+    static void gst_bin_need_data(GstAppSrc *src, guint length, gpointer user_data);
+    static void gst_bin_enough_data(GstAppSrc *src, gpointer user_data);
+    static void source_setup(GstElement *pipeline, GstElement *source, gpointer userdata);
+    static void gstBufferReleaseCallback(void* userParam);
 };
 
-#endif /* SoC_GstPlayer_hpp */
+#endif /* _MIRACAST_GST_PLAYER_H_ */
