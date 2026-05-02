@@ -293,3 +293,93 @@ bool MiracastCommon::execute_PopenCommand( const char* popen_command, const char
     MIRACASTLOG_TRACE("Exiting ...");
     return returnValue;
 }
+
+MessageQueue::MessageQueue(int queueSize,void (*free_cb)(void *param))
+{
+    std::cout << "[ctor] " << std::endl;
+    m_currentMsgCount = 0;
+    m_maxMsgCount = queueSize;
+    m_free_resource_cb = free_cb;
+}
+
+MessageQueue::~MessageQueue(void)
+{
+    std::cout << "[dtor] " << std::endl;
+    {
+        std::lock_guard<std::mutex> lk(mutexSync);
+        m_isDestructing = true;
+    }
+    m_condNotEmpty.notify_all();
+    m_condNotFull.notify_all();
+
+    std::unique_lock<std::mutex> lk(mutexSync);
+    void* userParam = nullptr;
+    while (!m_internalQueue.empty())
+    {
+        userParam = m_internalQueue.front();
+        if (nullptr != m_free_resource_cb)
+        {
+            std::cout << "[dtor] asked to free : " << userParam << std::endl;
+            m_free_resource_cb(userParam);
+        }
+        m_internalQueue.pop();
+        m_currentMsgCount--;
+    }
+    std::cout << "[dtor] done" << std::endl;
+}
+
+void MessageQueue::sendData(void* new_value,int wait_time_ms)
+{
+    std::unique_lock<std::mutex> lk(mutexSync);
+    // Wait if the queue is full
+    if (!m_condNotFull.wait_for(lk, std::chrono::milliseconds(wait_time_ms), [this] { return (( m_currentMsgCount < m_maxMsgCount ) || m_isDestructing ) ; }))
+    {
+        if (m_isDestructing)
+        {
+            std::cout << "[sendData] skipped dueto m_isDestructing" << std::endl;
+        }
+        else
+        {
+            std::cout << "[sendData] Timeout occurred while waiting to send data." << std::endl;
+        }
+        return;
+    }
+
+    if (m_isDestructing){
+        return;
+    }
+    m_internalQueue.push(new_value);
+    m_currentMsgCount++;
+    std::cout << "[sendData] data at address: " << new_value << std::endl;
+    // Notify consumer that new data is available
+    m_condNotEmpty.notify_one();
+}
+
+void MessageQueue::ReceiveData(void*& value,int wait_time_ms)
+{
+    std::unique_lock<std::mutex> lk(mutexSync);
+    // Wait if the queue is empty
+    if (!m_condNotEmpty.wait_for(lk, std::chrono::milliseconds(wait_time_ms), [this] { return (( !m_internalQueue.empty()) || m_isDestructing ); }))
+    {
+        if (m_isDestructing)
+        {
+            std::cout << "[receiveData] skipped dueto m_isDestructing" << std::endl;
+        }
+        else
+        {
+            std::cout << "[receiveData] Timeout occurred while waiting to send data." << std::endl;
+        }
+        return;  // Timeout occurred
+    }
+
+    if (m_isDestructing){
+        return;
+    }
+
+    value = m_internalQueue.front();
+    m_internalQueue.pop();
+    m_currentMsgCount--;
+    std::cout << "[ReceiveData] data at address: " << value << std::endl;
+    // Notify producer that space is available
+    m_condNotFull.notify_one();
+}
