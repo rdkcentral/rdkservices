@@ -32,6 +32,7 @@
 #include <fstream>
 
 #define MIRACAST_DEVICE_PROPERTIES_FILE          "/etc/device.properties"
+//#define MIRACAST_DEVICE_PROPERTIES_FILE          "/etc/device.properties"
 
 const short WPEFramework::Plugin::MiracastService::API_VERSION_NUMBER_MAJOR = 1;
 const short WPEFramework::Plugin::MiracastService::API_VERSION_NUMBER_MINOR = 0;
