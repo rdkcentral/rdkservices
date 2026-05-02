@@ -49,6 +49,11 @@ using namespace std;
 #define METHOD_REG_APPLICATIONS "registerApplications"
 #define METHOD_UNREG_APPLICATIONS "unregisterApplications"
 
+#define METHOD_SET_MANUFACTURER_NAME "setManufacturerName"
+#define METHOD_GET_MANUFACTURER_NAME "getManufacturerName"
+#define METHOD_SET_MODEL_NAME "setModelName"
+#define METHOD_GET_MODEL_NAME "getModelName"
+
 #define LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS  5000  //5 seconds
 #define LOCATE_CAST_SECOND_TIMEOUT_IN_MILLIS 15000  //15 seconds
 #define LOCATE_CAST_THIRD_TIMEOUT_IN_MILLIS  30000  //30 seconds
@@ -150,6 +155,10 @@ void XCast::RegisterAll()
     Register(METHOD_REG_APPLICATIONS, &XCast::registerApplications, this);
     Register(METHOD_UNREG_APPLICATIONS, &XCast::unregisterApplications, this);
     Register(METHOD_GET_PROTOCOLVERSION, &XCast::getProtocolVersion, this);
+    Register(METHOD_SET_MANUFACTURER_NAME, &XCast::setManufacturerName, this);
+    Register(METHOD_GET_MANUFACTURER_NAME, &XCast::getManufacturerName, this);
+    Register(METHOD_SET_MODEL_NAME, &XCast::setModelName, this);
+    Register(METHOD_GET_MODEL_NAME, &XCast::getModelName, this);
 }
 
 void XCast::InitializeIARM()
@@ -677,6 +686,132 @@ uint32_t XCast::getProtocolVersion(const JsonObject& parameters, JsonObject& res
             returnStatus = true;
             response["version"] = protocolVersion.c_str();
         }
+    }
+    returnResponse(returnStatus);
+}
+
+uint32_t XCast::setManufacturerName(const JsonObject& parameters, JsonObject& response)
+{
+    bool returnStatus = false;
+
+    LOGINFO("Entering ...");
+
+    if (nullptr != _xcast)
+    {
+        std::string manufacturerNameStr = "";
+
+        getStringParameter("manufacturer",manufacturerNameStr);
+
+        if (manufacturerNameStr.empty())
+        {
+            LOGERR("manufacturer field is empty");
+        }
+        else
+        {
+            auto result = _xcast->setManufacturerName(manufacturerNameStr);
+            if (result == Core::ERROR_NONE)
+            {
+                returnStatus = true;
+            }
+            else
+            {
+                LOGERR("Failed to set Manufacturer Name [%x]",result);
+            }
+        }
+    }
+    else
+    {
+        LOGERR("_xcast is NULL");
+    }
+    returnResponse(returnStatus);
+}
+
+uint32_t XCast::getManufacturerName(const JsonObject& parameters, JsonObject& response)
+{
+    string manufacturerName;
+    bool returnStatus = false;
+
+    LOGINFO("Entering ...");
+
+    if (nullptr != _xcast)
+    {
+        auto result = _xcast->getManufacturerName(manufacturerName);
+        if (result == Core::ERROR_NONE)
+        {
+            response["manufacturer"] = manufacturerName.c_str();
+            returnStatus = true;
+        }
+        else
+        {
+            LOGERR("Failed to get Manufacturer Name [%x]",result);
+        }
+    }
+    else
+    {
+        LOGERR("_xcast is NULL");
+    }
+    returnResponse(returnStatus);
+}
+
+uint32_t XCast::setModelName(const JsonObject& parameters, JsonObject& response)
+{
+    bool returnStatus = false;
+
+    LOGINFO("Entering ...");
+
+    if (nullptr != _xcast)
+    {
+        std::string modelNameStr;
+
+        getStringParameter("model",modelNameStr);
+
+        if (modelNameStr.empty())
+        {
+            LOGERR("model field is empty");
+        }
+        else
+        {
+            auto result = _xcast->setModelName(modelNameStr);
+            if (result == Core::ERROR_NONE)
+            {
+                returnStatus = true;
+            }
+            else
+            {
+                LOGERR("Failed to set Model Name [%x]",result);
+            }
+        }
+    }
+    else
+    {
+        LOGERR("_xcast is NULL");
+    }
+    returnResponse(returnStatus);
+}
+
+uint32_t XCast::getModelName(const JsonObject& parameters, JsonObject& response)
+{
+    string modelName;
+    bool returnStatus = false;
+
+    LOGINFO("Entering ...");
+
+    if (nullptr != _xcast)
+    {
+        auto result = _xcast->getModelName(modelName);
+        if (result == Core::ERROR_NONE)
+        {
+            response["model"] = modelName.c_str();
+            returnStatus = true;
+        }
+        else
+        {
+            LOGERR("Failed to get Model Name [%x]",result);
+        }
+    }
+    else
+    {
+        LOGERR("_xcast is NULL");
     }
     returnResponse(returnStatus);
 }

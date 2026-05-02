@@ -28,7 +28,17 @@
         "friendlyname": {
             "summary": "The friendly name of the device which used to display on the client device list",
             "type": "string",
+            "example": "Friendly name"
+        },
+        "manufacturername": {
+            "summary": "The Manufacturer name of the device which used to update in dd.xml",
+            "type": "string",
             "example": "Manufacturer name"
+        },
+        "modelname": {
+            "summary": "The Model name of the device which used to update in dd.xml",
+            "type": "string",
+            "example": "Model name"
         },
         "standbybehavior": {
             "summary": "whether to remain active or inactive during standby mode",
@@ -190,6 +200,42 @@
                 ]               
             }
         },
+        "getManufacturerName":{
+            "summary": "Returns the friendly name set by setManufacturerName API.",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "manufacturer": {
+                        "$ref": "#/definitions/manufacturername"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+		},
+                "required": [
+                    "manufacturer",
+                    "success"
+		]
+            }
+        },
+        "getModelName":{
+            "summary": "Returns the friendly name set by setModelName API.",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "model": {
+                        "$ref": "#/definitions/modelname"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+		},
+                "required": [
+                    "model",
+                    "success"
+		]
+            }
+        },
         "getProtocolVersion":{
             "summary": "Returns the DIAL protocol version supported by the server.",
             "result": {
@@ -320,6 +366,40 @@
                 },
                 "required": [
                     "friendlyname"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "setManufacturerName":{
+            "summary": "Sets the Manufacturer name of device. It allows an application to override the default manufacturer name value with the manufacturer name passed as an argument. The provided name  should not be empty. Manufacturer name is not persisted on device after each reboot or reconnect application should call API to update the manufacturerName",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "manufacturer": {
+                        "$ref": "#/definitions/manufacturername"
+                    }
+                },
+                "required": [
+                    "manufacturer"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+	"setModelName":{
+            "summary": "Sets the Model name of device. It allows an application to override the default model name value with the model name passed as an argument. The provided name  should not be empty. Model name is not persisted on device after each reboot or reconnect application should call API to update the modelName",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "model": {
+                        "$ref": "#/definitions/modelname"
+                    }
+                },
+                "required": [
+                    "model"
                 ]
             },
             "result": {
