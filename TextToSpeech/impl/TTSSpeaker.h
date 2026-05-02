@@ -133,6 +133,7 @@ private:
     void flushQueue();
     SpeechData dequeueData();
     PipelineType m_pipelinetype;
+    std::mutex m_pipelineMutex;
 
     // Private functions
     inline void setSpeakingState(bool state, TTSSpeakerClient *client=NULL);
@@ -181,6 +182,7 @@ private:
     void resetPipeline();
     PipelineType getUrlPipelineType(string url);
     void destroyPipeline();
+    void setPipelineState(GstState state);
 
     // GStreamer Helper functions
     bool needsPipelineUpdate();
