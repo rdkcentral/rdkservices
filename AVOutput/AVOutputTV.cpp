@@ -3706,8 +3706,8 @@ namespace Plugin {
             gainInfo["to"]   = stoi(info.rangeVector[1]);
             response["gainInfo"]=gainInfo;
 
-            offsetInfo["from"] = stoi(info.rangeVector[0]);
-            offsetInfo["to"]   = stoi(info.rangeVector[1]);
+            offsetInfo["from"] = stoi(info.rangeVector[2]);
+            offsetInfo["to"]   = stoi(info.rangeVector[3]);
             response["offsetInfo"]=offsetInfo;
             
             
