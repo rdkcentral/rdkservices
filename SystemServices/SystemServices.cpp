@@ -2220,9 +2220,24 @@ namespace WPEFramework {
             std::string line, lastLine;
 			vector<string> stringList;
             string str = "";
+			string fileContent;
 
-            /* read file, keep last non-empty line */
-            while (std::getline(file, line))
+			/* Read entire file */
+            stringstream buffer;
+            buffer << file.rdbuf();
+			fileContent = buffer.str();
+
+			/* Convert CR to LF */
+            for (char& c : fileContent)
+            {
+                if (c == '\r')
+                    c = '\n';
+            }
+
+            /* Extract last non-empty line */
+            istringstream iss(fileContent);
+
+            while (std::getline(iss, line))
             {
                 if (!line.empty())
                     lastLine = line;
