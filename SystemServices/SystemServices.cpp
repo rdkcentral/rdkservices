@@ -68,7 +68,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 3
 #define API_VERSION_NUMBER_MINOR 5
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_PATCH 3
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -100,6 +100,7 @@ using namespace std;
 #define LOG_UPLOAD_STATUS_ABORTED "UPLOAD_ABORTED"
 
 #define BOOTVERSION "/opt/.bootversion"
+static const char* DOWNLOAD_PROGRESS_FILE = "/opt/curl_progress";
 
 /**
  * @struct firmwareUpdate
@@ -2146,6 +2147,191 @@ namespace WPEFramework {
             returnResponse(retAPIStatus);
         }
 
+    /**
+     * @brief Remove extra spaces from the given input string
+     * @param[in] in_str - The input string
+     * @param[out] out_str - The output string (equals input_string with extra spaces removed)
+     * @return true if the input string is a valid string
+     */
+    static bool removeExtraWhitespaces(string& in_str, string& out_str)
+    {
+        bool ret_status = false;
+        int idx = 0;
+        if (!in_str.empty())
+        {
+            while (in_str[idx] != '\0')
+            {
+                out_str += in_str[idx];
+                if (in_str[idx] == ' ')
+                {
+                    while (in_str[idx+1] == ' ')
+                    {
+                        idx++;
+                    }
+                }
+                idx++;
+            }
+            ret_status = true;
+        }
+        return ret_status;
+    }
+    
+    
+    // Split string s into a vector of strings using the supplied delimiter
+    static void split(std::vector<std::string> &stringList, std::string &s, std::string delimiters)
+    {
+        size_t current = 0;
+        size_t next;
+        do
+        {
+            next = s.find_first_of( delimiters, current );
+
+            stringList.push_back(s.substr( current, next - current ));
+            current = next + 1;
+        }
+        while (next != string::npos);
+     }
+
+        /* ---------------- Utility: trim_s ---------------- */
+        static void trim_s(std::string& s)
+        {
+            size_t start = s.find_first_not_of(" \t\r\n");
+            size_t end = s.find_last_not_of(" \t\r\n");
+
+            if (start == std::string::npos)
+                s.clear();
+            else
+                s = s.substr(start, end - start + 1);
+        }
+
+        /* ---------------- getDownloadProgress ---------------- */
+        bool getDownloadProgress(int& downloadPercent)
+        {
+            downloadPercent = -1;
+            bool retStatus = false;
+
+            std::ifstream file(DOWNLOAD_PROGRESS_FILE);
+            if (!file.is_open())
+            {
+                LOGERR("Unable to open file [%s]", DOWNLOAD_PROGRESS_FILE);
+                return false;
+            }
+
+            std::string line, lastLine;
+			vector<string> stringList;
+            string str = "";
+			string fileContent;
+
+			/* Read entire file */
+            stringstream buffer;
+            buffer << file.rdbuf();
+			fileContent = buffer.str();
+
+			/* Convert CR to LF */
+            for (char& c : fileContent)
+            {
+                if (c == '\r')
+                    c = '\n';
+            }
+
+            /* Extract last non-empty line */
+            istringstream iss(fileContent);
+
+            while (std::getline(iss, line))
+            {
+                if (!line.empty())
+                    lastLine = line;
+            }
+
+            file.close();
+
+            LOGINFO("File Content [%s]\n", lastLine.c_str());
+
+            trim_s(lastLine);
+
+            std::string downloadprogress;
+
+            /* ---------------- CASE 1: DOWN format ---------------- */
+            size_t found = lastLine.find("DOWN:");
+
+            if (found != std::string::npos)
+            {
+                std::string part = lastLine.substr(found + 5);
+                trim_s(part);
+
+                std::istringstream iss(part);
+                std::vector<std::string> tokens;
+                std::string t;
+
+                while (iss >> t)
+                    tokens.push_back(t);
+
+                if (tokens.size() >= 3 &&
+					!tokens[0].empty() &&
+                    tokens[1] == "of" &&
+					!tokens[2].empty())
+                {
+                    char* endptr_dl = nullptr;
+                    char* endptr_tot = nullptr;
+
+                    const char* str_dl = tokens[0].c_str();
+                    const char* str_tot = tokens[2].c_str();
+					
+                    long long downloaded = std::strtoll(str_dl, &endptr_dl, 10);
+                    long long total = std::strtoll(str_tot, &endptr_tot, 10);
+
+                    if (*endptr_dl == '\0' &&
+                        *endptr_tot == '\0' &&
+                         total > 0 &&
+                         downloaded >= 0 &&
+                         downloaded <= total)
+                    {
+                        double percent = (static_cast<double>(downloaded) / static_cast<double>(total)) * 100.0;
+                        if (percent > 100.0) 
+                            percent = 100.0;
+
+                        downloadprogress = std::to_string(static_cast<int>(percent));
+                        retStatus = true;
+                    }
+                 }
+             }
+             else
+             {
+                 /* ---------------- CASE 2: legacy format ---------------- */
+                 /* filter lines which has 'M' or 'G', which is equivalent to "sed '/^[^M/G]*$/d'" */
+                  std::size_t found_M = lastLine.find_first_of("M");
+                  std::size_t found_G = lastLine.find_first_of("G");
+                  if ((found_M != std::string::npos) || (found_G != std::string::npos))
+                  {
+                      /* Remove extra whitespaces from given input string, which is equivalent to "tr -s ' '" */
+                      removeExtraWhitespaces(lastLine, str);
+
+                      /* Divide the input string into words with delimiter(space) and get the third word,
+                         which is equivalent to "cut -d ' ' -f3" */
+                      split(stringList, str, " ");
+                      if (stringList.size() >= 3 && (!stringList[2].empty()))
+                      {
+                          downloadprogress = stringList[2];
+                          retStatus = true;
+                      }
+                  }
+            }
+
+            LOGINFO("downloadprogress [%s]", downloadprogress.c_str());
+            if (retStatus == true && !downloadprogress.empty())
+            {
+                downloadPercent = std::strtol(downloadprogress.c_str(), NULL, 10);
+            }
+            else
+            {
+                LOGERR("Cannot read FirmwareDownloadPercent\n");
+            }
+
+            LOGINFO("downloadPercent = %d", downloadPercent);
+
+            return retStatus;
+        }
+
         /***
          * @brief : To fetch Firmware Download Percentage Info.
          * @param1[in] : {"params":{}}
@@ -2156,29 +2342,20 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retStatus = false;
+			LOGWARN("preeja");
             int m_downloadPercent = -1;
-            if (Utils::fileExists("/opt/curl_progress")) {
-                /* TODO: replace with new implementation. */
-                FILE* fp = popen(CAT_DWNLDPROGRESSFILE_AND_GET_INFO, "r");
-                if (NULL != fp) {
-                    char output[8];
-                    if (NULL != fgets (output, 8, fp)) {
-                        output[strcspn(output, "\n")] = 0;
-                        if (*output) {
-                            m_downloadPercent = strtol(output, NULL, 10);
-                        }
-                        LOGWARN("FirmwareDownloadPercent = [%d]\n", m_downloadPercent);
-                    } else {
-                        LOGERR("Cannot read output from command\n");
-                    }
-                    pclose(fp);
-                } else {
-                    LOGERR("Cannot run command\n");
+            if (Utils::fileExists(DOWNLOAD_PROGRESS_FILE)) {
+                if (true == getDownloadProgress(m_downloadPercent))
+                {
+                    retStatus = true;
                 }
-
+                else
+                {
+                    LOGERR("getDownloadProgress() failed");
+                }
+				
                 LOGWARN("FirmwareDownloadPercent = [%d]", m_downloadPercent);
                 response["downloadPercent"] = m_downloadPercent;
-                retStatus = true;
             } else {
                 response["downloadPercent"] = -1;
                 retStatus = true;
