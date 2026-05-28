@@ -2295,7 +2295,7 @@ namespace WPEFramework {
             if (Utils::fileExists(DOWNLOAD_PROGRESS_FILE)) {
                 if (true == getDownloadProgress(m_downloadPercent))
                 {
-                    success = true;
+                    retStatus = true;
                 }
                 else
                 {
@@ -2304,7 +2304,6 @@ namespace WPEFramework {
 				
                 LOGWARN("FirmwareDownloadPercent = [%d]", m_downloadPercent);
                 response["downloadPercent"] = m_downloadPercent;
-                retStatus = true;
             } else {
                 response["downloadPercent"] = -1;
                 retStatus = true;
