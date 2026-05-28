@@ -2156,6 +2156,7 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retStatus = false;
+			LOGWARN("preeja");
             int m_downloadPercent = -1;
             if (Utils::fileExists("/opt/curl_progress")) {
                 /* TODO: replace with new implementation. */
@@ -2167,9 +2168,9 @@ namespace WPEFramework {
                         if (*output) {
                             m_downloadPercent = strtol(output, NULL, 10);
                         }
-                        LOGWARN("FirmwareDownloadPercent = [%d]\n", m_downloadPercent);
+                        LOGWARN("predebug FirmwareDownloadPercent = [%d]\n", m_downloadPercent);
                     } else {
-                        LOGERR("Cannot read output from command\n");
+                        LOGERR("predebug Cannot read output from command\n");
                     }
                     pclose(fp);
                 } else {
