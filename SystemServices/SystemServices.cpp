@@ -67,7 +67,7 @@
 using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 3
-#define API_VERSION_NUMBER_MINOR 5
+#define API_VERSION_NUMBER_MINOR 6
 #define API_VERSION_NUMBER_PATCH 2
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
