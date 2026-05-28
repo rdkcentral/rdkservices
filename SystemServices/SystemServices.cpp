@@ -2147,8 +2147,8 @@ namespace WPEFramework {
             returnResponse(retAPIStatus);
         }
 
-        /* ---------------- Utility: trim ---------------- */
-        static void trim(std::string& s)
+        /* ---------------- Utility: trim_s ---------------- */
+        static void trim_s(std::string& s)
         {
             size_t start = s.find_first_not_of(" \t\r\n");
             size_t end = s.find_last_not_of(" \t\r\n");
@@ -2209,7 +2209,7 @@ namespace WPEFramework {
 
             LOGINFO("File Content [%s]", lastLine.c_str());
 
-            trim(lastLine);
+            trim_s(lastLine);
 
             std::string downloadprogress;
 
@@ -2219,7 +2219,7 @@ namespace WPEFramework {
             if (found != std::string::npos)
             {
                 std::string part = lastLine.substr(found + 5);
-                trim(part);
+                trim_s(part);
 
                 std::istringstream iss(part);
                 std::vector<std::string> tokens;
