@@ -100,6 +100,7 @@ using namespace std;
 #define LOG_UPLOAD_STATUS_ABORTED "UPLOAD_ABORTED"
 
 #define BOOTVERSION "/opt/.bootversion"
+static const char* DOWNLOAD_PROGRESS_FILE = "/opt/curl_progress";
 
 /**
  * @struct firmwareUpdate
@@ -2146,6 +2147,139 @@ namespace WPEFramework {
             returnResponse(retAPIStatus);
         }
 
+        /* ---------------- Utility: trim ---------------- */
+        static void trim(std::string& s)
+        {
+            size_t start = s.find_first_not_of(" \t\r\n");
+            size_t end = s.find_last_not_of(" \t\r\n");
+
+            if (start == std::string::npos)
+                s.clear();
+            else
+                s = s.substr(start, end - start + 1);
+        }
+
+        /* ---------------- Utility: normalize spaces ---------------- */
+        static std::string normalizeSpaces(const std::string& input)
+        {
+            std::string out;
+            bool space = false;
+
+            for (char c : input)
+            {
+                if (std::isspace(static_cast<unsigned char>(c)))
+                {
+                    if (!space)
+                        out += ' ';
+                    space = true;
+                }
+                else
+                {
+                    out += c;
+                    space = false;
+                }
+            }
+
+            return out;
+        }
+
+        /* ---------------- getDownloadProgress ---------------- */
+        bool getDownloadProgress(int& downloadPercent)
+        {
+            downloadPercent = -1;
+            bool retStatus = false;
+
+            std::ifstream file(DOWNLOAD_PROGRESS_FILE);
+            if (!file.is_open())
+            {
+                LOGERR("Unable to open file [%s]", DOWNLOAD_PROGRESS_FILE);
+                return false;
+            }
+
+            std::string line, lastLine;
+
+            /* read file, keep last non-empty line */
+            while (std::getline(file, line))
+            {
+                if (!line.empty())
+                    lastLine = line;
+            }
+
+            file.close();
+
+            LOGINFO("File Content [%s]", lastLine.c_str());
+
+            trim(lastLine);
+
+            std::string downloadprogress;
+
+            /* ---------------- CASE 1: DOWN format ---------------- */
+            size_t found = lastLine.find("DOWN:");
+
+            if (found != std::string::npos)
+            {
+                std::string part = lastLine.substr(found + 5);
+                trim(part);
+
+                std::istringstream iss(part);
+                std::vector<std::string> tokens;
+                std::string t;
+
+                while (iss >> t)
+                    tokens.push_back(t);
+
+                if (tokens.size() >= 3 &&
+                    tokens[1] == "of")
+                {
+                    long long downloaded = std::stoll(tokens[0]);
+                    long long total = std::stoll(tokens[2]);
+
+                    if (total > 0)
+                    {
+                        double percent = (double)downloaded * 100.0 / total;
+
+                        if (percent > 100.0)
+                            percent = 100.0;
+
+                        downloadprogress = std::to_string((int)percent);
+                        retStatus = true;
+                     }
+                 }
+             }
+             else
+             {
+                 /* ---------------- CASE 2: legacy format ---------------- */
+
+                 if (lastLine.find('M') != std::string::npos ||
+                     lastLine.find('G') != std::string::npos)
+                 {
+                     std::string normalized = normalizeSpaces(lastLine);
+
+                     std::istringstream iss(normalized);
+                     std::vector<std::string> tokens;
+                     std::string t;
+
+                     while (iss >> t)
+                         tokens.push_back(t);
+
+                     if (tokens.size() >= 3)
+                     {
+                        downloadprogress = tokens[2];
+                        retStatus = true;
+                    }
+                }
+            }
+
+            if (!downloadprogress.empty())
+            {
+                downloadPercent = std::stoi(downloadprogress);
+            }
+
+            LOGINFO("downloadPercent = %d", downloadPercent);
+
+            return retStatus;
+        }
+
         /***
          * @brief : To fetch Firmware Download Percentage Info.
          * @param1[in] : {"params":{}}
@@ -2158,25 +2292,16 @@ namespace WPEFramework {
             bool retStatus = false;
 			LOGWARN("preeja");
             int m_downloadPercent = -1;
-            if (Utils::fileExists("/opt/curl_progress")) {
-                /* TODO: replace with new implementation. */
-                FILE* fp = popen(CAT_DWNLDPROGRESSFILE_AND_GET_INFO, "r");
-                if (NULL != fp) {
-                    char output[8];
-                    if (NULL != fgets (output, 8, fp)) {
-                        output[strcspn(output, "\n")] = 0;
-                        if (*output) {
-                            m_downloadPercent = strtol(output, NULL, 10);
-                        }
-                        LOGWARN("predebug FirmwareDownloadPercent = [%d]\n", m_downloadPercent);
-                    } else {
-                        LOGERR("predebug Cannot read output from command\n");
-                    }
-                    pclose(fp);
-                } else {
-                    LOGERR("Cannot run command\n");
+            if (Utils::fileExists(DOWNLOAD_PROGRESS_FILE)) {
+                if (true == getDownloadProgress(m_downloadPercent))
+                {
+                    success = true;
                 }
-
+                else
+                {
+                    LOGERR("getDownloadProgress() failed");
+                }
+				
                 LOGWARN("FirmwareDownloadPercent = [%d]", m_downloadPercent);
                 response["downloadPercent"] = m_downloadPercent;
                 retStatus = true;
