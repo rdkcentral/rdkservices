@@ -2239,8 +2239,8 @@ namespace WPEFramework {
                     const char* str_dl = tokens[0].c_str();
                     const char* str_tot = tokens[2].c_str();
 					
-                    long long downloaded = std::stoll(str_dl, &endptr_dl, 10);
-                    long long total = std::stoll(str_tot, &endptr_tot, 10);
+                    long long downloaded = std::strtoll(str_dl, &endptr_dl, 10);
+                    long long total = std::strtoll(str_tot, &endptr_tot, 10);
 
                     if (*endptr_dl == '\0' &&
                         *endptr_tot == '\0' &&
