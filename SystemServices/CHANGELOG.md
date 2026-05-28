@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [3.5.3] - 2026-05-26
+### Fixed
+- Fixed the getFirmwareDownloadPercent API failed with new file format
+
 ## [3.5.2] - 2025-10-16
 ### Fixed
 - Added safetycheck around string manipulation while invoking getTerritory/setTerritory
