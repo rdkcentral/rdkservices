@@ -2147,6 +2147,51 @@ namespace WPEFramework {
             returnResponse(retAPIStatus);
         }
 
+    /**
+     * @brief Remove extra spaces from the given input string
+     * @param[in] in_str - The input string
+     * @param[out] out_str - The output string (equals input_string with extra spaces removed)
+     * @return true if the input string is a valid string
+     */
+    static bool removeExtraWhitespaces(string& in_str, string& out_str)
+    {
+        bool ret_status = false;
+        int idx = 0;
+        if (!in_str.empty())
+        {
+            while (in_str[idx] != '\0')
+            {
+                out_str += in_str[idx];
+                if (in_str[idx] == ' ')
+                {
+                    while (in_str[idx+1] == ' ')
+                    {
+                        idx++;
+                    }
+                }
+                idx++;
+            }
+            ret_status = true;
+        }
+        return ret_status;
+    }
+    
+    
+    // Split string s into a vector of strings using the supplied delimiter
+    static void split(std::vector<std::string> &stringList, std::string &s, std::string delimiters)
+    {
+        size_t current = 0;
+        size_t next;
+        do
+        {
+            next = s.find_first_of( delimiters, current );
+
+            stringList.push_back(s.substr( current, next - current ));
+            current = next + 1;
+        }
+        while (next != string::npos);
+     }
+
         /* ---------------- Utility: trim_s ---------------- */
         static void trim_s(std::string& s)
         {
@@ -2157,30 +2202,6 @@ namespace WPEFramework {
                 s.clear();
             else
                 s = s.substr(start, end - start + 1);
-        }
-
-        /* ---------------- Utility: normalize spaces ---------------- */
-        static std::string normalizeSpaces(const std::string& input)
-        {
-            std::string out;
-            bool space = false;
-
-            for (char c : input)
-            {
-                if (std::isspace(static_cast<unsigned char>(c)))
-                {
-                    if (!space)
-                        out += ' ';
-                    space = true;
-                }
-                else
-                {
-                    out += c;
-                    space = false;
-                }
-            }
-
-            return out;
         }
 
         /* ---------------- getDownloadProgress ---------------- */
@@ -2197,6 +2218,8 @@ namespace WPEFramework {
             }
 
             std::string line, lastLine;
+			vector<string> stringList;
+            string str = "";
 
             /* read file, keep last non-empty line */
             while (std::getline(file, line))
@@ -2207,7 +2230,7 @@ namespace WPEFramework {
 
             file.close();
 
-            LOGINFO("File Content [%s]", lastLine.c_str());
+            LOGINFO("File Content [%s]\n", lastLine.c_str());
 
             trim_s(lastLine);
 
@@ -2260,28 +2283,26 @@ namespace WPEFramework {
              else
              {
                  /* ---------------- CASE 2: legacy format ---------------- */
+                 /* filter lines which has 'M' or 'G', which is equivalent to "sed '/^[^M/G]*$/d'" */
+                  std::size_t found_M = lastLine.find_first_of("M");
+                  std::size_t found_G = lastLine.find_first_of("G");
+                  if ((found_M != std::string::npos) || (found_G != std::string::npos))
+                  {
+                      /* Remove extra whitespaces from given input string, which is equivalent to "tr -s ' '" */
+                      removeExtraWhitespaces(lastLine, str);
 
-                 if (lastLine.find('M') != std::string::npos ||
-                     lastLine.find('G') != std::string::npos)
-                 {
-                     std::string normalized = normalizeSpaces(lastLine);
-
-                     std::istringstream iss(normalized);
-                     std::vector<std::string> tokens;
-                     std::string t;
-
-                     while (iss >> t)
-                         tokens.push_back(t);
-
-                     if (tokens.size() >= 3)
-                     {
-                        downloadprogress = tokens[2];
-                        retStatus = true;
-                    }
-                }
+                      /* Divide the input string into words with delimiter(space) and get the third word,
+                         which is equivalent to "cut -d ' ' -f3" */
+                      split(stringList, str, " ");
+                      if (stringList.size() >= 3 && (!stringList[2].empty()))
+                      {
+                          downloadprogress = stringList[2];
+                          retStatus = true;
+                      }
+                  }
             }
 
-             LOGINFO("downloadprogress [%s]", downloadprogress.c_str());
+            LOGINFO("downloadprogress [%s]", downloadprogress.c_str());
             if (retStatus == true && !downloadprogress.empty())
             {
                 downloadPercent = std::strtol(downloadprogress.c_str(), NULL, 10);
