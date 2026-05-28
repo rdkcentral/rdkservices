@@ -2270,9 +2270,14 @@ namespace WPEFramework {
                 }
             }
 
-            if (!downloadprogress.empty())
+             LOGINFO("downloadprogress [%s]", downloadprogress.c_str());
+            if (retStatus == true && !downloadprogress.empty())
             {
-                downloadPercent = std::stoi(downloadprogress);
+                downloadPercent = std::strtol(downloadprogress.c_str(), NULL, 10);
+            }
+            else
+            {
+                LOGERR("Cannot read FirmwareDownloadPercent\n");
             }
 
             LOGINFO("downloadPercent = %d", downloadPercent);
