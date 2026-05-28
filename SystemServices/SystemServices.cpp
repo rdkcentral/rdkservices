@@ -2229,21 +2229,32 @@ namespace WPEFramework {
                     tokens.push_back(t);
 
                 if (tokens.size() >= 3 &&
-                    tokens[1] == "of")
+					!tokens[0].empty() &&
+                    tokens[1] == "of" &&
+					!tokens[2].empty())
                 {
-                    long long downloaded = std::stoll(tokens[0]);
-                    long long total = std::stoll(tokens[2]);
+                    char* endptr_dl = nullptr;
+                    char* endptr_tot = nullptr;
 
-                    if (total > 0)
+                    const char* str_dl = tokens[0].c_str();
+                    const char* str_tot = tokens[2].c_str();
+					
+                    long long downloaded = std::stoll(str_dl, &endptr_dl, 10);
+                    long long total = std::stoll(str_tot, &endptr_tot, 10);
+
+                    if (*endptr_dl == '\0' &&
+                        *endptr_tot == '\0' &&
+                         total > 0 &&
+                         downloaded >= 0 &&
+                         downloaded <= total)
                     {
-                        double percent = (double)downloaded * 100.0 / total;
-
-                        if (percent > 100.0)
+                        double percent = (static_cast<double>(downloaded) / static_cast<double>(total)) * 100.0;
+                        if (percent > 100.0) 
                             percent = 100.0;
 
-                        downloadprogress = std::to_string((int)percent);
+                        downloadprogress = std::to_string(static_cast<int>(percent));
                         retStatus = true;
-                     }
+                    }
                  }
              }
              else
