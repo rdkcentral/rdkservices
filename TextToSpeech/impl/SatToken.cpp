@@ -50,10 +50,9 @@ string SatToken::getSecurityToken() {
         if(file.Open(true)) {
             JsonObject config;
             if(config.IElement::FromFile(file)) {
-                Core::JSON::String port = config.Get("port");
-                Core::JSON::String binding = config.Get("binding");
-                if(!binding.Value().empty() && !port.Value().empty())
-                    endpoint = binding.Value() + ":" + port.Value();
+                Core::JSON::DecUInt32 port = config.Get("port");
+                if(port.Value() != 0)
+                    endpoint = std::string("127.0.0.1:") + std::to_string(port.Value());
             }
             file.Close();
         }
