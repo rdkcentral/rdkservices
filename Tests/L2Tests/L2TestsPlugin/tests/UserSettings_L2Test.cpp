@@ -2472,6 +2472,26 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
 
+                TEST_LOG("Setting and Getting PrivacyMode Values");
+                status = m_usersettingsplugin->SetPrivacyMode("SHARE");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                status = m_usersettingsplugin->GetPrivacyMode(getStringValue);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                else
+                {
+                    EXPECT_EQ(getStringValue, "SHARE");
+                }
+
 
                 TEST_LOG("Testing getMigrationState after migrating properties");
 
@@ -2629,6 +2649,15 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 }
 
                 status = m_usersettings_inspe_plugin->GetMigrationState(Exchange::IUserSettingsInspector::SettingsKey::CONTENT_PIN , requiresMigration);
+                EXPECT_EQ(requiresMigration, false);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+
+                status = m_usersettings_inspe_plugin->GetMigrationState(Exchange::IUserSettingsInspector::SettingsKey::PRIVACY_MODE, requiresMigration);
                 EXPECT_EQ(requiresMigration, false);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)

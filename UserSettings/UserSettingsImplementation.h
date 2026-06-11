@@ -23,6 +23,7 @@
 #include <interfaces/Ids.h>
 #include <interfaces/IUserSettings.h>
 #include <interfaces/IStore2.h>
+#include <interfaces/IBackup.h>
 #include <interfaces/IConfiguration.h>
 #include "tracing/Logging.h"
 #include <vector>
@@ -57,6 +58,7 @@ namespace WPEFramework {
 namespace Plugin {
     class UserSettingsImplementation : public Exchange::IUserSettings,
                                        public Exchange::IUserSettingsInspector,
+                                       public Exchange::IBackupProvider,
                                        public Exchange::IConfiguration {
 
     public:
@@ -66,6 +68,8 @@ namespace Plugin {
         static const double maxVGR;
 
     private:
+        static const std::map<Exchange::Scenario, string> _backupScenarioMap;
+        
         class Store2Notification : public Exchange::IStore2::INotification {
         private:
             Store2Notification(const Store2Notification&) = delete;
@@ -106,6 +110,7 @@ namespace Plugin {
         BEGIN_INTERFACE_MAP(UserSettingsImplementation)
         INTERFACE_ENTRY(Exchange::IUserSettings)
         INTERFACE_ENTRY(Exchange::IUserSettingsInspector)
+        INTERFACE_ENTRY(Exchange::IBackupProvider)
         INTERFACE_ENTRY(Exchange::IConfiguration)
         END_INTERFACE_MAP
 
@@ -218,6 +223,12 @@ namespace Plugin {
         Core::hresult GetMigrationState(const SettingsKey key, bool &requiresMigration) const override;
         Core::hresult GetMigrationStates(IUserSettingsMigrationStateIterator *&states) const override;
 
+        // IBackupProvider methods
+        Core::hresult Backup(const Exchange::BackupContext& context) override;
+        Core::hresult Restore(const Exchange::BackupContext& context) override;
+        Core::hresult Delete(const Exchange::BackupContext& context) override;
+
+
         // IConfiguration methods
         uint32_t Configure(PluginHost::IShell* service) override;
 
@@ -227,6 +238,7 @@ namespace Plugin {
     private:
         uint32_t SetUserSettingsValue(const string& key, const string& value);
         uint32_t GetUserSettingsValue(const string& key, string &value) const;
+        bool IsValidVariant(const string& value) const;
 
     private:
         mutable Core::CriticalSection _adminLock;

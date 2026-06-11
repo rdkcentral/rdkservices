@@ -26,6 +26,7 @@
 #include <interfaces/json/JsonData_UserSettingsInspector.h>
 #include <interfaces/IUserSettings.h>
 #include <interfaces/IConfiguration.h>
+#include <interfaces/IBackup.h>
 #include "UtilsLogging.h"
 #include "tracing/Logging.h"
 #include <mutex>
@@ -203,6 +204,7 @@ namespace Plugin {
             INTERFACE_ENTRY(PluginHost::IDispatcher)
             INTERFACE_AGGREGATE(Exchange::IUserSettings, _userSetting)
             INTERFACE_AGGREGATE(Exchange::IUserSettingsInspector, _userSettingsInspector)
+            INTERFACE_AGGREGATE(Exchange::IBackupProvider, _backupProvider)
             END_INTERFACE_MAP
 
             //  IPlugin methods
@@ -221,6 +223,7 @@ namespace Plugin {
             Exchange::IUserSettingsInspector* _userSettingsInspector{};
             Core::Sink<Notification> _usersettingsNotification;
             Exchange::IConfiguration* configure;
+            Exchange::IBackupProvider* _backupProvider{};
     };
 
 } // namespace Plugin
