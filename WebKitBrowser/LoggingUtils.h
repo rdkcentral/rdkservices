@@ -21,7 +21,7 @@
 
 #include <core/Portability.h>
 
-namespace WPEFramework {
+namespace Thunder {
 namespace Plugin {
 
 bool RedirectAllLogsToService(const string& target_service);

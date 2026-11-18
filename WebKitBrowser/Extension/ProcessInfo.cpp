@@ -21,7 +21,7 @@
 
 #include <sys/prctl.h>
 
-namespace WPEFramework {
+namespace Thunder {
 namespace ProcessInfo {
 
 void SetProcessName()
@@ -47,4 +47,4 @@ void SetProcessName()
 }
 
 }  // namespace ProcessInfo
-}  // namespace WPEFramework
+}  // namespace Thunder

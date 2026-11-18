@@ -35,7 +35,7 @@
 
 #include "Utils.h"
 
-namespace WPEFramework {
+namespace Thunder {
 namespace WebKit {
 
 namespace
@@ -80,7 +80,7 @@ void SetRequestHeaders(WKBundlePageRef page, WKTypeRef messageBody)
     if (WKGetTypeID(messageBody) != WKStringGetTypeID())
         return;
 
-    string message = WPEFramework::WebKit::Utils::WKStringToString(static_cast<WKStringRef>(messageBody));
+    string message = Thunder::WebKit::Utils::WKStringToString(static_cast<WKStringRef>(messageBody));
 
 #if defined(ENABLE_AAMP_JSBINDINGS)
     // Pass on HTTP headers to AAMP , if empty, AAMP should clear previose headers set

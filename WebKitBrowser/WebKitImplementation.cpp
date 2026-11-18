@@ -3825,4 +3825,4 @@ static GSourceFuncs _handlerIntervention =
 #endif // !WEBKIT_GLIB_API
 } // namespace Plugin
 
-} // namespace WPEFramework
+} // namespace Thunder

@@ -32,7 +32,7 @@
 #error "Please define COOKIE_JAR_CRYPTO_IMPLEMENTATION"
 #endif
 
-namespace WPEFramework {
+namespace Thunder {
 namespace Plugin {
 
 namespace {
@@ -263,7 +263,7 @@ uint32_t CookieJar::Unpack(const uint32_t version, const uint32_t checksum, cons
 
     rc = _priv->Unpack(version, checksum, payload, cookies);
 
-    if (rc == WPEFramework::Core::ERROR_NONE) {
+    if (rc == Thunder::Core::ERROR_NONE) {
         _cookies = std::move(cookies);
         _refreshed.SetState( false );
     }
@@ -283,4 +283,4 @@ std::vector<std::string> CookieJar::GetCookies() const
 }
 
 } // namespace Plugin
-} // namespace WPEFramework
+} // namespace Thunder

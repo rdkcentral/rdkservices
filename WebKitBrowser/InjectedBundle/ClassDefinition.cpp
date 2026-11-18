@@ -20,7 +20,7 @@
 #include "ClassDefinition.h"
 #include <memory.h>
 
-namespace WPEFramework {
+namespace Thunder {
 namespace JavaScript {
 
     // Constructor: uses identifier to build class and extension name.

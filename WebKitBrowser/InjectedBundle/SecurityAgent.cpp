@@ -22,7 +22,7 @@
 #include "../Tags.h"
 #include <securityagent/securityagent.h>
 
-namespace WPEFramework {
+namespace Thunder {
 namespace JavaScript {
     namespace Functions {
         class token {

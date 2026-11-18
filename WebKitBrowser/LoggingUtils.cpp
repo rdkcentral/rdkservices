@@ -29,7 +29,7 @@
 
 #include "Module.h"
 
-namespace WPEFramework {
+namespace Thunder {
 namespace Plugin {
 
 bool RedirectAllLogsToService(const string& target_service)
@@ -59,7 +59,7 @@ bool RedirectAllLogsToService(const string& target_service)
   }
 
   // Add all threads of current process to target systemd cgroup
-  WPEFramework::Core::Directory taskDir("/proc/self/task");
+  Thunder::Core::Directory taskDir("/proc/self/task");
   while (taskDir.Next() == true) {
     if (taskDir.Name() == "." || taskDir.Name() == "..")
       continue;

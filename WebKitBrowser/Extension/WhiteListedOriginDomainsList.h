@@ -27,7 +27,7 @@
 #include <map>
 #include <memory>
 
-namespace WPEFramework {
+namespace Thunder {
 namespace WebKit {
 
     class WhiteListedOriginDomainsList {

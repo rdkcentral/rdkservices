@@ -24,7 +24,7 @@
 #ifndef WEBKIT_GLIB_API
 #include "InjectedBundle/Utils.h"
 #endif
-using namespace WPEFramework;
+using namespace Thunder;
 
 class BrowserConsoleLog {
 private:
@@ -38,7 +38,11 @@ public:
     {
         _text = '[' + prefix + "][" + Core::NumberType<uint64_t>(line).Text() + ',' + Core::NumberType<uint64_t>(column).Text() + ']' + message;
 #ifdef __CORE_MESSAGING__
-        const uint16_t maxStringLength = Messaging::MessageUnit::DataSize - 1;
+        #if THUNDER_VERSION < 5
+            const uint16_t maxStringLength = Messaging::MessageUnit::DataSize - 1;
+        #else
+            const uint16_t maxStringLength = Messaging::MessageUnit::Instance().DataSize() - 1;
+        #endif
 #else
         const uint16_t maxStringLength = Trace::TRACINGBUFFERSIZE - 1;
 #endif
@@ -51,7 +55,11 @@ public:
     { 
         _text = '[' + prefix + "][" + Core::NumberType<uint64_t>(line).Text() + ',' + Core::NumberType<uint64_t>(column).Text() + ']' + WebKit::Utils::WKStringToString(message);
 #ifdef __CORE_MESSAGING__
-        const uint16_t maxStringLength = Messaging::MessageUnit::DataSize - 1;
+        #if THUNDER_VERSION < 5
+            const uint16_t maxStringLength = Messaging::MessageUnit::DataSize - 1;
+        #else
+            const uint16_t maxStringLength = Messaging::MessageUnit::Instance().DataSize() - 1;
+        #endif
 #else
         const uint16_t maxStringLength = Trace::TRACINGBUFFERSIZE - 1;
 #endif

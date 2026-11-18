@@ -27,7 +27,7 @@ const char *kTimeZoneFile = TZ_FILE;
 const char *kTimeZoneFile = "/opt/persistent/timeZoneDST";
 #endif
 
-namespace WPEFramework {
+namespace Thunder {
 
 namespace TZ {
 

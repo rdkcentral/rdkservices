@@ -26,7 +26,7 @@
 
 #include <vector>
 
-namespace WPEFramework {
+namespace Thunder {
 namespace WebKit {
 
     class WhiteListedOriginDomainsList {

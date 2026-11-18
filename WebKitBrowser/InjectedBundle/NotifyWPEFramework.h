@@ -23,7 +23,7 @@
 #include "JavaScriptFunctionType.h"
 #include "../Tags.h"
 
-namespace WPEFramework {
+namespace Thunder {
 namespace JavaScript {
     namespace Functions {
 

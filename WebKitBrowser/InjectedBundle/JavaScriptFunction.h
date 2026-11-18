@@ -27,7 +27,7 @@
 #include <cassert>
 #include <memory>
 
-namespace WPEFramework {
+namespace Thunder {
 namespace JavaScript {
 
     class JavaScriptFunction {
@@ -56,6 +56,6 @@ namespace JavaScript {
         std::string NameString;
     };
 } // namespace JavaScript
-} // namespace WPEFramework
+} // namespace Thunder
 
 #endif // __JAVASCRIPTFUNCTION_H

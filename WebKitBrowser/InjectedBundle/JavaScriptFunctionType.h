@@ -23,7 +23,7 @@
 #include "ClassDefinition.h"
 #include "JavaScriptFunction.h"
 
-namespace WPEFramework {
+namespace Thunder {
 
 namespace JavaScript {
 

@@ -21,7 +21,7 @@
 
 #include <wpe/webkit-web-extension.h>
 
-namespace WPEFramework {
+namespace Thunder {
 namespace JavaScript {
 namespace Milestone {
 

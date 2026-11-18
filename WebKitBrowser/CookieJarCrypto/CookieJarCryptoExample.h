@@ -23,7 +23,7 @@
 
 #include <cryptalgo/cryptalgo.h>
 
-namespace WPEFramework {
+namespace Thunder {
 namespace Plugin {
 
 // Following implementation is for demonstration purposes only, not intended for a production.
@@ -86,4 +86,4 @@ struct CookieJarCrypto
 };
 
 } // namespace Plugin
-} // namespace WPEFramework
+} // namespace Thunder

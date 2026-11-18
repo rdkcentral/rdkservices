@@ -23,7 +23,7 @@
 
 #include "ClassDefinition.h"
 
-namespace WPEFramework {
+namespace Thunder {
 namespace JavaScript {
 
     JavaScriptFunction::JavaScriptFunction(const string& name, const JSObjectCallAsFunctionCallback callback,
@@ -55,4 +55,4 @@ namespace JavaScript {
         return staticFunction;
     }
 } // namespace JavaScript
-} // namespace WPEFramework
+} // namespace Thunder

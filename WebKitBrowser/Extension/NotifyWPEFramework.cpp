@@ -20,7 +20,7 @@
 #include "Module.h"
 #include "NotifyWPEFramework.h"
 
-namespace WPEFramework {
+namespace Thunder {
 namespace JavaScript {
 namespace NotifyWPEFramework {
 

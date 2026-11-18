@@ -24,18 +24,18 @@
 // Global handle to this bundle.
 extern WKBundleRef g_Bundle;
 
-namespace WPEFramework {
+namespace Thunder {
 
 namespace JavaScript {
 
     namespace Functions {
 
-        NotifyWPEFramework::NotifyWPEFramework()
+        NotifyThunder::NotifyWPEFramework()
         {
         }
 
         // Implementation of JS function: loops over arguments and passes all strings to WPEFramework.
-        JSValueRef NotifyWPEFramework::HandleMessage(JSContextRef context, JSObjectRef,
+        JSValueRef NotifyThunder::HandleMessage(JSContextRef context, JSObjectRef,
             JSObjectRef, size_t argumentCount, const JSValueRef arguments[], JSValueRef*)
         {
             WKStringRef messageName = WKStringCreateWithUTF8CString(GetMessageName().c_str());

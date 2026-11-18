@@ -20,7 +20,7 @@
 
 #include <wpe/webkit-web-extension.h>
 
-namespace WPEFramework {
+namespace Thunder {
 namespace WebKit {
 
 void SetRequestHeaders(WebKitWebPage*, WebKitUserMessage*);

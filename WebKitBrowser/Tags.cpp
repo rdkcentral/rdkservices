@@ -19,7 +19,7 @@
 
 #include "Tags.h"
 
-namespace WPEFramework {
+namespace Thunder {
 
 namespace Tags {
 

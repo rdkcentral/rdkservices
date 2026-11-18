@@ -22,7 +22,7 @@
 #include <wpe/webkit-web-extension.h>
 #include "../tags.h"
 
-namespace WPEFramework {
+namespace Thunder {
 namespace JavaScript {
 namespace TestRunner {
 

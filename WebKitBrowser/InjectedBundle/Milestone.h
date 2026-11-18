@@ -22,7 +22,7 @@
 
 #include "JavaScriptFunctionType.h"
 
-namespace WPEFramework {
+namespace Thunder {
 namespace JavaScript {
     namespace Functions {
         class Milestone {

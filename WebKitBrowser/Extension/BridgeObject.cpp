@@ -21,7 +21,7 @@
 #include "BridgeObject.h"
 #include "../Tags.h"
 
-namespace WPEFramework {
+namespace Thunder {
 namespace JavaScript {
 namespace BridgeObject {
 
@@ -150,4 +150,4 @@ bool HandleMessageToPage(WebKitWebPage* page, const char* messageName, WebKitUse
 
 }  // namespace BridgeObject
 }  // namespace JavaScript
-}  // namespace WPEFramework
+}  // namespace Thunder

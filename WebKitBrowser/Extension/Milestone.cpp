@@ -20,7 +20,7 @@
 #include "Module.h"
 #include "Milestone.h"
 
-namespace WPEFramework {
+namespace Thunder {
 namespace JavaScript {
 namespace Milestone {
 

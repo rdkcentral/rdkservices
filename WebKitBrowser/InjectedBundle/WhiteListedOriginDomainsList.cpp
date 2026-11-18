@@ -31,7 +31,7 @@ using std::vector;
 using std::cerr;
 using std::endl;
 
-namespace WPEFramework {
+namespace Thunder {
 namespace WebKit {
 
     // Parses JSON containing white listed CORS origin-domain pairs.

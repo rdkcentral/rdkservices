@@ -27,7 +27,7 @@
 #include <WPE/WebKit.h>
 #include <vector>
 
-namespace WPEFramework {
+namespace Thunder {
 namespace JavaScript {
 
     class ClassDefinition {

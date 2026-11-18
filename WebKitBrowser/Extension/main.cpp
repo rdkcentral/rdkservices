@@ -57,7 +57,7 @@
 #include <TestRunnerJS.h>
 #endif
 
-using namespace WPEFramework;
+using namespace Thunder;
 
 static Core::NodeId GetConnectionNode()
 {

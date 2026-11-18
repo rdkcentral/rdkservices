@@ -21,10 +21,10 @@
 
 #include <wpe/webkit-web-extension.h>
 
-namespace WPEFramework {
+namespace Thunder {
 namespace ProcessInfo {
 
 void SetProcessName();
 
 }  // namespace ProcessInfo
-}  // namespace WPEFramework
+}  // namespace Thunder

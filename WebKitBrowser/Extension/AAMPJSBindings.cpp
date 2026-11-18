@@ -29,7 +29,7 @@ extern "C" {
     JSGlobalContextRef jscContextGetJSContext(JSCContext*);
 }
 
-namespace WPEFramework {
+namespace Thunder {
 namespace JavaScript {
 namespace AAMP {
 
@@ -111,4 +111,4 @@ void SetHttpHeaders(const char * headerJson)
 
 }  // namespace AAMP
 }  // namespace JavaScript
-}  // namespace WPEFramework
+}  // namespace Thunder

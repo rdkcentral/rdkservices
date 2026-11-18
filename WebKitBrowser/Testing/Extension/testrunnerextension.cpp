@@ -211,7 +211,7 @@ bool endsWith(const std::string& str, const std::string& suffix) {
 
 } // namespace
 
-namespace WPEFramework {
+namespace Thunder {
 namespace JavaScript {
 namespace TestRunner {
 

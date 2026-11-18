@@ -23,7 +23,7 @@
 
 unsigned int amazon_player_deinitialize();
 
-namespace WPEFramework {
+namespace Thunder {
 namespace JavaScript {
 namespace Amazon {
 
@@ -215,4 +215,4 @@ namespace Amazon {
 
 } // namespace Amazon
 } // namespace JavaScript
-} // namespace WPEFramework
+} // namespace Thunder

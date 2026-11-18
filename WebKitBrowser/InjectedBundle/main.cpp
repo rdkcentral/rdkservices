@@ -50,13 +50,13 @@
 #include "TimeZoneSupport.h"
 #endif
 
-using namespace WPEFramework;
+using namespace Thunder;
 using JavaScript::ClassDefinition;
 
 WKBundleRef g_Bundle;
 std::string g_currentURL;
 
-namespace WPEFramework {
+namespace Thunder {
 namespace WebKit {
 namespace Utils {
 
@@ -419,5 +419,5 @@ EXTERNAL void WKBundleInitialize(WKBundleRef bundle, WKTypeRef)
 }
 
 // explicit instantiation so that -O1/2/3 flags do not introduce undefined symbols
-template void WPEFramework::Core::IPCMessageType<2u, WPEFramework::RPC::Data::Input, WPEFramework::RPC::Data::Output>::RawSerializedType<WPEFramework::RPC::Data::Input, 4u>::AddRef() const;
-template void WPEFramework::Core::IPCMessageType<2u, WPEFramework::RPC::Data::Input, WPEFramework::RPC::Data::Output>::RawSerializedType<WPEFramework::RPC::Data::Output, 5u>::AddRef() const;
+template void Thunder::Core::IPCMessageType<2u, Thunder::RPC::Data::Input, Thunder::RPC::Data::Output>::RawSerializedType<Thunder::RPC::Data::Input, 4u>::AddRef() const;
+template void Thunder::Core::IPCMessageType<2u, Thunder::RPC::Data::Input, Thunder::RPC::Data::Output>::RawSerializedType<Thunder::RPC::Data::Output, 5u>::AddRef() const;

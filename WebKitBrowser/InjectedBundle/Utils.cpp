@@ -22,7 +22,7 @@
 using std::unique_ptr;
 using std::vector;
 
-namespace WPEFramework {
+namespace Thunder {
 namespace WebKit {
     namespace Utils {
 

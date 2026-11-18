@@ -27,7 +27,7 @@
 // Global handle to this bundle.
 extern WKBundleRef g_Bundle;
 
-namespace WPEFramework {
+namespace Thunder {
 
 namespace JavaScript {
 

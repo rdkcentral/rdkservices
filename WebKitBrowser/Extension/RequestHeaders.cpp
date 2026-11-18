@@ -28,7 +28,7 @@
 #include "AAMPJSBindings.h"
 #endif
 
-namespace WPEFramework {
+namespace Thunder {
 namespace WebKit {
 
 namespace

@@ -27,7 +27,7 @@
 #include <memory>
 #include <vector>
 
-namespace WPEFramework {
+namespace Thunder {
 namespace WebKit {
     namespace Utils {
         void AppendStringToWKArray(const string& item, WKMutableArrayRef array);

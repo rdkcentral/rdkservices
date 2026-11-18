@@ -22,7 +22,7 @@
 
 #include <tracing/tracing.h>
 
-using namespace WPEFramework;
+using namespace Thunder;
 
 class HTML5Notification {
 private:

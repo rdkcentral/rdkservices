@@ -32,7 +32,7 @@
 #include <interfaces/json/JBrowserScripting.h>
 #include <interfaces/json/JBrowserCookieJar.h>
 
-namespace WPEFramework {
+namespace Thunder {
 
 namespace WebKitBrowser {
     // An implementation file needs to implement this method to return an operational browser, wherever that would be :-)

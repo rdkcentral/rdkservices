@@ -22,7 +22,7 @@
 #include "../Tags.h"
 #include "Utils.h"
 
-namespace WPEFramework {
+namespace Thunder {
 namespace JavaScript {
 namespace BridgeObject {
 

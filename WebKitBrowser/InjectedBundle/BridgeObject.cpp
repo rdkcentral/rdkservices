@@ -26,7 +26,7 @@
 // Global handle to this bundle.
 extern WKBundleRef g_Bundle;
 
-namespace WPEFramework {
+namespace Thunder {
 namespace JavaScript {
 namespace BridgeObject {
 
@@ -237,4 +237,4 @@ bool HandleMessageToPage(WKBundlePageRef page, WKStringRef messageName, WKTypeRe
 
 }  // namespace BridgeObject
 }  // namespace JavaScript
-}  // namespace WPEFramework
+}  // namespace Thunder
